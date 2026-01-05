@@ -1,0 +1,17 @@
+node_modules
+npm-debug.log
+.DS_Store
+.git
+.gitignore
+.vscode
+.idea
+coverage
+*.log
+dist
+client/dist
+**/*.swp
+**/*.swo
+**/*.tmp
+**/.cache
+**/.next
+**/out

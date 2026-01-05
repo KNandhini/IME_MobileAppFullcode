@@ -1,0 +1,310 @@
+import os
+import asyncio
+import httpx
+import re
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_pinecone import PineconeVectorStore
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.documents import Document
+from langchain.chains import RetrievalQA
+from langgraph.graph import StateGraph, END
+from pinecone import Pinecone as PineconeClient
+
+# -----------------------------
+# SerpAPI Web Search
+# -----------------------------
+def serpapi_search(query):
+    api_key = os.getenv("SERPAPI_API_KEY")
+    params = {
+        "q": query,
+        "api_key": api_key,
+        "engine": "google",
+        "num": 5
+    }
+    response = httpx.get("https://serpapi.com/search", params=params)
+    data = response.json()
+    results = []
+
+    if "organic_results" in data:
+        for item in data["organic_results"]:
+            title = item.get("title")
+            link = item.get("link")
+            snippet = item.get("snippet", "")
+            results.append(f"🔗 {title}\n{link}\n📝 {snippet}\n")
+
+    return "\n".join(results) if results else "No web results found."
+
+# -----------------------------
+# Format Web Result via LLM
+# -----------------------------
+async def format_web_result_with_llm(raw_results, user_question):
+    format_prompt = f"""
+You are an AI assistant. Below is a user's question followed by unstructured web search results.
+Your task is to extract the most useful information and provide a clear, helpful, and well-structured answer.
+
+User Question:
+{user_question}
+
+Web Search Results:
+{raw_results}
+
+Now provide a clean, human-readable answer:
+"""
+    response = await llm.ainvoke(format_prompt)
+    return response.content.strip()
+
+# -----------------------------
+# Step Confirmation + Rephrasing
+# -----------------------------
+async def confirm_each_step(answer_text):
+    if "provided context does not contain sufficient information" in answer_text.lower():
+        return answer_text, False, None, None
+
+    print("\n📋 Steps to follow:")
+    grouped_steps = []
+    current_group = []
+
+    lines = [line for line in answer_text.split("\n") if line.strip()]
+    for line in lines:
+        if re.match(r"^\s*\d+[\.\)]", line) or not line.startswith((" ", "-", "*")):
+            if current_group:
+                grouped_steps.append(current_group)
+            current_group = [line]
+        else:
+            current_group.append(line)
+    if current_group:
+        grouped_steps.append(current_group)
+
+    for i, group in enumerate(grouped_steps):
+        for line in group:
+            print(line)
+
+        if i == 0 or i == len(grouped_steps) - 1:
+            continue
+
+        input_val = input("👉 Type 'yes' to proceed to next step or 'no' to regenerate from this step: ").strip().lower()
+        while input_val not in {"yes", "no"}:
+            input_val = input("❌ Invalid. Type 'yes' or 'no': ").strip().lower()
+
+        if input_val == "no":
+            new_query = input("🔁 Please rephrase your query or clarify what you want better help with: ").strip()
+            return "\n".join(lines), False, new_query, i
+
+    final_input = input("\n❓ Do you feel the answer is complete? (yes/no): ").strip().lower()
+    while final_input not in {"yes", "no"}:
+        final_input = input("❌ Invalid input. Type 'yes' or 'no': ").strip().lower()
+
+    if final_input == "no":
+        new_query = input("🔁 Please rephrase your query or clarify what more you need: ").strip()
+        return "\n".join(lines), False, new_query, len(grouped_steps) - 1
+
+    print("\n✅ Steps completed.")
+    return "\n".join(lines), True, None, None
+
+# -----------------------------
+# LangGraph State
+# -----------------------------
+class State(dict):
+    question: str
+    answer: str | None
+    use_web: bool
+    sop_score: float
+    source_docs: list[Document]
+    sop_failed: bool
+    retry_count: int
+
+# -----------------------------
+# NEW: Ask Clarifying Questions
+# -----------------------------
+async def ask_clarifying_questions(state):
+    original_question = state["question"]
+    
+    clarify_prompt = f"""
+You are an intelligent assistant. A user has asked the following question:
+
+"{original_question}"
+
+Your task is to list 1 to 4 highly relevant follow-up questions that would help make the answer more specific and accurate.
+Only ask what's necessary to complete the task. Don't ask generic things.
+
+After listing the questions, also ask:
+"Is there anything you'd like to specify or add to this task?"
+
+Format the output as numbered questions (1., 2., etc.).
+"""
+    response = await llm.ainvoke(clarify_prompt)
+    follow_ups = response.content.strip()
+    
+    print("\n🤖 Please answer the following clarifying questions to help me provide a better solution:\n")
+    print(follow_ups)
+    
+    user_answers = []
+    for line in follow_ups.split("\n"):
+        if re.match(r"^\d+\.", line.strip()):
+            answer = input(f"{line.strip()} ").strip()
+            user_answers.append(f"{line.strip()} {answer}")
+        elif "anything you'd like to specify" in line.lower():
+            extra = input("💬 " + line.strip() + " ").strip()
+            if extra:
+                user_answers.append("Extra Info: " + extra)
+
+    new_query = f"{original_question}\n\nAdditional Details:\n" + "\n".join(user_answers)
+    
+    return {
+        **state,
+        "question": new_query,
+        "original_question": original_question
+    }
+
+# -----------------------------
+# Graph Nodes
+# -----------------------------
+async def check_sop_score(state):
+    query_embedding = embedding.embed_query(state["question"])
+    search_results = index.query(vector=query_embedding, top_k=2, include_metadata=True)
+    matches = search_results["matches"]
+    top_score = matches[0]["score"] if matches else 0
+    return {**state, "sop_score": top_score, "use_web": top_score < 0.7, "retry_count": 0}
+
+async def answer_from_sop(state):
+    result = await qa_chain.ainvoke({"query": state["question"]})
+    answer = result["result"]
+    source_docs = result["source_documents"]
+
+    is_low_confidence = any(p in answer.lower() for p in [
+        "provided context does not contain",
+        "no relevant information",
+        "not enough information",
+        "i could not find"
+    ])
+
+    final_answer, user_confirmed, updated_query, _ = await confirm_each_step(answer)
+
+    if updated_query:
+        original_q = state.get("original_question", state["question"])
+        combined_query = f"{original_q}. Clarification: {updated_query}"
+
+        rephrase_prompt = f"""Earlier SOP-Based Answer:
+{final_answer}
+
+Original Question: {original_q}
+Clarified Follow-Up: {updated_query}
+
+Please improve and elaborate the original answer using the clarification provided."""
+        updated_response = await llm.ainvoke(rephrase_prompt)
+        final_answer = updated_response.content.strip()
+        state["question"] = combined_query
+
+    return {
+        **state,
+        "answer": final_answer,
+        "source_docs": source_docs,
+        "use_web": is_low_confidence or not user_confirmed,
+        "sop_failed": not user_confirmed,
+        "question": state["question"],
+        "original_question": state.get("original_question", state["question"])
+    }
+
+async def answer_from_web(state):
+    satisfied = False
+    final_answer = ""
+    tries = 0
+
+    original_question = state.get("original_question", state["question"])
+    current_query = state["question"]
+
+    while not satisfied and tries < 100:
+        raw_result = serpapi_search(current_query)
+        formatted = await format_web_result_with_llm(raw_result, current_query)
+
+        final_answer, satisfied, updated_query, _ = await confirm_each_step(formatted)
+
+        if updated_query:
+            combined_query = f"{original_question}. Clarification: {updated_query}"
+            current_query = combined_query
+            state["question"] = combined_query
+
+        tries += 1
+
+    return {
+        **state,
+        "answer": final_answer,
+        "source_docs": [],
+        "original_question": original_question
+    }
+
+# -----------------------------
+# Build LangGraph Workflow
+# -----------------------------
+workflow = StateGraph(State)
+
+workflow.add_node("clarify_question", ask_clarifying_questions)
+workflow.add_node("check_sop_score", check_sop_score)
+workflow.add_node("sop_answer", answer_from_sop)
+workflow.add_node("web_answer", answer_from_web)
+
+workflow.set_entry_point("clarify_question")
+workflow.add_edge("clarify_question", "check_sop_score")
+
+workflow.add_conditional_edges(
+    "check_sop_score",
+    lambda state: "web_answer" if state["use_web"] else "sop_answer"
+)
+
+workflow.add_conditional_edges(
+    "sop_answer",
+    lambda state: "web_answer" if state["use_web"] else END
+)
+
+workflow.add_edge("web_answer", END)
+
+app = workflow.compile()
+
+# -----------------------------
+# Run Agentic RAG
+# -----------------------------
+async def main(question : str):
+    result = await app.ainvoke({"question": question})
+    if result["source_docs"]:
+        print("\n📚 Source Documents:")
+        for doc in result["source_docs"]:
+            print(f"- {doc.metadata.get('source', 'Unknown')}")
+
+if __name__ == "__main__":
+    # -----------------------------
+    # Setup
+    # -----------------------------
+    embedding = OpenAIEmbeddings()
+    llm = ChatOpenAI(model="gpt-4-turbo", temperature=0.2)
+
+    pc = PineconeClient(api_key=os.getenv("PINECONE_API_KEY"))
+    index = pc.Index("pdf-vector-index")
+
+    vectorstore = PineconeVectorStore(index=index, embedding=embedding, text_key="text")
+    retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 2})
+
+    prompt = ChatPromptTemplate.from_template(
+        """You are a highly intelligent assistant helping users by answering questions based on provided content.
+
+Use only the information available in the given context to answer the user's question clearly and accurately. 
+Do not guess or make assumptions. If the context does not contain relevant information, respond exactly with:
+
+"The provided context does not contain sufficient information to answer the question."
+
+Context:
+{context}
+
+User Question:
+{question}
+
+Answer:"""
+    )
+    qa_chain = RetrievalQA.from_chain_type(
+        llm=llm,
+        retriever=retriever,
+        return_source_documents=True,
+        chain_type_kwargs={"prompt": prompt}
+    )
+
+    question = input("🔍 Enter your query: ").strip()
+    asyncio.run(main(question))

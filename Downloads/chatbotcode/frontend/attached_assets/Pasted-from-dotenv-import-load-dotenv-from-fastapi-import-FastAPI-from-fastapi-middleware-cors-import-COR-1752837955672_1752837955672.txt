@@ -1,0 +1,108 @@
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+import os
+import httpx
+
+load_dotenv()
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Autotask Credentials
+AUTOTASK_BASE_URL = os.environ["BASE_URL"]
+
+SECRET = os.environ["AUTOTASK_SECRET"]
+USERNAME = os.environ["AUTOTASK_USERNAME"]
+APIINTEGRATIONCODE = os.environ["AUTOTASK_APIINTEGRATIONCODE"]
+
+headers = {
+    "Content-Type": "application/json",
+    "Secret": SECRET,
+    "UserName": USERNAME,
+    "ApiIntegrationCode": APIINTEGRATIONCODE,
+}
+
+httpx_client = httpx.AsyncClient()
+
+# URLs
+
+countURL = AUTOTASK_BASE_URL + "Tickets/query/count"
+
+
+# Payloads
+totalTicketsPayload = {
+    "filter": [
+        {
+            "op": "gte",
+            "field": "id",
+            "value": 0
+        }
+    ]
+}
+
+rmmTicketsPayload = {
+    "filter": [
+        {
+            "op": "eq",
+            "field": "issueType",
+            "value": 14
+        }
+    ]
+}
+
+def statusTicketPayload(status: int):
+    return {
+    "filter": [
+        {
+            "op": "eq",
+            "field": "status",
+            "value": status
+        }
+    ]
+}
+
+
+async def countTickets(payload: dict):
+    response = await httpx_client.post(url=countURL, headers=headers, json=payload)
+    
+    if response.status_code == 200:
+        return response.json()["queryCount"]
+    
+    else:
+        print(response.status_code)
+        return {
+            "errorCode": response.status_code
+        }
+ 
+
+@app.get("/ticketCounts")
+async def ticketCounts():
+    total_tickets = await countTickets(payload=totalTicketsPayload)
+
+    rmm_tickets = await countTickets(payload=rmmTicketsPayload)
+    normal_tickets = total_tickets - rmm_tickets
+
+    in_progress = await countTickets(payload=statusTicketPayload(8))
+    completed = await countTickets(payload=statusTicketPayload(5))
+    active = total_tickets - completed
+
+    resolution_rate = round((completed / total_tickets) * 100, 2)
+
+    return {
+        "total": total_tickets,
+        "rmm": rmm_tickets,
+        "normal": normal_tickets,
+        "inProgress": in_progress,
+        "completed": completed,
+        "active": active,
+        "resolutionRate": resolution_rate
+    }

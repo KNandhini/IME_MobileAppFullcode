@@ -1,0 +1,349 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(20, 14.3%, 4.1%);
+  --muted: hsl(60, 4.8%, 95.9%);
+  --muted-foreground: hsl(25, 5.3%, 44.7%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(20, 14.3%, 4.1%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(20, 14.3%, 4.1%);
+  --border: hsl(20, 5.9%, 90%);
+  --input: hsl(20, 5.9%, 90%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(60, 4.8%, 95.9%);
+  --secondary-foreground: hsl(24, 9.8%, 10%);
+  --accent: hsl(60, 4.8%, 95.9%);
+  --accent-foreground: hsl(24, 9.8%, 10%);
+  --destructive: hsl(0, 84.2%, 60.2%);
+  --destructive-foreground: hsl(60, 9.1%, 97.8%);
+  --ring: hsl(207, 90%, 54%);
+  --radius: 0.5rem;
+  
+  /* TechAnts specific colors */
+  --tech-blue: hsl(207, 90%, 54%);
+  --tech-blue-dark: hsl(213, 58%, 46%);
+  --tech-blue-light: hsl(210, 100%, 96%);
+  --tech-gray: hsl(215, 14%, 42%);
+  --tech-gray-light: hsl(210, 20%, 98%);
+}
+
+.dark {
+  --background: hsl(240, 10%, 3.9%);
+  --foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 3.7%, 15.9%);
+  --muted-foreground: hsl(240, 5%, 64.9%);
+  --popover: hsl(240, 10%, 3.9%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 3.9%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 3.7%, 15.9%);
+  --input: hsl(240, 3.7%, 15.9%);
+  --primary: hsl(207, 90%, 54%);
+  --primary-foreground: hsl(210, 40%, 98%);
+  --secondary: hsl(240, 3.7%, 15.9%);
+  --secondary-foreground: hsl(0, 0%, 98%);
+  --accent: hsl(240, 3.7%, 15.9%);
+  --accent-foreground: hsl(0, 0%, 98%);
+  --destructive: hsl(0, 62.8%, 30.6%);
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --ring: hsl(240, 4.9%, 83.9%);
+  --radius: 0.5rem;
+  
+  /* TechAnts specific colors for dark mode */
+  --tech-blue: hsl(207, 90%, 54%);
+  --tech-blue-dark: hsl(213, 58%, 46%);
+  --tech-blue-light: hsl(210, 100%, 96%);
+  --tech-gray: hsl(215, 14%, 58%);
+  --tech-gray-light: hsl(240, 10%, 3.9%);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  /* Custom scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  /* TechAnts specific component styles */
+  .tech-sidebar {
+    background: hsl(var(--tech-blue));
+  }
+
+  .tech-sidebar-active {
+    background: hsl(var(--tech-blue-dark));
+  }
+
+  .tech-card {
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: calc(var(--radius) + 2px);
+  }
+
+  /* Status badge styles */
+  .badge-online {
+    background: hsl(142, 71%, 45%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-offline {
+    background: hsl(0, 84%, 60%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-warning {
+    background: hsl(38, 92%, 50%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-new {
+    background: hsl(221, 83%, 53%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-in-progress {
+    background: hsl(38, 92%, 50%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-waiting-response {
+    background: hsl(25, 95%, 53%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-resolved {
+    background: hsl(142, 71%, 45%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-closed {
+    background: hsl(215, 14%, 42%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-critical {
+    background: hsl(0, 84%, 60%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-high {
+    background: hsl(25, 95%, 53%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-medium {
+    background: hsl(38, 92%, 50%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-low {
+    background: hsl(142, 71%, 45%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-beginner {
+    background: hsl(142, 76%, 36%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-intermediate {
+    background: hsl(38, 92%, 50%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  .badge-advanced {
+    background: hsl(0, 84%, 60%);
+    color: hsl(0, 0%, 100%);
+  }
+
+  /* Utility classes for text truncation */
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Chat message styles */
+  .chat-message {
+    max-width: 80%;
+    word-wrap: break-word;
+  }
+
+  .chat-message-user {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .chat-message-ai {
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* Loading states */
+  .loading-skeleton {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--background)) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+
+  @keyframes loading {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Focus states for accessibility */
+  .focus-visible:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Form elements */
+  .form-input {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+  }
+
+  .form-input:focus {
+    border-color: hsl(var(--ring));
+    box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+  }
+
+  .form-input::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Button variants */
+  .btn-primary {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 1px solid hsl(var(--primary));
+  }
+
+  .btn-primary:hover {
+    background: hsl(var(--primary) / 0.9);
+  }
+
+  .btn-secondary {
+    background: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    border: 1px solid hsl(var(--border));
+  }
+
+  .btn-secondary:hover {
+    background: hsl(var(--secondary) / 0.8);
+  }
+
+  /* Table styles */
+  .table-row:hover {
+    background: hsl(var(--muted) / 0.5);
+  }
+
+  /* Modal and dialog styles */
+  .modal-overlay {
+    background: hsl(0, 0%, 0% / 0.5);
+  }
+
+  .modal-content {
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 10px 15px -3px hsl(0, 0%, 0% / 0.1), 0 4px 6px -2px hsl(0, 0%, 0% / 0.05);
+  }
+}
+
+@layer utilities {
+  /* Custom utility classes */
+  .text-gradient {
+    background: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--primary) / 0.7));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gradient {
+    border-image: linear-gradient(45deg, hsl(var(--primary)), hsl(var(--primary) / 0.5)) 1;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(10px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  /* Responsive utilities */
+  .container-responsive {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-responsive {
+      padding: 0 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .container-responsive {
+      padding: 0 2rem;
+    }
+  }
+}

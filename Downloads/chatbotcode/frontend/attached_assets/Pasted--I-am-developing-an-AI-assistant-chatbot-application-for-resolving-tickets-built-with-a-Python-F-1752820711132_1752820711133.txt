@@ -1,0 +1,50 @@
+
+
+I am developing an AI assistant chatbot application for resolving tickets, built with a Python FastAPI backend and a React/TypeScript frontend. The application has two types of users: Users and Admins, each with distinct login flows and functionalities. Below is the detailed project structure and requirements. Your task is to assist in generating the frontend code in React/TypeScript, ensuring the design and schema align with provided screenshots, and later adapt the backend code by renaming methods and endpoints as needed.
+
+Project Overview
+Backend: Python with FastAPI (already implemented, code will be provided later).
+Frontend: To be developed in React with TypeScript, adhering to the design and schema shown in provided screenshots.
+Login Types: Two types of logins: User and Admin, each with distinct landing pages and functionalities.
+Design Requirement: The UI must match the design and schema shown in the provided screenshots (5 images for User login flow initially, followed by Admin login flow images later).
+User Login Flow
+Login Page: A single login page for both User and Admin, with role-based authentication (User or Admin).
+User Landing Page: After login, users are directed to the "My Tickets" page, displaying tickets assigned to them (design as shown in my-tickets.jpg).
+View Ticket: Clicking "View Ticket" on a ticket opens a pop-up displaying ticket details (design as shown in ticket-popup.jpg).
+Chat with Ticket: Clicking "Chat with Ticket" in the pop-up opens an AI assistant page where a cascading conversation with the AI chatbot occurs for ticket resolution.
+Admin Login Flow
+Login Page: Same as User login, with role-based authentication.
+Admin Landing Page: After login, admins can navigate via a sidebar to three sections:
+All Tickets: Displays all tickets assigned within the organization.
+Analytics: Shows a dashboard with visualizations (e.g., charts, graphs).
+Document Management: Allows admins to create/update SOP (Standard Operating Procedure) folders.
+Design Requirement: The Admin UI must match the design and schema of screenshots to be provided later.
+Technical Requirements
+Frontend:
+Develop in React with TypeScript.
+Ensure the UI matches the design and schema of the provided screenshots (my-tickets.jpg, ticket-popup.jpg, and 3 additional user login flow images to be provided; Admin flow images to follow).
+Implement responsive and user-friendly components for both User and Admin flows.
+Ensure seamless navigation and state management for the ticket system and AI chatbot conversation.
+Backend Integration:
+The backend is already implemented in Python FastAPI.
+Frontend must integrate with FastAPI endpoints (to be provided later).
+After receiving the backend code, assist in renaming methods and endpoints to align with the project's naming conventions and requirements.
+AI Assistant:
+The AI chatbot for ticket resolution should support a cascading conversation flow, triggered from the "Chat with Ticket" button.
+Ensure the AI assistant UI is intuitive and matches the provided design.
+Next Steps
+User Login Flow:
+I will provide 5 screenshots (my-tickets.jpg, ticket-popup.jpg, and 3 additional images) for the User login flow.
+Generate React/TypeScript frontend code to implement the User login flow, ensuring the UI matches the screenshots.
+Admin Login Flow:
+I will provide additional screenshots for the Admin login flow (All Tickets, Analytics, Document Management).
+Generate React/TypeScript frontend code for the Admin flow, ensuring the UI matches the screenshots.
+Backend Code:
+I will share the Python FastAPI backend code.
+Assist in renaming methods and endpoints to align with the project structure and naming conventions.
+Instructions for BOLT AI
+Immediate Task: Await the 5 User login flow screenshots (my-tickets.jpg, ticket-popup.jpg, and 3 others) to generate the React/TypeScript frontend code for the User login flow, ensuring the UI matches the provided designs.
+Design Adherence: Strictly follow the design and schema shown in the screenshots for all UI components.
+Code Quality: Ensure clean, modular, and well-documented React/TypeScript code with proper typing and error handling.
+Future Steps: Be prepared to receive Admin flow screenshots and backend code for further frontend development and endpoint renaming.
+Clarifications: If any details are unclear or additional information is needed (e.g., specific API endpoints, design details), please ask targeted questions to ensure accurate implementation.

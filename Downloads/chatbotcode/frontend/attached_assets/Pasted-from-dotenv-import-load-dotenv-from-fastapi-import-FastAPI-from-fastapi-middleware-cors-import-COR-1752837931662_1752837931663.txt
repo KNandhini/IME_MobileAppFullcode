@@ -1,0 +1,181 @@
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from motor.motor_asyncio import AsyncIOMotorClient
+import os
+import httpx
+from fastapi.responses import JSONResponse
+
+# -------- Load Environment Variables --------
+load_dotenv()
+
+# -------- FastAPI App --------
+app = FastAPI()
+
+# -------- CORS Middleware --------
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# -------- MongoDB Setup --------
+MONGO_URI = os.getenv("MONGODB_URI")
+client = AsyncIOMotorClient(MONGO_URI)
+
+# Access Databases and Collections
+logs_db = client["logs"]
+analytics_db = client["analytics"]
+
+token_collection = logs_db["tokenCounts"]
+resolved_tickets_collection = analytics_db["resolvedTickets"]
+chat_collection = client["chats"]["chatHistory"]
+
+
+# -------- Autotask API Setup --------
+AUTOTASK_BASE_URL = os.environ["BASE_URL"]
+SECRET = os.environ["SECRET"]
+USERNAME = os.environ["USERNAME"]
+APIINTEGRATIONCODE = os.environ["APIINTEGRATIONCODE"]
+
+headers = {
+    "Content-Type": "application/json",
+    "Secret": SECRET,
+    "UserName": USERNAME,
+    "ApiIntegrationCode": APIINTEGRATIONCODE,
+}
+
+httpx_client = httpx.AsyncClient()
+countURL = AUTOTASK_BASE_URL + "Tickets/query/count"
+
+# -------- Payload Definitions --------
+totalTicketsPayload = {
+    "filter": [{"op": "gte", "field": "id", "value": 0}]
+}
+
+rmmTicketsPayload = {
+    "filter": [{"op": "eq", "field": "issueType", "value": 14}]
+}
+
+def statusTicketPayload(status: int):
+    return {
+        "filter": [{"op": "eq", "field": "status", "value": status}]
+    }
+
+# -------- Utility: Count Tickets --------
+async def countTickets(payload: dict):
+    try:
+        response = await httpx_client.post(url=countURL, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()["queryCount"]
+    except Exception as e:
+        print(f"[Error] Ticket count failed: {e}")
+        return 0
+
+# -------- MongoDB Endpoints --------
+@app.get("/llm/totalCalls")
+async def get_llm_total_calls():
+    count = await token_collection.count_documents({})
+    return {"totalLLMCalls": count}
+
+@app.get("/llm/averageTokens")
+async def get_average_tokens():
+    pipeline = [{"$group": {"_id": None, "averageTokens": {"$avg": "$total_tokens"}}}]
+    result = await token_collection.aggregate(pipeline).to_list(length=1)
+    avg = result[0]["averageTokens"] if result else 0
+    return {"averageTokens": round(avg, 2)}
+
+@app.get("/tickets/completed")
+async def get_completed_ticket_count():
+    count = await resolved_tickets_collection.count_documents({"status": "completed"})
+    return {"completedTickets": count}
+
+# -------- Autotask Ticket Analytics --------
+@app.get("/ticketCounts")
+async def ticketCounts():
+    total = await countTickets(totalTicketsPayload)
+    rmm = await countTickets(rmmTicketsPayload)
+    normal = total - rmm
+
+    new = await countTickets(statusTicketPayload(1))
+    open_ = await countTickets(statusTicketPayload(2))
+    pending = await countTickets(statusTicketPayload(3))
+    on_hold = await countTickets(statusTicketPayload(4))
+    completed = await countTickets(statusTicketPayload(5))
+    cancelled = await countTickets(statusTicketPayload(6))
+    awaiting_customer = await countTickets(statusTicketPayload(7))
+    in_progress = await countTickets(statusTicketPayload(8))
+
+    active = total - completed
+    resolution_rate = round((completed / total) * 100, 2) if total else 0
+    cancelled_rate = round((cancelled / total) * 100, 2) if total else 0
+
+    return {
+        "total": total,
+        "rmm": rmm,
+        "normal": normal,
+        "new": new,
+        "open": open_,
+        "pending": pending,
+        "onHold": on_hold,
+        "awaitingCustomer": awaiting_customer,
+        "inProgress": in_progress,
+        "completed": completed,
+        "active": active,
+        "resolutionRate": resolution_rate,
+        "cancelledRate": cancelled_rate
+    }
+
+@app.get("/ticketCounts/donut")
+async def ticket_donut_data():
+    total = await countTickets(totalTicketsPayload)
+    rmm = await countTickets(rmmTicketsPayload)
+    normal = total - rmm
+
+    return {
+        "labels": ["RMM Tickets", "Normal Tickets"],
+        "data": [rmm, normal]
+    }
+
+@app.get("/ticketCounts/statusBar")
+async def ticket_status_bar_data():
+    statuses = {
+        "New": await countTickets(statusTicketPayload(1)),
+        "In Progress": await countTickets(statusTicketPayload(8)),
+        "Completed": await countTickets(statusTicketPayload(5))
+    }
+
+    return {
+        "labels": list(statuses.keys()),
+        "data": list(statuses.values())
+    }
+
+@app.get("/tickets/perDay")
+async def tickets_per_day():
+    chat_collection = client["chats"]["chatHistory"]
+
+    pipeline = [
+        {
+            "$group": {
+                "_id": {
+                    "$dateToString": {
+                        "format": "%Y-%m-%d",
+                        "date": "$timestamp"
+                    }
+                },
+                "ticketCount": { "$sum": 1 }
+            }
+        },
+        {
+            "$sort": { "_id": 1 }
+        }
+    ]
+
+    results = await chat_collection.aggregate(pipeline).to_list(length=None)
+
+    return JSONResponse(content={
+        "labels": [entry["_id"] for entry in results],  # Dates
+        "data": [entry["ticketCount"] for entry in results]  # Ticket counts
+    })

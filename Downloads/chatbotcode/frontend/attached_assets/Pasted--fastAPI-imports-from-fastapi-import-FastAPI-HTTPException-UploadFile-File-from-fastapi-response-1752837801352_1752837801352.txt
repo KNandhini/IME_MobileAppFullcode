@@ -1,0 +1,260 @@
+# fastAPI imports
+from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
+
+from langchain_openai import OpenAIEmbeddings
+from langchain_pinecone import Pinecone as LangchainPinecone
+from langchain.document_loaders import PyPDFLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+
+# Database
+from pinecone import Pinecone, ServerlessSpec
+from motor.motor_asyncio import AsyncIOMotorClient
+
+# python imports
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from typing import List
+from urllib.parse import quote
+from datetime import datetime
+
+import httpx
+import os
+import shutil
+
+from fastapi import Form
+from pathlib import Path
+
+
+# FastAPI app
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8080"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+# loading environment variables
+load_dotenv()
+
+FOLDER = os.environ["SOP_FOLDER"]
+
+# Autotask Credentials
+AUTOTASK_BASE_URL = os.environ["AUTOTASK_BASE_URL"]
+SECRET = os.environ["AUTOTASK_SECRET"]
+USERNAME = os.environ["AUTOTASK_USERNAME"]
+APIINTEGRATIONCODE = os.environ["AUTOTASK_APIINTEGRATIONCODE"]
+
+headers = {
+    "Content-Type": "application/json",
+    "Secret": SECRET,
+    "UserName": USERNAME,
+    "ApiIntegrationCode": APIINTEGRATIONCODE,
+}
+
+
+# MongoDB Credentials
+MONGO_URI = os.environ["MONGO_URI"]
+mongo_client = AsyncIOMotorClient(MONGO_URI)
+
+# logs Database
+logs_db = mongo_client["logs"]
+token_counts_collection = logs_db["tokenCounts"]
+
+# Chat History database
+chats_db = mongo_client["chats"]
+chat_history_collection = chats_db["chatHistory"]
+
+# Analytics Database
+analytics_db = mongo_client["analytics"]
+resolved_tickets_collection = analytics_db["resolvedTickets"]
+
+# Async httpx client
+httpx_client = httpx.AsyncClient()
+
+# Embeddings
+embedding = OpenAIEmbeddings()
+
+# Text splitter
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
+
+
+# Vector Store
+pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+index_name = "pdf-vector-index"
+
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        dimension=1536,
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region="us-east-1"),
+    )
+
+index = pc.Index(index_name)
+
+vectorstore = LangchainPinecone(index=index, embedding=embedding, text_key="text")
+
+
+@app.get("/")
+def home():
+    return {"message": "Sucessfully connected!"}
+
+
+@app.get("/ticket_details", tags=["Tickets"])
+async def fetch_ticket_details(id: int):
+
+    url = AUTOTASK_BASE_URL + f"Tickets/{id}"
+    response = await httpx_client.get(url, headers=headers)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    # Extracting the ticket details from the HTTP response
+    data = response.json()
+    item = data.get("item")
+
+    return item
+
+
+# This endpoint is for displaying the tickets, once the resource person logs in to our application.
+@app.get("/tickets_by_resource", tags=["Tickets"])
+async def get_the_tickets_by_resource(resourceId: int):
+    """
+    Returns all tickets assigned to a given resource ID.
+    """
+    url = AUTOTASK_BASE_URL + "Tickets/query"
+
+    # Including only the necessary fields.
+    payload = {
+        # inclideFields can be used if it necessary to optimise the performance.
+        "IncludeFields": [
+            "id",
+            "TicketNumber",
+            "Title",
+            "Status",
+            "Priority",
+            "companyID",
+            "createDate",
+        ],
+        "filter": [{"field": "assignedResourceID", "op": "eq", "value": resourceId}],
+    }
+
+    response = await httpx_client.post(url, headers=headers, json=payload)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    return response.json().get("items", [])
+
+
+class MarkTicketAsCompleted(BaseModel):
+    id: int
+    resourceID: int
+
+
+@app.patch("/mark_ticket_as_completed", tags=["Tickets"])
+async def mark_the_ticket_as_completed(request: MarkTicketAsCompleted):
+
+    url = AUTOTASK_BASE_URL + "Tickets"
+
+    # Completed is encoded as 5 in Autotask.
+    data = {"id": request.id, "status": 5}
+
+    response = await httpx_client.patch(url=url, headers=headers, json=data)
+
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    log_entry = {
+        "ticket_id": request.id,
+        "resource_id": request.resourceID,
+        "timestamp": datetime.utcnow().timestamp(),
+    }
+
+    await resolved_tickets_collection.insert_one(log_entry)
+
+    return response.json()
+    # return {"msg": "sucess"}
+
+
+@app.post("/create-folder-and-upload", tags=["SOPs"])
+async def create_a_folder_and_upload_the_file(
+    folder_name: str = Form(...), file: UploadFile = File(...)
+):
+    """
+    Creates a new folder inside the PDF_FOLDER and uploads a file to it.
+    """
+
+    # Sanitize and construct folder path
+    safe_folder_name = quote(folder_name.strip())
+    folder_path = os.path.join(FOLDER, safe_folder_name)
+
+    # Create folder if it doesn't exist
+    Path(folder_path).mkdir(parents=True, exist_ok=True)
+
+    # Save uploaded file in the new folder
+    file_path = os.path.join(folder_path, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    loader = PyPDFLoader(file_path)
+    docs = loader.load()
+
+    # Adding doccument chunks into VectorStore
+    split_docs = text_splitter.split_documents(docs)
+    vectorstore.add_documents(split_docs)
+
+    return {
+        "message": f"File '{file.filename}' uploaded to folder '{folder_name}' successfully.",
+        "folder": safe_folder_name,
+        "filename": file.filename,
+    }
+
+
+class DeleteFileRequest(BaseModel):
+    folder_name: str
+    file_name: str
+
+
+@app.delete("/delete-file", tags=["SOPs"])
+async def delete_the_file(request: DeleteFileRequest):
+    folder_path = os.path.join(FOLDER, request.folder_name)
+    file_path = os.path.join(folder_path, request.file_name)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    try:
+        os.remove(file_path)
+        return {
+            "status": "success",
+            "message": f"Deleted {request.file_name} from {request.folder_name}",
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
+
+
+@app.get("/list-folders", tags=["SOPs"])
+async def list_the_folders():
+    return [f.name for f in Path(FOLDER).iterdir() if f.is_dir()]
+
+
+@app.get("/list-files/{folder}", tags=["SOPs"])
+async def list_the_files_in_the_folder(folder: str):
+    folder_path = os.path.join(FOLDER, folder)
+    if not os.path.isdir(folder_path):
+        raise HTTPException(status_code=404, detail="Folder not found")
+    return [f.name for f in Path(folder_path).glob("*.pdf")]
+
+
+@app.get("/pdfs/{folder}/{filename}", tags=["SOPs"])
+async def get_the_pdf_from_the_folder(folder: str, filename: str):
+    file_path = os.path.join(FOLDER, folder, filename)
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(file_path, media_type="application/pdf", filename=filename)
