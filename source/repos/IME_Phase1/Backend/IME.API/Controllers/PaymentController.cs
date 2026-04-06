@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
 using System.Data.SqlClient;
 using IME.Infrastructure.Data;
+using IME.Infrastructure.Services;
 
 namespace IME.API.Controllers;
 
@@ -13,11 +14,13 @@ public class PaymentController : ControllerBase
 {
     private readonly DatabaseContext _dbContext;
     private readonly IConfiguration _configuration;
+    private readonly EmailService _emailService;
 
-    public PaymentController(DatabaseContext dbContext, IConfiguration configuration)
+    public PaymentController(DatabaseContext dbContext, IConfiguration configuration, EmailService emailService)
     {
         _dbContext = dbContext;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     [HttpPost("create-order")]
@@ -384,6 +387,114 @@ public class PaymentController : ControllerBase
             {
                 Success = false,
                 Message = "Failed to set fee"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = $"Error: {ex.Message}"
+            });
+        }
+    }
+
+    [HttpPost("register-payment")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<object>>> RegisterPayment([FromBody] RegistrationPaymentDTO request)
+    {
+        try
+        {
+            using var connection = await _dbContext.CreateOpenConnectionAsync();
+
+            // Get current active fee
+            int feeId = 0;
+            using (var feeCmd = _dbContext.CreateStoredProcCommand("sp_GetCurrentMembershipFee", connection))
+            using (var feeReader = await feeCmd.ExecuteReaderAsync())
+            {
+                if (await feeReader.ReadAsync())
+                    feeId = Convert.ToInt32(feeReader.GetValue(feeReader.GetOrdinal("FeeId")));
+            }
+
+            if (feeId == 0)
+            {
+                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found" });
+            }
+
+            // Record payment
+            using var payCmd = _dbContext.CreateStoredProcCommand("sp_CreateMembershipPayment", connection);
+            payCmd.Parameters.AddWithValue("@MemberId", request.MemberId);
+            payCmd.Parameters.AddWithValue("@FeeId", feeId);
+            payCmd.Parameters.AddWithValue("@Amount", request.Amount);
+            payCmd.Parameters.AddWithValue("@PaymentMode", request.PaymentMode);
+            payCmd.Parameters.AddWithValue("@TransactionReference", request.TransactionReference);
+            payCmd.Parameters.AddWithValue("@Status", "Success");
+            await payCmd.ExecuteScalarAsync();
+
+            // Activate member
+            using var statusCmd = new SqlCommand(
+                "UPDATE Members SET MembershipStatus = 'Active' WHERE MemberId = @MemberId", connection);
+            statusCmd.Parameters.AddWithValue("@MemberId", request.MemberId);
+            await statusCmd.ExecuteNonQueryAsync();
+
+            // Activate user account
+            using var userCmd = new SqlCommand(
+                "UPDATE Users SET IsActive = 1 WHERE UserId = @UserId", connection);
+            userCmd.Parameters.AddWithValue("@UserId", request.UserId);
+            await userCmd.ExecuteNonQueryAsync();
+
+            // Get member email and name
+            string memberEmail = string.Empty;
+            string memberName = string.Empty;
+            using var emailCmd = new SqlCommand(
+                @"SELECT u.Email, m.FullName FROM Users u
+                  JOIN Members m ON m.UserId = u.UserId
+                  WHERE u.UserId = @UserId", connection);
+            emailCmd.Parameters.AddWithValue("@UserId", request.UserId);
+            using (var emailReader = await emailCmd.ExecuteReaderAsync())
+            {
+                if (await emailReader.ReadAsync())
+                {
+                    memberEmail = emailReader.GetString(0);
+                    memberName = emailReader.GetString(1);
+                }
+            }
+
+            // Send welcome email
+            if (!string.IsNullOrEmpty(memberEmail))
+            {
+                try
+                {
+                    var subject = "Welcome to IME – Registration Successful!";
+                    var body = $@"
+                        <div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>
+                          <div style='background:#1E3A5F;padding:24px;text-align:center;'>
+                            <h2 style='color:#D4A017;margin:0;'>Welcome to IME</h2>
+                          </div>
+                          <div style='padding:24px;background:#f9f9f9;'>
+                            <p>Dear <strong>{memberName}</strong>,</p>
+                            <p>Your membership registration is complete and your payment of <strong>₹{request.Amount}</strong> has been received.</p>
+                            <p>Your account is now active. You can login to the IME app with your registered email and password.</p>
+                            <p style='color:#555;font-size:13px;'>Transaction Reference: {request.TransactionReference}</p>
+                            <p>Thank you for joining IME!</p>
+                          </div>
+                          <div style='background:#1E3A5F;padding:12px;text-align:center;'>
+                            <p style='color:rgba(255,255,255,0.7);font-size:12px;margin:0;'>IME Membership Portal</p>
+                          </div>
+                        </div>";
+                    await _emailService.SendEmailAsync(memberEmail, subject, body);
+                }
+                catch (Exception emailEx)
+                {
+                    Console.WriteLine($"Email failed: {emailEx.Message}");
+                }
+            }
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Registration complete! Your account is now active.",
+                Data = new { MemberId = request.MemberId }
             });
         }
         catch (Exception ex)
