@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:/Users/loret/AppData/Local/Android/Sdk/emulator/emulator -list-avds)",
+      "Bash(\"C:/Users/loret/AppData/Local/Android/Sdk/emulator/emulator.exe\" @Medium_Phone -verbose)",
+      "Bash(wmic logicaldisk:*)"
+    ]
+  }
+}

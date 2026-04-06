@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, View, Text } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
@@ -29,10 +29,8 @@ import CircularScreen         from '../screens/CircularScreen';
 import AchievementsScreen     from '../screens/AchievementsScreen';
 import OrganisationScreen     from '../screens/OrganisationScreen';
 import AdminDashboardScreen   from '../screens/AdminDashboardScreen';
-import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
-import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
-import AboutScreen from '../screens/AboutScreen';
+
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
 
@@ -44,11 +42,9 @@ const HEADER_STYLE = {
 
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Login"               component={LoginScreen} />
-    <Stack.Screen name="Signup"              component={SignupScreen} />
-    <Stack.Screen name="ForgotPassword"      component={ForgotPasswordScreen} />
-    <Stack.Screen name="RegistrationPayment" component={RegistrationPaymentScreen}
-      options={{ headerShown: true, title: 'Complete Payment', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
+    <Stack.Screen name="Login"          component={LoginScreen} />
+    <Stack.Screen name="Signup"         component={SignupScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
   </Stack.Navigator>
 );
 
@@ -61,16 +57,11 @@ const MainTabs = () => (
       tabBarStyle: { height: 60, paddingBottom: 6 },
     }}
   >
-    <Tab.Screen name="Home" component={HomeScreen}
-      options={{ title: 'Home', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-    <Tab.Screen name="Activities" component={ActivitiesScreen}
-      options={{ title: 'Activities', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📅</Text> }} />
-    <Tab.Screen name="News" component={NewsScreen}
-      options={{ title: 'News & Media', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📰</Text> }} />
-    <Tab.Screen name="Notifications" component={NotificationsScreen}
-      options={{ title: 'Alerts', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🔔</Text> }} />
-    <Tab.Screen name="Profile" component={ProfileScreen}
-      options={{ title: 'Profile', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+    <Tab.Screen name="Home"          component={HomeScreen}          options={{ title: 'Home' }} />
+    <Tab.Screen name="Activities"    component={ActivitiesScreen}    options={{ title: 'Activities' }} />
+    <Tab.Screen name="News"          component={NewsScreen}          options={{ title: 'News & Media' }} />
+    <Tab.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Alerts' }} />
+    <Tab.Screen name="Profile"       component={ProfileScreen}       options={{ title: 'Profile' }} />
   </Tab.Navigator>
 );
 
@@ -94,9 +85,7 @@ const MainStack = () => (
     <Stack.Screen name="ProfileEdit"      component={ProfileEditScreen}    options={{ title: 'Edit Profile' }} />
     <Stack.Screen name="ChangePassword"   component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
-    <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}   options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
-    <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
   </Stack.Navigator>
 );
 
