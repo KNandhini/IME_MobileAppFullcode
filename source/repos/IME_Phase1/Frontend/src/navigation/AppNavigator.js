@@ -29,6 +29,7 @@ import CircularScreen         from '../screens/CircularScreen';
 import AchievementsScreen     from '../screens/AchievementsScreen';
 import OrganisationScreen     from '../screens/OrganisationScreen';
 import AdminDashboardScreen   from '../screens/AdminDashboardScreen';
+import SetAnnualFeeScreen     from '../screens/SetAnnualFeeScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
 import AboutScreen from '../screens/AboutScreen';
 const Stack = createStackNavigator();
@@ -90,6 +91,7 @@ const MainStack = () => (
     <Stack.Screen name="ProfileEdit"      component={ProfileEditScreen}    options={{ title: 'Edit Profile' }} />
     <Stack.Screen name="ChangePassword"   component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
+    <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}   options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
   </Stack.Navigator>
