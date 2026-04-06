@@ -18,9 +18,7 @@ const SetAnnualFeeScreen = () => {
   const [currentFee, setCurrentFee] = useState(null);
   const [amount, setAmount] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState(null);
-  const [effectiveTo, setEffectiveTo] = useState(null);
   const [showFromPicker, setShowFromPicker] = useState(false);
-  const [showToPicker, setShowToPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -49,14 +47,9 @@ const SetAnnualFeeScreen = () => {
       Alert.alert('Validation Error', 'Please select Effective From date.');
       return;
     }
-    if (effectiveTo && effectiveTo <= effectiveFrom) {
-      Alert.alert('Validation Error', 'Effective To date must be after Effective From date.');
-      return;
-    }
-
     Alert.alert(
       'Confirm',
-      `Set annual membership fee to ₹${amount} effective from ${formatDate(effectiveFrom)}${effectiveTo ? ` to ${formatDate(effectiveTo)}` : ''}?`,
+      `Set annual membership fee to ₹${amount} effective from ${formatDate(effectiveFrom)}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Confirm', onPress: submitFee },
@@ -70,13 +63,11 @@ const SetAnnualFeeScreen = () => {
       const res = await api.post('/payment/set-fee', {
         amount: parseFloat(amount),
         effectiveFrom: formatDate(effectiveFrom),
-        effectiveTo: effectiveTo ? formatDate(effectiveTo) : null,
       });
       if (res.data.success) {
         Alert.alert('Success', 'Annual fee updated successfully.');
         setAmount('');
         setEffectiveFrom(null);
-        setEffectiveTo(null);
         fetchCurrentFee();
       } else {
         Alert.alert('Error', res.data.message || 'Failed to set fee.');
@@ -128,14 +119,6 @@ const SetAnnualFeeScreen = () => {
           <Text style={styles.calendarIcon}>📅</Text>
         </TouchableOpacity>
 
-        <Text style={styles.label}>Effective To (Optional)</Text>
-        <TouchableOpacity style={styles.dateInput} onPress={() => setShowToPicker(true)}>
-          <Text style={effectiveTo ? styles.dateText : styles.datePlaceholder}>
-            {effectiveTo ? formatDate(effectiveTo) : 'Select date'}
-          </Text>
-          <Text style={styles.calendarIcon}>📅</Text>
-        </TouchableOpacity>
-
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={handleSubmit}
@@ -157,18 +140,6 @@ const SetAnnualFeeScreen = () => {
           onChange={(event, date) => {
             setShowFromPicker(Platform.OS === 'ios');
             if (date) setEffectiveFrom(date);
-          }}
-        />
-      )}
-      {showToPicker && (
-        <DateTimePicker
-          value={effectiveTo || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          minimumDate={effectiveFrom || new Date()}
-          onChange={(event, date) => {
-            setShowToPicker(Platform.OS === 'ios');
-            if (date) setEffectiveTo(date);
           }}
         />
       )}
