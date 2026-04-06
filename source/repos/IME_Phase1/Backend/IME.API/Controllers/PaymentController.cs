@@ -317,7 +317,7 @@ public class PaymentController : ControllerBase
         try
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command = new SqlCommand(
+            using var command = _dbContext.CreateCommand(
                 "SELECT TOP 1 FeeId, Amount, EffectiveFrom, IsActive FROM MembershipFee WHERE IsActive = 1 ORDER BY EffectiveFrom DESC",
                 connection);
 
@@ -330,10 +330,10 @@ public class PaymentController : ControllerBase
                     Success = true,
                     Data = new
                     {
-                        FeeId = reader.GetInt32(0),
-                        Amount = reader.GetDecimal(1),
-                        EffectiveFrom = reader.GetDateTime(2),
-                        IsActive = reader.GetBoolean(3)
+                        FeeId = reader.GetInt32(reader.GetOrdinal("FeeId")),
+                        Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                        EffectiveFrom = reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
+                        IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
                     }
                 });
             }
