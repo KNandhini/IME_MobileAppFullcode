@@ -78,6 +78,7 @@ public class SetFeeDTO
 {
     public decimal Amount { get; set; }
     public DateTime EffectiveFrom { get; set; }
+    public DateTime? EffectiveTo { get; set; }
 }
 
 public class CreateNotificationDTO
