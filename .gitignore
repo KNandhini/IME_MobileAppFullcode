@@ -76,3 +76,9 @@ yarn-error.log*
 appsettings.Development.json
 appsettings.Production.json
 ConnectionStrings.config
+node_modules/
+.expo/
+android/
+ios/
+*.apk
+*.log
