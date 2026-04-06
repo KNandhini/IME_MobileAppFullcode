@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal,
+  TouchableOpacity, Modal, Image,
 } from 'react-native';
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 
 const SignupScreen = ({ navigation }) => {
@@ -24,6 +25,7 @@ const SignupScreen = ({ navigation }) => {
 
   const [welcomeVisible, setWelcomeVisible] = useState(true);
   const [currentFee, setCurrentFee] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(null);
 
   useEffect(() => {
     fetchFee();
@@ -80,6 +82,23 @@ const SignupScreen = ({ navigation }) => {
     return Object.keys(e).length === 0;
   };
 
+  const pickProfilePhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photo library.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets?.length > 0) {
+      setProfilePhoto(result.assets[0]);
+    }
+  };
+
   const handleSignup = async () => {
     if (!validate()) return;
     setLoading(true);
@@ -93,6 +112,7 @@ const SignupScreen = ({ navigation }) => {
           memberId: res.data.memberId,
           feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
           memberName: formData.fullName,
+          profilePhotoUri: profilePhoto?.uri ?? null,
         });
       } else {
         Alert.alert('Failed', res.message);
@@ -221,6 +241,24 @@ const SignupScreen = ({ navigation }) => {
           mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.place && <Text style={styles.error}>{errors.place}</Text>}
 
+        {/* Profile Photo */}
+        <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
+        <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
+          {profilePhoto ? (
+            <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
+          ) : (
+            <View style={styles.photoPlaceholder}>
+              <Text style={styles.photoPlaceholderIcon}>👤</Text>
+            </View>
+          )}
+          <View style={styles.photoPickerText}>
+            <Text style={styles.photoPickerTitle}>
+              {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
+            </Text>
+            <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
+          </View>
+        </TouchableOpacity>
+
         <Button mode="contained" onPress={handleSignup} loading={loading} style={styles.button} labelStyle={{ fontSize: 16 }}>
           Proceed to Payment
         </Button>
@@ -244,6 +282,15 @@ const styles = StyleSheet.create({
   linkButton:     { marginTop: 10 },
   error:          { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
   helper:         { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
+  // Profile Photo
+  photoLabel:         { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
+  photoPickerRow:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
+  photoPreview:       { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
+  photoPlaceholder:   { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
+  photoPlaceholderIcon: { fontSize: 28 },
+  photoPickerText:    { marginLeft: 14, flex: 1 },
+  photoPickerTitle:   { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
+  photoPickerHint:    { fontSize: 12, color: '#888', marginTop: 2 },
   // Welcome Modal
   modalOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
   modalBox:       { backgroundColor: '#fff', borderRadius: 16, padding: 28, width: '100%', alignItems: 'center' },
