@@ -13,3 +13,20 @@ local.properties
 
 # Bundle artifacts
 *.jsbundle
+# Node modules
+node_modules/
+
+# Expo
+.expo/
+.expo-shared/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build
+dist/
+build/
