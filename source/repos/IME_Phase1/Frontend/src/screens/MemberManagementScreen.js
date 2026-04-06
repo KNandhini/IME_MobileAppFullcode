@@ -7,6 +7,9 @@ import {
   RefreshControl,
   Alert,
   Image,
+  Modal,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import { Card, Button, Searchbar, Chip, IconButton } from 'react-native-paper';
 import { memberService } from '../services/memberService';
@@ -17,7 +20,12 @@ const MemberManagementScreen = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState('All'); // All, Pending, Approved, Rejected
+  const [filterStatus, setFilterStatus] = useState('All');
+
+  // ✅ NEW: Reject modal state
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [selectedMember, setSelectedMember] = useState(null);
 
   useEffect(() => {
     loadMembers();
@@ -46,12 +54,14 @@ const MemberManagementScreen = () => {
   const filterMembers = () => {
     let filtered = members;
 
-    // Filter by status
     if (filterStatus !== 'All') {
-      filtered = filtered.filter((m) => m.status === filterStatus);
+      filtered = filtered.filter((m) => {
+        const status =
+          m.membershipStatus === 'Active' ? 'Approved' : m.membershipStatus;
+        return status === filterStatus;
+      });
     }
 
-    // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -97,37 +107,37 @@ const MemberManagementScreen = () => {
     );
   };
 
+  // ✅ UPDATED: Opens custom modal instead of Alert
   const handleRejectMember = (memberId, memberName) => {
-    Alert.prompt(
-      'Reject Member',
-      `Enter reason for rejecting ${memberName}:`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Reject',
-          onPress: async (reason) => {
-            if (!reason || !reason.trim()) {
-              Alert.alert('Error', 'Please provide a reason');
-              return;
-            }
+    setSelectedMember({ memberId, memberName });
+    setRejectReason('');
+    setRejectModalVisible(true);
+  };
 
-            try {
-              const response = await memberService.rejectMember(memberId, reason);
-              if (response.success) {
-                Alert.alert('Success', 'Member rejected');
-                loadMembers();
-              } else {
-                Alert.alert('Error', response.message || 'Failed to reject member');
-              }
-            } catch (error) {
-              console.error('Reject error:', error);
-              Alert.alert('Error', 'Failed to reject member');
-            }
-          },
-        },
-      ],
-      'plain-text'
-    );
+  // ✅ NEW: Called when user taps OK in the reject modal
+  const confirmReject = async () => {
+    debugger;
+    if (!rejectReason.trim()) {
+      Alert.alert('Validation', 'Please provide a reason for rejection.');
+      return;
+    }
+
+    try {
+      const response = await memberService.rejectMember(
+        selectedMember.memberId,
+        rejectReason.trim()
+      );
+      if (response.success) {
+        setRejectModalVisible(false);
+        Alert.alert('Success', 'Member rejected');
+        loadMembers();
+      } else {
+        Alert.alert('Error', response.message || 'Failed to reject member');
+      }
+    } catch (error) {
+      console.error('Reject error:', error);
+      Alert.alert('Error', 'Failed to reject member');
+    }
   };
 
   const handleDeleteMember = (memberId, memberName) => {
@@ -160,14 +170,19 @@ const MemberManagementScreen = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Approved':
-        return '#4CAF50';
-      case 'Pending':
-        return '#FF9800';
-      case 'Rejected':
-        return '#F44336';
-      default:
-        return '#999';
+      case 'Approved': return '#E8F5E9';
+      case 'Pending':  return '#FFF3E0';
+      case 'Rejected': return '#FFEBEE';
+      default:         return '#EEEEEE';
+    }
+  };
+
+  const getStatusTextColor = (status) => {
+    switch (status) {
+      case 'Approved': return '#2E7D32';
+      case 'Pending':  return '#EF6C00';
+      case 'Rejected': return '#C62828';
+      default:         return '#424242';
     }
   };
 
@@ -180,23 +195,31 @@ const MemberManagementScreen = () => {
           ) : (
             <View style={styles.photoPlaceholder}>
               <Text style={styles.photoPlaceholderText}>
-                {item.fullName ? item.fullName.charAt(0) : '?'}
+                {item.fullName ? item.fullName.charAt(0).toUpperCase() : '?'}
               </Text>
             </View>
           )}
+
           <View style={styles.memberInfo}>
             <Text style={styles.memberName}>{item.fullName}</Text>
             <Text style={styles.memberEmail}>{item.email}</Text>
-            <Text style={styles.memberPhone}>{item.phoneNumber}</Text>
-            <Chip
+            <Text style={styles.memberPhone}>{item.contactNumber}</Text>
+
+            <View
               style={[
-                styles.statusChip,
-                { backgroundColor: getStatusColor(item.status) + '20' },
+                styles.statusBadge,
+                { backgroundColor: getStatusColor(item.membershipStatus) },
               ]}
-              textStyle={[styles.statusText, { color: getStatusColor(item.status) }]}
             >
-              {item.status}
-            </Chip>
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  { color: getStatusTextColor(item.membershipStatus) },
+                ]}
+              >
+                {item.membershipStatus || 'Unknown'}
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -204,7 +227,7 @@ const MemberManagementScreen = () => {
           <Text style={styles.designation}>{item.designation}</Text>
         )}
 
-        {item.status === 'Pending' && (
+        {item.membershipStatus === 'Pending' ? (
           <View style={styles.actions}>
             <Button
               mode="contained"
@@ -214,6 +237,7 @@ const MemberManagementScreen = () => {
             >
               Approve
             </Button>
+
             <Button
               mode="outlined"
               onPress={() => handleRejectMember(item.memberId, item.fullName)}
@@ -223,9 +247,7 @@ const MemberManagementScreen = () => {
               Reject
             </Button>
           </View>
-        )}
-
-        {item.status !== 'Pending' && (
+        ) : (
           <View style={styles.actions}>
             <IconButton
               icon="delete"
@@ -240,6 +262,55 @@ const MemberManagementScreen = () => {
 
   return (
     <View style={styles.container}>
+
+      {/* ✅ REJECT REASON MODAL */}
+      <Modal
+        visible={rejectModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRejectModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+
+            <Text style={styles.modalTitle}>Reject Member</Text>
+
+            <Text style={styles.modalSubtitle}>
+              {selectedMember?.memberName}
+            </Text>
+
+            <Text style={styles.modalLabel}>Reason</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Enter reason for rejection..."
+              placeholderTextColor="#aaa"
+              value={rejectReason}
+              onChangeText={setRejectReason}
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+            />
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setRejectModalVisible(false)}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.modalOkBtn}
+                onPress={confirmReject}
+              >
+                <Text style={styles.modalOkText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+
+          </View>
+        </View>
+      </Modal>
+
       <Searchbar
         placeholder="Search members..."
         onChangeText={setSearchQuery}
@@ -277,108 +348,68 @@ const MemberManagementScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  searchBar: {
-    margin: 15,
-    elevation: 2,
-  },
-  filters: {
-    flexDirection: 'row',
-    paddingHorizontal: 15,
-    marginBottom: 10,
-  },
-  filterChip: {
-    marginRight: 8,
-  },
-  list: {
-    padding: 15,
-    paddingTop: 0,
-  },
-  card: {
-    marginBottom: 15,
-    elevation: 2,
-  },
-  memberHeader: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  searchBar: { margin: 15, elevation: 2 },
+  filters: { flexDirection: 'row', paddingHorizontal: 15, marginBottom: 10 },
+  filterChip: { marginRight: 8 },
+  list: { padding: 15, paddingTop: 0 },
+
+  card: { marginBottom: 15, borderRadius: 16, backgroundColor: '#fff', elevation: 4 },
+  memberHeader: { flexDirection: 'row', alignItems: 'center' },
+  photo: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
   photoPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#2196F3',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+    width: 60, height: 60, borderRadius: 30,
+    backgroundColor: '#1976D2', justifyContent: 'center',
+    alignItems: 'center', marginRight: 12,
   },
-  photoPlaceholderText: {
-    fontSize: 24,
-    color: '#fff',
-    fontWeight: 'bold',
+  photoPlaceholderText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
+  memberInfo: { flex: 1 },
+  memberName: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  memberEmail: { fontSize: 13, color: '#777', marginTop: 2 },
+  memberPhone: { fontSize: 13, color: '#777' },
+  statusBadge: {
+    alignSelf: 'flex-start', paddingHorizontal: 10,
+    paddingVertical: 4, borderRadius: 20, marginTop: 6,
   },
-  memberInfo: {
-    flex: 1,
+  statusBadgeText: { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
+  designation: { fontSize: 13, color: '#999', fontStyle: 'italic', marginTop: 8 },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 },
+  approveButton: { marginRight: 8, borderRadius: 10 },
+  rejectButton: { borderColor: '#F44336', borderRadius: 10 },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
+  emptyText: { fontSize: 16, color: '#999' },
+
+  // ✅ Modal styles
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center', alignItems: 'center',
   },
-  memberName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+  modalBox: {
+    width: '88%', backgroundColor: '#fff',
+    borderRadius: 16, padding: 24, elevation: 8,
   },
-  memberEmail: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
+  modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#222', marginBottom: 4 },
+  modalSubtitle: { fontSize: 14, color: '#888', marginBottom: 16 },
+  modalLabel: { fontSize: 14, fontWeight: '600', color: '#444', marginBottom: 6 },
+  modalInput: {
+    borderWidth: 1, borderColor: '#ddd', borderRadius: 10,
+    padding: 10, fontSize: 14, color: '#333',
+    minHeight: 80, backgroundColor: '#fafafa',
   },
-  memberPhone: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
+  modalActions: {
+    flexDirection: 'row', justifyContent: 'flex-end',
+    marginTop: 20, gap: 12,
   },
-  statusChip: {
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    height: 24,
+  modalCancelBtn: {
+    paddingVertical: 10, paddingHorizontal: 20,
+    borderRadius: 8, borderWidth: 1, borderColor: '#ccc',
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
+  modalCancelText: { fontSize: 14, color: '#666' },
+  modalOkBtn: {
+    paddingVertical: 10, paddingHorizontal: 24,
+    borderRadius: 8, backgroundColor: '#F44336',
   },
-  designation: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
-    marginBottom: 10,
-  },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginTop: 10,
-  },
-  approveButton: {
-    marginRight: 8,
-  },
-  rejectButton: {
-    borderColor: '#F44336',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-  },
+  modalOkText: { fontSize: 14, color: '#fff', fontWeight: 'bold' },
 });
 
 export default MemberManagementScreen;
