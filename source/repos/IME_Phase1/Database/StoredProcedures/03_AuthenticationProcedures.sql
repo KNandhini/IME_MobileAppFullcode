@@ -118,9 +118,9 @@ BEGIN
             RETURN;
         END
 
-        -- Insert User
+        -- Insert User (inactive until payment completed)
         INSERT INTO Users (Email, PasswordHash, RoleId, IsActive)
-        VALUES (@Email, @PasswordHash, @RoleId, 1);
+        VALUES (@Email, @PasswordHash, @RoleId, 0);
 
         DECLARE @NewUserId INT = SCOPE_IDENTITY();
 
