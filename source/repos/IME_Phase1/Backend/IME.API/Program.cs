@@ -53,6 +53,7 @@ builder.Services.AddSingleton(new DatabaseContext(connectionString!));
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 
 // Register Services
 builder.Services.AddSingleton(new JwtService(

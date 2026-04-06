@@ -74,6 +74,26 @@ public class QRPaymentConfirmDTO
     public string TransactionReference { get; set; } = string.Empty;
 }
 
+public class MembershipFeeDTO
+{
+    public int FeeId { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime EffectiveFrom { get; set; }
+    public bool IsActive { get; set; }
+}
+
+public class PaymentAllDTO
+{
+    public int PaymentId { get; set; }
+    public string MemberName { get; set; } = string.Empty;
+    public string? DesignationName { get; set; }
+    public decimal Amount { get; set; }
+    public DateTime PaymentDate { get; set; }
+    public string? PaymentMode { get; set; }
+    public string? TransactionReference { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
+
 public class RegistrationPaymentDTO
 {
     public int MemberId { get; set; }

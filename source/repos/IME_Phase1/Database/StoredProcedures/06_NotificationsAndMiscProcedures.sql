@@ -142,6 +142,49 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE sp_GetLatestMembershipFee
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT TOP 1 FeeId, Amount, EffectiveFrom, IsActive
+    FROM MembershipFee
+    WHERE IsActive = 1
+    ORDER BY EffectiveFrom DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_CompleteRegistrationPayment
+    @MemberId INT,
+    @UserId INT,
+    @FeeId INT,
+    @Amount DECIMAL(10,2),
+    @PaymentMode NVARCHAR(50),
+    @TransactionReference NVARCHAR(200)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    BEGIN TRANSACTION;
+    BEGIN TRY
+        INSERT INTO MembershipPayment (MemberId, FeeId, Amount, PaymentMode, TransactionReference, Status)
+        VALUES (@MemberId, @FeeId, @Amount, @PaymentMode, @TransactionReference, 'Success');
+
+        UPDATE Members SET MembershipStatus = 'Active' WHERE MemberId = @MemberId;
+        UPDATE Users SET IsActive = 1 WHERE UserId = @UserId;
+
+        COMMIT TRANSACTION;
+
+        SELECT u.Email, m.FullName, '' AS ErrorMessage
+        FROM Users u
+        JOIN Members m ON m.UserId = u.UserId
+        WHERE u.UserId = @UserId;
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;
+        SELECT '' AS Email, '' AS FullName, ERROR_MESSAGE() AS ErrorMessage;
+    END CATCH
+END
+GO
+
 CREATE OR ALTER PROCEDURE sp_CreateMembershipFee
     @Amount DECIMAL(10,2),
     @EffectiveFrom DATE,
