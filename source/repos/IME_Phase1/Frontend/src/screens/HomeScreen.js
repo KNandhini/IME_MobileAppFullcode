@@ -15,7 +15,7 @@ const HomeScreen = ({ navigation }) => {
     { title: 'GO & Circular', route: 'Circular', icon: '📋' },
     { title: 'Achievements', route: 'Achievements', icon: '🏆' },
     { title: 'Organisation', route: 'Organisation', icon: '🏢' },
-    { title: 'About', route: 'ContentViewer', icon: '📖', params: { pageKey: 'about', title: 'About Institution' } },
+    { title: 'About', route: 'About', icon: '📖' },
     { title: 'History', route: 'ContentViewer', icon: '📜', params: { pageKey: 'history', title: 'History' } },
   ];
 
@@ -51,17 +51,7 @@ const HomeScreen = ({ navigation }) => {
         ))}
       </View>
 
-      <View style={styles.infoSection}>
-        <Card style={styles.infoCard}>
-          <Card.Content>
-            <Title>About IME</Title>
-            <Paragraph>
-              The Institution of Municipal Engineering (IME) is a professional
-              body dedicated to advancing the practice of municipal engineering.
-            </Paragraph>
-          </Card.Content>
-        </Card>
-      </View>
+
     </ScrollView>
   );
 };

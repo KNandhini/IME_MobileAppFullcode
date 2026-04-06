@@ -1,36 +1,34 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// ── Update with your actual backend URL ───────────────────────
+// For local development use your machine IP (not localhost):
+//   Android emulator: http://10.0.2.2:5000/api
+//   Physical device:  http://YOUR_LOCAL_IP:5000/api
+//   Production:       https://your-api-domain.com/api
+//const API_BASE_URL = 'https://localhost:51149/api';
 const API_BASE_URL = 'http://10.0.2.2:51150/api';
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor to add token
+// Attach JWT token to every request
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
+// Handle 401 globally
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid - clear storage and redirect to login
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('userData');
     }

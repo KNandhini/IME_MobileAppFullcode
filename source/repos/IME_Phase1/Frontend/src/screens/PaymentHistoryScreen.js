@@ -30,7 +30,7 @@ const PaymentHistoryScreen = () => {
   const loadMemberAndPayments = async () => {
     setLoading(true);
     try {
-      const userStr = await AsyncStorage.getItem('user');
+      const userStr = await AsyncStorage.getItem('userData');
       if (userStr) {
         const user = JSON.parse(userStr);
         setMemberId(user.memberId);

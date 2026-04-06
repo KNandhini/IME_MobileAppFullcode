@@ -1,52 +1,30 @@
 {
   "expo": {
-    "name": "IME Mobile App",
-    "slug": "ime-mobile-app",
+    "name": "IME App",
+    "slug": "ime-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/icon.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./src/assets/splash.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#2196F3"
+      "backgroundColor": "#1E3A5F"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ime.mobileapp"
+      "bundleIdentifier": "org.ime.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/adaptive-icon.png",
-        "backgroundColor": "#2196F3"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E3A5F"
       },
-      "package": "com.ime.mobileapp",
-      "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "NOTIFICATIONS"
-      ]
+      "package": "org.ime.app"
     },
     "web": {
-      "favicon": "./src/assets/favicon.png"
-    },
-    "plugins": [
-      [
-        "expo-notifications",
-        {
-          "icon": "./src/assets/notification-icon.png",
-          "color": "#2196F3"
-        }
-      ]
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "your-expo-project-id"
-      }
+      "favicon": "./assets/favicon.png"
     }
   }
 }

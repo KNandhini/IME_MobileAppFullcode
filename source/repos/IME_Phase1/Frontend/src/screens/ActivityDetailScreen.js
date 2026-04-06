@@ -10,7 +10,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import { Card, Chip, Divider, List, Button, FAB } from 'react-native-paper';
+import { Card, Chip, Divider, List, Button } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
 import { fileService } from '../services/fileService';
@@ -32,7 +32,7 @@ const ActivityDetailScreen = ({ route }) => {
     setLoading(true);
     try {
       // Get member ID
-      const userStr = await AsyncStorage.getItem('user');
+      const userStr = await AsyncStorage.getItem('userData');
       let currentMemberId = null;
       if (userStr) {
         const user = JSON.parse(userStr);
@@ -321,14 +321,12 @@ const ActivityDetailScreen = ({ route }) => {
       </View>
 
       {activity.status === 'Upcoming' && !isRegistered && (
-        <FAB
-          style={styles.fab}
-          icon="account-plus"
-          label="Register"
-          onPress={handleRegister}
-          loading={registering}
-          disabled={registering}
-        />
+        <View style={styles.fabContainer}>
+          <Button mode="contained" onPress={handleRegister} loading={registering} disabled={registering}
+            style={styles.registerBtn}>
+            Register for Activity
+          </Button>
+        </View>
       )}
 
       {isRegistered && (
@@ -446,11 +444,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
-  fab: {
-    position: 'absolute',
-    margin: 16,
-    right: 0,
-    bottom: 0,
+  fabContainer: {
+    padding: 16,
+  },
+  registerBtn: {
     backgroundColor: '#4CAF50',
   },
   registeredBanner: {

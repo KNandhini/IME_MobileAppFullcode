@@ -35,7 +35,7 @@ const LoginScreen = ({ navigation }) => {
         Alert.alert('Login Failed', response.message);
       }
     } catch (error) {
-      Alert.alert('Error', error?.message || error?.toString() || 'An error occurred during login');
+      Alert.alert('Error', 'An error occurred during login');
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer}>

@@ -1,152 +1,77 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { TextInput, Button, Card, Chip } from 'react-native-paper';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { activityService } from '../services/activityService';
-import { fileService } from '../services/fileService';
 import { pickImageFromGallery, pickDocument } from '../utils/imagePicker';
+
+const STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
 const ActivityFormScreen = ({ route, navigation }) => {
   const { activityId } = route.params || {};
   const isEditMode = !!activityId;
-
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    activityDate: new Date(),
-    venue: '',
-    coordinator: '',
-    registrationDeadline: new Date(),
-    status: 'Upcoming',
-  });
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showDeadlinePicker, setShowDeadlinePicker] = useState(false);
+  const [saving, setSaving]       = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [selectedBanner, setSelectedBanner] = useState(null);
+  const [formData, setFormData] = useState({
+    title: '', description: '', venue: '', coordinator: '',
+    status: 'Upcoming',
+    activityDate: '',           // YYYY-MM-DD HH:MM
+    registrationDeadline: '',
+  });
 
   useEffect(() => {
-    if (isEditMode) {
-      loadActivity();
-    }
+    if (isEditMode) { loadActivity(); }
   }, [activityId]);
 
   const loadActivity = async () => {
-    setLoading(true);
     try {
-      const response = await activityService.getById(activityId);
-      if (response.success) {
+      const res = await activityService.getById(activityId);
+      if (res.success && res.data) {
+        const d = res.data;
         setFormData({
-          ...response.data,
-          activityDate: new Date(response.data.activityDate),
-          registrationDeadline: new Date(response.data.registrationDeadline),
+          title: d.title || '',
+          description: d.description || '',
+          venue: d.venue || '',
+          coordinator: d.coordinator || '',
+          status: d.status || 'Upcoming',
+          activityDate: d.activityDate ? d.activityDate.slice(0, 16) : '',
+          registrationDeadline: d.registrationDeadline ? d.registrationDeadline.slice(0, 16) : '',
         });
       }
-    } catch (error) {
-      console.error('Failed to load activity:', error);
-      Alert.alert('Error', 'Failed to load activity');
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error('Load activity error:', e); }
   };
 
-  const handleUpdateField = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const update = (field, value) => setFormData((p) => ({ ...p, [field]: value }));
+
+  const handlePickDocument = async () => {
+    const result = await pickDocument();
+    if (result.success) setSelectedFiles((prev) => [...prev, result.asset]);
   };
 
-  const handleSelectBanner = async () => {
-    const image = await pickImageFromGallery();
-    if (image) {
-      setSelectedBanner(image);
-    }
-  };
+  const removeFile = (index) => setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
 
-  const handleSelectFiles = async () => {
-    const docs = await pickDocument({ multiple: true });
-    if (docs) {
-      setSelectedFiles((prev) => [...prev, ...(Array.isArray(docs) ? docs : [docs])]);
-    }
-  };
-
-  const handleRemoveFile = (index) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.title.trim()) {
-      Alert.alert('Error', 'Please enter activity title');
+  const handleSave = async () => {
+    if (!formData.title.trim() || !formData.description.trim() || !formData.venue.trim()) {
+      Alert.alert('Error', 'Title, description and venue are required.');
       return;
     }
-
-    if (!formData.description.trim()) {
-      Alert.alert('Error', 'Please enter activity description');
-      return;
-    }
-
-    if (!formData.venue.trim()) {
-      Alert.alert('Error', 'Please enter venue');
-      return;
-    }
-
     setSaving(true);
     try {
-      let response;
-      if (isEditMode) {
-        response = await activityService.update(activityId, formData);
-      } else {
-        response = await activityService.create(formData);
-      }
+      const payload = {
+        ...formData,
+        activityDate: formData.activityDate ? new Date(formData.activityDate).toISOString() : new Date().toISOString(),
+        registrationDeadline: formData.registrationDeadline ? new Date(formData.registrationDeadline).toISOString() : null,
+      };
+      const res = isEditMode
+        ? await activityService.update(activityId, payload)
+        : await activityService.create(payload);
 
-      if (response.success) {
-        const savedActivityId = response.data.activityId || activityId;
-
-        // Upload banner if selected
-        if (selectedBanner) {
-          const file = {
-            uri: selectedBanner.uri,
-            type: 'image/jpeg',
-            name: `banner_${savedActivityId}.jpg`,
-          };
-          await fileService.uploadFile(file, 'Activity', savedActivityId);
-        }
-
-        // Upload attachments
-        for (const doc of selectedFiles) {
-          const file = {
-            uri: doc.uri,
-            type: doc.mimeType || 'application/octet-stream',
-            name: doc.name,
-          };
-          await fileService.uploadFile(file, 'Activity', savedActivityId);
-        }
-
-        Alert.alert(
-          'Success',
-          `Activity ${isEditMode ? 'updated' : 'created'} successfully`,
-          [
-            {
-              text: 'OK',
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
-      } else {
-        Alert.alert('Error', response.message || 'Failed to save activity');
-      }
-    } catch (error) {
-      console.error('Save activity error:', error);
-      Alert.alert('Error', 'Failed to save activity');
-    } finally {
-      setSaving(false);
-    }
+      if (res.success) {
+        Alert.alert('Success', isEditMode ? 'Activity updated.' : 'Activity created.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else { Alert.alert('Error', res.message || 'Operation failed.'); }
+    } catch (e) { Alert.alert('Error', 'An error occurred.'); }
+    finally { setSaving(false); }
   };
 
   return (
@@ -154,96 +79,31 @@ const ActivityFormScreen = ({ route, navigation }) => {
       <Card style={styles.card}>
         <Card.Content>
           <Text style={styles.sectionTitle}>Activity Details</Text>
+          <TextInput label="Title *" value={formData.title} onChangeText={(v) => update('title', v)} mode="outlined" style={styles.input} />
+          <TextInput label="Description *" value={formData.description} onChangeText={(v) => update('description', v)} mode="outlined" multiline numberOfLines={4} style={styles.input} />
+          <TextInput label="Venue *" value={formData.venue} onChangeText={(v) => update('venue', v)} mode="outlined" style={styles.input} />
+          <TextInput label="Coordinator" value={formData.coordinator} onChangeText={(v) => update('coordinator', v)} mode="outlined" style={styles.input} />
+        </Card.Content>
+      </Card>
 
-          <TextInput
-            label="Title *"
-            value={formData.title}
-            onChangeText={(text) => handleUpdateField('title', text)}
-            mode="outlined"
-            style={styles.input}
-          />
+      <Card style={styles.card}>
+        <Card.Content>
+          <Text style={styles.sectionTitle}>Date & Time</Text>
+          <Text style={styles.hint}>Format: YYYY-MM-DD HH:MM (e.g. 2025-06-15 10:00)</Text>
+          <TextInput label="Activity Date *" value={formData.activityDate} onChangeText={(v) => update('activityDate', v)} mode="outlined" placeholder="2025-06-15 10:00" style={styles.input} />
+          <TextInput label="Registration Deadline" value={formData.registrationDeadline} onChangeText={(v) => update('registrationDeadline', v)} mode="outlined" placeholder="2025-06-10 23:59" style={styles.input} />
+        </Card.Content>
+      </Card>
 
-          <TextInput
-            label="Description *"
-            value={formData.description}
-            onChangeText={(text) => handleUpdateField('description', text)}
-            mode="outlined"
-            multiline
-            numberOfLines={5}
-            style={styles.input}
-          />
-
-          <TextInput
-            label="Venue *"
-            value={formData.venue}
-            onChangeText={(text) => handleUpdateField('venue', text)}
-            mode="outlined"
-            style={styles.input}
-          />
-
-          <TextInput
-            label="Coordinator"
-            value={formData.coordinator}
-            onChangeText={(text) => handleUpdateField('coordinator', text)}
-            mode="outlined"
-            style={styles.input}
-          />
-
-          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-            <TextInput
-              label="Activity Date *"
-              value={formData.activityDate.toLocaleDateString()}
-              mode="outlined"
-              editable={false}
-              right={<TextInput.Icon icon="calendar" />}
-              style={styles.input}
-            />
-          </TouchableOpacity>
-
-          {showDatePicker && (
-            <DateTimePicker
-              value={formData.activityDate}
-              mode="date"
-              onChange={(event, date) => {
-                setShowDatePicker(false);
-                if (date) handleUpdateField('activityDate', date);
-              }}
-            />
-          )}
-
-          <TouchableOpacity onPress={() => setShowDeadlinePicker(true)}>
-            <TextInput
-              label="Registration Deadline"
-              value={formData.registrationDeadline.toLocaleDateString()}
-              mode="outlined"
-              editable={false}
-              right={<TextInput.Icon icon="calendar" />}
-              style={styles.input}
-            />
-          </TouchableOpacity>
-
-          {showDeadlinePicker && (
-            <DateTimePicker
-              value={formData.registrationDeadline}
-              mode="date"
-              onChange={(event, date) => {
-                setShowDeadlinePicker(false);
-                if (date) handleUpdateField('registrationDeadline', date);
-              }}
-            />
-          )}
-
-          <Text style={styles.label}>Status</Text>
-          <View style={styles.statusOptions}>
-            {['Upcoming', 'Ongoing', 'Completed', 'Cancelled'].map((status) => (
-              <Chip
-                key={status}
-                selected={formData.status === status}
-                onPress={() => handleUpdateField('status', status)}
-                style={styles.statusChip}
-              >
-                {status}
-              </Chip>
+      <Card style={styles.card}>
+        <Card.Content>
+          <Text style={styles.sectionTitle}>Status</Text>
+          <View style={styles.statusRow}>
+            {STATUSES.map((s) => (
+              <TouchableOpacity key={s} onPress={() => update('status', s)}>
+                <Chip selected={formData.status === s} style={[styles.chip, formData.status === s && styles.chipSelected]}
+                  textStyle={formData.status === s ? { color: '#fff' } : {}}>{s}</Chip>
+              </TouchableOpacity>
             ))}
           </View>
         </Card.Content>
@@ -251,130 +111,42 @@ const ActivityFormScreen = ({ route, navigation }) => {
 
       <Card style={styles.card}>
         <Card.Content>
-          <Text style={styles.sectionTitle}>Media</Text>
-
-          <Button
-            mode="outlined"
-            onPress={handleSelectBanner}
-            icon="image"
-            style={styles.uploadButton}
-          >
-            {selectedBanner ? 'Change Banner' : 'Select Banner Image'}
-          </Button>
-
-          {selectedBanner && (
-            <Text style={styles.selectedText}>Selected: {selectedBanner.fileName || 'Image'}</Text>
-          )}
-
-          <Button
-            mode="outlined"
-            onPress={handleSelectFiles}
-            icon="attachment"
-            style={styles.uploadButton}
-          >
-            Add Attachments
-          </Button>
-
-          {selectedFiles.map((file, index) => (
-            <View key={index} style={styles.fileItem}>
-              <Text style={styles.fileName}>{file.name}</Text>
-              <Button onPress={() => handleRemoveFile(index)} icon="close">
-                Remove
-              </Button>
+          <Text style={styles.sectionTitle}>Attachments (Optional)</Text>
+          <Button mode="outlined" onPress={handlePickDocument} style={styles.attachBtn} icon="paperclip">Add Document</Button>
+          {selectedFiles.map((f, i) => (
+            <View key={i} style={styles.fileRow}>
+              <Text style={styles.fileName} numberOfLines={1}>{f.name}</Text>
+              <TouchableOpacity onPress={() => removeFile(i)}><Text style={styles.removeBtn}>✕</Text></TouchableOpacity>
             </View>
           ))}
         </Card.Content>
       </Card>
 
       <View style={styles.actions}>
-        <Button
-          mode="contained"
-          onPress={handleSubmit}
-          loading={saving}
-          disabled={saving}
-          style={styles.saveButton}
-        >
+        <Button mode="contained" onPress={handleSave} loading={saving} disabled={saving} style={styles.btn}>
           {isEditMode ? 'Update Activity' : 'Create Activity'}
         </Button>
-
-        <Button
-          mode="outlined"
-          onPress={() => navigation.goBack()}
-          disabled={saving}
-          style={styles.cancelButton}
-        >
-          Cancel
-        </Button>
+        <Button mode="outlined" onPress={() => navigation.goBack()} disabled={saving} style={styles.btn}>Cancel</Button>
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  card: {
-    margin: 15,
-    elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 15,
-  },
-  input: {
-    marginBottom: 12,
-    backgroundColor: '#fff',
-  },
-  label: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  statusOptions: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 12,
-  },
-  statusChip: {
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  uploadButton: {
-    marginBottom: 12,
-  },
-  selectedText: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 12,
-  },
-  fileItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 10,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  fileName: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-  },
-  actions: {
-    padding: 15,
-  },
-  saveButton: {
-    paddingVertical: 6,
-    marginBottom: 10,
-  },
-  cancelButton: {
-    paddingVertical: 6,
-  },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  card:   { margin: 12, elevation: 2 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 8 },
+  hint:   { fontSize: 12, color: '#888', marginBottom: 8 },
+  input:  { marginBottom: 10, backgroundColor: '#fff' },
+  statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip:   { marginRight: 8, marginBottom: 8 },
+  chipSelected: { backgroundColor: '#1E3A5F' },
+  attachBtn: { marginBottom: 10 },
+  fileRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  fileName: { flex: 1, fontSize: 13, color: '#333' },
+  removeBtn: { color: '#E53E3E', fontSize: 16, paddingLeft: 8 },
+  actions: { padding: 12 },
+  btn: { marginBottom: 10 },
 });
 
 export default ActivityFormScreen;
