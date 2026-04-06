@@ -31,7 +31,7 @@ const SignupScreen = ({ navigation }) => {
 
   const fetchFee = async () => {
     try {
-      const res = await api.get('/payment/current-fee');
+      const res = await api.get('/payment/latest-fee');
       if (res.data.success) setCurrentFee(res.data.data);
     } catch (e) {
       console.warn('Fee fetch failed:', e.message);
