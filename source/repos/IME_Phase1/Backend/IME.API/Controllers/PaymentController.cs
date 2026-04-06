@@ -310,6 +310,42 @@ public class PaymentController : ControllerBase
         }
     }
 
+    [HttpGet("latest-fee")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<object>>> GetLatestFee()
+    {
+        try
+        {
+            using var connection = await _dbContext.CreateOpenConnectionAsync();
+            using var command = new SqlCommand(
+                "SELECT TOP 1 FeeId, Amount, EffectiveFrom, IsActive FROM MembershipFee WHERE IsActive = 1 ORDER BY EffectiveFrom DESC",
+                connection);
+
+            using var reader = await command.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Data = new
+                    {
+                        FeeId = reader.GetInt32(0),
+                        Amount = reader.GetDecimal(1),
+                        EffectiveFrom = reader.GetDateTime(2),
+                        IsActive = reader.GetBoolean(3)
+                    }
+                });
+            }
+
+            return Ok(new ApiResponse<object> { Success = false, Message = "No fee currently set. Please contact admin." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
     [HttpGet("current-fee")]
     public async Task<ActionResult<ApiResponse<object>>> GetCurrentFee()
     {
