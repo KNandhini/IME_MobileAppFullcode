@@ -369,7 +369,7 @@ public class PaymentController : ControllerBase
 
             if (await reader.ReadAsync())
             {
-                var feeId = reader.GetInt32(reader.GetOrdinal("FeeId"));
+                var feeId = Convert.ToInt32(reader.GetValue(reader.GetOrdinal("FeeId")));
                 var message = reader.GetString(reader.GetOrdinal("Message"));
 
                 return Ok(new ApiResponse<object>
