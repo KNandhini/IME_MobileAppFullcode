@@ -8,14 +8,16 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class MemberController : ControllerBase
 {
     private readonly IMemberRepository _memberRepository;
+    private readonly EmailService _emailService;
 
-    public MemberController(IMemberRepository memberRepository)
+    public MemberController(IMemberRepository memberRepository, EmailService emailService)
     {
         _memberRepository = memberRepository;
+        _emailService = emailService;
     }
 
     [HttpGet("profile/{memberId}")]
@@ -38,6 +40,7 @@ public class MemberController : ControllerBase
             {
                 MemberId = member.MemberId,
                 UserId = member.UserId,
+                Email = member.Email,
                 FullName = member.FullName,
                 Address = member.Address,
                 ContactNumber = member.ContactNumber,
@@ -138,7 +141,7 @@ public class MemberController : ControllerBase
 
     [HttpPut("{memberId}/status")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(int memberId, [FromBody] string status)
+    /*public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(int memberId, [FromBody] string status)
     {
         try
         {
@@ -157,6 +160,97 @@ public class MemberController : ControllerBase
             {
                 Success = false,
                 Message = "Failed to update status"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = $"Error: {ex.Message}"
+            });
+        }
+    }*/
+    public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(
+    int memberId,
+    [FromBody] UpdateMemberStatusRequest request)
+    {
+        try
+        {
+            var success = await _memberRepository.UpdateMemberStatusAsync(
+                memberId,
+                request.Status,
+                request.Reason   // ? pass reason
+            );
+
+            if (success)
+            {
+                // ? GET MEMBER EMAIL
+                var member = await _memberRepository.GetMemberProfileAsync(memberId);
+
+                if (member != null)
+                {
+                    string subject = "Membership Status Update";
+                    string body = "";
+
+                    if (request.Status == "Active")
+                    {
+                        body = $"Hello {member.FullName},\n\nYour membership has been APPROVED.";
+                    }
+                    else if (request.Status == "Rejected")
+                    {
+                        body = body = $@"Hi {member.FullName},Thank you for your interest in becoming a member. After careful review, we are sorry to inform you that your membership has been rejected. 
+                        Reason:{request.Reason} You are welcome to reapply after addressing the above concern. If you have any questions, please reach out to us.
+                        Best regards,  
+                        Team IME";
+                    }
+
+                    await _emailService.SendEmailAsync(member.Email, subject, body);
+                }
+
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Status updated successfully"
+                });
+            }
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Failed to update status"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = $"Error: {ex.Message}"
+            });
+        }
+    }
+    [HttpDelete("{memberId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteMember(int memberId)
+    {
+        try
+        {
+            var success = await _memberRepository.DeleteMemberAsync(memberId);
+
+            if (success)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "Member deleted successfully"
+                });
+            }
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = false,
+                Message = "Failed to delete member"
             });
         }
         catch (Exception ex)

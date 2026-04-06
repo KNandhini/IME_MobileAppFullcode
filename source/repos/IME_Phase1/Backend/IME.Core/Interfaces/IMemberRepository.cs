@@ -7,5 +7,6 @@ public interface IMemberRepository
     Task<Member?> GetMemberProfileAsync(int memberId);
     Task<bool> UpdateMemberProfileAsync(Member member);
     Task<List<Member>> GetAllMembersAsync(int pageNumber, int pageSize);
-    Task<bool> UpdateMemberStatusAsync(int memberId, string status);
+    Task<bool> UpdateMemberStatusAsync(int memberId, string status, string? reason);
+     Task<bool> DeleteMemberAsync(int memberId);
 }

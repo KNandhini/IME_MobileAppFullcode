@@ -16,6 +16,7 @@ public class MemberProfileDTO
     public string? DesignationName { get; set; }
     public string? ProfilePhotoPath { get; set; }
     public string MembershipStatus { get; set; } = string.Empty;
+    public string? Reason { get; set; }   // optional (only for Reject)
     public DateTime CreatedDate { get; set; }
 }
 

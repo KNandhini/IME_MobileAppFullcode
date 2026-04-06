@@ -30,6 +30,7 @@ public class MemberRepository : IMemberRepository
             {
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
                 UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                Email=reader.GetString(reader.GetOrdinal("Email")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
                 Address = reader.IsDBNull(reader.GetOrdinal("Address")) ? null : reader.GetString(reader.GetOrdinal("Address")),
                 ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber")) ? null : reader.GetString(reader.GetOrdinal("ContactNumber")),
@@ -89,6 +90,7 @@ public class MemberRepository : IMemberRepository
             members.Add(new Member
             {
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
+                Email = reader.GetString(reader.GetOrdinal("Email")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
                 ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber")) ? null : reader.GetString(reader.GetOrdinal("ContactNumber")),
                 Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
@@ -101,13 +103,30 @@ public class MemberRepository : IMemberRepository
         return members;
     }
 
-    public async Task<bool> UpdateMemberStatusAsync(int memberId, string status)
+    public async Task<bool> UpdateMemberStatusAsync(int memberId, string status, string? reason)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_UpdateMemberStatus", connection);
 
         command.Parameters.AddWithValue("@MemberId", memberId);
         command.Parameters.AddWithValue("@Status", status);
+        command.Parameters.AddWithValue("@Reason", (object?)reason ?? DBNull.Value); 
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        if (await reader.ReadAsync())
+        {
+            return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
+        }
+
+        return false;
+    }
+    public async Task<bool> DeleteMemberAsync(int memberId)
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_DeleteMember", connection);
+
+        command.Parameters.AddWithValue("@MemberId", memberId);
 
         using var reader = await command.ExecuteReaderAsync();
 
