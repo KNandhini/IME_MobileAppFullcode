@@ -65,6 +65,7 @@ builder.Services.AddSingleton(new JwtService(
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddSingleton(sp => new FileStorageService(uploadPath));
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddSingleton<EmailTemplateService>();
 
 // JWT Authentication
 var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]!);
