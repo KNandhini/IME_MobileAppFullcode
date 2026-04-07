@@ -184,6 +184,7 @@ public class FileController : ControllerBase
     }
 
     [HttpPost("upload-profile-photo")]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<FileUploadResponseDTO>>> UploadProfilePhoto(
         [FromForm] IFormFile file,
         [FromForm] int memberId)

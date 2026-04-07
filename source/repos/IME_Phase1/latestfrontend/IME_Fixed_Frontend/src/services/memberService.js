@@ -43,7 +43,6 @@ export const memberService = {
 
   getAllMembers: async (pageNumber = 1, pageSize = 50) => {
     try {
-      debugger;
       const response = await api.get('/member/all', {
         params: { pageNumber, pageSize },
       });
@@ -55,45 +54,24 @@ export const memberService = {
   },
 
   approveMember: async (memberId) => {
-  try {
-    const response = await api.put(
-      `/member/${memberId}/status`,
-      "Active", // ✅ send status as string
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error('Approve member error:', error);
-    return { success: false, message: error.message };
-  }
-},
+    try {
+      const response = await api.put(`/member/${memberId}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error('Approve member error:', error);
+      return { success: false, message: error.message };
+    }
+  },
 
   rejectMember: async (memberId, reason) => {
-  try {
-    debugger;
-    const response = await api.put(
-      `/member/${memberId}/status`,
-      {
-        Status: "Rejected",  // ✅ matches request.Status in C#
-        Reason: reason,      // ✅ matches request.Reason in C#
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Reject member error:', error);
-    return { success: false, message: error.message };
-  }
-},
+    try {
+      const response = await api.put(`/member/${memberId}/reject`, { reason });
+      return response.data;
+    } catch (error) {
+      console.error('Reject member error:', error);
+      return { success: false, message: error.message };
+    }
+  },
 
   deleteMember: async (memberId) => {
     try {
@@ -107,7 +85,6 @@ export const memberService = {
 
   searchMembers: async (searchTerm) => {
     try {
-      
       const response = await api.get(`/member/search?term=${searchTerm}`);
       return response.data;
     } catch (error) {
