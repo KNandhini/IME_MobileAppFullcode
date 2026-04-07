@@ -6,6 +6,7 @@ using IME.Core.Interfaces;
 using IME.Infrastructure.Data;
 using IME.Infrastructure.Repositories;
 using IME.Infrastructure.Services;
+using IME.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +54,7 @@ builder.Services.AddSingleton(new DatabaseContext(connectionString!));
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
+builder.Services.AddScoped<IFundraiseRepository, FundraiseRepository>();
 
 // Register Services
 builder.Services.AddSingleton(new JwtService(
