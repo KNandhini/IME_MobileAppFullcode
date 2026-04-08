@@ -33,6 +33,8 @@ import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
 import AboutScreen from '../screens/AboutScreen';
+
+import RaiseFundScreen from './screens/RaiseFundScreen';
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
 
