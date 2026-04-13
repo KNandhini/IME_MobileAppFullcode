@@ -33,6 +33,7 @@ import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen      from '../screens/MemberManagementScreen';
 import AboutScreen                 from '../screens/AboutScreen';
 import FundScreen                  from '../screens/FundScreen';
+import RaiseFundScreen from '../screens/RaiseFundScreen';
 import CreatePostScreen            from '../screens/CreatePostScreen';
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
@@ -170,6 +171,8 @@ const MainStack = () => (
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen}   options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}     options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
+    {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
+      <Stack.Screen name="RaiseFund" component={RaiseFundScreen} />
     <Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />
     <Stack.Screen name="CreatePost"       component={CreatePostScreen}       options={{ headerShown: false }} />
   </Stack.Navigator>
