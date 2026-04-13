@@ -1,22 +1,31 @@
 // screens/RaiseFundScreen.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   TextInput, Modal, Alert, ActivityIndicator, SafeAreaView,
-  KeyboardAvoidingView, Platform, FlatList
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../utils/api';
 
-const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu'; // replace with your key
+const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
-// ─── Razorpay HTML ───────────────────────────────────────────────────────────
+// ─── Razorpay HTML ────────────────────────────────────────────────────────────
+// FIX: handler now also sends method (payment mode) back to RN
 function getRazorpayHTML({ amount, userData, post }) {
-  const name = (userData?.fullName || '').replace(/'/g, "\\'");
-  const email = (userData?.email || '').replace(/'/g, "\\'");
-  const phone = (userData?.phoneNumber || '').replace(/'/g, "\\'");
-
+    console.log(userData,"UserData");
+  const name  = (userData?.fullName      || '').replace(/'/g, "\\'");
+  const email = (userData?.email         || '').replace(/'/g, "\\'");
+  //const phone = (userData?.contactNumber || '').replace(/'/g, "\\'");
+ const phone = (
+    userData?.contactNumber ||
+    userData?.phoneNumber   ||
+    userData?.mobile        ||
+    userData?.phone         ||
+    ''
+  ).replace(/[^0-9]/g, '');
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -53,17 +62,17 @@ function getRazorpayHTML({ amount, userData, post }) {
   <div class="sub">${post?.title || 'Fundraiser'}</div>
   <div class="amt-box">
     <div class="amt-label">Your Contribution</div>
-    <div class="amt-value">₹${Number(amount).toLocaleString('en-IN')}</div>
+    <div class="amt-value">&#8377;${Number(amount).toLocaleString('en-IN')}</div>
   </div>
   <div id="loader">
     <div class="spinner"></div>
     <div id="statusText">Opening Razorpay…</div>
   </div>
   <div id="errorBox">
-    ⚠️ Could not connect to Razorpay.
+    &#9888; Could not connect to Razorpay.
     <br/><button class="retry-btn" onclick="loadRazorpay()">Retry</button>
   </div>
-  <div class="secure">🔒 Secured by Razorpay</div>
+  <div class="secure">&#128274; Secured by Razorpay</div>
 </div>
 <script>
 var RZP_LOADED = false;
@@ -102,25 +111,31 @@ function openRazorpay(){
     prefill:{name:'${name}',email:'${email}',contact:'${phone}'},
     handler:function(r){
       document.getElementById('statusText').innerText='Payment successful!';
+
+      // ── FIX: send method along with payment details ──────────────
+      // r.razorpay_payment_id is always present on success
+      // method is available on the Razorpay instance after payment
       window.ReactNativeWebView.postMessage(JSON.stringify({
-        type:'PAYMENT_SUCCESS',
-        paymentId:r.razorpay_payment_id,
-        orderId:r.razorpay_order_id||'',
-        signature:r.razorpay_signature||''
+        type      : 'PAYMENT_SUCCESS',
+        paymentId : r.razorpay_payment_id,
+        orderId   : r.razorpay_order_id   || '',
+        signature : r.razorpay_signature  || '',
+        method    : r.method              || 'Razorpay', // upi/card/netbanking/wallet
       }));
     },
     modal:{
       ondismiss:function(){
         window.ReactNativeWebView.postMessage(JSON.stringify({type:'PAYMENT_CANCELLED'}));
       },
-      escape:false,handleback:true,animation:true
+      escape:false, handleback:true, animation:true
     }
   };
   try{
     var rzp=new Razorpay(opts);
     rzp.on('payment.failed',function(r){
       window.ReactNativeWebView.postMessage(JSON.stringify({
-        type:'PAYMENT_FAILED',error:r.error.description||'Payment failed'
+        type  :'PAYMENT_FAILED',
+        error : r.error.description || 'Payment failed',
       }));
     });
     rzp.open();
@@ -136,43 +151,50 @@ window.onload=function(){loadRazorpay();};
 </html>`;
 }
 
-// ─── API helpers ──────────────────────────────────────────────────────────────
-const API_BASE = 'https://your-api.com'; // ← replace with your base URL
-
-async function fetchMemberDetails(memberId) {
-  const token = await AsyncStorage.getItem('authToken');
-  const res = await fetch(`${API_BASE}/member/profile/${memberId}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error('Failed to fetch member');
-  return res.json(); // { id, fullName, email, phoneNumber, totalDonated, ... }
+// ─── Map Razorpay method string → readable label ──────────────────────────────
+// Razorpay sends: 'upi' | 'card' | 'netbanking' | 'wallet' | 'emi'
+function mapPaymentMode(method) {
+  const map = {
+    upi        : 'UPI',
+    card       : 'Card',
+    netbanking : 'NetBanking',
+    wallet     : 'Wallet',
+    emi        : 'EMI',
+  };
+  return map[method?.toLowerCase()] || 'Razorpay';
 }
 
-async function storePayment({ memberId, postId, amount, paymentId, orderId, signature }) {
-  const token = await AsyncStorage.getItem('authToken');
-  const res = await fetch(`${API_BASE}/payments`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({
-      memberId,
-      postId,
-      amount,
-      paymentId,
-      orderId,
-      signature,
-      paidAt: new Date().toISOString(),
-    }),
+// ─── API: fetch member details ────────────────────────────────────────────────
+const fetchMemberDetails = async () => {
+  const userStr = await AsyncStorage.getItem('userData');
+  if (!userStr) throw new Error('User not found');
+  const user = JSON.parse(userStr);
+  const memberId = user?.memberId || user?.id;
+  if (!memberId) throw new Error('Member ID missing');
+  const res = await api.get(`/member/profile/${memberId}`);
+  if (res.data.success) return res.data.data;
+  throw new Error(res.data.message || 'Failed to fetch member');
+};
+
+// ─── API: store payment ───────────────────────────────────────────────────────
+// FIX: correct params — fundId, paymentMode, transactionId all properly passed
+async function storePayment({ memberId, fundId, amount, transactionId, paymentMode }) {
+    debugger;
+  const res = await api.post('/RaiseFundPayment/donate', {
+    memberId,
+    fundId,
+    amount,
+    paymentMode,        // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
+    transactionId,      // razorpay_payment_id
+    paymentStatus: 'Success',
   });
-  if (!res.ok) throw new Error('Failed to store payment');
-  return res.json();
+  if (!res.data.success) throw new Error(res.data.message);
+  return res.data.data; // { id, balanceAmount, collectedAmount, targetAmount }
 }
 
-// ─── ProgressBar ─────────────────────────────────────────────────────────────
-function ProgressBar({ raised, goal, color = '#e8623a' }) {
-  const pct = Math.min((raised / goal) * 100, 100);
+// ─── ProgressBar ──────────────────────────────────────────────────────────────
+function ProgressBar({ raised, goal }) {
+  const pct = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
   return (
     <View>
       <View style={s.progressMeta}>
@@ -180,7 +202,7 @@ function ProgressBar({ raised, goal, color = '#e8623a' }) {
         <Text style={[s.progressPct, { color: '#22c55e' }]}>{Math.round(pct)}%</Text>
       </View>
       <View style={s.progressTrack}>
-        <View style={[s.progressFill, { width: `${pct}%`, backgroundColor: color }]} />
+        <View style={[s.progressFill, { width: `${pct}%` }]} />
       </View>
       <Text style={s.progressGoal}>Goal: ₹{goal.toLocaleString('en-IN')}</Text>
     </View>
@@ -189,16 +211,43 @@ function ProgressBar({ raised, goal, color = '#e8623a' }) {
 
 // ─── Amount Modal ─────────────────────────────────────────────────────────────
 function AmountModal({ visible, post, onClose, onProceed }) {
-  const [amount, setAmount] = useState('');
+  const minAmount = post.minimumAmount ?? 1;
+  
+  // FIX: autofill minimum amount when modal opens
+  const [amount, setAmount] = useState(String(minAmount));
   const quickAmounts = [100, 500, 1000, 5000];
+
+  // FIX: reset to minimum (not empty) when modal opens
+  useEffect(() => {
+    if (visible) setAmount(String(minAmount));
+  }, [visible]);
 
   const handleProceed = () => {
     const num = parseInt(amount, 10);
-    if (!num || num < 1) {
-      Alert.alert('Invalid amount', 'Please enter a valid amount (min ₹1)');
+    
+    // FIX: validate against minimum amount
+    if (!num || num < minAmount) {
+      Alert.alert(
+        'Amount too low',
+        `Minimum donation for this fund is ₹${minAmount.toLocaleString('en-IN')}`
+      );
       return;
     }
     onProceed(num);
+  };
+
+  // FIX: validate on change — prevent going below minimum
+  const handleAmountChange = (text) => {
+    const cleaned = text.replace(/[^0-9]/g, '');
+    setAmount(cleaned);
+  };
+
+  // FIX: on blur, if below minimum, reset to minimum
+  const handleBlur = () => {
+    const num = parseInt(amount, 10);
+    if (!num || num < minAmount) {
+      setAmount(String(minAmount));
+    }
   };
 
   return (
@@ -209,12 +258,9 @@ function AmountModal({ visible, post, onClose, onProceed }) {
       >
         <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} />
         <View style={s.modalSheet}>
-          {/* Handle */}
           <View style={s.modalHandle} />
-
           <Text style={s.modalTitle}>Support this cause</Text>
 
-          {/* Goal summary inside popup */}
           <View style={s.modalGoalBox}>
             <ProgressBar raised={post.raised} goal={post.goal} />
             <View style={s.modalGoalRow}>
@@ -230,44 +276,67 @@ function AmountModal({ visible, post, onClose, onProceed }) {
               <View style={s.modalStatDivider} />
               <View style={s.modalStat}>
                 <Text style={[s.modalStatVal, { color: '#22c55e' }]}>
-                  {Math.round((post.raised / post.goal) * 100)}%
+                  {post.goal > 0 ? Math.round((post.raised / post.goal) * 100) : 0}%
                 </Text>
                 <Text style={s.modalStatLabel}>Reached</Text>
               </View>
             </View>
           </View>
 
-          {/* Quick amounts */}
+          {/* FIX: show minimum amount notice */}
+          {minAmount > 1 && (
+            <View style={s.minAmountBanner}>
+              <Ionicons name="information-circle-outline" size={15} color="#e8623a" />
+              <Text style={s.minAmountText}>
+                Minimum donation: ₹{minAmount.toLocaleString('en-IN')}
+              </Text>
+            </View>
+          )}
+
           <Text style={s.modalSectionLabel}>Quick select</Text>
           <View style={s.quickRow}>
-            {quickAmounts.map((q) => (
-              <TouchableOpacity
-                key={q}
-                style={[s.quickChip, amount === String(q) && s.quickChipActive]}
-                onPress={() => setAmount(String(q))}
-              >
-                <Text style={[s.quickChipText, amount === String(q) && s.quickChipTextActive]}>
-                  ₹{q.toLocaleString('en-IN')}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {quickAmounts.map((q) => {
+              // FIX: only show quick amounts >= minimum
+              if (q < minAmount) return null;
+              return (
+                <TouchableOpacity
+                  key={q}
+                  style={[s.quickChip, amount === String(q) && s.quickChipActive]}
+                  onPress={() => setAmount(String(q))}
+                >
+                  <Text style={[s.quickChipText, amount === String(q) && s.quickChipTextActive]}>
+                    ₹{q.toLocaleString('en-IN')}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Custom input */}
           <Text style={s.modalSectionLabel}>Or enter amount</Text>
-          <View style={s.amountInputRow}>
+          <View style={[
+            s.amountInputRow,
+            // FIX: red border if below minimum
+            parseInt(amount) < minAmount && amount !== '' && s.amountInputRowError
+          ]}>
             <Text style={s.rupeeSign}>₹</Text>
             <TextInput
               style={s.amountInput}
               value={amount}
-              onChangeText={(t) => setAmount(t.replace(/[^0-9]/g, ''))}
+              onChangeText={handleAmountChange}
+              onBlur={handleBlur}          // ← reset to min on blur if too low
               keyboardType="number-pad"
-              placeholder="Enter amount"
+              placeholder={`Min ₹${minAmount}`}
               placeholderTextColor="#bbb"
             />
           </View>
 
-          {/* CTA */}
+          {/* FIX: show inline error if below minimum */}
+          {parseInt(amount) < minAmount && amount !== '' && (
+            <Text style={s.minAmountError}>
+              ⚠️ Minimum amount is ₹{minAmount.toLocaleString('en-IN')}
+            </Text>
+          )}
+
           <TouchableOpacity style={s.proceedBtn} onPress={handleProceed} activeOpacity={0.85}>
             <Ionicons name="heart" size={16} color="#fff" />
             <Text style={s.proceedBtnText}>
@@ -284,66 +353,98 @@ function AmountModal({ visible, post, onClose, onProceed }) {
 export default function RaiseFundScreen({ route, navigation }) {
   const { post } = route.params;
 
-  const [memberData, setMemberData] = useState(null);
-  const [loadingMember, setLoadingMember] = useState(true);
-  const [amountModalVisible, setAmountModalVisible] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState(0);
-  const [showWebView, setShowWebView] = useState(false);
+  const safePost = {
+    ...post,
+    raised: post.raised ?? post.collectedAmount ?? 0,
+    goal  : post.goal   ?? post.targetAmount    ?? 0,
+    title : post.title  || post.fundTitle       || '',
+    body  : post.body   || post.description     || '',
+    beneficiaryName: post.fullName       || '',
+    contactNumber  : post.contactNumber  || '',
+    upiId          : post.upiId          || '',
+    bankName       : post.bankName       || '',
+    accountNumber  : post.accountNumber  || '',
+     minimumAmount  : post.minimumAmount  ?? 1,
+  };
+
+  const [memberData,        setMemberData]        = useState(null);
+  const [loadingMember,     setLoadingMember]     = useState(true);
+  const [amountModalVisible,setAmountModalVisible] = useState(false);
+  const [paymentAmount,     setPaymentAmount]     = useState(0);
+  const [showWebView,       setShowWebView]       = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  // Load member on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const userStr = await AsyncStorage.getItem('userData');
-        if (userStr) {
-          const cached = JSON.parse(userStr);
-          // Fetch fresh member details from API using stored memberId
-          const fresh = await fetchMemberDetails(cached.memberId);
-          setMemberData(fresh);
-        }
-      } catch (e) {
-        Alert.alert('Error', 'Could not load member details');
-      } finally {
-        setLoadingMember(false);
-      }
-    })();
+    fetchMemberDetails()
+      .then(setMemberData)
+      .catch(() => Alert.alert('Error', 'Could not load member details'))
+      .finally(() => setLoadingMember(false));
   }, []);
 
   const handleAmountProceed = (amount) => {
+    // FIX: don't open WebView if member data not loaded yet
+  if (!memberData) {
+    Alert.alert('Please wait', 'Loading your profile, please try again.');
+    return;
+  }
+
+  // FIX: log to confirm correct number
+  console.log('Phone going to Razorpay:', 
+    memberData?.contactNumber || 
+    memberData?.phoneNumber   || 
+    'EMPTY - check field name!'
+  );
     setPaymentAmount(amount);
     setAmountModalVisible(false);
     setShowWebView(true);
   };
 
+  // ─── WebView message handler ──────────────────────────────────────────────
   const handleWebViewMessage = async (event) => {
     try {
+        debugger;
       const data = JSON.parse(event.nativeEvent.data);
+      console.log('Razorpay message:', data);
 
       if (data.type === 'PAYMENT_SUCCESS') {
         setShowWebView(false);
         setProcessingPayment(true);
+
+        // FIX: map Razorpay method → readable PaymentMode
+        const paymentMode = mapPaymentMode(data.method);
+        console.log('Payment mode:', paymentMode); // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
+
         try {
-          // Store payment in your DB table
-          await storePayment({
-            memberId: memberData?.id || memberData?.memberId,
-            postId: post.id,
-            amount: paymentAmount,
-            paymentId: data.paymentId,
-            orderId: data.orderId,
-            signature: data.signature,
+            debugger;
+          const result = await storePayment({
+            memberId     : memberData?.id || memberData?.memberId,
+            fundId       : safePost.id,       // tbl_Fundraise.Id
+            amount       : paymentAmount,
+            transactionId: data.paymentId,    // razorpay_payment_id → TransactionId
+            paymentMode,                      // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
           });
+
           Alert.alert(
             '✅ Thank you!',
-            `Your donation of ₹${paymentAmount.toLocaleString('en-IN')} was successful.\nPayment ID: ${data.paymentId}`,
-            [{ text: 'Done', onPress: () => navigation.goBack() }]
+            `Donated ₹${paymentAmount.toLocaleString('en-IN')} via ${paymentMode}\n` +
+            `Transaction ID: ${data.paymentId}\n` +
+            `Balance remaining: ₹${result?.balanceAmount?.toLocaleString('en-IN') ?? '—'}`,
+            [{
+              text: 'Done',
+              // FIX: navigate to FeedScreen instead of goBack()
+              onPress: () => navigation.navigate('Organisation'),
+            }]
           );
+
         } catch (err) {
-          // Payment succeeded but DB store failed — still show success
+          // Razorpay succeeded but DB failed — still navigate away
           Alert.alert(
             'Payment Done',
-            `Payment ID: ${data.paymentId}\nAmount: ₹${paymentAmount.toLocaleString('en-IN')}\n(Record will sync shortly)`,
-            [{ text: 'OK', onPress: () => navigation.goBack() }]
+            `Payment received via ${paymentMode}\nTransaction ID: ${data.paymentId}\n(Record will sync shortly)`,
+            [{
+              text: 'OK',
+              onPress: () => navigation.navigate('Organisation'),
+            }]
           );
         } finally {
           setProcessingPayment(false);
@@ -351,8 +452,7 @@ export default function RaiseFundScreen({ route, navigation }) {
 
       } else if (data.type === 'PAYMENT_CANCELLED') {
         setShowWebView(false);
-        // quietly re-open the amount modal so user can retry
-        setAmountModalVisible(true);
+        setAmountModalVisible(true); // re-open amount modal
 
       } else if (data.type === 'PAYMENT_FAILED') {
         setShowWebView(false);
@@ -361,6 +461,7 @@ export default function RaiseFundScreen({ route, navigation }) {
       } else if (data.type === 'SCRIPT_LOAD_FAILED') {
         console.log('Razorpay script failed — user can retry inside WebView');
       }
+
     } catch (e) {
       console.error('WebView message parse error:', e);
     }
@@ -376,7 +477,8 @@ export default function RaiseFundScreen({ route, navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
-      {/* ── Razorpay WebView ── */}
+
+      {/* ── Razorpay WebView Modal ── */}
       <Modal visible={showWebView} animationType="slide" onRequestClose={() => setShowWebView(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
           <View style={s.wvHeader}>
@@ -386,7 +488,10 @@ export default function RaiseFundScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
           <WebView
-            source={{ html: getRazorpayHTML({ amount: paymentAmount, userData: memberData, post }), baseUrl: 'https://checkout.razorpay.com' }}
+            source={{
+              html    : getRazorpayHTML({ amount: paymentAmount, userData: memberData, post: safePost }),
+              baseUrl : 'https://checkout.razorpay.com',
+            }}
             onMessage={handleWebViewMessage}
             javaScriptEnabled
             domStorageEnabled
@@ -420,45 +525,44 @@ export default function RaiseFundScreen({ route, navigation }) {
 
       {/* ── Main content ── */}
       <ScrollView contentContainerStyle={s.scroll}>
-        {/* Back */}
+
         <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={20} color="#333" />
           <Text style={s.backText}>Back</Text>
         </TouchableOpacity>
 
-        {/* Post summary */}
+        {/* Post card */}
         <View style={s.postCard}>
-          <View style={[s.badge, { backgroundColor: post.badgeBg }]}>
-            <Text style={[s.badgeText, { color: post.badgeColor }]}>{post.badge}</Text>
+          <View style={[s.badge, { backgroundColor: safePost.badgeBg }]}>
+            <Text style={[s.badgeText, { color: safePost.badgeColor }]}>{safePost.badge}</Text>
           </View>
-          <Text style={s.postTitle}>{post.title}</Text>
-          <Text style={s.postBody}>{post.body}</Text>
+          <Text style={s.postTitle}>{safePost.title}</Text>
+          <Text style={s.postBody}>{safePost.body}</Text>
         </View>
 
         {/* Progress card */}
         <View style={s.progressCard}>
           <Text style={s.cardSectionLabel}>Fundraiser Progress</Text>
-          <ProgressBar raised={post.raised} goal={post.goal} />
-
+          <ProgressBar raised={safePost.raised} goal={safePost.goal} />
           <View style={s.statsRow}>
             <View style={s.stat}>
-              <Text style={s.statVal}>₹{post.raised.toLocaleString('en-IN')}</Text>
+              <Text style={s.statVal}>₹{safePost.raised.toLocaleString('en-IN')}</Text>
               <Text style={s.statLabel}>Raised</Text>
             </View>
             <View style={s.statDivider} />
             <View style={s.stat}>
-              <Text style={s.statVal}>₹{(post.goal - post.raised).toLocaleString('en-IN')}</Text>
+              <Text style={s.statVal}>₹{(safePost.goal - safePost.raised).toLocaleString('en-IN')}</Text>
               <Text style={s.statLabel}>Remaining</Text>
             </View>
             <View style={s.statDivider} />
             <View style={s.stat}>
-              <Text style={s.statVal}>₹{post.goal.toLocaleString('en-IN')}</Text>
+              <Text style={s.statVal}>₹{safePost.goal.toLocaleString('en-IN')}</Text>
               <Text style={s.statLabel}>Goal</Text>
             </View>
           </View>
         </View>
 
-        {/* Member info */}
+        {/* Member card */}
         {memberData && (
           <View style={s.memberCard}>
             <Text style={s.cardSectionLabel}>Donating as</Text>
@@ -476,7 +580,20 @@ export default function RaiseFundScreen({ route, navigation }) {
           </View>
         )}
 
-        {/* Raise Fund CTA */}
+        {/* Beneficiary Details */}
+        {(safePost.beneficiaryName || safePost.upiId || safePost.contactNumber ||
+          safePost.bankName || safePost.accountNumber) && (
+          <View style={s.beneficiaryCard}>
+            <Text style={s.cardSectionLabel}>Beneficiary Details</Text>
+            {safePost.beneficiaryName  ? <Text style={s.beneficiaryText}>👤 {safePost.beneficiaryName}</Text>  : null}
+            {safePost.contactNumber    ? <Text style={s.beneficiaryText}>📞 {safePost.contactNumber}</Text>    : null}
+            {safePost.upiId            ? <Text style={s.beneficiaryText}>💳 UPI: {safePost.upiId}</Text>       : null}
+            {safePost.bankName         ? <Text style={s.beneficiaryText}>🏦 {safePost.bankName}</Text>         : null}
+            {safePost.accountNumber    ? <Text style={s.beneficiaryText}>🔢 A/C: {safePost.accountNumber}</Text>: null}
+          </View>
+        )}
+
+        {/* CTA */}
         <TouchableOpacity
           style={s.raiseFundBtn}
           onPress={() => setAmountModalVisible(true)}
@@ -489,10 +606,9 @@ export default function RaiseFundScreen({ route, navigation }) {
         <Text style={s.secureNote}>🔒 Secured by Razorpay · All transactions are encrypted</Text>
       </ScrollView>
 
-      {/* Amount popup */}
       <AmountModal
         visible={amountModalVisible}
-        post={post}
+        post={safePost}
         onClose={() => setAmountModalVisible(false)}
         onProceed={handleAmountProceed}
       />
@@ -502,120 +618,82 @@ export default function RaiseFundScreen({ route, navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#f5f4f0' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { padding: 16, paddingBottom: 60 },
+  safe      : { flex: 1, backgroundColor: '#f5f4f0' },
+  centered  : { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scroll    : { padding: 16, paddingBottom: 60 },
 
-  backBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
-  backText: { fontSize: 15, color: '#333' },
+  backBtn   : { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
+  backText  : { fontSize: 15, color: '#333' },
 
-  postCard: {
-    backgroundColor: '#fff', borderRadius: 20, padding: 16,
-    marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)',
-  },
-  badge: { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 10 },
-  badgeText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.3 },
-  postTitle: { fontSize: 18, fontWeight: '700', color: '#111', lineHeight: 26, marginBottom: 8 },
-  postBody: { fontSize: 14, color: '#555', lineHeight: 22 },
+  postCard  : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
+  badge     : { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 10 },
+  badgeText : { fontSize: 11, fontWeight: '600', letterSpacing: 0.3 },
+  postTitle : { fontSize: 18, fontWeight: '700', color: '#111', lineHeight: 26, marginBottom: 8 },
+  postBody  : { fontSize: 14, color: '#555', lineHeight: 22 },
 
-  progressCard: {
-    backgroundColor: '#fff', borderRadius: 20, padding: 16,
-    marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)',
-  },
-  cardSectionLabel: { fontSize: 13, fontWeight: '600', color: '#888', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  progressCard     : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
+  cardSectionLabel : { fontSize: 13, fontWeight: '600', color: '#888', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  progressMeta     : { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
+  progressLabel    : { fontSize: 13, color: '#555' },
+  progressPct      : { fontSize: 13, fontWeight: '700' },
+  progressTrack    : { height: 8, backgroundColor: '#f0ede8', borderRadius: 99, overflow: 'hidden', marginBottom: 8 },
+  progressFill     : { height: '100%', backgroundColor: '#22c55e', borderRadius: 99 },
+  progressGoal     : { fontSize: 12, color: '#aaa' },
 
-  progressMeta: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  progressLabel: { fontSize: 13, color: '#555' },
-  progressPct: { fontSize: 13, fontWeight: '700' },
-  progressTrack: { height: 8, backgroundColor: '#f0ede8', borderRadius: 99, overflow: 'hidden', marginBottom: 8 },
-  progressFill: { height: '100%', borderRadius: 99 },
-  progressGoal: { fontSize: 12, color: '#aaa' },
-
-  statsRow: { flexDirection: 'row', marginTop: 16, alignItems: 'center' },
-  stat: { flex: 1, alignItems: 'center' },
-  statVal: { fontSize: 16, fontWeight: '700', color: '#111' },
-  statLabel: { fontSize: 11, color: '#888', marginTop: 2 },
+  statsRow   : { flexDirection: 'row', marginTop: 16, alignItems: 'center' },
+  stat       : { flex: 1, alignItems: 'center' },
+  statVal    : { fontSize: 16, fontWeight: '700', color: '#111' },
+  statLabel  : { fontSize: 11, color: '#888', marginTop: 2 },
   statDivider: { width: 1, height: 36, backgroundColor: '#f0ede8' },
 
-  memberCard: {
-    backgroundColor: '#fff', borderRadius: 20, padding: 16,
-    marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)',
-  },
-  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  memberAvatar: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#e8623a', alignItems: 'center', justifyContent: 'center',
-  },
-  memberAvatarText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  memberName: { fontSize: 15, fontWeight: '600', color: '#111' },
-  memberEmail: { fontSize: 12, color: '#888', marginTop: 2 },
+  memberCard       : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
+  memberRow        : { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  memberAvatar     : { width: 44, height: 44, borderRadius: 22, backgroundColor: '#e8623a', alignItems: 'center', justifyContent: 'center' },
+  memberAvatarText : { color: '#fff', fontSize: 18, fontWeight: '600' },
+  memberName       : { fontSize: 15, fontWeight: '600', color: '#111' },
+  memberEmail      : { fontSize: 12, color: '#888', marginTop: 2 },
 
-  raiseFundBtn: {
-    backgroundColor: '#e8623a', borderRadius: 16, paddingVertical: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    marginBottom: 12,
-  },
+  beneficiaryCard : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
+  beneficiaryText : { fontSize: 14, color: '#333', marginBottom: 6 },
+
+  raiseFundBtn    : { backgroundColor: '#e8623a', borderRadius: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
   raiseFundBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 },
-  secureNote: { fontSize: 12, color: '#aaa', textAlign: 'center' },
+  secureNote      : { fontSize: 12, color: '#aaa', textAlign: 'center' },
 
-  // WebView header
-  wvHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#eee',
-  },
-  wvTitle: { fontSize: 17, fontWeight: '600', color: '#333' },
-  wvClose: { padding: 4 },
+  wvHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
+  wvTitle : { fontSize: 17, fontWeight: '600', color: '#333' },
+  wvClose : { padding: 4 },
 
-  // Processing overlay
-  processingOverlay: {
-    ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.65)',
-    justifyContent: 'center', alignItems: 'center', zIndex: 999,
-  },
-  processingText: { color: '#fff', marginTop: 12, fontSize: 15 },
+  processingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', zIndex: 999 },
+  processingText   : { color: '#fff', marginTop: 12, fontSize: 15 },
 
-  // Amount modal
-  modalOverlay: { flex: 1, justifyContent: 'flex-end' },
-  modalSheet: {
-    backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 20, paddingBottom: 36,
-  },
-  modalHandle: {
-    width: 40, height: 4, backgroundColor: '#ddd',
-    borderRadius: 2, alignSelf: 'center', marginBottom: 20,
-  },
-  modalTitle: { fontSize: 20, fontWeight: '700', color: '#111', marginBottom: 16 },
+  modalOverlay : { flex: 1, justifyContent: 'flex-end' },
+  modalSheet   : { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
+  modalHandle  : { width: 40, height: 4, backgroundColor: '#ddd', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
+  modalTitle   : { fontSize: 20, fontWeight: '700', color: '#111', marginBottom: 16 },
 
-  modalGoalBox: {
-    backgroundColor: '#f5f4f0', borderRadius: 14, padding: 14, marginBottom: 20,
-  },
-  modalGoalRow: { flexDirection: 'row', marginTop: 14, alignItems: 'center' },
-  modalStat: { flex: 1, alignItems: 'center' },
-  modalStatVal: { fontSize: 15, fontWeight: '700', color: '#111' },
-  modalStatLabel: { fontSize: 11, color: '#888', marginTop: 2 },
-  modalStatDivider: { width: 1, height: 32, backgroundColor: '#ddd' },
+  modalGoalBox     : { backgroundColor: '#f5f4f0', borderRadius: 14, padding: 14, marginBottom: 20 },
+  modalGoalRow     : { flexDirection: 'row', marginTop: 14, alignItems: 'center' },
+  modalStat        : { flex: 1, alignItems: 'center' },
+  modalStatVal     : { fontSize: 15, fontWeight: '700', color: '#111' },
+  modalStatLabel   : { fontSize: 11, color: '#888', marginTop: 2 },
+  modalStatDivider : { width: 1, height: 32, backgroundColor: '#ddd' },
 
   modalSectionLabel: { fontSize: 12, fontWeight: '600', color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-  quickRow: { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
-  quickChip: {
-    flex: 1, minWidth: 70, borderRadius: 10, paddingVertical: 10,
-    backgroundColor: '#f0ede8', alignItems: 'center',
-  },
-  quickChipActive: { backgroundColor: '#e8623a' },
-  quickChipText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  quickRow         : { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
+  quickChip        : { flex: 1, minWidth: 70, borderRadius: 10, paddingVertical: 10, backgroundColor: '#f0ede8', alignItems: 'center' },
+  quickChipActive  : { backgroundColor: '#e8623a' },
+  quickChipText    : { fontSize: 14, fontWeight: '600', color: '#666' },
   quickChipTextActive: { color: '#fff' },
 
-  amountInputRow: {
-    flexDirection: 'row', alignItems: 'center',
-    borderWidth: 1.5, borderColor: '#e0ddd8', borderRadius: 12,
-    paddingHorizontal: 14, marginBottom: 20, backgroundColor: '#fafaf8',
-  },
-  rupeeSign: { fontSize: 20, fontWeight: '600', color: '#333', marginRight: 6 },
-  amountInput: { flex: 1, fontSize: 22, fontWeight: '600', color: '#111', paddingVertical: 14 },
-
-  proceedBtn: {
-    backgroundColor: '#e8623a', borderRadius: 14, paddingVertical: 16,
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-  },
+  amountInputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e0ddd8', borderRadius: 12, paddingHorizontal: 14, marginBottom: 20, backgroundColor: '#fafaf8' },
+  rupeeSign     : { fontSize: 20, fontWeight: '600', color: '#333', marginRight: 6 },
+  amountInput   : { flex: 1, fontSize: 22, fontWeight: '600', color: '#111', paddingVertical: 14 },
+  proceedBtn    : { backgroundColor: '#e8623a', borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+// inside StyleSheet.create({...}) — add these 3:
+minAmountBanner  : { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fef3ed', borderRadius: 8, padding: 10, marginBottom: 14 },
+minAmountText    : { fontSize: 13, color: '#e8623a', fontWeight: '600' },
+minAmountError   : { fontSize: 12, color: '#e8623a', marginTop: -14, marginBottom: 10, marginLeft: 4 },
+amountInputRowError: { borderColor: '#e8623a', borderWidth: 1.5 },
 });

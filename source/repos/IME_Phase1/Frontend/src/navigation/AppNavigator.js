@@ -27,7 +27,7 @@ import ContentViewerScreen    from '../screens/ContentViewerScreen';
 import SupportScreen          from '../screens/SupportScreen';
 import CircularScreen         from '../screens/CircularScreen';
 import AchievementsScreen     from '../screens/AchievementsScreen';
-import OrganisationScreen     from '../screens/OrganisationScreen';
+import OrganisationScreen     from '../screens/FeedScreen';
 import AdminDashboardScreen   from '../screens/AdminDashboardScreen';
 import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
@@ -99,6 +99,7 @@ const MainStack = () => (
     <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}   options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
+      <Stack.Screen name="RaiseFund" component={RaiseFundScreen} />
   </Stack.Navigator>
 );
 
