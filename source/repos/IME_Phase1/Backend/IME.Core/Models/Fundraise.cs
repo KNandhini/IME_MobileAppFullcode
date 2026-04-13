@@ -43,6 +43,8 @@ namespace IME.Core.Models
 
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public decimal BalanceAmount { get; set; }
+        public decimal MinimumAmount { get; set; }
     }
 }
 
