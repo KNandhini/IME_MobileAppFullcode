@@ -1,106 +1,131 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  ActivityIndicator,
-  Image,
-  TouchableOpacity,
-  Linking,
-  Alert,
+  View, Text, StyleSheet, ScrollView, TouchableOpacity,
+  ActivityIndicator, Alert, Linking,
 } from 'react-native';
-import { Card, Chip, Divider, List, Button } from 'react-native-paper';
+import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
-import { fileService } from '../services/fileService';
-import { registrationService } from '../services/registrationService';
+
+const getFileIcon = (fileType, fileName) => {
+  const ext = (fileName || '').split('.').pop().toLowerCase();
+  if (['jpg','jpeg','png','gif','webp'].includes(ext)) return '🖼️';
+  if (ext === 'pdf')                                   return '📄';
+  if (['doc','docx'].includes(ext))                    return '📝';
+  if (['xls','xlsx'].includes(ext))                    return '📊';
+  if (['ppt','pptx'].includes(ext))                    return '📑';
+  if (['mp4','mov','avi'].includes(ext))               return '🎬';
+  if (['zip','rar'].includes(ext))                     return '🗜️';
+  return '📎';
+};
+
+const formatBytes = (bytes) => {
+  if (!bytes) return '';
+  if (bytes < 1024)        return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString('en-IN', {
+    day: '2-digit', month: 'short', year: 'numeric',
+  });
+};
 
 const ActivityDetailScreen = ({ route }) => {
   const { activityId } = route.params;
-  const [activity, setActivity] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [registering, setRegistering] = useState(false);
-  const [memberId, setMemberId] = useState(null);
+
+  const [activity,    setActivity]    = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [loading,     setLoading]     = useState(true);
+  const [uploading,   setUploading]   = useState(false);
+  const [deleting,    setDeleting]    = useState(null); // attachmentId being deleted
+  const [isAdmin,     setIsAdmin]     = useState(false);
 
   useEffect(() => {
-    loadActivity();
+    init();
   }, [activityId]);
 
-  const loadActivity = async () => {
+  const init = async () => {
     setLoading(true);
     try {
-      // Get member ID
       const userStr = await AsyncStorage.getItem('userData');
-      let currentMemberId = null;
       if (userStr) {
         const user = JSON.parse(userStr);
-        currentMemberId = user.memberId;
-        setMemberId(currentMemberId);
+        setIsAdmin(user.roleName === 'Admin');
       }
-
-      // Load activity details
-      const response = await activityService.getById(activityId);
-      if (response.success) {
-        setActivity(response.data);
-
-        // Check if already registered
-        if (currentMemberId) {
-          const regResponse = await registrationService.checkRegistration(
-            activityId,
-            currentMemberId
-          );
-          if (regResponse.success) {
-            setIsRegistered(regResponse.data.isRegistered);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load activity:', error);
+      await Promise.all([loadActivity(), loadAttachments()]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRegister = async () => {
-    if (!memberId) {
-      Alert.alert('Error', 'Please login to register');
-      return;
+  const loadActivity = async () => {
+    try {
+      const res = await activityService.getById(activityId);
+      if (res.success) setActivity(res.data);
+    } catch (e) {
+      console.error('loadActivity error:', e);
     }
+  };
 
-    // Check deadline
-    if (activity.registrationDeadline) {
-      const deadline = new Date(activity.registrationDeadline);
-      if (new Date() > deadline) {
-        Alert.alert('Error', 'Registration deadline has passed');
-        return;
+  const loadAttachments = useCallback(async () => {
+    try {
+      const res = await activityService.getAttachments(activityId);
+      if (res.success) setAttachments(res.data || []);
+    } catch (e) {
+      console.error('loadAttachments error:', e);
+    }
+  }, [activityId]);
+
+  const handleUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: '*/*',
+        multiple: true,
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets?.length) return;
+
+      setUploading(true);
+      const res = await activityService.uploadAttachments(activityId, result.assets);
+      if (res.success) {
+        Alert.alert('Success', res.message || 'Files uploaded.');
+        await loadAttachments();
+      } else {
+        Alert.alert('Failed', res.message || 'Upload failed.');
       }
+    } catch (e) {
+      Alert.alert('Error', 'Could not upload files.');
+    } finally {
+      setUploading(false);
     }
+  };
 
+  const handleDelete = (attachmentId, fileName) => {
     Alert.alert(
-      'Confirm Registration',
-      `Do you want to register for "${activity.title}"?`,
+      'Delete Attachment',
+      `Delete "${fileName}"?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Register',
+          text: 'Delete',
+          style: 'destructive',
           onPress: async () => {
-            setRegistering(true);
+            setDeleting(attachmentId);
             try {
-              const response = await registrationService.register(activityId, memberId);
-              if (response.success) {
-                setIsRegistered(true);
-                Alert.alert('Success', 'Successfully registered for the activity');
-                loadActivity(); // Refresh to show updated participant count
+              const res = await activityService.deleteAttachment(attachmentId);
+              if (res.success) {
+                setAttachments(prev => prev.filter(a => a.attachmentId !== attachmentId));
               } else {
-                Alert.alert('Error', response.message || 'Failed to register');
+                Alert.alert('Error', res.message || 'Delete failed.');
               }
-            } catch (error) {
-              console.error('Registration error:', error);
-              Alert.alert('Error', 'Failed to register for activity');
+            } catch (e) {
+              Alert.alert('Error', 'Could not delete attachment.');
             } finally {
-              setRegistering(false);
+              setDeleting(null);
             }
           },
         },
@@ -108,362 +133,230 @@ const ActivityDetailScreen = ({ route }) => {
     );
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    });
-  };
-
-  const formatTime = (dateString) => {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-IN', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const handleAttachmentPress = async (attachment) => {
+  const handleOpen = async (attachmentId, fileName) => {
+    const url = activityService.getAttachmentFileUrl(attachmentId);
     try {
-      const url = fileService.getFileUrl(attachment.filePath);
       const supported = await Linking.canOpenURL(url);
       if (supported) {
         await Linking.openURL(url);
+      } else {
+        Alert.alert('Cannot open', `No app found to open "${fileName}".`);
       }
-    } catch (error) {
-      console.error('Failed to open attachment:', error);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'upcoming':
-        return '#2196F3';
-      case 'ongoing':
-        return '#4CAF50';
-      case 'completed':
-        return '#666';
-      case 'cancelled':
-        return '#F44336';
-      default:
-        return '#999';
+    } catch (e) {
+      Alert.alert('Error', 'Could not open file.');
     }
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#1E3A5F" />
       </View>
     );
   }
 
   if (!activity) {
     return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Activity not found</Text>
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Activity not found.</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {activity.bannerImage && (
-        <Image
-          source={{ uri: activity.bannerImage }}
-          style={styles.banner}
-          resizeMode="cover"
-        />
-      )}
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Text style={styles.title}>{activity.title}</Text>
-          <Chip
-            style={[
-              styles.statusChip,
-              { backgroundColor: getStatusColor(activity.status) },
-            ]}
-            textStyle={styles.statusText}
-          >
-            {activity.status}
-          </Chip>
+      {/* ── Title ── */}
+      <Text style={styles.title}>{activity.activityName}</Text>
+
+      {/* ── Info card ── */}
+      <View style={styles.infoCard}>
+        {activity.activityDate ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>📅</Text>
+            <View>
+              <Text style={styles.infoLabel}>Date</Text>
+              <Text style={styles.infoValue}>{formatDate(activity.activityDate)}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {activity.time ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>⏰</Text>
+            <View>
+              <Text style={styles.infoLabel}>Time</Text>
+              <Text style={styles.infoValue}>{activity.time}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {activity.venue ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>📍</Text>
+            <View>
+              <Text style={styles.infoLabel}>Venue</Text>
+              <Text style={styles.infoValue}>{activity.venue}</Text>
+            </View>
+          </View>
+        ) : null}
+
+        {activity.chiefGuest ? (
+          <View style={styles.infoRow}>
+            <Text style={styles.infoIcon}>🎤</Text>
+            <View>
+              <Text style={styles.infoLabel}>Chief Guest</Text>
+              <Text style={styles.infoValue}>{activity.chiefGuest}</Text>
+            </View>
+          </View>
+        ) : null}
+      </View>
+
+      {/* ── Description ── */}
+      {activity.description ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={styles.description}>{activity.description}</Text>
+        </View>
+      ) : null}
+
+      {/* ── Attachments ── */}
+      <View style={styles.section}>
+        <View style={styles.attachHeader}>
+          <Text style={styles.sectionTitle}>
+            Attachments {attachments.length > 0 ? `(${attachments.length})` : ''}
+          </Text>
+          {isAdmin && (
+            <TouchableOpacity
+              style={[styles.uploadBtn, uploading && styles.uploadBtnDisabled]}
+              onPress={handleUpload}
+              disabled={uploading}
+              activeOpacity={0.8}
+            >
+              {uploading
+                ? <ActivityIndicator size="small" color="#fff" />
+                : <Text style={styles.uploadBtnText}>+ Upload</Text>
+              }
+            </TouchableOpacity>
+          )}
         </View>
 
-        <Card style={styles.infoCard}>
-          <Card.Content>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoIcon}>📅</Text>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Date & Time</Text>
-                <Text style={styles.infoValue}>
-                  {formatDate(activity.activityDate)}
+        {attachments.length === 0 ? (
+          <View style={styles.emptyAttach}>
+            <Text style={styles.emptyAttachIcon}>📂</Text>
+            <Text style={styles.emptyAttachText}>No attachments yet.</Text>
+            {isAdmin && (
+              <Text style={styles.emptyAttachSub}>Tap "Upload" to add files.</Text>
+            )}
+          </View>
+        ) : (
+          attachments.map((att) => (
+            <View key={att.attachmentId} style={styles.attachItem}>
+              <TouchableOpacity
+                style={styles.attachMain}
+                onPress={() => handleOpen(att.attachmentId, att.fileName)}
+                activeOpacity={0.75}
+              >
+                <Text style={styles.attachIcon}>
+                  {getFileIcon(att.fileType, att.fileName)}
                 </Text>
-                <Text style={styles.infoTime}>
-                  {formatTime(activity.activityDate)}
-                </Text>
-              </View>
+                <View style={styles.attachMeta}>
+                  <Text style={styles.attachName} numberOfLines={1}>{att.fileName}</Text>
+                  <Text style={styles.attachSub}>
+                    {[formatBytes(att.fileSize), att.uploadedByName, formatDate(att.uploadedDate)]
+                      .filter(Boolean).join(' · ')}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {isAdmin && (
+                deleting === att.attachmentId
+                  ? <ActivityIndicator size="small" color="#C0392B" style={styles.deleteSpinner} />
+                  : (
+                    <TouchableOpacity
+                      style={styles.deleteBtn}
+                      onPress={() => handleDelete(att.attachmentId, att.fileName)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.deleteBtnText}>🗑</Text>
+                    </TouchableOpacity>
+                  )
+              )}
             </View>
-
-            {activity.venue && (
-              <>
-                <Divider style={styles.divider} />
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoIcon}>📍</Text>
-                  <View style={styles.infoContent}>
-                    <Text style={styles.infoLabel}>Venue</Text>
-                    <Text style={styles.infoValue}>{activity.venue}</Text>
-                  </View>
-                </View>
-              </>
-            )}
-
-            {activity.coordinator && (
-              <>
-                <Divider style={styles.divider} />
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoIcon}>👤</Text>
-                  <View style={styles.infoContent}>
-                    <Text style={styles.infoLabel}>Coordinator</Text>
-                    <Text style={styles.infoValue}>{activity.coordinator}</Text>
-                  </View>
-                </View>
-              </>
-            )}
-
-            {activity.registrationDeadline && (
-              <>
-                <Divider style={styles.divider} />
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoIcon}>⏰</Text>
-                  <View style={styles.infoContent}>
-                    <Text style={styles.infoLabel}>Registration Deadline</Text>
-                    <Text style={styles.infoValue}>
-                      {formatDate(activity.registrationDeadline)}
-                    </Text>
-                  </View>
-                </View>
-              </>
-            )}
-          </Card.Content>
-        </Card>
-
-        <Card style={styles.descriptionCard}>
-          <Card.Content>
-            <Text style={styles.sectionTitle}>About Activity</Text>
-            <Text style={styles.description}>{activity.description}</Text>
-          </Card.Content>
-        </Card>
-
-        {activity.participants && activity.participants.length > 0 && (
-          <Card style={styles.participantsCard}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>
-                Participants ({activity.participants.length})
-              </Text>
-              {activity.participants.map((participant, index) => (
-                <List.Item
-                  key={index}
-                  title={participant.memberName}
-                  description={participant.registrationDate ?
-                    `Registered on ${formatDate(participant.registrationDate)}` : ''}
-                  left={(props) => (
-                    <List.Icon {...props} icon="account-circle" color="#2196F3" />
-                  )}
-                  style={styles.participantItem}
-                />
-              ))}
-            </Card.Content>
-          </Card>
-        )}
-
-        {activity.attachments && activity.attachments.length > 0 && (
-          <Card style={styles.attachmentsCard}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>
-                Attachments ({activity.attachments.length})
-              </Text>
-              {activity.attachments.map((attachment) => (
-                <TouchableOpacity
-                  key={attachment.attachmentId}
-                  onPress={() => handleAttachmentPress(attachment)}
-                  style={styles.attachmentItem}
-                >
-                  <List.Item
-                    title={attachment.fileName}
-                    description={attachment.fileType}
-                    left={(props) => (
-                      <List.Icon
-                        {...props}
-                        icon={
-                          attachment.fileType?.includes('image')
-                            ? 'file-image'
-                            : attachment.fileType?.includes('pdf')
-                            ? 'file-pdf-box'
-                            : 'file-document'
-                        }
-                        color="#2196F3"
-                      />
-                    )}
-                    right={(props) => (
-                      <List.Icon {...props} icon="download" color="#666" />
-                    )}
-                  />
-                </TouchableOpacity>
-              ))}
-            </Card.Content>
-          </Card>
+          ))
         )}
       </View>
 
-      {activity.status === 'Upcoming' && !isRegistered && (
-        <View style={styles.fabContainer}>
-          <Button mode="contained" onPress={handleRegister} loading={registering} disabled={registering}
-            style={styles.registerBtn}>
-            Register for Activity
-          </Button>
-        </View>
-      )}
-
-      {isRegistered && (
-        <View style={styles.registeredBanner}>
-          <Text style={styles.registeredText}>✓ You are registered for this activity</Text>
-        </View>
-      )}
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#999',
-  },
-  banner: {
-    width: '100%',
-    height: 250,
-  },
-  content: {
-    padding: 15,
-  },
-  header: {
-    marginBottom: 15,
-  },
+  container:   { flex: 1, backgroundColor: '#F0F2F5' },
+  content:     { padding: 16, paddingBottom: 40 },
+  center:      { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  errorText:   { fontSize: 15, color: '#888' },
+
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
+    fontSize: 22, fontWeight: '800', color: '#1E3A5F',
+    marginBottom: 16,
   },
-  statusChip: {
-    alignSelf: 'flex-start',
-  },
-  statusText: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+
+  // Info card
   infoCard: {
-    marginBottom: 15,
+    backgroundColor: '#fff', borderRadius: 12,
+    padding: 16, marginBottom: 16,
     elevation: 2,
+    shadowColor: '#000', shadowOpacity: 0.06,
+    shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  infoIcon: {
-    fontSize: 24,
-    marginRight: 12,
-    marginTop: 4,
-  },
-  infoContent: {
-    flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  infoTime: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  divider: {
-    marginVertical: 12,
-  },
-  descriptionCard: {
-    marginBottom: 15,
+  infoRow:   { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
+  infoIcon:  { fontSize: 20, marginRight: 12, marginTop: 2 },
+  infoLabel: { fontSize: 11, color: '#999', marginBottom: 2 },
+  infoValue: { fontSize: 14, color: '#1a1a1a', fontWeight: '600' },
+
+  // Section
+  section: {
+    backgroundColor: '#fff', borderRadius: 12,
+    padding: 16, marginBottom: 16,
     elevation: 2,
+    shadowColor: '#000', shadowOpacity: 0.06,
+    shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+  description:  { fontSize: 14, color: '#444', lineHeight: 22 },
+
+  // Attachments header
+  attachHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  uploadBtn: {
+    backgroundColor: '#1E3A5F', borderRadius: 8,
+    paddingHorizontal: 14, paddingVertical: 7,
+    minWidth: 80, alignItems: 'center',
   },
-  description: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#666',
+  uploadBtnDisabled: { opacity: 0.6 },
+  uploadBtnText:     { color: '#fff', fontSize: 13, fontWeight: '700' },
+
+  // Empty state
+  emptyAttach:     { alignItems: 'center', paddingVertical: 24 },
+  emptyAttachIcon: { fontSize: 36, marginBottom: 8 },
+  emptyAttachText: { fontSize: 14, color: '#888', fontWeight: '600' },
+  emptyAttachSub:  { fontSize: 12, color: '#bbb', marginTop: 4 },
+
+  // Attachment item
+  attachItem: {
+    flexDirection: 'row', alignItems: 'center',
+    borderBottomWidth: 1, borderBottomColor: '#F0F0F0',
+    paddingVertical: 10,
   },
-  participantsCard: {
-    marginBottom: 15,
-    elevation: 2,
-  },
-  participantItem: {
-    paddingHorizontal: 0,
-  },
-  attachmentsCard: {
-    marginBottom: 15,
-    elevation: 2,
-  },
-  attachmentItem: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  fabContainer: {
-    padding: 16,
-  },
-  registerBtn: {
-    backgroundColor: '#4CAF50',
-  },
-  registeredBanner: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: '#4CAF50',
-    padding: 15,
-    alignItems: 'center',
-  },
-  registeredText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  attachMain: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  attachIcon: { fontSize: 28, marginRight: 12 },
+  attachMeta: { flex: 1 },
+  attachName: { fontSize: 14, color: '#1a1a1a', fontWeight: '600', marginBottom: 2 },
+  attachSub:  { fontSize: 11, color: '#999' },
+
+  deleteBtn:      { padding: 8 },
+  deleteBtnText:  { fontSize: 18 },
+  deleteSpinner:  { padding: 8 },
 });
 
 export default ActivityDetailScreen;
