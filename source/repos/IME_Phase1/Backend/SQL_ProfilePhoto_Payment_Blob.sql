@@ -3,55 +3,51 @@
 -- ============================================================
 
 -- *** IMMEDIATE FIX: Activate any member whose payment is done but account is still inactive ***
--- Run this first if you already paid and can't login.
--- Replace 'your@email.com' with the registered email.
 /*
 UPDATE u
 SET u.IsActive = 1, u.UpdatedDate = GETDATE()
-FROM Users u
+FROM tbl_Users u
 WHERE u.Email = 'your@email.com';
 
 UPDATE m
 SET m.MembershipStatus = 'Active', m.UpdatedDate = GETDATE()
-FROM Members m
-INNER JOIN Users u ON u.UserId = m.UserId
+FROM tbl_Members m
+INNER JOIN tbl_Users u ON u.UserId = m.UserId
 WHERE u.Email = 'your@email.com';
 */
 -- ============================================================
 
--- 1. Add ProfilePhoto BLOB column to Members table
+-- 1. Add ProfilePhoto BLOB column to tbl_Members
 IF NOT EXISTS (
     SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
-    WHERE TABLE_NAME = 'Members' AND COLUMN_NAME = 'ProfilePhoto'
+    WHERE TABLE_NAME = 'tbl_Members' AND COLUMN_NAME = 'ProfilePhoto'
 )
 BEGIN
-    ALTER TABLE Members ADD ProfilePhoto VARBINARY(MAX) NULL;
-    PRINT 'ProfilePhoto column added to Members.';
+    ALTER TABLE tbl_Members ADD ProfilePhoto VARBINARY(MAX) NULL;
+    PRINT 'ProfilePhoto column added to tbl_Members.';
 END
 ELSE
     PRINT 'ProfilePhoto column already exists.';
 GO
 
--- 2. SP: Store profile photo as BLOB (called by upload-profile-photo endpoint)
+-- 2. SP: Store profile photo as BLOB
 CREATE OR ALTER PROCEDURE sp_UpdateMemberProfilePhoto
-    @MemberId    INT,
+    @MemberId     INT,
     @ProfilePhoto VARBINARY(MAX)
 AS
 BEGIN
     SET NOCOUNT ON;
-    UPDATE Members
-    SET ProfilePhoto    = @ProfilePhoto,
-        ProfilePhotoPath = NULL,        -- clear old file path
+    UPDATE tbl_Members
+    SET ProfilePhoto     = @ProfilePhoto,
+        ProfilePhotoPath = NULL,
         UpdatedDate      = GETDATE()
     WHERE MemberId = @MemberId;
 END;
 GO
 
--- 3. SP: Login — must return ProfilePhoto blob alongside existing columns
---    Recreate sp_UserLogin adding ProfilePhoto to the SELECT.
---    Adjust the WHERE / JOIN to match your existing SP logic if different.
+-- 3. SP: Login
 CREATE OR ALTER PROCEDURE sp_UserLogin
-    @Email       NVARCHAR(100),
+    @Email        NVARCHAR(100),
     @PasswordHash NVARCHAR(255)
 AS
 BEGIN
@@ -66,19 +62,17 @@ BEGIN
         m.MemberId,
         m.FullName,
         m.ProfilePhotoPath,
-        m.ProfilePhoto          -- BLOB returned to backend
-    FROM Users u
-    LEFT JOIN Roles r ON r.RoleId = u.RoleId
-    LEFT JOIN Members m ON m.UserId = u.UserId
+        m.ProfilePhoto
+    FROM tbl_Users u
+    LEFT JOIN tbl_Roles r ON r.RoleId = u.RoleId
+    LEFT JOIN tbl_Members m ON m.UserId = u.UserId
     WHERE u.Email = @Email
       AND u.PasswordHash = @PasswordHash
       AND u.IsActive = 1;
 END;
 GO
 
--- 4. Ensure tbl_MembershipPayment exists (payment table)
---    If you previously used a table called 'MembershipPayments', uncomment and run this FIRST:
---    EXEC sp_rename 'MembershipPayments', 'tbl_MembershipPayment';
+-- 4. Ensure tbl_MembershipPayment exists
 IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'tbl_MembershipPayment')
 BEGIN
     CREATE TABLE tbl_MembershipPayment (
@@ -91,7 +85,7 @@ BEGIN
         TransactionReference NVARCHAR(255) NULL,
         Status               NVARCHAR(50)  NOT NULL DEFAULT 'Pending',
         CreatedDate          DATETIME      NOT NULL DEFAULT GETDATE(),
-        CONSTRAINT FK_Payment_Member FOREIGN KEY (MemberId) REFERENCES Members(MemberId)
+        CONSTRAINT FK_Payment_Member FOREIGN KEY (MemberId) REFERENCES tbl_Members(MemberId)
     );
     PRINT 'tbl_MembershipPayment created.';
 END
@@ -99,7 +93,7 @@ ELSE
     PRINT 'tbl_MembershipPayment already exists.';
 GO
 
--- 5. SP: Create membership payment — inserts into tbl_MembershipPayment
+-- 5. SP: Create membership payment
 CREATE OR ALTER PROCEDURE sp_CreateMembershipPayment
     @MemberId             INT,
     @FeeId                INT,
@@ -114,13 +108,11 @@ BEGIN
         (MemberId, FeeId, Amount, PaymentMode, TransactionReference, Status)
     VALUES
         (@MemberId, @FeeId, @Amount, @PaymentMode, @TransactionReference, @Status);
-
     SELECT SCOPE_IDENTITY() AS PaymentId;
 END;
 GO
 
--- 6. SP: Complete registration payment (atomic: insert payment + activate member)
---    Adjust to match your existing sp_CompleteRegistrationPayment if it does more.
+-- 6. SP: Complete registration payment
 CREATE OR ALTER PROCEDURE sp_CompleteRegistrationPayment
     @MemberId             INT,
     @UserId               INT,
@@ -134,31 +126,27 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Insert payment into tbl_MembershipPayment
         INSERT INTO tbl_MembershipPayment
             (MemberId, FeeId, Amount, PaymentMode, TransactionReference, Status)
         VALUES
             (@MemberId, @FeeId, @Amount, @PaymentMode, @TransactionReference, 'Success');
 
-        -- Activate the member
-        UPDATE Members
+        UPDATE tbl_Members
         SET MembershipStatus = 'Active',
             UpdatedDate      = GETDATE()
         WHERE MemberId = @MemberId;
 
-        -- Activate the user account
-        UPDATE Users
+        UPDATE tbl_Users
         SET IsActive    = 1,
             UpdatedDate = GETDATE()
         WHERE UserId = @UserId;
 
-        -- Return member email and name for welcome email
         SELECT
             u.Email,
             m.FullName,
             CAST(NULL AS NVARCHAR(255)) AS ErrorMessage
-        FROM Members m
-        INNER JOIN Users u ON u.UserId = m.UserId
+        FROM tbl_Members m
+        INNER JOIN tbl_Users u ON u.UserId = m.UserId
         WHERE m.MemberId = @MemberId;
 
         COMMIT;
@@ -166,9 +154,9 @@ BEGIN
     BEGIN CATCH
         ROLLBACK;
         SELECT
-            CAST(NULL AS NVARCHAR(100))  AS Email,
-            CAST(NULL AS NVARCHAR(255))  AS FullName,
-            ERROR_MESSAGE()              AS ErrorMessage;
+            CAST(NULL AS NVARCHAR(100)) AS Email,
+            CAST(NULL AS NVARCHAR(255)) AS FullName,
+            ERROR_MESSAGE()             AS ErrorMessage;
     END CATCH;
 END;
 GO
