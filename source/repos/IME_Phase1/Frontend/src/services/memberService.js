@@ -107,6 +107,7 @@ export const memberService = {
 
   searchMembers: async (searchTerm) => {
     try {
+      
       const response = await api.get(`/member/search?term=${searchTerm}`);
       return response.data;
     } catch (error) {
