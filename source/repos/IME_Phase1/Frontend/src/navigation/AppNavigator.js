@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuth } from '../context/AuthContext';
 
 // Screens
-import SplashScreen           from '../screens/SplashScreen';
 import LoginScreen            from '../screens/LoginScreen';
 import SignupScreen           from '../screens/SignupScreen';
 import ForgotPasswordScreen   from '../screens/ForgotPasswordScreen';
@@ -27,14 +26,15 @@ import ContentViewerScreen    from '../screens/ContentViewerScreen';
 import SupportScreen          from '../screens/SupportScreen';
 import CircularScreen         from '../screens/CircularScreen';
 import AchievementsScreen     from '../screens/AchievementsScreen';
-import OrganisationScreen     from '../screens/FeedScreen';
-import AdminDashboardScreen   from '../screens/AdminDashboardScreen';
+import OrganisationScreen     from '../screens/OrganisationScreen';
+import AdminDashboardScreen        from '../screens/AdminDashboardScreen';
 import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
-import MemberManagementScreen from '../screens/MemberManagementScreen';
-import AboutScreen from '../screens/AboutScreen';
-
+import MemberManagementScreen      from '../screens/MemberManagementScreen';
+import AboutScreen                 from '../screens/AboutScreen';
+import FundScreen                  from '../screens/FundScreen';
 import RaiseFundScreen from '../screens/RaiseFundScreen';
+import CreatePostScreen            from '../screens/CreatePostScreen';
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
 
@@ -57,49 +57,124 @@ const AuthStack = () => (
 const MainTabs = () => (
   <Tab.Navigator
     screenOptions={{
-      ...HEADER_STYLE,
-      tabBarActiveTintColor: '#1E3A5F',
+      tabBarActiveTintColor:   '#1E3A5F',
       tabBarInactiveTintColor: '#999',
-      tabBarStyle: { height: 60, paddingBottom: 6 },
+      tabBarShowLabel: false,
+      tabBarStyle: {
+        height: 64,
+        paddingBottom: 6,
+        paddingTop: 4,
+        borderTopWidth: 1,
+        borderTopColor: '#E8E8E8',
+        backgroundColor: '#fff',
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: -2 },
+      },
     }}
   >
-    <Tab.Screen name="Home" component={HomeScreen}
-      options={{ title: 'Home', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🏠</Text> }} />
-    <Tab.Screen name="Activities" component={ActivitiesScreen}
-      options={{ title: 'Activities', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📅</Text> }} />
-    <Tab.Screen name="News" component={NewsScreen}
-      options={{ title: 'News & Media', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📰</Text> }} />
-    <Tab.Screen name="Notifications" component={NotificationsScreen}
-      options={{ title: 'Alerts', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🔔</Text> }} />
-    <Tab.Screen name="Profile" component={ProfileScreen}
-      options={{ title: 'Profile', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
+    <Tab.Screen
+      name="Home"
+      component={HomeScreen}
+      options={{
+        headerShown: false,
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>🏠</Text>
+            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
+          </View>
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="SupportTab"
+      component={SupportScreen}
+      options={{
+        title: 'Support Services',
+        headerStyle: { backgroundColor: '#1E3A5F' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>🤝</Text>
+            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Support</Text>
+          </View>
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="FundTab"
+      component={FundScreen}
+      options={{
+        title: 'IME Fund',
+        headerStyle: { backgroundColor: '#1E3A5F' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>💰</Text>
+            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Fund</Text>
+          </View>
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="AchievementsTab"
+      component={AchievementsScreen}
+      options={{
+        title: 'Hall of Fame',
+        headerStyle: { backgroundColor: '#1E3A5F' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>🏆</Text>
+            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Achievements</Text>
+          </View>
+        ),
+      }}
+    />
   </Tab.Navigator>
 );
 
 const MainStack = () => (
   <Stack.Navigator screenOptions={HEADER_STYLE}>
-    <Stack.Screen name="MainTabs"         component={MainTabs}             options={{ headerShown: false }} />
-    <Stack.Screen name="ActivityDetail"   component={ActivityDetailScreen} options={{ title: 'Activity Details' }} />
+    <Stack.Screen name="MainTabs"         component={MainTabs}               options={{ headerShown: false }} />
+    {/* Activities */}
+    <Stack.Screen name="Activities"       component={ActivitiesScreen}       options={{ title: 'Activities' }} />
+    <Stack.Screen name="ActivityDetail"   component={ActivityDetailScreen}   options={{ title: 'Activity Details' }} />
     <Stack.Screen name="ActivityForm"     component={ActivityFormScreen}
       options={({ route }) => ({ title: route.params?.activityId ? 'Edit Activity' : 'Add Activity' })} />
-    <Stack.Screen name="NewsDetail"       component={NewsDetailScreen}     options={{ title: 'News' }} />
-    <Stack.Screen name="MediaDetail"      component={MediaDetailScreen}    options={{ title: 'Media' }} />
-    <Stack.Screen name="PodcastDetail"    component={PodcastDetailScreen}  options={{ title: 'Podcast' }} />
-    <Stack.Screen name="Payment"          component={PaymentScreen}        options={{ title: 'Membership Payment' }} />
-    <Stack.Screen name="PaymentHistory"   component={PaymentHistoryScreen} options={{ title: 'Payment History' }} />
+    {/* News & Media */}
+    <Stack.Screen name="News"             component={NewsScreen}             options={{ title: 'News & Media' }} />
+    <Stack.Screen name="NewsDetail"       component={NewsDetailScreen}       options={{ title: 'News' }} />
+    <Stack.Screen name="MediaDetail"      component={MediaDetailScreen}      options={{ title: 'Media' }} />
+    <Stack.Screen name="PodcastDetail"    component={PodcastDetailScreen}    options={{ title: 'Podcast' }} />
+    {/* Payment */}
+    <Stack.Screen name="Payment"          component={PaymentScreen}          options={{ title: 'Membership Payment' }} />
+    <Stack.Screen name="PaymentHistory"   component={PaymentHistoryScreen}   options={{ title: 'Payment History' }} />
+    {/* Content */}
     <Stack.Screen name="ContentViewer"    component={ContentViewerScreen}
       options={({ route }) => ({ title: route.params?.title || 'Content' })} />
-    <Stack.Screen name="Support"          component={SupportScreen}        options={{ title: 'Support Services' }} />
-    <Stack.Screen name="Circular"         component={CircularScreen}       options={{ title: 'GO & Circular' }} />
-    <Stack.Screen name="Achievements"     component={AchievementsScreen}   options={{ title: 'Hall of Fame' }} />
-    <Stack.Screen name="Organisation"     component={OrganisationScreen}   options={{ title: 'Our Team' }} />
-    <Stack.Screen name="ProfileEdit"      component={ProfileEditScreen}    options={{ title: 'Edit Profile' }} />
-    <Stack.Screen name="ChangePassword"   component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
-    <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
-    <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}   options={{ title: 'Set Annual Fee' }} />
+    {/* Support & Circular */}
+    <Stack.Screen name="Support"          component={SupportScreen}          options={{ title: 'Support Services' }} />
+    <Stack.Screen name="Circular"         component={CircularScreen}         options={{ title: 'GO & Circular' }} />
+    {/* Other */}
+    <Stack.Screen name="Achievements"     component={AchievementsScreen}     options={{ title: 'Hall of Fame' }} />
+    <Stack.Screen name="Organisation"     component={OrganisationScreen}     options={{ title: 'Our Team' }} />
+    <Stack.Screen name="Notifications"    component={NotificationsScreen}    options={{ title: 'Notifications' }} />
+    <Stack.Screen name="Profile"          component={ProfileScreen}          options={{ title: 'My Profile' }} />
+    <Stack.Screen name="ProfileEdit"      component={ProfileEditScreen}      options={{ title: 'Edit Profile' }} />
+    <Stack.Screen name="ChangePassword"   component={ChangePasswordScreen}   options={{ title: 'Change Password' }} />
+    <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen}   options={{ headerShown: false }} />
+    <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}     options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
-    <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
+    {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
       <Stack.Screen name="RaiseFund" component={RaiseFundScreen} />
+    <Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />
+    <Stack.Screen name="CreatePost"       component={CreatePostScreen}       options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 

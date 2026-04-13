@@ -101,6 +101,8 @@ public class RegistrationPaymentDTO
     public decimal Amount { get; set; }
     public string PaymentMode { get; set; } = string.Empty;
     public string TransactionReference { get; set; } = string.Empty;
+    public string MemberEmail { get; set; } = string.Empty;
+    public string PlainPassword { get; set; } = string.Empty;
 }
 
 public class SetFeeDTO

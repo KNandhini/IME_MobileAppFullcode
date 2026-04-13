@@ -14,12 +14,14 @@ public class PaymentController : ControllerBase
     private readonly IPaymentRepository _paymentRepository;
     private readonly IConfiguration _configuration;
     private readonly EmailService _emailService;
+    private readonly EmailTemplateService _emailTemplateService;
 
-    public PaymentController(IPaymentRepository paymentRepository, IConfiguration configuration, EmailService emailService)
+    public PaymentController(IPaymentRepository paymentRepository, IConfiguration configuration, EmailService emailService, EmailTemplateService emailTemplateService)
     {
-        _paymentRepository = paymentRepository;
-        _configuration     = configuration;
-        _emailService      = emailService;
+        _paymentRepository    = paymentRepository;
+        _configuration        = configuration;
+        _emailService         = emailService;
+        _emailTemplateService = emailTemplateService;
     }
 
     [HttpPost("create-order")]
@@ -231,27 +233,26 @@ public class PaymentController : ControllerBase
             if (!success)
                 return Ok(new ApiResponse<object> { Success = false, Message = error });
 
-            if (!string.IsNullOrEmpty(email))
+            // Use email from DB result; fall back to what the client sent
+            var recipientEmail = !string.IsNullOrEmpty(email) ? email : request.MemberEmail;
+            var recipientName  = !string.IsNullOrEmpty(fullName) ? fullName : "Member";
+
+            if (!string.IsNullOrEmpty(recipientEmail))
             {
                 try
                 {
-                    await _emailService.SendEmailAsync(email,
+                    var body = _emailTemplateService.RegistrationSuccess(
+                        fullName:             recipientName,
+                        email:                recipientEmail,
+                        plainPassword:        request.PlainPassword,
+                        amount:               request.Amount,
+                        transactionReference: request.TransactionReference,
+                        paymentDate:          DateTime.Now);
+
+                    await _emailService.SendEmailAsync(
+                        recipientEmail,
                         "Welcome to IME – Registration Successful!",
-                        $@"<div style='font-family:Arial,sans-serif;max-width:600px;margin:auto;'>
-                          <div style='background:#1E3A5F;padding:24px;text-align:center;'>
-                            <h2 style='color:#D4A017;margin:0;'>Welcome to IME</h2>
-                          </div>
-                          <div style='padding:24px;background:#f9f9f9;'>
-                            <p>Dear <strong>{fullName}</strong>,</p>
-                            <p>Your membership registration is complete and your payment of <strong>₹{request.Amount}</strong> has been received.</p>
-                            <p>Your account is now active. You can login to the IME app with your registered email and password.</p>
-                            <p style='color:#555;font-size:13px;'>Transaction Reference: {request.TransactionReference}</p>
-                            <p>Thank you for joining IME!</p>
-                          </div>
-                          <div style='background:#1E3A5F;padding:12px;text-align:center;'>
-                            <p style='color:rgba(255,255,255,0.7);font-size:12px;margin:0;'>IME Membership Portal</p>
-                          </div>
-                        </div>");
+                        body);
                 }
                 catch (Exception emailEx)
                 {
