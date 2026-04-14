@@ -1,0 +1,84 @@
+# Backend
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+
+# Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Uploads folder
+Backend/IME.API/Uploads/*
+!Backend/IME.API/Uploads/.gitkeep
+
+# Frontend
+Frontend/node_modules/
+Frontend/.expo/
+Frontend/.expo-shared/
+Frontend/npm-debug.*
+Frontend/*.jks
+Frontend/*.p8
+Frontend/*.p12
+Frontend/*.key
+Frontend/*.mobileprovision
+Frontend/*.orig.*
+Frontend/web-build/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+
+# macOS
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Database
+*.bak
+*.mdf
+*.ldf
+
+# Sensitive information
+appsettings.Development.json
+appsettings.Production.json
+ConnectionStrings.config
+node_modules/
+.expo/
+android/
+ios/
+*.apk
+*.log
