@@ -29,6 +29,8 @@ import CircularScreen         from '../screens/CircularScreen';
 import AchievementsScreen     from '../screens/AchievementsScreen';
 import OrganisationScreen     from '../screens/OrganisationScreen';
 import AdminDashboardScreen   from '../screens/AdminDashboardScreen';
+import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
+import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
 import AboutScreen from '../screens/AboutScreen';
 import FundraiseListScreen from '../screens/FundraiseListScreen';
@@ -45,9 +47,11 @@ const HEADER_STYLE = {
 
 const AuthStack = () => (
   <Stack.Navigator screenOptions={{ headerShown: false }}>
-    <Stack.Screen name="Login"          component={LoginScreen} />
-    <Stack.Screen name="Signup"         component={SignupScreen} />
-    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+    <Stack.Screen name="Login"               component={LoginScreen} />
+    <Stack.Screen name="Signup"              component={SignupScreen} />
+    <Stack.Screen name="ForgotPassword"      component={ForgotPasswordScreen} />
+    <Stack.Screen name="RegistrationPayment" component={RegistrationPaymentScreen}
+      options={{ headerShown: true, title: 'Complete Payment', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
   </Stack.Navigator>
 );
 
@@ -94,6 +98,7 @@ const MainStack = () => (
     <Stack.Screen name="ProfileEdit"      component={ProfileEditScreen}    options={{ title: 'Edit Profile' }} />
     <Stack.Screen name="ChangePassword"   component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
+    <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}   options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
     <Stack.Screen name="FundraiseList" component={FundraiseListScreen} />
