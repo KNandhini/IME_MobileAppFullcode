@@ -12,7 +12,6 @@ const ADMIN_MENU = [
   { title: 'Organisation',      route: 'Organisation',     icon: '🏢', params: {} },
   { title: 'Support Services',  route: 'Support',          icon: '🤝', params: {} },
   { title: 'Set Annual Fee',    route: 'SetAnnualFee',     icon: '💰', params: {} },
-  { title: 'Set Annual Fee',    route: null,               icon: '💰', params: {} },
   { title: 'Fund Raise', route: 'FundraiseList',           icon: '💸', params: {} }
 ];
 

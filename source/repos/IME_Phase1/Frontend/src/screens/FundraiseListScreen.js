@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, FlatList, StyleSheet,
-  TouchableOpacity, Alert, Animated, Platform
+  TouchableOpacity, Alert, Animated, Platform, Image
 } from 'react-native';
 import { FAB } from 'react-native-paper';
 import { fundraiseService } from '../services/fundraiseService';
-
+const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PRIMARY   = '#1E3A5F';
-const ACCENT    = '#2E86DE';
-const SUCCESS   = '#27AE60';
-const DANGER    = '#E74C3C';
-const BG        = '#F0F4FA';
-const CARD_BG   = '#FFFFFF';
+const PRIMARY = '#1E3A5F';
+const ACCENT  = '#2E86DE';
+const SUCCESS = '#27AE60';
+const DANGER  = '#E74C3C';
+const BG      = '#F0F4FA';
+const CARD_BG = '#FFFFFF';
 
-// ─── Urgency badge config ─────────────────────────────────────────────────────
 const URGENCY = {
   Critical: { bg: '#FDE8E8', text: '#C0392B', dot: '#E74C3C' },
   Urgent:   { bg: '#FEF3E2', text: '#D35400', dot: '#F39C12' },
@@ -23,27 +22,49 @@ const URGENCY = {
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ collected, target }) {
-  const pct = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
+  const pct  = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
   const anim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
-    Animated.timing(anim, {
-      toValue: pct,
-      duration: 700,
-      useNativeDriver: false,
-    }).start();
+    Animated.timing(anim, { toValue: pct, duration: 700, useNativeDriver: false }).start();
   }, [pct]);
 
-  const width = anim.interpolate({
-    inputRange: [0, 100],
-    outputRange: ['0%', '100%'],
-  });
-
+  const width = anim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] });
   const color = pct >= 75 ? SUCCESS : pct >= 40 ? ACCENT : '#F39C12';
 
   return (
     <View style={pb.track}>
       <Animated.View style={[pb.fill, { width, backgroundColor: color }]} />
+    </View>
+  );
+}
+
+// ─── Beneficiary Avatar ───────────────────────────────────────────────────────
+function BeneficiaryAvatar({ uri, name }) {
+  const [error, setError] = useState(false);
+
+  // Derive initials from name for fallback
+  const initials = (name || '?')
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('');
+
+  if (uri && !error) {
+    return (
+      <Image
+        source={{ uri }}
+        style={av.img}
+        resizeMode="cover"
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  // Fallback: initials circle
+  return (
+    <View style={av.fallback}>
+      <Text style={av.initials}>{initials}</Text>
     </View>
   );
 }
@@ -70,39 +91,54 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
       >
         <View style={styles.card}>
 
-          {/* Top row: title + urgency badge */}
-          <View style={styles.cardHeader}>
-            <Text style={styles.fundTitle} numberOfLines={1}>
-              {item.fundTitle || 'Untitled Fund'}
-            </Text>
-            {item.urgencyLevel ? (
-              <View style={[styles.badge, { backgroundColor: urgency.bg }]}>
-                <View style={[styles.badgeDot, { backgroundColor: urgency.dot }]} />
-                <Text style={[styles.badgeText, { color: urgency.text }]}>
-                  {item.urgencyLevel}
+          {/* ── Top row: photo + title block + urgency badge ── */}
+          <View style={styles.cardTop}>
+            {/* Beneficiary photo / avatar */}
+           <BeneficiaryAvatar
+  uri={
+    item.beneficiaryPhotoUrl
+      ? FILE_BASE_URL + item.beneficiaryPhotoUrl
+      : null
+  }
+  name={item.fullName}
+/>
+
+            {/* Title + meta */}
+            <View style={styles.cardTopInfo}>
+              <View style={styles.titleRow}>
+                <Text style={styles.fundTitle} numberOfLines={1}>
+                  {item.fundTitle || 'Untitled Fund'}
                 </Text>
+                {item.urgencyLevel ? (
+                  <View style={[styles.badge, { backgroundColor: urgency.bg }]}>
+                    <View style={[styles.badgeDot, { backgroundColor: urgency.dot }]} />
+                    <Text style={[styles.badgeText, { color: urgency.text }]}>
+                      {item.urgencyLevel}
+                    </Text>
+                  </View>
+                ) : null}
               </View>
-            ) : null}
+
+              {/* Name + category */}
+              <View style={styles.metaRow}>
+                {item.fullName ? (
+                  <Text style={styles.metaName} numberOfLines={1}>
+                    👤 {item.fullName}
+                  </Text>
+                ) : null}
+                {item.fundCategory ? (
+                  <View style={styles.categoryChip}>
+                    <Text style={styles.categoryText}>{item.fundCategory}</Text>
+                  </View>
+                ) : null}
+              </View>
+            </View>
           </View>
 
-          {/* Meta row */}
-          <View style={styles.metaRow}>
-            {item.fundCategory ? (
-              <View style={styles.categoryChip}>
-                <Text style={styles.categoryText}>{item.fundCategory}</Text>
-              </View>
-            ) : null}
-            {item.fullName ? (
-              <Text style={styles.metaName} numberOfLines={1}>
-                👤 {item.fullName}
-              </Text>
-            ) : null}
-          </View>
-
-          {/* Progress */}
+          {/* ── Progress bar ── */}
           <ProgressBar collected={collected} target={target} />
 
-          {/* Amount row */}
+          {/* ── Amount row ── */}
           <View style={styles.amountRow}>
             <View>
               <Text style={styles.amountLabel}>Collected</Text>
@@ -119,10 +155,10 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
             </View>
           </View>
 
-          {/* Divider */}
+          {/* ── Divider ── */}
           <View style={styles.divider} />
 
-          {/* Action row */}
+          {/* ── Action row ── */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
               <Text style={styles.actionView}>👁  View</Text>
@@ -171,7 +207,7 @@ const FundraiseListScreen = ({ navigation }) => {
     try {
       const res = await fundraiseService.getAll();
       setData(res.data || []);
-    } catch (e) {
+    } catch {
       Alert.alert('Error', 'Failed to load funds');
     } finally {
       setLoading(false);
@@ -187,8 +223,7 @@ const FundraiseListScreen = ({ navigation }) => {
     Alert.alert('Delete Fund', 'Are you sure you want to delete this fund?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: 'Delete', style: 'destructive',
         onPress: async () => {
           await fundraiseService.delete(id);
           loadData();
@@ -197,7 +232,6 @@ const FundraiseListScreen = ({ navigation }) => {
     ]);
   };
 
-  // Summary stats
   const totalTarget    = data.reduce((s, i) => s + (Number(i.targetAmount)    || 0), 0);
   const totalCollected = data.reduce((s, i) => s + (Number(i.collectedAmount) || 0), 0);
 
@@ -208,7 +242,9 @@ const FundraiseListScreen = ({ navigation }) => {
       <View style={styles.header}>
         <View>
           <Text style={styles.headerTitle}>Fundraise</Text>
-          <Text style={styles.headerSub}>{data.length} active campaign{data.length !== 1 ? 's' : ''}</Text>
+          <Text style={styles.headerSub}>
+            {data.length} active campaign{data.length !== 1 ? 's' : ''}
+          </Text>
         </View>
       </View>
 
@@ -272,35 +308,26 @@ export default FundraiseListScreen;
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
 
-  // Header
   header: {
     backgroundColor: PRIMARY,
     paddingTop: Platform.OS === 'ios' ? 56 : 20,
-    paddingBottom: 18,
-    paddingHorizontal: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    paddingBottom: 18, paddingHorizontal: 20,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
   },
   headerTitle: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: 0.3 },
   headerSub:   { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 2 },
 
-  // Summary strip
   summaryStrip: {
     flexDirection: 'row', backgroundColor: '#fff',
-    marginHorizontal: 14, marginTop: -1,
-    borderRadius: 14, padding: 14,
-    elevation: 4, shadowColor: '#000',
-    shadowOpacity: 0.08, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    marginBottom: 6,
+    marginHorizontal: 14, marginTop: -1, borderRadius: 14, padding: 14,
+    elevation: 4, shadowColor: '#000', shadowOpacity: 0.08,
+    shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, marginBottom: 6,
   },
   summaryItem:    { flex: 1, alignItems: 'center' },
   summaryVal:     { fontSize: 15, fontWeight: '800', color: PRIMARY },
   summaryLabel:   { fontSize: 11, color: '#888', marginTop: 2 },
   summaryDivider: { width: 1, backgroundColor: '#E8ECF4' },
 
-  // List
   listContent: { padding: 14, paddingBottom: 90 },
 
   // Card
@@ -308,19 +335,24 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BG, borderRadius: 16,
     marginBottom: 14, padding: 16,
     elevation: 3, shadowColor: '#1E3A5F',
-    shadowOpacity: 0.08, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
   },
-  cardHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'flex-start', marginBottom: 8,
+
+  // Top section with photo
+  cardTop: {
+    flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12,
+  },
+  cardTopInfo: { flex: 1, marginLeft: 12 },
+
+  titleRow: {
+    flexDirection: 'row', alignItems: 'flex-start',
+    justifyContent: 'space-between', marginBottom: 6,
   },
   fundTitle: {
-    flex: 1, fontSize: 16, fontWeight: '700',
+    flex: 1, fontSize: 15, fontWeight: '700',
     color: '#1A2540', marginRight: 8,
   },
 
-  // Badge
   badge: {
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4,
@@ -328,16 +360,17 @@ const styles = StyleSheet.create({
   badgeDot:  { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   badgeText: { fontSize: 11, fontWeight: '700' },
 
-  // Meta
-  metaRow:      { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
+  metaRow: {
+    flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+  },
+  metaName: { fontSize: 12, color: '#888' },
+
   categoryChip: {
     backgroundColor: '#EEF2FF', borderRadius: 6,
     paddingHorizontal: 8, paddingVertical: 3,
   },
   categoryText: { fontSize: 11, color: '#4361EE', fontWeight: '600' },
-  metaName:     { fontSize: 12, color: '#888', flex: 1 },
 
-  // Amounts
   amountRow: {
     flexDirection: 'row', justifyContent: 'space-between',
     alignItems: 'center', marginTop: 10,
@@ -352,12 +385,11 @@ const styles = StyleSheet.create({
 
   divider: { height: 1, backgroundColor: '#F0F3FA', marginVertical: 12 },
 
-  // Actions
   actionRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  actionBtn:   { padding: 4 },
-  actionView:  { fontSize: 13, color: '#888', fontWeight: '500' },
+  actionBtn:  { padding: 4 },
+  actionView: { fontSize: 13, color: '#888', fontWeight: '500' },
   actionRight: { flexDirection: 'row', gap: 8 },
 
   iconBtn: {
@@ -371,7 +403,6 @@ const styles = StyleSheet.create({
   deleteIcon: { fontSize: 12, marginRight: 4 },
   deleteText: { fontSize: 13, color: DANGER, fontWeight: '600' },
 
-  // Empty
   emptyWrap: {
     flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40,
   },
@@ -384,11 +415,27 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  // FAB
   fab: {
     position: 'absolute', right: 20, bottom: 24,
-    backgroundColor: PRIMARY, borderRadius: 16,
-    elevation: 6,
+    backgroundColor: PRIMARY, borderRadius: 16, elevation: 6,
+  },
+});
+
+// ─── Avatar styles ────────────────────────────────────────────────────────────
+const av = StyleSheet.create({
+  img: {
+    width: 58, height: 58, borderRadius: 14,
+    backgroundColor: '#E8ECF4',
+    borderWidth: 1.5, borderColor: '#DDE3EF',
+  },
+  fallback: {
+    width: 58, height: 58, borderRadius: 14,
+    backgroundColor: '#D6E4F7',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1.5, borderColor: '#B8CEE8',
+  },
+  initials: {
+    fontSize: 20, fontWeight: '800', color: PRIMARY,
   },
 });
 

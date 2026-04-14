@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View, Text, TextInput, ScrollView,
   StyleSheet, TouchableOpacity, Alert, Modal,
-  FlatList, Image, Platform
+  FlatList, Image, Platform, ActivityIndicator
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -94,27 +94,36 @@ export default function CreateFundScreen() {
     fundCategory: "",
     description: "",
     targetAmount: "",
-    balanceAmount: "",     // auto-filled from targetAmount, not editable
-    minimumAmount: "",     // new editable field
+    balanceAmount: "",
+    minimumAmount: "",
     collectedAmount: "0",
     urgencyLevel: "",
 
     startDate: new Date(),
     endDate: new Date(),
 
+    // URL strings returned from API after upload
     supportingDocumentUrl: "",
-    supportingDocumentFile: null,
     beneficiaryPhotoUrl: "",
-    beneficiaryPhotoFile: null,
 
+    // Local file objects (pre-upload)
+    supportingDocumentFile: null,  // { name, uri, mimeType }
+    beneficiaryPhotoFile: null,    // { uri, name, mimeType }
+  });
+
+  const [showStart, setShowStart]       = useState(false);
+  const [showEnd, setShowEnd]           = useState(false);
+  const [submitting, setSubmitting]     = useState(false);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  // Bank details
+  const [bank, setBank] = useState({
     accountHolderName: "",
     bankAccountNumber: "",
     ifscCode: "",
     upiId: "",
   });
-
-  const [showStart, setShowStart] = useState(false);
-  const [showEnd, setShowEnd] = useState(false);
 
   useEffect(() => {
     if (isEdit) {
@@ -129,22 +138,31 @@ export default function CreateFundScreen() {
         endDate: new Date(data.endDate),
         supportingDocumentFile: null,
         beneficiaryPhotoFile: null,
+        supportingDocumentUrl: data.supportingDocumentUrl || "",
+        beneficiaryPhotoUrl: data.beneficiaryPhotoUrl || "",
+      });
+      setBank({
+        accountHolderName: data.accountHolderName || "",
+        bankAccountNumber: data.bankAccountNumber || "",
+        ifscCode: data.ifscCode || "",
+        upiId: data.upiId || "",
       });
     }
   }, []);
 
-  // Auto-sync balanceAmount with targetAmount
   const handleChange = (key, value) => {
     setForm((prev) => {
       const updated = { ...prev, [key]: value };
-      if (key === "targetAmount") {
-        updated.balanceAmount = value;
-      }
+      if (key === "targetAmount") updated.balanceAmount = value;
       return updated;
     });
   };
 
+  const handleBankChange = (key, value) =>
+    setBank((prev) => ({ ...prev, [key]: value }));
+
   // ─── File Pickers ────────────────────────────────────────────────────────
+
   const pickDocument = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -154,13 +172,14 @@ export default function CreateFundScreen() {
       if (!result.canceled && result.assets?.length) {
         const asset = result.assets[0];
         handleChange("supportingDocumentFile", {
-          name: asset.name,
           uri: asset.uri,
-          mimeType: asset.mimeType,
+          name: asset.name || "document",
+          mimeType: asset.mimeType || "application/octet-stream",
         });
-        handleChange("supportingDocumentUrl", asset.uri);
+        // Clear any previously stored URL so the UI reflects the new local file
+        handleChange("supportingDocumentUrl", "");
       }
-    } catch (e) {
+    } catch {
       Alert.alert("Error", "Could not pick document");
     }
   };
@@ -178,66 +197,145 @@ export default function CreateFundScreen() {
         quality: 0.8,
       });
       if (!result.canceled && result.assets?.length) {
-        handleChange("beneficiaryPhotoFile", { uri: result.assets[0].uri });
-        handleChange("beneficiaryPhotoUrl", result.assets[0].uri);
+        const asset = result.assets[0];
+        const name = asset.uri.split("/").pop() || "photo.jpg";
+        handleChange("beneficiaryPhotoFile", {
+          uri: asset.uri,
+          name,
+          mimeType: asset.mimeType || "image/jpeg",
+        });
+        handleChange("beneficiaryPhotoUrl", "");
       }
-    } catch (e) {
+    } catch {
       Alert.alert("Error", "Could not pick photo");
     }
   };
 
+  // ─── Upload attachments to API after fund is created/updated ─────────────
+
+  /**
+   * Uploads any pending local files to POST /api/Fundraise/{id}/attachments
+   * and returns { docUrl, photoUrl } with whatever the API gives back.
+   */
+  const uploadPendingAttachments = async (fundId) => {
+    const filesToUpload = [];
+
+    if (form.supportingDocumentFile) {
+      filesToUpload.push({
+        ...form.supportingDocumentFile,
+        fieldTag: "document", // used to identify which slot the file belongs to
+      });
+    }
+    if (form.beneficiaryPhotoFile) {
+      filesToUpload.push({
+        ...form.beneficiaryPhotoFile,
+        fieldTag: "photo",
+      });
+    }
+
+    if (filesToUpload.length === 0) return null;
+
+    const uploadResult = await fundraiseService.uploadAttachments(fundId, filesToUpload);
+    return uploadResult; // adjust parsing below to your API's response shape
+  };
+
   // ─── Validation ──────────────────────────────────────────────────────────
+
   const validate = () => {
-    if (!form.fullName.trim()) return "Full Name is required";
-    if (!form.fundTitle.trim()) return "Fund Title is required";
-    if (!form.targetAmount) return "Target Amount is required";
+    if (!form.fullName.trim())             return "Full Name is required";
+    if (!form.fundTitle.trim())            return "Fund Title is required";
+    if (!form.targetAmount)                return "Target Amount is required";
     if (
       form.minimumAmount &&
       Number(form.minimumAmount) > Number(form.targetAmount)
-    )
-      return "Minimum Amount cannot exceed Target Amount";
-    if (!form.accountHolderName.trim()) return "Account Holder is required";
+    )                                      return "Minimum Amount cannot exceed Target Amount";
+    if (!bank.accountHolderName.trim())    return "Account Holder is required";
     return null;
   };
 
   // ─── Submit ──────────────────────────────────────────────────────────────
+
   const handleSubmit = async () => {
     const error = validate();
     if (error) return Alert.alert("Validation Error", error);
 
+    setSubmitting(true);
     try {
       const payload = {
-        ...form,
+        // Beneficiary
+        fullName: form.fullName,
         age: Number(form.age),
+        gender: form.gender,
+        place: form.place,
+        address: form.address,
+        contactNumber: form.contactNumber,
+        relationToCommunity: form.relationToCommunity,
+
+        // Fund
+        fundTitle: form.fundTitle,
+        fundCategory: form.fundCategory,
+        description: form.description,
         targetAmount: Number(form.targetAmount),
         balanceAmount: Number(form.balanceAmount || form.targetAmount || 0),
         minimumAmount: Number(form.minimumAmount || 0),
         collectedAmount: Number(form.collectedAmount || 0),
+        urgencyLevel: form.urgencyLevel,
+
+        // Dates
         startDate: form.startDate.toISOString().slice(0, 19),
         endDate: form.endDate.toISOString().slice(0, 19),
+
+        // Document URLs (may be updated after upload below)
+        supportingDocumentUrl: form.supportingDocumentUrl,
+        beneficiaryPhotoUrl: form.beneficiaryPhotoUrl,
+
+        // Bank
+        ...bank,
+
+        // Meta
         status: "Active",
         createdBy: isEdit ? data.createdBy : "Admin",
         modifiedBy: isEdit ? "Admin" : null,
       };
 
-      delete payload.supportingDocumentFile;
-      delete payload.beneficiaryPhotoFile;
+      let fundId;
 
       if (isEdit) {
         await fundraiseService.update(data.id, payload);
-        Alert.alert("Success", "Fund updated successfully");
+        fundId = data.id;
       } else {
-        await fundraiseService.create(payload);
-        Alert.alert("Success", "Fund created successfully");
+        const created = await fundraiseService.create(payload);
+        // Adjust to your API's response shape — common patterns:
+        // created.id | created.data.id | created.data
+        fundId = created?.id ?? created?.data?.id ?? created;
       }
+
+      // ── Upload any pending local files ──────────────────────────────────
+      if (form.supportingDocumentFile || form.beneficiaryPhotoFile) {
+        try {
+          await uploadPendingAttachments(fundId);
+        } catch (uploadErr) {
+          // Non-fatal: fund was saved, just warn about the file upload
+          console.warn("Attachment upload failed:", uploadErr);
+          Alert.alert(
+            "Warning",
+            "Fund saved, but file upload failed. You can re-upload from the edit screen."
+          );
+        }
+      }
+
+      Alert.alert("Success", isEdit ? "Fund updated successfully" : "Fund created successfully");
       navigation.goBack();
     } catch (err) {
       console.log(err.response?.data);
-      Alert.alert("Error", JSON.stringify(err.response?.data));
+      Alert.alert("Error", JSON.stringify(err.response?.data ?? err.message));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   // ─── Render ──────────────────────────────────────────────────────────────
+
   return (
     <ScrollView style={s.container} keyboardShouldPersistTaps="handled">
 
@@ -327,14 +425,7 @@ export default function CreateFundScreen() {
         <Text style={s.label}>Category</Text>
         <Dropdown
           label="Select Category"
-          options={[
-            "Medical",
-            "Education",
-            "Natural Disaster",
-            "Business Loss",
-            "Death / Funeral",
-            "Other",
-          ]}
+          options={["Medical", "Education", "Natural Disaster", "Business Loss", "Death / Funeral", "Other"]}
           value={form.fundCategory}
           onChange={(v) => handleChange("fundCategory", v)}
         />
@@ -368,7 +459,7 @@ export default function CreateFundScreen() {
           </View>
         </View>
 
-        {/* Minimum Amount — editable */}
+        {/* Minimum Amount */}
         <Text style={s.label}>Minimum Amount (₹)</Text>
         <View style={s.minimumWrapper}>
           <Text style={s.minimumPrefix}>₹</Text>
@@ -380,9 +471,7 @@ export default function CreateFundScreen() {
             onChangeText={(v) => handleChange("minimumAmount", v)}
           />
         </View>
-        <Text style={s.minimumHint}>
-          Minimum donation amount per contributor
-        </Text>
+        <Text style={s.minimumHint}>Minimum donation amount per contributor</Text>
 
         <Text style={s.label}>Urgency Level</Text>
         <Dropdown
@@ -427,40 +516,91 @@ export default function CreateFundScreen() {
       {/* ══ DOCUMENTS ═══════════════════════════════════════════════════════ */}
       <View style={s.card}>
         <Text style={s.section}>📎  Documents</Text>
+        <Text style={s.sectionHint}>
+          Files are uploaded to the server after the fund is saved.
+        </Text>
 
+        {/* Supporting Document */}
         <Text style={s.label}>Supporting Document (PDF / Image)</Text>
         <TouchableOpacity style={s.uploadBtn} onPress={pickDocument}>
           <Text style={s.uploadIcon}>📄</Text>
-          <Text style={s.uploadText}>
-            {form.supportingDocumentFile
-              ? form.supportingDocumentFile.name
-              : "Tap to upload PDF or Image"}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.uploadText} numberOfLines={1}>
+              {form.supportingDocumentFile
+                ? form.supportingDocumentFile.name
+                : form.supportingDocumentUrl
+                ? "Existing file on server ✓"
+                : "Tap to upload PDF or Image"}
+            </Text>
+            {form.supportingDocumentFile && (
+              <Text style={s.uploadSubText}>Ready to upload on save</Text>
+            )}
+            {form.supportingDocumentUrl && !form.supportingDocumentFile && (
+              <Text style={s.uploadSubText} numberOfLines={1}>
+                {form.supportingDocumentUrl}
+              </Text>
+            )}
+          </View>
+          {(form.supportingDocumentFile || form.supportingDocumentUrl) && (
+            <Text style={s.uploadCheck}>✓</Text>
+          )}
         </TouchableOpacity>
-        <TextInput
-          placeholder="Or paste document URL"
-          style={[s.input, { marginTop: 6 }]}
-          value={!form.supportingDocumentFile ? form.supportingDocumentUrl : ""}
-          onChangeText={(v) => {
-            handleChange("supportingDocumentFile", null);
-            handleChange("supportingDocumentUrl", v);
-          }}
-        />
+        {/* Fallback URL input */}
+        {!form.supportingDocumentFile && (
+          <TextInput
+            placeholder="Or paste document URL"
+            style={[s.input, { marginTop: 6 }]}
+            value={form.supportingDocumentUrl}
+            onChangeText={(v) => handleChange("supportingDocumentUrl", v)}
+          />
+        )}
+        {/* Clear button */}
+        {form.supportingDocumentFile && (
+          <TouchableOpacity
+            style={s.clearFileBtn}
+            onPress={() => handleChange("supportingDocumentFile", null)}
+          >
+            <Text style={s.clearFileBtnText}>✕  Remove selected file</Text>
+          </TouchableOpacity>
+        )}
 
-        <Text style={[s.label, { marginTop: 12 }]}>Beneficiary Photo</Text>
+        {/* Beneficiary Photo */}
+        <Text style={[s.label, { marginTop: 14 }]}>Beneficiary Photo</Text>
         <TouchableOpacity style={s.uploadBtn} onPress={pickPhoto}>
           <Text style={s.uploadIcon}>🖼️</Text>
-          <Text style={s.uploadText}>
-            {form.beneficiaryPhotoFile ? "Photo selected ✓" : "Tap to choose photo"}
-          </Text>
+          <View style={{ flex: 1 }}>
+            <Text style={s.uploadText}>
+              {form.beneficiaryPhotoFile
+                ? "Photo selected"
+                : form.beneficiaryPhotoUrl
+                ? "Existing photo on server ✓"
+                : "Tap to choose photo"}
+            </Text>
+            {form.beneficiaryPhotoFile && (
+              <Text style={s.uploadSubText}>Ready to upload on save</Text>
+            )}
+          </View>
+          {(form.beneficiaryPhotoFile || form.beneficiaryPhotoUrl) && (
+            <Text style={s.uploadCheck}>✓</Text>
+          )}
         </TouchableOpacity>
-        {form.beneficiaryPhotoFile && (
+
+        {/* Photo preview */}
+        {form.beneficiaryPhotoFile ? (
           <Image
             source={{ uri: form.beneficiaryPhotoFile.uri }}
             style={s.photoPreview}
             resizeMode="cover"
           />
-        )}
+        ) : form.beneficiaryPhotoUrl ? (
+          <Image
+            source={{ uri: form.beneficiaryPhotoUrl }}
+            style={s.photoPreview}
+            resizeMode="cover"
+          />
+        ) : null}
+
+        {/* Fallback URL / clear */}
         {!form.beneficiaryPhotoFile && (
           <TextInput
             placeholder="Or paste photo URL"
@@ -468,6 +608,14 @@ export default function CreateFundScreen() {
             value={form.beneficiaryPhotoUrl}
             onChangeText={(v) => handleChange("beneficiaryPhotoUrl", v)}
           />
+        )}
+        {form.beneficiaryPhotoFile && (
+          <TouchableOpacity
+            style={s.clearFileBtn}
+            onPress={() => handleChange("beneficiaryPhotoFile", null)}
+          >
+            <Text style={s.clearFileBtnText}>✕  Remove selected photo</Text>
+          </TouchableOpacity>
         )}
       </View>
 
@@ -479,8 +627,8 @@ export default function CreateFundScreen() {
         <TextInput
           placeholder="Name as per bank"
           style={s.input}
-          value={form.accountHolderName}
-          onChangeText={(v) => handleChange("accountHolderName", v)}
+          value={bank.accountHolderName}
+          onChangeText={(v) => handleBankChange("accountHolderName", v)}
         />
 
         <Text style={s.label}>Account Number</Text>
@@ -488,8 +636,8 @@ export default function CreateFundScreen() {
           placeholder="Enter account number"
           style={s.input}
           keyboardType="numeric"
-          value={form.bankAccountNumber}
-          onChangeText={(v) => handleChange("bankAccountNumber", v)}
+          value={bank.bankAccountNumber}
+          onChangeText={(v) => handleBankChange("bankAccountNumber", v)}
         />
 
         <Text style={s.label}>IFSC Code</Text>
@@ -497,22 +645,30 @@ export default function CreateFundScreen() {
           placeholder="e.g. SBIN0001234"
           style={s.input}
           autoCapitalize="characters"
-          value={form.ifscCode}
-          onChangeText={(v) => handleChange("ifscCode", v)}
+          value={bank.ifscCode}
+          onChangeText={(v) => handleBankChange("ifscCode", v)}
         />
 
         <Text style={s.label}>UPI ID</Text>
         <TextInput
           placeholder="name@upi"
           style={s.input}
-          value={form.upiId}
-          onChangeText={(v) => handleChange("upiId", v)}
+          value={bank.upiId}
+          onChangeText={(v) => handleBankChange("upiId", v)}
         />
       </View>
 
       {/* ══ SUBMIT ══════════════════════════════════════════════════════════ */}
-      <TouchableOpacity style={s.submitBtn} onPress={handleSubmit}>
-        <Text style={s.submitText}>{isEdit ? "Update Fund" : "Create Fund"}</Text>
+      <TouchableOpacity
+        style={[s.submitBtn, submitting && s.submitBtnDisabled]}
+        onPress={handleSubmit}
+        disabled={submitting}
+      >
+        {submitting ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={s.submitText}>{isEdit ? "Update Fund" : "Create Fund"}</Text>
+        )}
       </TouchableOpacity>
 
       <View style={{ height: 40 }} />
@@ -535,7 +691,8 @@ const s = StyleSheet.create({
     elevation: 2, shadowColor: "#000", shadowOpacity: 0.06,
     shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
   },
-  section: { fontSize: 15, fontWeight: "700", color: PRIMARY, marginBottom: 10 },
+  section:     { fontSize: 15, fontWeight: "700", color: PRIMARY, marginBottom: 4 },
+  sectionHint: { fontSize: 11, color: "#AAB0C0", marginBottom: 10 },
 
   label: { fontSize: 13, color: "#555", marginTop: 10, marginBottom: 4, fontWeight: "500" },
   input: {
@@ -545,7 +702,7 @@ const s = StyleSheet.create({
     fontSize: 15, color: "#222", backgroundColor: "#FAFBFD",
   },
 
-  // Read-only balance amount field
+  // Read-only balance
   readOnlyWrapper: {
     flexDirection: "row", alignItems: "center",
     borderWidth: 1, borderColor: "#DDE3EF",
@@ -553,19 +710,15 @@ const s = StyleSheet.create({
     paddingVertical: Platform.OS === "ios" ? 12 : 10,
     backgroundColor: "#F0F4FA",
   },
-  readOnlyText: { flex: 1, fontSize: 15, color: "#444", fontWeight: "600" },
-  readOnlyBadge: {
-    backgroundColor: "#DDE8F8", borderRadius: 6,
-    paddingHorizontal: 8, paddingVertical: 3,
-  },
+  readOnlyText:      { flex: 1, fontSize: 15, color: "#444", fontWeight: "600" },
+  readOnlyBadge:     { backgroundColor: "#DDE8F8", borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   readOnlyBadgeText: { fontSize: 11, color: ACCENT, fontWeight: "700" },
 
-  // Minimum Amount field
+  // Minimum Amount
   minimumWrapper: {
     flexDirection: "row", alignItems: "center",
     borderWidth: 1, borderColor: "#DDE3EF",
-    borderRadius: 8, backgroundColor: "#FAFBFD",
-    overflow: "hidden",
+    borderRadius: 8, backgroundColor: "#FAFBFD", overflow: "hidden",
   },
   minimumPrefix: {
     paddingHorizontal: 12,
@@ -579,10 +732,9 @@ const s = StyleSheet.create({
     paddingVertical: Platform.OS === "ios" ? 12 : 9,
     fontSize: 15, color: "#222",
   },
-  minimumHint: {
-    fontSize: 11, color: "#AAB0C0", marginTop: 4, marginLeft: 2,
-  },
+  minimumHint: { fontSize: 11, color: "#AAB0C0", marginTop: 4, marginLeft: 2 },
 
+  // Dates
   datePill: {
     flexDirection: "row", alignItems: "center",
     borderWidth: 1, borderColor: "#DDE3EF",
@@ -591,40 +743,50 @@ const s = StyleSheet.create({
   datePillIcon: { fontSize: 16, marginRight: 8 },
   datePillText: { fontSize: 15, color: "#222" },
 
+  // Upload
   uploadBtn: {
     flexDirection: "row", alignItems: "center",
     borderWidth: 1.5, borderColor: ACCENT, borderStyle: "dashed",
     borderRadius: 8, padding: 14, backgroundColor: "#EEF5FF",
   },
-  uploadIcon: { fontSize: 20, marginRight: 10 },
-  uploadText: { color: ACCENT, fontSize: 14, fontWeight: "500", flex: 1 },
+  uploadIcon:    { fontSize: 20, marginRight: 10 },
+  uploadText:    { color: ACCENT, fontSize: 14, fontWeight: "500" },
+  uploadSubText: { color: "#888", fontSize: 11, marginTop: 2 },
+  uploadCheck:   { fontSize: 16, color: "#27AE60", marginLeft: 8 },
+
+  clearFileBtn: {
+    marginTop: 6, paddingVertical: 6, alignItems: "center",
+  },
+  clearFileBtnText: { fontSize: 12, color: "#E74C3C", fontWeight: "600" },
 
   photoPreview: {
     width: "100%", height: 180, borderRadius: 10,
     marginTop: 10, backgroundColor: "#eee",
   },
 
+  // Submit
   submitBtn: {
     backgroundColor: PRIMARY, margin: 12,
-    borderRadius: 10, padding: 16, alignItems: "center",
-    elevation: 3,
+    borderRadius: 10, padding: 16, alignItems: "center", elevation: 3,
   },
-  submitText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  submitBtnDisabled: { opacity: 0.6 },
+  submitText:        { color: "#fff", fontSize: 16, fontWeight: "700" },
 });
 
 // ─── Dropdown styles ─────────────────────────────────────────────────────────
+const PRIMARY_DD = "#1E3A5F";
+const ACCENT_DD  = "#2E86DE";
+
 const dd = StyleSheet.create({
   wrapper:  { marginBottom: 4 },
   trigger: {
-    flexDirection: "row", justifyContent: "space-between",
-    alignItems: "center", borderWidth: 1, borderColor: "#DDE3EF",
-    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 12,
-    backgroundColor: "#FAFBFD",
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    borderWidth: 1, borderColor: "#DDE3EF", borderRadius: 8,
+    paddingHorizontal: 12, paddingVertical: 12, backgroundColor: "#FAFBFD",
   },
   triggerText: { fontSize: 15, color: "#222" },
   placeholder: { fontSize: 15, color: "#aaa" },
   arrow:       { fontSize: 12, color: "#888" },
-
   backdrop: {
     position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: "rgba(0,0,0,0.35)",
@@ -634,8 +796,7 @@ const dd = StyleSheet.create({
     backgroundColor: "#fff", borderTopLeftRadius: 20,
     borderTopRightRadius: 20, padding: 20, maxHeight: "60%",
   },
-  sheetTitle: { fontWeight: "700", fontSize: 16, color: PRIMARY, marginBottom: 12 },
-
+  sheetTitle: { fontWeight: "700", fontSize: 16, color: PRIMARY_DD, marginBottom: 12 },
   searchRow: {
     flexDirection: "row", alignItems: "center",
     backgroundColor: "#F4F6FA", borderRadius: 8,
@@ -643,16 +804,13 @@ const dd = StyleSheet.create({
   },
   searchIcon:  { fontSize: 14, marginRight: 6, color: "#888" },
   searchInput: { flex: 1, paddingVertical: 10, fontSize: 14, color: "#222" },
-
   option: {
-    flexDirection: "row", justifyContent: "space-between",
-    alignItems: "center", paddingVertical: 13,
-    borderBottomWidth: 1, borderColor: "#F0F2F7",
+    flexDirection: "row", justifyContent: "space-between", alignItems: "center",
+    paddingVertical: 13, borderBottomWidth: 1, borderColor: "#F0F2F7",
   },
   optionActive:     { backgroundColor: "#EEF5FF", borderRadius: 8, paddingHorizontal: 8 },
   optionText:       { fontSize: 15, color: "#333" },
-  optionTextActive: { color: ACCENT, fontWeight: "600" },
-  check:            { color: ACCENT, fontWeight: "700" },
-
-  empty: { textAlign: "center", color: "#aaa", padding: 20 },
+  optionTextActive: { color: ACCENT_DD, fontWeight: "600" },
+  check:            { color: ACCENT_DD, fontWeight: "700" },
+  empty:            { textAlign: "center", color: "#aaa", padding: 20 },
 });
