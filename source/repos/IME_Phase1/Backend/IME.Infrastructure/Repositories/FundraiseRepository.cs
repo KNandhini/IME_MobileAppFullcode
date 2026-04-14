@@ -54,7 +54,7 @@ namespace IME.Infrastructure.Repositories
         public async Task<int> CreateFundraiseAsync(Fundraise fundraise)
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command = _dbContext.CreateStoredProcCommand("sp_CreateFundraise", connection);
+            using var command = _dbContext.CreateStoredProcCommand("sp_InsertFundraise", connection);
 
             command.Parameters.AddWithValue("@FullName", fundraise.FullName);
             command.Parameters.AddWithValue("@Age", fundraise.Age ?? (object)DBNull.Value);
@@ -85,6 +85,9 @@ namespace IME.Infrastructure.Repositories
             command.Parameters.AddWithValue("@Status", fundraise.Status);
             command.Parameters.AddWithValue("@CreatedBy", fundraise.CreatedBy);
             command.Parameters.AddWithValue("@CreatedDate", fundraise.CreatedDate);
+            command.Parameters.AddWithValue("@BalanceAmount", fundraise.BalanceAmount);
+            command.Parameters.AddWithValue("@MinimumAmount", fundraise.MinimumAmount);
+
 
             var result = await command.ExecuteScalarAsync(); // SP should return Id
             return Convert.ToInt32(result);
@@ -127,6 +130,8 @@ namespace IME.Infrastructure.Repositories
             command.Parameters.AddWithValue("@Status", fundraise.Status);
             command.Parameters.AddWithValue("@ModifiedBy", fundraise.ModifiedBy ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@ModifiedDate", fundraise.ModifiedDate ?? (object)DBNull.Value);
+           // command.Parameters.AddWithValue("@BalanceAmount", fundraise.BalanceAmount);
+            command.Parameters.AddWithValue("@MinimumAmount", fundraise.MinimumAmount);
 
             using var reader = await command.ExecuteReaderAsync();
 
@@ -190,7 +195,14 @@ namespace IME.Infrastructure.Repositories
 
                 Status = reader.GetString(reader.GetOrdinal("Status")),
                 CreatedBy = reader.GetString(reader.GetOrdinal("CreatedBy")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                BalanceAmount = reader.IsDBNull(reader.GetOrdinal("BalanceAmount"))
+    ? 0
+    : reader.GetDecimal(reader.GetOrdinal("BalanceAmount")),
+                MinimumAmount = reader.IsDBNull(reader.GetOrdinal("MinimumAmount"))
+    ? 0
+    : reader.GetDecimal(reader.GetOrdinal("MinimumAmount"))
+
             };
         }
     }

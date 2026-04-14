@@ -38,5 +38,7 @@ namespace IME.Core.DTOs
         public string Status { get; set; }
         public string CreatedBy { get; set; }
         public int Id { get; set; }
+        public decimal BalanceAmount { get; set; }
+        public decimal MinimumAmount { get; set; }
     }
-}
+} 
