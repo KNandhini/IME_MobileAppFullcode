@@ -11,7 +11,7 @@ const ADMIN_MENU = [
   { title: 'Achievements',      route: 'Achievements',     icon: '🏆', params: {} },
   { title: 'Organisation',      route: 'Organisation',     icon: '🏢', params: {} },
   { title: 'Support Services',  route: 'Support',          icon: '🤝', params: {} },
-  { title: 'Set Annual Fee',    route: 'SetAnnualFee',     icon: '💰', params: {} },
+  { title: 'Set Annual Fee',    route: null,               icon: '💰', params: {} },
 ];
 
 const AdminDashboardScreen = ({ navigation }) => {
