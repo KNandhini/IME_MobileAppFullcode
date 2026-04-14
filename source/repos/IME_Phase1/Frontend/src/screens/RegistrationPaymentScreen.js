@@ -11,7 +11,7 @@ import api from '../utils/api';
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
 const RegistrationPaymentScreen = ({ route, navigation }) => {
-  const { userId, memberId, feeAmount, memberName, profilePhotoUri } = route.params || {};
+  const { userId, memberId, feeAmount, memberName, memberEmail, memberPassword, profilePhotoUri } = route.params || {};
 
   const [profilePhoto, setProfilePhoto] = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
   const [showWebView, setShowWebView] = useState(false);
@@ -279,21 +279,34 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             amount: feeAmount,
             paymentMode: 'Razorpay',
             transactionReference: data.paymentId,
+            memberEmail: memberEmail ?? '',
+            plainPassword: memberPassword ?? '',
           });
 
           if (res.data.success) {
             Alert.alert(
               'Registration Complete!',
-              `Payment successful!\nPayment ID: ${data.paymentId}\n\nYour account is now active. Please login to continue.`,
-              [{ text: 'Login Now', onPress: () => navigation.navigate('Login') }]
+              `Payment successful!\nPayment ID: ${data.paymentId}\n\nYour account is now active. Please login.`,
+              [{ text: 'Login Now', onPress: () => navigation.replace('Login') }],
+              { cancelable: false }
             );
           } else {
-            Alert.alert('Error', res.data.message || 'Payment confirmation failed.');
+            // Payment captured by Razorpay but backend confirmation failed.
+            // Still navigate — support can reconcile using the payment ID.
+            Alert.alert(
+              'Payment Received',
+              `Payment ID: ${data.paymentId}\n\nYour payment was captured. If login fails, please contact support with this ID.`,
+              [{ text: 'Go to Login', onPress: () => navigation.replace('Login') }],
+              { cancelable: false }
+            );
           }
         } catch (e) {
+          // Network/server error after Razorpay success — still navigate to Login
           Alert.alert(
-            'Payment Done',
-            `Payment ID: ${data.paymentId}\nVerification pending. Please contact support if account is not activated.`
+            'Payment Received',
+            `Payment ID: ${data.paymentId}\n\nPlease try logging in. If your account is not active, contact support.`,
+            [{ text: 'Go to Login', onPress: () => navigation.replace('Login') }],
+            { cancelable: false }
           );
         } finally {
           setProcessingPayment(false);

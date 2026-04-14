@@ -130,7 +130,7 @@ namespace IME.Infrastructure.Repositories
             command.Parameters.AddWithValue("@Status", fundraise.Status);
             command.Parameters.AddWithValue("@ModifiedBy", fundraise.ModifiedBy ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@ModifiedDate", fundraise.ModifiedDate ?? (object)DBNull.Value);
-           // command.Parameters.AddWithValue("@BalanceAmount", fundraise.BalanceAmount);
+            // command.Parameters.AddWithValue("@BalanceAmount", fundraise.BalanceAmount);
             command.Parameters.AddWithValue("@MinimumAmount", fundraise.MinimumAmount);
 
             using var reader = await command.ExecuteReaderAsync();

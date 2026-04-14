@@ -51,6 +51,14 @@ public class AuthRepository : IAuthRepository
 
         if (await reader.ReadAsync())
         {
+            string? profilePhotoBase64 = null;
+            int photoOrdinal = reader.GetOrdinal("ProfilePhoto");
+            if (!reader.IsDBNull(photoOrdinal))
+            {
+                byte[] photoBytes = (byte[])reader.GetValue(photoOrdinal);
+                profilePhotoBase64 = "data:image/jpeg;base64," + Convert.ToBase64String(photoBytes);
+            }
+
             return new User
             {
                 UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
@@ -59,7 +67,7 @@ public class AuthRepository : IAuthRepository
                 RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
                 MemberId = reader.IsDBNull(reader.GetOrdinal("MemberId")) ? null : reader.GetInt32(reader.GetOrdinal("MemberId")),
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
-                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+                ProfilePhotoPath = profilePhotoBase64,
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }

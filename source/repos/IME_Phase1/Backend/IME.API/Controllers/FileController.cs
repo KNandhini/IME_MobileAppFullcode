@@ -221,22 +221,19 @@ public class FileController : ControllerBase
                 });
             }
 
-            // Save file
-            var filePath = await _fileStorageService.SaveFileAsync(
-                file.OpenReadStream(),
-                "ProfilePhotos",
-                memberId,
-                file.FileName
-            );
+            // Read file bytes and store as BLOB in database
+            byte[] photoBytes;
+            using (var ms = new MemoryStream())
+            {
+                await file.CopyToAsync(ms);
+                photoBytes = ms.ToArray();
+            }
 
-            // Update member profile photo in database
             using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command = _dbContext.CreateCommand(
-                "UPDATE Members SET ProfilePhotoPath = @ProfilePhotoPath, UpdatedDate = GETDATE() WHERE MemberId = @MemberId",
-                connection);
+            using var command = _dbContext.CreateStoredProcCommand("sp_UpdateMemberProfilePhoto", connection);
 
-            command.Parameters.AddWithValue("@ProfilePhotoPath", filePath);
             command.Parameters.AddWithValue("@MemberId", memberId);
+            command.Parameters.AddWithValue("@ProfilePhoto", photoBytes);
 
             await command.ExecuteNonQueryAsync();
 
@@ -247,7 +244,7 @@ public class FileController : ControllerBase
                 Data = new FileUploadResponseDTO
                 {
                     FileName = file.FileName,
-                    FilePath = filePath,
+                    FilePath = string.Empty,
                     FileSize = file.Length
                 }
             });

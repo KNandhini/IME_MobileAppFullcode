@@ -90,7 +90,7 @@ const SignupScreen = ({ navigation }) => {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsEditing: false,
       aspect: [1, 1],
       quality: 0.7,
     });
@@ -112,6 +112,8 @@ const SignupScreen = ({ navigation }) => {
           memberId: res.data.memberId,
           feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
           memberName: formData.fullName,
+          memberEmail: formData.email,
+          memberPassword: formData.password,
           profilePhotoUri: profilePhoto?.uri ?? null,
         });
       } else {

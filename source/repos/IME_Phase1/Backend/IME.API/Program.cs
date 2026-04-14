@@ -54,12 +54,14 @@ builder.Services.AddSingleton(new DatabaseContext(connectionString!));
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
-<<<<<<< kamali
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-=======
-builder.Services.AddScoped<IFundraiseRepository, FundraiseRepository>();
->>>>>>> karthik0610s
 
+builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IFeedRepository, FeedRepository>();
+
+builder.Services.AddScoped<IFundraiseRepository, FundraiseRepository>();
+builder.Services.AddScoped<IRaiseFundPayment, RaiseFundPaymentRepository>();
+
+builder.Services.AddHttpClient(); 
 // Register Services
 builder.Services.AddSingleton(new JwtService(
     jwtSettings["SecretKey"]!,
@@ -70,6 +72,7 @@ builder.Services.AddSingleton(new JwtService(
 builder.Services.AddSingleton<PasswordService>();
 builder.Services.AddSingleton(sp => new FileStorageService(uploadPath));
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddSingleton<EmailTemplateService>();
 
 // JWT Authentication
 var key = Encoding.ASCII.GetBytes(jwtSettings["SecretKey"]!);
