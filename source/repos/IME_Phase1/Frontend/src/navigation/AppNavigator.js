@@ -31,6 +31,9 @@ import OrganisationScreen     from '../screens/OrganisationScreen';
 import AdminDashboardScreen   from '../screens/AdminDashboardScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
 import AboutScreen from '../screens/AboutScreen';
+import FundraiseListScreen from '../screens/FundraiseListScreen';
+import CreateFundScreen from '../screens/CreateFundScreen';
+import FundraiseViewScreen from '../screens/FundraiseViewScreen';
 const Stack = createStackNavigator();
 const Tab   = createBottomTabNavigator();
 
@@ -68,6 +71,7 @@ const MainTabs = () => (
     <Tab.Screen name="Profile" component={ProfileScreen}
       options={{ title: 'Profile', tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text> }} />
   </Tab.Navigator>
+  
 );
 
 const MainStack = () => (
@@ -92,6 +96,9 @@ const MainStack = () => (
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
+    <Stack.Screen name="FundraiseList" component={FundraiseListScreen} />
+<Stack.Screen name="CreateFund" component={CreateFundScreen} />
+<Stack.Screen name="FundraiseView" component={FundraiseViewScreen} />
   </Stack.Navigator>
 );
 
