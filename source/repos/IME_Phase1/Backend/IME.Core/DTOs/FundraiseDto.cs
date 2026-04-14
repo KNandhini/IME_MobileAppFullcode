@@ -41,4 +41,4 @@ namespace IME.Core.DTOs
         public decimal BalanceAmount { get; set; }
         public decimal MinimumAmount { get; set; }
     }
-}
+} 
