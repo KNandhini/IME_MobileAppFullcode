@@ -33,3 +33,16 @@ public class UpdateActivityDTO
     public string? Time { get; set; }
     public string? ChiefGuest { get; set; }
 }
+
+public class ActivityAttachmentDTO
+{
+    public int    AttachmentId    { get; set; }
+    public int    ActivityId      { get; set; }
+    public string FileName        { get; set; } = string.Empty;
+    public string FilePath        { get; set; } = string.Empty;
+    public long?  FileSize        { get; set; }
+    public string? FileType       { get; set; }
+    public int?   UploadedBy      { get; set; }
+    public string UploadedByName  { get; set; } = string.Empty;
+    public DateTime UploadedDate  { get; set; }
+}
