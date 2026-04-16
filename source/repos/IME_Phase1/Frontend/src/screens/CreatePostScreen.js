@@ -68,11 +68,18 @@ const CreatePostScreen = ({ navigation }) => {
         Alert.alert('Failed', res.message || 'Could not create post. Please try again.');
       }
     } catch (e) {
-      const serverMsg = e?.response?.data?.message || e?.response?.data || e?.message || 'Unknown error';
-      const status   = e?.response?.status;
+      const status    = e?.response?.status;
+      const serverMsg = e?.response?.data?.message
+                     || e?.response?.data?.title
+                     || (typeof e?.response?.data === 'string' ? e.response.data : null)
+                     || e?.message
+                     || 'Unknown error';
+      const detail = e?.response?.data?.errors
+        ? '\n' + JSON.stringify(e.response.data.errors, null, 2)
+        : '';
       Alert.alert(
         `Error${status ? ` (${status})` : ''}`,
-        typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg)
+        (typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg)) + detail
       );
     } finally {
       setPosting(false);

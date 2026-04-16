@@ -143,6 +143,7 @@ public class NewsController : ControllerBase
             command.Parameters.AddWithValue("@FullContent", request.FullContent ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@CoverImagePath", request.CoverImagePath ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@CreatedBy", userId);
+            command.Parameters.AddWithValue("@CreatedDate", (object?)(request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow));
 
             var newsId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
@@ -185,7 +186,7 @@ public class NewsController : ControllerBase
                     ShortDescription = @ShortDescription,
                     FullContent = @FullContent,
                     CoverImagePath = @CoverImagePath,
-                    UpdatedDate = GETDATE()
+                    UpdatedDate = @UpdatedDate
                   WHERE NewsId = @NewsId",
                 connection);
 
@@ -194,6 +195,7 @@ public class NewsController : ControllerBase
             command.Parameters.AddWithValue("@ShortDescription", request.ShortDescription ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@FullContent", request.FullContent ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@CoverImagePath", request.CoverImagePath ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@UpdatedDate", (object?)(request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow));
 
             var rowsAffected = await command.ExecuteNonQueryAsync();
 

@@ -21,6 +21,7 @@ public class CreateActivityDTO
     public string? Venue { get; set; }
     public string? Time { get; set; }
     public string? ChiefGuest { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }
 
 public class UpdateActivityDTO
@@ -32,6 +33,7 @@ public class UpdateActivityDTO
     public string? Venue { get; set; }
     public string? Time { get; set; }
     public string? ChiefGuest { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }
 
 public class ActivityAttachmentDTO

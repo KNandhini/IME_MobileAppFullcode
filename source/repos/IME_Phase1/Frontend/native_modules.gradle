@@ -1,0 +1,10 @@
+// Stub for @react-native-community/cli autolinking.
+// Expo's useExpoModules() already handles native module linking.
+
+ext.applyNativeModulesSettingsGradle = { defaultSettings ->
+    // no-op: Expo autolinking via useExpoModules() handles this
+}
+
+ext.applyNativeModulesAppBuildGradle = { project ->
+    // no-op: Expo autolinking via useExpoModules() handles this
+}

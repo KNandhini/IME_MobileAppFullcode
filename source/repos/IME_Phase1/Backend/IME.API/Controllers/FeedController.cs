@@ -45,7 +45,8 @@ public class FeedController : ControllerBase
     [HttpPost("post")]
     public async Task<ActionResult<ApiResponse<object>>> CreatePost(
         [FromForm] string? content,
-        [FromForm] List<IFormFile>? files)
+        [FromForm] List<IFormFile>? files,
+        [FromForm] string? createdDate)
     {
         try
         {
@@ -58,8 +59,14 @@ public class FeedController : ControllerBase
             if (string.IsNullOrWhiteSpace(content) && (files == null || files.Count == 0))
                 return Ok(new ApiResponse<object> { Success = false, Message = "Post must have content or at least one media file." });
 
+            // Parse mobile datetime; fall back to server UTC if missing or invalid
+            DateTime? postedDate = null;
+            if (!string.IsNullOrWhiteSpace(createdDate) &&
+                DateTime.TryParse(createdDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed))
+                postedDate = parsed.ToUniversalTime();
+
             // Create the post record first
-            var postId = await _feedRepository.CreatePostAsync(memberId, content);
+            var postId = await _feedRepository.CreatePostAsync(memberId, content, postedDate);
             if (postId <= 0)
                 return Ok(new ApiResponse<object> { Success = false, Message = "Failed to create post." });
 

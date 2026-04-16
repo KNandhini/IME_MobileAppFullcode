@@ -13,18 +13,21 @@ export const BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  headers: { 'Content-Type': 'application/json' },
+  // Do NOT set Content-Type here — it breaks multipart/form-data uploads.
+  // The interceptor below sets it per-request based on data type.
 });
 
-// Attach JWT token to every request
+// Attach JWT token + set correct Content-Type per request
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('authToken');
     if (token) config.headers.Authorization = `Bearer ${token}`;
 
-    // Let FormData set its own Content-Type with the multipart boundary
     if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
+      // Do NOT set Content-Type for FormData.
+      // React Native's native HTTP client will set multipart/form-data with the correct boundary.
+    } else {
+      config.headers['Content-Type'] = 'application/json';
     }
 
     return config;

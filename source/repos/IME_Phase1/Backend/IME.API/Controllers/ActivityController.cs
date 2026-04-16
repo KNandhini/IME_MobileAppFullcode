@@ -94,12 +94,13 @@ public class ActivityController : ControllerBase
             var activity = new Activity
             {
                 ActivityName = request.ActivityName,
-                Description = request.Description,
+                Description  = request.Description,
                 ActivityDate = request.ActivityDate,
-                Venue = request.Venue,
-                Time = request.Time,
-                ChiefGuest = request.ChiefGuest,
-                CreatedBy = userId
+                Venue        = request.Venue,
+                Time         = request.Time,
+                ChiefGuest   = request.ChiefGuest,
+                CreatedBy    = userId,
+                CreatedDate  = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var activityId = await _activityRepository.CreateActivityAsync(activity);
@@ -139,13 +140,14 @@ public class ActivityController : ControllerBase
         {
             var activity = new Activity
             {
-                ActivityId = id,
+                ActivityId   = id,
                 ActivityName = request.ActivityName,
-                Description = request.Description,
+                Description  = request.Description,
                 ActivityDate = request.ActivityDate,
-                Venue = request.Venue,
-                Time = request.Time,
-                ChiefGuest = request.ChiefGuest
+                Venue        = request.Venue,
+                Time         = request.Time,
+                ChiefGuest   = request.ChiefGuest,
+                UpdatedDate  = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var success = await _activityRepository.UpdateActivityAsync(activity);

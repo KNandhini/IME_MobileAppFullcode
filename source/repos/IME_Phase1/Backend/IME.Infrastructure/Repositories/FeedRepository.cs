@@ -87,13 +87,14 @@ public class FeedRepository : IFeedRepository
         };
     }
 
-    public async Task<int> CreatePostAsync(int memberId, string? content)
+    public async Task<int> CreatePostAsync(int memberId, string? content, DateTime? postedDate = null)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command    = _dbContext.CreateStoredProcCommand("sp_CreatePost", connection);
 
-        command.Parameters.AddWithValue("@MemberId", memberId);
-        command.Parameters.AddWithValue("@Content",  (object?)content ?? DBNull.Value);
+        command.Parameters.AddWithValue("@MemberId",   memberId);
+        command.Parameters.AddWithValue("@Content",    (object?)content ?? DBNull.Value);
+        command.Parameters.AddWithValue("@PostedDate", (object?)(postedDate ?? DateTime.UtcNow));
 
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result ?? 0);
