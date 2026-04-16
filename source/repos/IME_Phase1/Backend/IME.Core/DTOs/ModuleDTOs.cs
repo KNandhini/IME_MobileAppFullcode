@@ -84,6 +84,7 @@ public class CreateCircularDTO
     public string? Description { get; set; }
     public string? CircularNumber { get; set; }
     public DateTime PublishDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }
 
 public class UpdateCircularDTO
@@ -92,6 +93,7 @@ public class UpdateCircularDTO
     public string? Description { get; set; }
     public string? CircularNumber { get; set; }
     public DateTime PublishDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }
 
 // Achievement DTOs

@@ -28,6 +28,7 @@ public class CreateNewsDTO
     public string? ShortDescription { get; set; }
     public string? FullContent { get; set; }
     public string? CoverImagePath { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }
 
 public class UpdateNewsDTO
@@ -36,6 +37,7 @@ public class UpdateNewsDTO
     public string? ShortDescription { get; set; }
     public string? FullContent { get; set; }
     public string? CoverImagePath { get; set; }
+    public DateTime? CreatedDate { get; set; }
 }
 
 // Media DTOs

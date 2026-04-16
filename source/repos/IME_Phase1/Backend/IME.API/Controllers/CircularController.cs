@@ -145,6 +145,7 @@ public class CircularController : ControllerBase
             command.Parameters.AddWithValue("@CircularNumber", request.CircularNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@PublishDate", request.PublishDate);
             command.Parameters.AddWithValue("@CreatedBy", userId);
+            command.Parameters.AddWithValue("@CreatedDate", (object?)(request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow));
 
             var circularId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
@@ -187,7 +188,7 @@ public class CircularController : ControllerBase
                     Description = @Description,
                     CircularNumber = @CircularNumber,
                     PublishDate = @PublishDate,
-                    UpdatedDate = GETDATE()
+                    UpdatedDate = @UpdatedDate
                   WHERE CircularId = @CircularId",
                 connection);
 
@@ -196,6 +197,7 @@ public class CircularController : ControllerBase
             command.Parameters.AddWithValue("@Description", request.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@CircularNumber", request.CircularNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@PublishDate", request.PublishDate);
+            command.Parameters.AddWithValue("@UpdatedDate", (object?)(request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow));
 
             var rowsAffected = await command.ExecuteNonQueryAsync();
 

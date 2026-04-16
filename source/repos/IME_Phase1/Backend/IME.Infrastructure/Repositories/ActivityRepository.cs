@@ -52,6 +52,7 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@Time",         (object?)activity.Time          ?? DBNull.Value);
         command.Parameters.AddWithValue("@ChiefGuest",   (object?)activity.ChiefGuest    ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedBy",    (object?)activity.CreatedBy     ?? DBNull.Value);
+        command.Parameters.AddWithValue("@CreatedDate",  activity.CreatedDate);
 
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);
@@ -68,6 +69,7 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@Venue",        (object?)activity.Venue         ?? DBNull.Value);
         command.Parameters.AddWithValue("@Time",         (object?)activity.Time          ?? DBNull.Value);
         command.Parameters.AddWithValue("@ChiefGuest",   (object?)activity.ChiefGuest    ?? DBNull.Value);
+        command.Parameters.AddWithValue("@UpdatedDate",  (object?)activity.UpdatedDate   ?? DateTime.UtcNow);
 
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
