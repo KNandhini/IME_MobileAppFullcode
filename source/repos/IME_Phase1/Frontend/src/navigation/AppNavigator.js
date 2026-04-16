@@ -30,6 +30,11 @@ import OrganisationScreen     from '../screens/OrganisationScreen';
 import AdminDashboardScreen        from '../screens/AdminDashboardScreen';
 import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
+import MemberManagementScreen from '../screens/MemberManagementScreen';
+import AboutScreen from '../screens/AboutScreen';
+import FundraiseListScreen from '../screens/FundraiseListScreen';
+import CreateFundScreen from '../screens/CreateFundScreen';
+import FundraiseViewScreen from '../screens/FundraiseViewScreen';
 import MemberManagementScreen      from '../screens/MemberManagementScreen';
 import AboutScreen                 from '../screens/AboutScreen';
 import FundScreen                  from '../screens/FundScreen';
@@ -137,6 +142,7 @@ const MainTabs = () => (
       }}
     />
   </Tab.Navigator>
+  
 );
 
 const MainStack = () => (
@@ -171,6 +177,10 @@ const MainStack = () => (
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen}   options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}     options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
+    <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
+    <Stack.Screen name="FundraiseList" component={FundraiseListScreen} />
+<Stack.Screen name="CreateFund" component={CreateFundScreen} />
+<Stack.Screen name="FundraiseView" component={FundraiseViewScreen} />
     {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
       <Stack.Screen name="RaiseFund" component={RaiseFundScreen} />
     <Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />
