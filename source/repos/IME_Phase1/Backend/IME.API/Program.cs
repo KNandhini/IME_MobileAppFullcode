@@ -60,7 +60,7 @@ builder.Services.AddScoped<IFeedRepository, FeedRepository>();
 
 builder.Services.AddScoped<IFundraiseRepository, FundraiseRepository>();
 builder.Services.AddScoped<IRaiseFundPayment, RaiseFundPaymentRepository>();
-
+builder.Services.AddScoped<ISupportRepository, SupportRepository>();
 builder.Services.AddHttpClient(); 
 // Register Services
 builder.Services.AddSingleton(new JwtService(

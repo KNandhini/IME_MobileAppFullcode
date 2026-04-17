@@ -22,11 +22,12 @@ api.interceptors.request.use(
     const token = await AsyncStorage.getItem('authToken');
     if (token) config.headers.Authorization = `Bearer ${token}`;
 
-    // Let FormData set its own Content-Type with the multipart boundary
-    if (config.data instanceof FormData) {
-      delete config.headers['Content-Type'];
+   if (config.data instanceof FormData) {
+      // Do NOT set Content-Type for FormData.
+      // React Native's native HTTP client will set multipart/form-data with the correct boundary.
+    } else {
+      config.headers['Content-Type'] = 'application/json';
     }
-
     return config;
   },
   (error) => Promise.reject(error)
