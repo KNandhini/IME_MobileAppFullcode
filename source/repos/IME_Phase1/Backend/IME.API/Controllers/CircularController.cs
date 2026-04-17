@@ -66,7 +66,7 @@ public class CircularController : ControllerBase
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
             using var command = _dbContext.CreateCommand(
-                "SELECT * FROM GOCircular WHERE CircularId = @CircularId",
+                "SELECT * FROM tbl_GOCircular WHERE CircularId = @CircularId",
                 connection);
 
             command.Parameters.AddWithValue("@CircularId", id);
@@ -90,7 +90,7 @@ public class CircularController : ControllerBase
 
                 // Get attachments
                 using var attachCommand = _dbContext.CreateCommand(
-                    "SELECT * FROM GOCircularAttachments WHERE CircularId = @CircularId",
+                    "SELECT * FROM tbl_GOCircularAttachments WHERE CircularId = @CircularId",
                     connection);
                 attachCommand.Parameters.AddWithValue("@CircularId", id);
 
@@ -174,7 +174,6 @@ public class CircularController : ControllerBase
             });
         }
     }
-
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Update(int id, [FromBody] UpdateCircularDTO request)
@@ -182,29 +181,21 @@ public class CircularController : ControllerBase
         try
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command = _dbContext.CreateCommand(
-                @"UPDATE GOCircular SET
-                    Title = @Title,
-                    Description = @Description,
-                    CircularNumber = @CircularNumber,
-                    PublishDate = @PublishDate,
-                    UpdatedDate = @UpdatedDate
-                  WHERE CircularId = @CircularId",
-                connection);
+
+            using var command = _dbContext.CreateStoredProcCommand("sp_UpdateCircular", connection);
 
             command.Parameters.AddWithValue("@CircularId", id);
             command.Parameters.AddWithValue("@Title", request.Title);
             command.Parameters.AddWithValue("@Description", request.Description ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@CircularNumber", request.CircularNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@PublishDate", request.PublishDate);
-            command.Parameters.AddWithValue("@UpdatedDate", (object?)(request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow));
 
-            var rowsAffected = await command.ExecuteNonQueryAsync();
+            await command.ExecuteNonQueryAsync();
 
             return Ok(new ApiResponse<object>
             {
-                Success = rowsAffected > 0,
-                Message = rowsAffected > 0 ? "Circular updated successfully" : "Circular not found"
+                Success = true,
+                Message = "Circular updated successfully"
             });
         }
         catch (Exception ex)
@@ -212,11 +203,10 @@ public class CircularController : ControllerBase
             return StatusCode(500, new ApiResponse<object>
             {
                 Success = false,
-                Message = $"Error: {ex.Message}"
+                Message = ex.Message
             });
         }
     }
-
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
@@ -224,18 +214,17 @@ public class CircularController : ControllerBase
         try
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command = _dbContext.CreateCommand(
-                "DELETE FROM GOCircular WHERE CircularId = @CircularId",
-                connection);
+
+            using var command = _dbContext.CreateStoredProcCommand("sp_DeleteCircular", connection);
 
             command.Parameters.AddWithValue("@CircularId", id);
 
-            var rowsAffected = await command.ExecuteNonQueryAsync();
+            await command.ExecuteNonQueryAsync();
 
             return Ok(new ApiResponse<object>
             {
-                Success = rowsAffected > 0,
-                Message = rowsAffected > 0 ? "Circular deleted successfully" : "Circular not found"
+                Success = true,
+                Message = "Circular deleted successfully"
             });
         }
         catch (Exception ex)
@@ -243,7 +232,7 @@ public class CircularController : ControllerBase
             return StatusCode(500, new ApiResponse<object>
             {
                 Success = false,
-                Message = $"Error: {ex.Message}"
+                Message = ex.Message
             });
         }
     }

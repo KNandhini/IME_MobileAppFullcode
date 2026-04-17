@@ -1,9 +1,10 @@
 import api from '../utils/api';
 
 export const circularService = {
+
   getAll: async () => {
     const response = await api.get('/circular');
-    return response.data;
+    return response.data; // { success, data }
   },
 
   getById: async (circularId) => {
@@ -12,6 +13,7 @@ export const circularService = {
   },
 
   create: async (circularData) => {
+    debugger;
     const response = await api.post('/circular', circularData);
     return response.data;
   },
