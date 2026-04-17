@@ -38,7 +38,7 @@ import CreatePostScreen from '../screens/CreatePostScreen';
 import FundraiseListScreen from '../screens/FundraiseListScreen';
 import CreateFundScreen from '../screens/CreateFundScreen';
 import FundraiseViewScreen from '../screens/FundraiseViewScreen';
-import AddCircularScreen from '../screens/AddCircularScreen';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -175,23 +175,12 @@ const MainStack = () => (
     <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
-    {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
-    <Stack.Screen name="FundScreen" component={FundScreen} />
-
     <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
     <Stack.Screen name="RaiseFund" component={RaiseFundScreen} options={{ title: 'Raise Fund' }} />
     <Stack.Screen name="FundraiseList" component={FundraiseListScreen} options={{ title: 'Fundraise' }} />
     <Stack.Screen name="CreateFund" component={CreateFundScreen} options={{ title: 'Create Fundraise' }} />
     <Stack.Screen name="FundraiseView" component={FundraiseViewScreen} options={{ title: 'Fundraise Details' }} />
     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ headerShown: false }} />
-    <Stack.Screen
-      name="AddCircular"
-      component={AddCircularScreen}
-      options={({ route }) => ({
-        title: route.params?.item ? 'Edit Circular' : 'Add Circular'
-      })}
-    />
-
   </Stack.Navigator>
 );
 

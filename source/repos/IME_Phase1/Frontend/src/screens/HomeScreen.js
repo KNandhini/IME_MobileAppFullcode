@@ -1,9 +1,10 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, StatusBar, RefreshControl,
 } from 'react-native';
 import { Menu } from 'react-native-paper';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import FeedCard from '../components/FeedCard';
 import { feedService } from '../services/feedService';
@@ -22,11 +23,10 @@ const HomeScreen = ({ navigation }) => {
   const [error,        setError]        = useState(null);
   const [menuVisible,  setMenuVisible]  = useState(false);
 
-  // ── Initial load ────────────────────────────
-  useEffect(() => {
-    debugger;
+  // ── Reload on screen focus ──────────────────
+  useFocusEffect(useCallback(() => {
     loadFeed(1, true);
-  }, []);
+  }, []));
 
   const loadFeed = async (pageNumber, isRefresh = false) => {
     try {
@@ -35,7 +35,6 @@ const HomeScreen = ({ navigation }) => {
       if (res.success) {
         const newItems = res.data.items || [];
         if (isRefresh) {
-          debugger;
           setPosts(newItems);
         } else {
           setPosts(prev => [...prev, ...newItems]);
