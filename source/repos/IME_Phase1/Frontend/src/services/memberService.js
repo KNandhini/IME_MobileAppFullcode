@@ -43,7 +43,6 @@ export const memberService = {
 
   getAllMembers: async (pageNumber = 1, pageSize = 50) => {
     try {
-      debugger;
       const response = await api.get('/member/all', {
         params: { pageNumber, pageSize },
       });
@@ -75,7 +74,6 @@ export const memberService = {
 
   rejectMember: async (memberId, reason) => {
   try {
-    debugger;
     const response = await api.put(
       `/member/${memberId}/status`,
       {

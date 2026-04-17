@@ -6,7 +6,7 @@ import {
 import { Card, IconButton, Searchbar, Chip } from 'react-native-paper';
 import { memberService } from '../services/memberService';
 
-const MemberManagementScreen = () => {
+const MemberManagementScreen = ({ navigation }) => {
   const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -119,8 +119,16 @@ const MemberManagementScreen = () => {
         </View>
         {item.designation && <Text style={styles.designation}>{item.designation}</Text>}
         <View style={styles.actions}>
-          <IconButton icon="delete" iconColor="#F44336"
-            onPress={() => handleDeleteMember(item.memberId, item.fullName)} />
+          <IconButton
+            icon="pencil"
+            iconColor="#1E3A5F"
+            onPress={() => navigation.navigate('MemberEdit', { memberId: item.memberId })}
+          />
+          <IconButton
+            icon="delete"
+            iconColor="#F44336"
+            onPress={() => handleDeleteMember(item.memberId, item.fullName)}
+          />
         </View>
       </Card.Content>
     </Card>

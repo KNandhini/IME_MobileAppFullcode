@@ -35,6 +35,7 @@ import AboutScreen                 from '../screens/AboutScreen';
 import FundScreen                  from '../screens/FundScreen';
 import RaiseFundScreen             from '../screens/RaiseFundScreen';
 import CreatePostScreen            from '../screens/CreatePostScreen';
+import MemberEditScreen             from '../screens/MemberEditScreen';
 import FundraiseListScreen         from '../screens/FundraiseListScreen';
 import CreateFundScreen            from '../screens/CreateFundScreen';
 import FundraiseViewScreen         from '../screens/FundraiseViewScreen';
@@ -175,6 +176,7 @@ const MainStack = () => (
     <Stack.Screen name="AdminDashboard"   component={AdminDashboardScreen}   options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee"     component={SetAnnualFeeScreen}     options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
+    <Stack.Screen name="MemberEdit"       component={MemberEditScreen}       options={{ title: 'Edit Member' }} />
     <Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />
     <Stack.Screen name="RaiseFund"        component={RaiseFundScreen}        options={{ title: 'Raise Fund' }} />
     <Stack.Screen name="FundraiseList"    component={FundraiseListScreen}    options={{ title: 'Fundraise' }} />
