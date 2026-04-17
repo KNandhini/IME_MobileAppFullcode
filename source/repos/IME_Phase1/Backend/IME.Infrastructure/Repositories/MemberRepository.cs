@@ -96,6 +96,10 @@ public class MemberRepository : IMemberRepository
                 Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
                 MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")),
                 ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+                
+                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
+    ? null
+    : (byte[])reader["ProfilePhoto"],
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
             });
         }

@@ -24,6 +24,7 @@ const HomeScreen = ({ navigation }) => {
 
   // ── Initial load ────────────────────────────
   useEffect(() => {
+    debugger;
     loadFeed(1, true);
   }, []);
 
@@ -34,6 +35,7 @@ const HomeScreen = ({ navigation }) => {
       if (res.success) {
         const newItems = res.data.items || [];
         if (isRefresh) {
+          debugger;
           setPosts(newItems);
         } else {
           setPosts(prev => [...prev, ...newItems]);
@@ -41,6 +43,7 @@ const HomeScreen = ({ navigation }) => {
         setPage(pageNumber);
         setHasMore(res.data.hasMore);
       } else {
+        
         setError('Failed to load feed.');
       }
     } catch (e) {
