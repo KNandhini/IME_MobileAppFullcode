@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl,
   Alert, Image,
@@ -14,7 +15,7 @@ const MemberManagementScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
 
-  useEffect(() => { loadMembers(); }, []);
+  useFocusEffect(useCallback(() => { loadMembers(); }, []));
   useEffect(() => { filterMembers(); }, [searchQuery, filterStatus, members]);
 
   const loadMembers = async () => {

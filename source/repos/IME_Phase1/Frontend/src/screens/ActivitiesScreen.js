@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl,
   TouchableOpacity, Alert,
@@ -13,7 +14,7 @@ const ActivitiesScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
 
-  useEffect(() => { loadActivities(); }, []);
+  useFocusEffect(useCallback(() => { loadActivities(); }, []));
 
   const loadActivities = async () => {
     setLoading(true);
