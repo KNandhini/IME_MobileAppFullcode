@@ -32,7 +32,7 @@ import SetAnnualFeeScreen          from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen   from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen      from '../screens/MemberManagementScreen';
 import AboutScreen                 from '../screens/AboutScreen';
-import FundScreen                  from '../screens/FundScreen';
+import FundScreen                  from '../screens/FeedScreen';
 import RaiseFundScreen from '../screens/RaiseFundScreen';
 import CreatePostScreen            from '../screens/CreatePostScreen';
 const Stack = createStackNavigator();
