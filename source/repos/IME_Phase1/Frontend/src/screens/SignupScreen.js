@@ -119,8 +119,13 @@ const SignupScreen = ({ navigation }) => {
       } else {
         Alert.alert('Failed', res.message);
       }
-    } catch {
-      Alert.alert('Error', 'Something went wrong');
+    } catch (e) {
+      const status    = e?.response?.status;
+      const serverMsg = e?.response?.data?.message
+                     || e?.response?.data?.title
+                     || e?.message
+                     || 'Network error';
+      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
     } finally {
       setLoading(false);
     }

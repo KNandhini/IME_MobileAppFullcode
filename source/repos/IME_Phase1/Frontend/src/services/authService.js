@@ -4,10 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const authService = {
   login: async (email, password) => {
     try {
-      debugger;
-      console.log('Attempting login for:', email);
       const response = await api.post('/Auth/login', { email, password });
-      console.log('Login response:', response);
       const res = response.data;
 
       // Support both { success, data: { token } } and { token } response shapes
@@ -21,10 +18,6 @@ export const authService = {
 
       return { success: !!(res.success !== false && token), data, message: res.message };
     } catch (error) {
-      debugger;
-      console.log('Login error:', error.message);
-      console.log('Error response:', error.response);
-      console.log('Full error:', error);
       throw error;
     }
   },

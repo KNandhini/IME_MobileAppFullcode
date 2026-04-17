@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Image, TouchableOpacity } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation } from '@react-navigation/native';
@@ -15,9 +16,7 @@ const NewsTab = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadNews();
-  }, []);
+  useFocusEffect(useCallback(() => { loadNews(); }, []));
 
   const loadNews = async () => {
     setLoading(true);
@@ -83,9 +82,7 @@ const MediaTab = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadMedia();
-  }, []);
+  useFocusEffect(useCallback(() => { loadMedia(); }, []));
 
   const loadMedia = async () => {
     setLoading(true);
@@ -150,9 +147,7 @@ const PodcastsTab = () => {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadPodcasts();
-  }, []);
+  useFocusEffect(useCallback(() => { loadPodcasts(); }, []));
 
   const loadPodcasts = async () => {
     setLoading(true);
