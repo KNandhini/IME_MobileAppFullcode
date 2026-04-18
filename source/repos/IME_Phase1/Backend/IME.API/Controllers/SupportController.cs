@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.Features;   // ? ADD
 using IME.Core.DTOs;
 using IME.Core.Interfaces;
 using IME.Infrastructure.Services;
@@ -45,9 +46,10 @@ public class SupportController : ControllerBase
         return result == null ? NotFound() : Ok(result);
     }
 
-    // ?? POST api/support  (multipart: JSON fields + files[]) ??
+    // ?? POST api/support ??????????????????????????????????????????????????????
     [HttpPost]
-    
+    [DisableRequestSizeLimit]                                        // ? ADD
+    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]        // ? ADD
     public async Task<IActionResult> Create(
         [FromForm] int categoryId,
         [FromForm] string? personName,
@@ -56,7 +58,7 @@ public class SupportController : ControllerBase
         [FromForm] string? supportDate,
         [FromForm] string? companyOrIndividual,
         [FromForm] string? companyName,
-        [FromForm] decimal? amount,
+        [FromForm] string? amount,
         [FromForm] int createdBy,
         [FromForm] List<IFormFile>? files)
     {
@@ -69,22 +71,23 @@ public class SupportController : ControllerBase
             SupportDate = string.IsNullOrEmpty(supportDate) ? null : DateTime.Parse(supportDate),
             CompanyOrIndividual = companyOrIndividual,
             CompanyName = companyName,
-            Amount = amount,
+            Amount = decimal.TryParse(amount, out var amt) ? amt : null,
             CreatedBy = createdBy,
         };
 
         var newId = await _repository.CreateAsync(dto);
         if (newId == 0) return BadRequest("Failed to create support record.");
 
-        // Save attachments
         await SaveAttachments(newId, files);
 
         var created = await _repository.GetByIdAsync(newId);
         return Ok(new { success = true, data = created });
     }
 
-    // ?? PUT api/support/{supportId}  (multipart) ??
+    // ?? PUT api/support/{supportId} ???????????????????????????????????????????
     [HttpPut("{supportId:int}")]
+    [DisableRequestSizeLimit]                                        // ? ADD
+    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]        // ? ADD
     public async Task<IActionResult> Update(
         int supportId,
         [FromForm] int categoryId,
@@ -94,7 +97,7 @@ public class SupportController : ControllerBase
         [FromForm] string? supportDate,
         [FromForm] string? companyOrIndividual,
         [FromForm] string? companyName,
-        [FromForm] decimal? amount,
+        [FromForm] string? amount,
         [FromForm] List<IFormFile>? files)
     {
         var dto = new UpdateSupportDTO
@@ -106,13 +109,12 @@ public class SupportController : ControllerBase
             SupportDate = string.IsNullOrEmpty(supportDate) ? null : DateTime.Parse(supportDate),
             CompanyOrIndividual = companyOrIndividual,
             CompanyName = companyName,
-            Amount = amount,
+            Amount = decimal.TryParse(amount, out var amt) ? amt : null,
         };
 
         var success = await _repository.UpdateAsync(supportId, dto);
         if (!success) return NotFound($"Support {supportId} not found.");
 
-        // Save new attachments (existing ones are kept)
         await SaveAttachments(supportId, files);
 
         var updated = await _repository.GetByIdAsync(supportId);
@@ -127,7 +129,6 @@ public class SupportController : ControllerBase
         return NoContent();
     }
 
-    // ?? GET api/support/attachment/{attachmentId} ?? serves the file
     [HttpGet("attachment/{attachmentId:int}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetAttachment(int attachmentId)
@@ -155,7 +156,7 @@ public class SupportController : ControllerBase
         return NoContent();
     }
 
-    // ?? Helpers ??????????????????????????????????????????????
+    // ?? Helpers ???????????????????????????????????????????????????????????????
     private async Task SaveAttachments(int supportId, List<IFormFile>? files)
     {
         if (files == null || files.Count == 0) return;
@@ -173,8 +174,14 @@ public class SupportController : ControllerBase
             else if (AllowedDocTypes.Contains(ext)) mediaType = "document";
             else continue;
 
+            // ? Copy to MemoryStream FIRST — prevents IFormFile stream
+            //    being disposed before SaveFileAsync finishes reading it
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            ms.Position = 0;
+
             var filePath = await _fileStorageService.SaveFileAsync(
-                file.OpenReadStream(), "Support", supportId, file.FileName);
+                ms, "Support", supportId, file.FileName);
 
             await _repository.AddAttachmentAsync(new AddAttachmentDTO
             {

@@ -54,7 +54,7 @@ const CreatePostScreen = ({ navigation }) => {
 
   // ── Submit post ───────────────────────────────────────────
   const handlePost = useCallback(async () => {
-    debugger;
+
     if (!content.trim() && mediaItems.length === 0) {
       Alert.alert('Empty post', 'Write something or add a photo/video.');
       return;
