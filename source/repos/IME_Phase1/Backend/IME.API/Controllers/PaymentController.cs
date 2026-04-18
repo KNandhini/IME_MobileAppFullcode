@@ -239,25 +239,29 @@ public class PaymentController : ControllerBase
 
             if (!string.IsNullOrEmpty(recipientEmail))
             {
-                try
+                // Fire-and-forget: don't block the response waiting for SMTP
+                _ = Task.Run(async () =>
                 {
-                    var body = _emailTemplateService.RegistrationSuccess(
-                        fullName:             recipientName,
-                        email:                recipientEmail,
-                        plainPassword:        request.PlainPassword,
-                        amount:               request.Amount,
-                        transactionReference: request.TransactionReference,
-                        paymentDate:          DateTime.Now);
+                    try
+                    {
+                        var body = _emailTemplateService.RegistrationSuccess(
+                            fullName:             recipientName,
+                            email:                recipientEmail,
+                            plainPassword:        request.PlainPassword,
+                            amount:               request.Amount,
+                            transactionReference: request.TransactionReference,
+                            paymentDate:          DateTime.Now);
 
-                    await _emailService.SendEmailAsync(
-                        recipientEmail,
-                        "Welcome to IME – Registration Successful!",
-                        body);
-                }
-                catch (Exception emailEx)
-                {
-                    Console.WriteLine($"Email failed: {emailEx.Message}");
-                }
+                        await _emailService.SendEmailAsync(
+                            recipientEmail,
+                            "Welcome to IME – Registration Successful!",
+                            body);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        Console.WriteLine($"Email failed: {emailEx.Message}");
+                    }
+                });
             }
 
             return Ok(new ApiResponse<object>
