@@ -9,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { supportService } from '../services/supportService';
 import { memberService } from '../services/memberService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Linking } from 'react-native';
 // At the top of AddSupportScreen, import:
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -321,6 +322,7 @@ function AddSupportScreen({ visible, onClose, onSubmit,editItem }) {
   const [categoriesLoading, setCategoriesLoading]  = useState(false);
   const [attachments,       setAttachments]        = useState([]);
   const [errors,            setErrors]             = useState({});
+  const [existingAttachments, setExistingAttachments] = useState([]);
 //const [imgError, setImgError] = useState(false);
   // Form state uses DB column names directly
   const [form, setForm] = useState({
@@ -352,33 +354,35 @@ function AddSupportScreen({ visible, onClose, onSubmit,editItem }) {
       ]).start();
     }
   }, [visible]);
- useEffect(() => {
+useEffect(() => {
   if (editItem && visible && members.length && categories.length) {
-    setForm({
-      //personName: members.find(m => m.label === editItem.personName)?.value || null,
-personName: editItem.personName || '',
-      title: editItem.title || '',
-      amount: editItem.amount != null ? String(editItem.amount) : '',
-      description: editItem.description || '',
+    // ✅ Fetch full detail with attachments
+    const loadDetail = async () => {
+      try {
+        const detail = await supportService.getById(editItem.supportId);
+        const data = detail?.data ?? detail;
 
-      categoryId: categories.find(c => c.label === editItem.categoryName)?.value || null,
+        setForm({
+          personName: data.personName || '',
+          title: data.title || '',
+          amount: data.amount != null ? String(data.amount) : '',
+          description: data.description || '',
+          categoryId: categories.find(c => c.label === data.categoryName)?.value || null,
+          supportDate: data.supportDate ? data.supportDate.substring(0, 10) : '',
+          companyOrIndividual:
+            data.companyOrIndividual === 'Individual' ? 'Individual' : 'Company',
+          companyName:
+            data.companyOrIndividual !== 'Individual' ? (data.companyName || '') : '',
+          createdBy: 0,
+        });
 
-      supportDate: editItem.supportDate
-        ? editItem.supportDate.substring(0, 10)
-        : '',
-
-      companyOrIndividual:
-        editItem.companyOrIndividual === 'Individual'
-          ? 'Individual'
-          : 'Company',
-
-      companyName:
-        editItem.companyOrIndividual !== 'Individual'
-          ? (editItem.companyName || '')
-          : '',
-
-      createdBy: 0,
-    });
+        // ✅ bind existing attachments from API
+        setExistingAttachments(data.attachments || []);
+      } catch (e) {
+        console.error('Load detail error:', e);
+      }
+    };
+    loadDetail();
   }
 }, [editItem, visible, members, categories]);
 
@@ -435,10 +439,10 @@ const loadMembers = async () => {
   const loadCategories = async () => {
     setCategoriesLoading(true);
     try {
-      debugger;
+   
       const res = await supportService.getCategories();
       if (res?.success || res?.length) {
-        debugger;
+        
         setCategories(
           (res ?? [])
             .filter((c) => c.isActive)
@@ -450,7 +454,7 @@ const loadMembers = async () => {
             }))
         );
       } else {
-        debugger;
+    
         setCategories(FALLBACK_CATEGORIES.map((c) => ({ ...c, isCompany: false })));
       }
     } catch (e) {
@@ -518,11 +522,18 @@ const loadMembers = async () => {
     setForm({ personName: null, title: '', amount: '', description: '', categoryId: null, supportDate: '', companyOrIndividual: null, companyName: '' });
     setAttachments([]);
     setErrors({});
+      setExistingAttachments([]);
     onClose();
   };
 
-  const handlePickAttachment = async () => {
-  if (attachments.length >= 5) {
+const handlePickAttachment = async () => {
+  // ✅ Calculate how many more slots are available
+  const totalExisting = existingAttachments.length;
+  const totalNew      = attachments.length;
+  const totalUsed     = totalExisting + totalNew;
+  const slotsLeft     = 5 - totalUsed;
+
+  if (slotsLeft <= 0) {
     Alert.alert('Limit reached', 'Max 5 attachments per support entry.');
     return;
   }
@@ -532,18 +543,28 @@ const loadMembers = async () => {
       text: 'PDF / Document',
       onPress: async () => {
         const result = await DocumentPicker.getDocumentAsync({
-          type: ['application/pdf', 'application/msword',
-                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+          type: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          ],
           copyToCacheDirectory: true,
+          multiple: true,   // ✅ allow multiple docs
         });
+
         if (!result.canceled && result.assets?.length > 0) {
-          const asset = result.assets[0];
-          setAttachments(prev => [...prev, {
+          // ✅ Slice to only take as many as slots allow
+          const picked = result.assets.slice(0, slotsLeft).map(asset => ({
             uri:      asset.uri,
             fileName: asset.name,
             mimeType: asset.mimeType || 'application/pdf',
             type:     'document',
-          }]);
+          }));
+          setAttachments(prev => [...prev, ...picked]);
+
+          if (result.assets.length > slotsLeft) {
+            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+          }
         }
       },
     },
@@ -555,19 +576,26 @@ const loadMembers = async () => {
           Alert.alert('Permission needed', 'Allow access to your photo library.');
           return;
         }
+
         const result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images', 'videos'],
-          allowsMultipleSelection: false,
+          allowsMultipleSelection: true,   // ✅ allow multiple images/videos
+          selectionLimit: slotsLeft,        // ✅ cap at available slots
           quality: 0.85,
         });
+
         if (!result.canceled && result.assets?.length > 0) {
-          const asset = result.assets[0];
-          setAttachments(prev => [...prev, {
+          const picked = result.assets.slice(0, slotsLeft).map(asset => ({
             uri:      asset.uri,
             fileName: asset.fileName || `media_${Date.now()}`,
             mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
             type:     asset.type === 'video' ? 'video' : 'image',
-          }]);
+          }));
+          setAttachments(prev => [...prev, ...picked]);
+
+          if (result.assets.length > slotsLeft) {
+            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+          }
         }
       },
     },
@@ -736,18 +764,78 @@ const loadMembers = async () => {
               {/* ATTACHMENTS */}
               <Field label="Files (PDF / Video)">
                 <View style={fs.attachRow}>
-                  {attachments.map((a, i) => (
-                    <AttachmentPill
-                      key={i}
-                      name={a.name}
-                      onRemove={() => setAttachments((p) => p.filter((_, idx) => idx !== i))}
-                    />
-                  ))}
-                  <TouchableOpacity style={fs.attachBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
-                    <Text style={fs.attachIcon}>＋</Text>
-                    <Text style={fs.attachBtnText}>Attach File</Text>
-                  </TouchableOpacity>
-                </View>
+
+  {/* ✅ EXISTING ATTACHMENTS */}
+  {/* ✅ EXISTING ATTACHMENTS — each with image preview + delete icon */}
+{existingAttachments.map((a, i) => (
+  <View key={`existing-${a.attachmentId}`} style={fs.existingPill}>
+
+    {/* IMAGE PREVIEW if it's an image */}
+    {a.mediaType?.trim() === 'image' ? (
+      <Image
+        source={{ uri: supportService.getAttachmentUrl(a.attachmentId) }}
+        style={fs.thumbImage}
+        resizeMode="cover"
+      />
+    ) : (
+      <Text style={fs.thumbIcon}>
+        {a.mediaType?.trim() === 'video' ? '🎬' : '📄'}
+      </Text>
+    )}
+
+    {/* FILE NAME */}
+    <Text style={fs.existingName} numberOfLines={1}>{a.fileName}</Text>
+
+    {/* DELETE ICON */}
+    <TouchableOpacity
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      onPress={() => {
+        Alert.alert('Delete Attachment', `Delete "${a.fileName}"?`, [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await supportService.deleteAttachment(a.attachmentId);
+                setExistingAttachments(prev =>
+                  prev.filter(x => x.attachmentId !== a.attachmentId)
+                );
+              } catch (e) {
+                Alert.alert('Error', 'Failed to delete attachment');
+              }
+            },
+          },
+        ]);
+      }}
+    >
+      <Text style={fs.existingRemove}>✕</Text>
+    </TouchableOpacity>
+  </View>
+))}
+
+  {/* ✅ NEW ATTACHMENTS */}
+  {attachments.map((a, i) => (
+    <AttachmentPill
+      key={i}
+      name={a.fileName}
+      onRemove={() =>
+        setAttachments((p) => p.filter((_, idx) => idx !== i))
+      }
+    />
+  ))}
+
+  {/* ATTACH BUTTON */}
+  <TouchableOpacity
+    style={fs.attachBtn}
+    onPress={handlePickAttachment}
+    activeOpacity={0.8}
+  >
+    <Text style={fs.attachIcon}>＋</Text>
+    <Text style={fs.attachBtnText}>Attach File</Text>
+  </TouchableOpacity>
+
+</View>
                 <Text style={fs.attachHint}>Supported: PDF, MP4, MOV</Text>
               </Field>
 
@@ -787,6 +875,11 @@ const fs = StyleSheet.create({
   cancelText : { fontSize: 15, fontWeight: '600', color: '#64748B' },
   submitBtn  : { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: '#2563EB', alignItems: 'center', shadowColor: '#2563EB', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   submitText : { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
+  existingPill   : { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0FDF4', borderRadius: 10, padding: 8, marginRight: 8, marginBottom: 8, borderWidth: 1, borderColor: '#BBF7D0', maxWidth: 180 },
+thumbImage     : { width: 40, height: 40, borderRadius: 6, marginRight: 8 },
+thumbIcon      : { fontSize: 28, marginRight: 8, width: 40, textAlign: 'center' },
+existingName   : { flex: 1, fontSize: 11, color: '#166534', fontWeight: '500' },
+existingRemove : { fontSize: 13, color: '#EF4444', fontWeight: '800', marginLeft: 6 },
 });
 
 // ── Support Card ──────────────────────────────────────────────────────────────
@@ -893,7 +986,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
   const loadSupport = async () => {
   setLoading(true);
   try {
-    debugger;
+   
     // ✅ Fetch BOTH APIs in parallel
     const [response, membersRes] = await Promise.all([
       supportService.getByCategory(categoryId),
