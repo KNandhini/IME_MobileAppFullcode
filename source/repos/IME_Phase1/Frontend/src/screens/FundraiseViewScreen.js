@@ -119,17 +119,7 @@ const FundraiseViewScreen = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
 
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <Text style={styles.backArrow}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerLabel}>Fund Details</Text>
-        <TouchableOpacity style={styles.editHeaderBtn}
-          onPress={() => navigation.navigate('CreateFund', { data })}>
-          <Text style={styles.editHeaderText}>Edit</Text>
-        </TouchableOpacity>
-      </View>
+      
 
       <Animated.ScrollView
         style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
