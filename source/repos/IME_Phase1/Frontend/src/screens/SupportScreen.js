@@ -9,6 +9,7 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { supportService } from '../services/supportService';
 import { memberService } from '../services/memberService';
+import { feedService } from '../services/feedService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Linking } from 'react-native';
 // At the top of AddSupportScreen, import:
@@ -392,25 +393,13 @@ const loadMembers = async () => {
   setMembersLoading(true);
   try {
     const res = await memberService.getAllMembers(1, 100);
-
     if (res?.success) {
-      const mappedMembers = await Promise.all(
-        (res.data ?? []).map(async (m) => {
-          let imageUri = null;
-
-        if (m.profilePhoto) {
-    imageUri = `data:image/jpeg;base64,${m.profilePhoto}`;
-  }
-
-          return {
-            label: m.fullName ?? '',
-            value: m.memberId,
-            image: imageUri, // ✅ store image
-          };
-        })
+      setMembers(
+        (res.data ?? []).map((m) => ({
+          label: m.fullName ?? '',
+          value: m.memberId,
+        }))
       );
-
-      setMembers(mappedMembers);
     }
   } catch (e) {
     console.error('Load members error:', e);
@@ -418,24 +407,6 @@ const loadMembers = async () => {
     setMembersLoading(false);
   }
 };
-  /*const loadMembers = async () => {
-    setMembersLoading(true);
-    try {
-      const res = await memberService.getAllMembers(1, 100);
-      if (res?.success) {
-        setMembers(
-          (res.data ?? []).map((m) => ({
-            label: m.fullName ?? '',
-            value: m.memberId,
-          }))
-        );
-      }
-    } catch (e) {
-      console.error('Load members error:', e);
-    } finally {
-      setMembersLoading(false);
-    }
-  };*/
 
   const loadCategories = async () => {
     setCategoriesLoading(true);
@@ -1079,8 +1050,9 @@ export default function SupportScreen() {
   const [activeIndex,   setActiveIndex]   = useState(0);
   const [formVisible,   setFormVisible]   = useState(false);
   const [refreshSignal, setRefreshSignal] = useState(0);
-  const [editItem, setEditItem] = useState(null);
-const [userRole, setUserRole] = useState(null);
+  const [editItem,      setEditItem]      = useState(null);
+  const [userRole,      setUserRole]      = useState(null);
+  const [submitting,    setSubmitting]    = useState(false);
 useEffect(() => {
   loadTabs();
   loadUserRole();
@@ -1107,43 +1079,47 @@ const loadUserRole = async () => {
     }
   };
 
-  const handleSubmit = async (formData,attachments = []) => {
-  try {
-    const userId = await getUserId();
-debugger;
-    const payload = {
-      personName          : formData.personName,
-      title               : formData.title,
-      amount              : parseFloat(formData.amount) || 0,
-      description         : formData.description,
-      categoryId          : formData.categoryId,
-      supportDate         : formData.supportDate,
-      companyOrIndividual : formData.companyOrIndividual,
-      companyName         : formData.companyOrIndividual === 'Company' ? formData.companyName : null,
-      createdBy           : userId,
-    };
+  const handleSubmit = async (formData, attachments = []) => {
+    setSubmitting(true);
+    try {
+      const userId = await getUserId();
+      const payload = {
+        personName          : formData.personName,
+        title               : formData.title,
+        amount              : parseFloat(formData.amount) || 0,
+        description         : formData.description,
+        categoryId          : formData.categoryId,
+        supportDate         : formData.supportDate,
+        companyOrIndividual : formData.companyOrIndividual,
+        companyName         : formData.companyOrIndividual === 'Company' ? formData.companyName : null,
+        createdBy           : userId,
+      };
 
-    let res;
+      let res;
+      if (formData.supportId) {
+        res = await supportService.update(formData.supportId, payload, attachments);
+      } else {
+        res = await supportService.create(payload, attachments);
+      }
 
-    if (formData.supportId) {
-      res = await supportService.update(formData.supportId, payload, attachments);
-    } else {
-      res = await supportService.create(payload, attachments);
+      if (res?.success || res?.supportId || res?.data) {
+        const tabIndex = categories.findIndex((c) => c.categoryId === formData.categoryId);
+        if (tabIndex !== -1) setActiveIndex(tabIndex);
+        setRefreshSignal((prev) => prev + 1);
+
+        // Post to home feed (fire-and-forget)
+        const feedContent = `Support: ${formData.title}${formData.personName ? ` – ${formData.personName}` : ''}${formData.description ? `\n${formData.description}` : ''}`;
+        feedService.createPost(feedContent).catch((e) => console.error('Feed post failed:', e));
+      } else {
+        Alert.alert('Error', res?.message ?? 'Failed to save support.');
+      }
+    } catch (e) {
+      console.error('Submit error:', e);
+      Alert.alert('Error', 'Something went wrong.');
+    } finally {
+      setSubmitting(false);
     }
-
-    if (res?.success || res?.supportId || res?.data) {
-      const categoryId = formData.categoryId;
-      const tabIndex   = categories.findIndex((c) => c.categoryId === categoryId);
-      if (tabIndex !== -1) setActiveIndex(tabIndex);
-      setRefreshSignal((prev) => prev + 1);
-    } else {
-      Alert.alert('Error', res?.message ?? 'Failed to save support.');
-    }
-  } catch (e) {
-    console.error('Submit error:', e);
-    Alert.alert('Error', 'Something went wrong.');
-  }
-};
+  };
   if (!tabsLoaded) {
     return (
       <SafeAreaView style={s.safe}>
@@ -1159,15 +1135,7 @@ debugger;
 
       {/* ── Header ── */}
       <View style={s.headerBar}>
-       {userRole === 'Admin' && (
-  <TouchableOpacity
-    style={s.fab}
-    onPress={() => setFormVisible(true)}
-    activeOpacity={0.85}
-  >
-    <Text style={s.fabText}>＋</Text>
-  </TouchableOpacity>
-)}
+        <Text style={s.headerTitle}>Support Services</Text>
       </View>
 
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}
@@ -1193,31 +1161,47 @@ debugger;
       <View style={s.content}>
         {categories.map((cat, index) => (
           <View key={cat.categoryId} style={[s.tabPanel, { display: activeIndex === index ? 'flex' : 'none' }]}>
-           <SupportTabContent
-  categoryId={cat.categoryId}
-  isActive={activeIndex === index}
-  refresh={activeIndex === index ? refreshSignal : 0}
-  userRole={userRole}
-  setRefreshSignal={setRefreshSignal}
-  onEdit={(item) => {
-    setEditItem(item);       // ✅ SET DATA
-    setFormVisible(true);    // ✅ OPEN FORM
-  }}
-/>
+            <SupportTabContent
+              categoryId={cat.categoryId}
+              isActive={activeIndex === index}
+              refresh={activeIndex === index ? refreshSignal : 0}
+              userRole={userRole}
+              setRefreshSignal={setRefreshSignal}
+              onEdit={(item) => {
+                setEditItem(item);
+                setFormVisible(true);
+              }}
+            />
           </View>
         ))}
       </View>
 
       {/* ── Full-screen Form Modal ── */}
       <AddSupportScreen
-  visible={formVisible}
-  onClose={() => {
-    setFormVisible(false);
-    setEditItem(null);   // ✅ RESET AFTER CLOSE
-  }}
-  onSubmit={handleSubmit}
-  editItem={editItem}    // ✅ PASS DATA
-/>
+        visible={formVisible}
+        onClose={() => {
+          setFormVisible(false);
+          setEditItem(null);
+        }}
+        onSubmit={handleSubmit}
+        editItem={editItem}
+      />
+
+      {/* ── FAB — Material Design bottom-right ── */}
+      {userRole === 'Admin' && (
+        <TouchableOpacity style={s.fab} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
+          <Text style={s.fabText}>＋</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* ── Saving overlay ── */}
+      {submitting && (
+        <View style={s.loadingOverlay}>
+          <ActivityIndicator size="large" color="#fff" />
+          <Text style={s.loadingOverlayText}>Saving…</Text>
+        </View>
+      )}
+
     </SafeAreaView>
   );
 }
@@ -1226,9 +1210,12 @@ debugger;
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F7F9FC' },
 
-  headerBar   : { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-  fab         : { width: 46, height: 46, borderRadius: 23, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', shadowColor: '#1E3A5F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
-  fabText     : { fontSize: 26, color: '#fff', fontWeight: '300', lineHeight: 30, marginTop: -1 },
+  headerBar        : { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
+  headerTitle      : { fontSize: 20, fontWeight: '700', color: '#1E3A5F' },
+  fab              : { position: 'absolute', bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', shadowColor: '#1E3A5F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 8, zIndex: 100 },
+  fabText          : { fontSize: 30, color: '#fff', fontWeight: '300', lineHeight: 34, marginTop: -2 },
+  loadingOverlay   : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
+  loadingOverlayText: { color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '600' },
 
   tabBar        : { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
   tabBarContent : { paddingHorizontal: 10 },
