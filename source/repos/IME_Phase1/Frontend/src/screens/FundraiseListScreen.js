@@ -3,7 +3,6 @@ import {
   View, Text, FlatList, StyleSheet,
   TouchableOpacity, Alert, Animated, Platform, Image
 } from 'react-native';
-import { FAB } from 'react-native-paper';
 import { fundraiseService } from '../services/fundraiseService';
 const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -292,12 +291,9 @@ const FundraiseListScreen = ({ navigation }) => {
       />
 
       {/* ── FAB ── */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        color="#fff"
-        onPress={() => navigation.navigate('CreateFund')}
-      />
+      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('CreateFund')} activeOpacity={0.85}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -415,10 +411,8 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  fab: {
-    position: 'absolute', right: 20, bottom: 24,
-    backgroundColor: PRIMARY, borderRadius: 16, elevation: 6,
-  },
+  fab:     { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });
 
 // ─── Avatar styles ────────────────────────────────────────────────────────────

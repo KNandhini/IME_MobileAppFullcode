@@ -58,7 +58,7 @@ const ActivitiesScreen = ({ navigation }) => {
 
       {user?.roleName === 'Admin' && (
         <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('ActivityForm')}>
-          <Text style={styles.fabText}>+ Add Activity</Text>
+          <Text style={styles.fabText}>+</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
   metaText:  { fontSize: 12, color: '#666', marginTop: 4 },
   empty:     { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
   emptyText: { fontSize: 16, color: '#999' },
-  fab:       { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#1E3A5F', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 28, elevation: 4 },
-  fabText:   { color: '#fff', fontWeight: '700', fontSize: 14 },
+  fab:       { position: 'absolute', right: 16, bottom: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fabText:   { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });
 
 export default ActivitiesScreen;
