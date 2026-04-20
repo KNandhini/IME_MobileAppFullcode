@@ -325,6 +325,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   const [attachments,       setAttachments]        = useState([]);
   const [errors,            setErrors]             = useState({});
   const [existingAttachments, setExistingAttachments] = useState([]);
+  const [fileViewer, setFileViewer] = useState({ visible: false, uri: null, type: null });
 //const [imgError, setImgError] = useState(false);
   // Form state uses DB column names directly
   const [form, setForm] = useState({
@@ -742,43 +743,57 @@ const handlePickAttachment = async () => {
                 <View style={fs.attachGrid}>
 
                   {/* EXISTING attachments */}
-                  {existingAttachments.map((a) => (
-                    <View key={`ex-${a.attachmentId}`} style={fs.gridThumb}>
-                      {a.mediaType?.trim() === 'image' ? (
-                        <Image source={{ uri: supportService.getAttachmentUrl(a.attachmentId) }} style={fs.gridImg} resizeMode="cover" />
-                      ) : (
-                        <View style={fs.gridDoc}>
-                          <Text style={fs.gridDocIcon}>{a.mediaType?.trim() === 'video' ? '🎬' : '📄'}</Text>
-                          <Text style={fs.gridDocName} numberOfLines={2}>{a.fileName}</Text>
-                        </View>
-                      )}
-                      <TouchableOpacity style={fs.gridRemove} onPress={() => {
-                        Alert.alert('Delete', `Delete "${a.fileName}"?`, [
-                          { text: 'Cancel', style: 'cancel' },
-                          { text: 'Delete', style: 'destructive', onPress: async () => {
-                            try {
-                              await supportService.deleteAttachment(a.attachmentId);
-                              setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
-                            } catch { Alert.alert('Error', 'Failed to delete'); }
-                          }},
-                        ]);
-                      }}>
-                        <Text style={fs.gridRemoveText}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ))}
+                  {existingAttachments.map((a) => {
+                    const uri = supportService.getAttachmentUrl(a.attachmentId);
+                    const type = a.mediaType?.trim();
+                    return (
+                      <View key={`ex-${a.attachmentId}`} style={fs.gridThumb}>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+                          if (type === 'image') setFileViewer({ visible: true, uri, type });
+                          else Linking.openURL(uri);
+                        }}>
+                          {type === 'image' ? (
+                            <Image source={{ uri }} style={fs.gridImg} resizeMode="cover" />
+                          ) : (
+                            <View style={fs.gridDoc}>
+                              <Text style={fs.gridDocIcon}>{type === 'video' ? '🎬' : '📄'}</Text>
+                              <Text style={fs.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                        <TouchableOpacity style={fs.gridRemove} onPress={() => {
+                          Alert.alert('Delete', `Delete "${a.fileName}"?`, [
+                            { text: 'Cancel', style: 'cancel' },
+                            { text: 'Delete', style: 'destructive', onPress: async () => {
+                              try {
+                                await supportService.deleteAttachment(a.attachmentId);
+                                setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
+                              } catch { Alert.alert('Error', 'Failed to delete'); }
+                            }},
+                          ]);
+                        }}>
+                          <Text style={fs.gridRemoveText}>✕</Text>
+                        </TouchableOpacity>
+                      </View>
+                    );
+                  })}
 
                   {/* NEW attachments */}
                   {attachments.map((a, i) => (
                     <View key={i} style={fs.gridThumb}>
-                      {a.type === 'image' ? (
-                        <Image source={{ uri: a.uri }} style={fs.gridImg} resizeMode="cover" />
-                      ) : (
-                        <View style={fs.gridDoc}>
-                          <Text style={fs.gridDocIcon}>{a.type === 'video' ? '🎬' : '📄'}</Text>
-                          <Text style={fs.gridDocName} numberOfLines={2}>{a.fileName}</Text>
-                        </View>
-                      )}
+                      <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+                        if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri, type: 'image' });
+                        else Linking.openURL(a.uri);
+                      }}>
+                        {a.type === 'image' ? (
+                          <Image source={{ uri: a.uri }} style={fs.gridImg} resizeMode="cover" />
+                        ) : (
+                          <View style={fs.gridDoc}>
+                            <Text style={fs.gridDocIcon}>{a.type === 'video' ? '🎬' : '📄'}</Text>
+                            <Text style={fs.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
                       <TouchableOpacity style={fs.gridRemove} onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}>
                         <Text style={fs.gridRemoveText}>✕</Text>
                       </TouchableOpacity>
@@ -801,6 +816,18 @@ const handlePickAttachment = async () => {
           </KeyboardAvoidingView>
         </Animated.View>
       </SafeAreaView>
+
+      {/* Image viewer Modal */}
+      <Modal visible={fileViewer.visible} transparent animationType="fade" onRequestClose={() => setFileViewer({ visible: false, uri: null, type: null })}>
+        <View style={fs.viewerOverlay}>
+          <TouchableOpacity style={fs.viewerClose} onPress={() => setFileViewer({ visible: false, uri: null, type: null })}>
+            <Text style={fs.viewerCloseText}>✕</Text>
+          </TouchableOpacity>
+          {fileViewer.uri && (
+            <Image source={{ uri: fileViewer.uri }} style={fs.viewerImage} resizeMode="contain" />
+          )}
+        </View>
+      </Modal>
     </Modal>
   );
 }
@@ -830,6 +857,12 @@ const fs = StyleSheet.create({
   gridAddBtn    : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
   gridAddIcon   : { fontSize: 22, marginBottom: 2 },
   gridAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+
+  // File viewer
+  viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage    : { width: '100%', height: '80%' },
+  viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
 
 // ── Support Card ──────────────────────────────────────────────────────────────
@@ -1203,7 +1236,7 @@ export default function SupportScreen() {
       {/* ── FAB — Material Design bottom-right ── */}
       {userRole === 'Admin' && (
         <TouchableOpacity style={s.fab} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
-          <Text style={s.fabText}>＋</Text>
+          <Text style={s.fabText}>+</Text>
         </TouchableOpacity>
       )}
 
