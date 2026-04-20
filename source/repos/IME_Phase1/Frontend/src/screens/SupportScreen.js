@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl,
   Image, TouchableOpacity, ScrollView, ActivityIndicator,
-  SafeAreaView, Modal, TextInput, Platform,
+  Modal, TextInput, Platform,
   KeyboardAvoidingView, Animated, Alert, StatusBar,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -505,17 +506,14 @@ const loadMembers = async () => {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
-    debugger;
+  const handleSubmit = async () => {
     if (!validate()) return;
-   // onSubmit({ ...form, attachments, isCompanyType });
     const payload = {
-    ...form,
-    supportId: editItem?.supportId || null, // ✅ IMPORTANT
-  };
-
-  onSubmit(payload,attachments);
+      ...form,
+      supportId: editItem?.supportId || null,
+    };
     handleClose();
+    await onSubmit(payload, attachments);
   };
 
   const handleClose = () => {
@@ -611,11 +609,17 @@ const handlePickAttachment = async () => {
       <SafeAreaView style={fs.safe}>
         <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
-          {/* ── Navigation Bar ── */}
+          {/* ── Navigation Bar with Cancel / Add buttons ── */}
           <View style={fs.navbar}>
+            <TouchableOpacity onPress={handleClose} style={fs.navSideBtn}>
+              <Text style={fs.navCancelText}>Cancel</Text>
+            </TouchableOpacity>
             <View style={fs.navCenter}>
-           <Text style={fs.navTitle}>{editItem ? 'Edit Support Entry' : 'New Support Entry'}</Text>
+              <Text style={fs.navTitle}>{editItem ? 'Edit Support' : 'New Support'}</Text>
             </View>
+            <TouchableOpacity onPress={handleSubmit} style={fs.navSideBtn}>
+              <Text style={fs.navSubmitText}>{editItem ? 'Update' : 'Add'}</Text>
+            </TouchableOpacity>
           </View>
           <View style={fs.accentBar} />
 
@@ -646,7 +650,7 @@ const handlePickAttachment = async () => {
                 loading={membersLoading}
               />*/}
               <Dropdown
-  label="Person Name *"
+  label="Support Person *"
   options={members}
   value={
     members.find(m => m.label === form.personName)?.value || null
@@ -682,10 +686,13 @@ const handlePickAttachment = async () => {
               {/* AMOUNT */}
               <Field label="Amount">
                 <StyledInput
-                  placeholder="0.00"
-                  value={form.amount}
-                  onChangeText={(v) => setField('amount', v)}
-                  keyboardType="decimal-pad"
+                  placeholder="0"
+                  value={form.amount ? Number(form.amount.replace(/,/g, '')).toLocaleString('en-IN') : ''}
+                  onChangeText={(v) => {
+                    const raw = v.replace(/,/g, '').replace(/[^0-9]/g, '');
+                    setField('amount', raw);
+                  }}
+                  keyboardType="number-pad"
                   returnKeyType="next"
                 />
               </Field>
@@ -762,92 +769,64 @@ const handlePickAttachment = async () => {
 )}
 
               {/* ATTACHMENTS */}
-              <Field label="Files (PDF / Video)">
-                <View style={fs.attachRow}>
+              <Field label="Attachments">
+                <View style={fs.attachGrid}>
 
-  {/* ✅ EXISTING ATTACHMENTS */}
-  {/* ✅ EXISTING ATTACHMENTS — each with image preview + delete icon */}
-{existingAttachments.map((a, i) => (
-  <View key={`existing-${a.attachmentId}`} style={fs.existingPill}>
+                  {/* EXISTING attachments */}
+                  {existingAttachments.map((a) => (
+                    <View key={`ex-${a.attachmentId}`} style={fs.gridThumb}>
+                      {a.mediaType?.trim() === 'image' ? (
+                        <Image source={{ uri: supportService.getAttachmentUrl(a.attachmentId) }} style={fs.gridImg} resizeMode="cover" />
+                      ) : (
+                        <View style={fs.gridDoc}>
+                          <Text style={fs.gridDocIcon}>{a.mediaType?.trim() === 'video' ? '🎬' : '📄'}</Text>
+                          <Text style={fs.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                        </View>
+                      )}
+                      <TouchableOpacity style={fs.gridRemove} onPress={() => {
+                        Alert.alert('Delete', `Delete "${a.fileName}"?`, [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Delete', style: 'destructive', onPress: async () => {
+                            try {
+                              await supportService.deleteAttachment(a.attachmentId);
+                              setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
+                            } catch { Alert.alert('Error', 'Failed to delete'); }
+                          }},
+                        ]);
+                      }}>
+                        <Text style={fs.gridRemoveText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
 
-    {/* IMAGE PREVIEW if it's an image */}
-    {a.mediaType?.trim() === 'image' ? (
-      <Image
-        source={{ uri: supportService.getAttachmentUrl(a.attachmentId) }}
-        style={fs.thumbImage}
-        resizeMode="cover"
-      />
-    ) : (
-      <Text style={fs.thumbIcon}>
-        {a.mediaType?.trim() === 'video' ? '🎬' : '📄'}
-      </Text>
-    )}
+                  {/* NEW attachments */}
+                  {attachments.map((a, i) => (
+                    <View key={i} style={fs.gridThumb}>
+                      {a.type === 'image' ? (
+                        <Image source={{ uri: a.uri }} style={fs.gridImg} resizeMode="cover" />
+                      ) : (
+                        <View style={fs.gridDoc}>
+                          <Text style={fs.gridDocIcon}>{a.type === 'video' ? '🎬' : '📄'}</Text>
+                          <Text style={fs.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                        </View>
+                      )}
+                      <TouchableOpacity style={fs.gridRemove} onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}>
+                        <Text style={fs.gridRemoveText}>✕</Text>
+                      </TouchableOpacity>
+                    </View>
+                  ))}
 
-    {/* FILE NAME */}
-    <Text style={fs.existingName} numberOfLines={1}>{a.fileName}</Text>
+                  {/* Add More button */}
+                  {(existingAttachments.length + attachments.length) < 10 && (
+                    <TouchableOpacity style={fs.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
+                      <Text style={fs.gridAddIcon}>📷</Text>
+                      <Text style={fs.gridAddText}>Add More ({existingAttachments.length + attachments.length}/10)</Text>
+                    </TouchableOpacity>
+                  )}
 
-    {/* DELETE ICON */}
-    <TouchableOpacity
-      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-      onPress={() => {
-        Alert.alert('Delete Attachment', `Delete "${a.fileName}"?`, [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Delete',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                await supportService.deleteAttachment(a.attachmentId);
-                setExistingAttachments(prev =>
-                  prev.filter(x => x.attachmentId !== a.attachmentId)
-                );
-              } catch (e) {
-                Alert.alert('Error', 'Failed to delete attachment');
-              }
-            },
-          },
-        ]);
-      }}
-    >
-      <Text style={fs.existingRemove}>✕</Text>
-    </TouchableOpacity>
-  </View>
-))}
-
-  {/* ✅ NEW ATTACHMENTS */}
-  {attachments.map((a, i) => (
-    <AttachmentPill
-      key={i}
-      name={a.fileName}
-      onRemove={() =>
-        setAttachments((p) => p.filter((_, idx) => idx !== i))
-      }
-    />
-  ))}
-
-  {/* ATTACH BUTTON */}
-  <TouchableOpacity
-    style={fs.attachBtn}
-    onPress={handlePickAttachment}
-    activeOpacity={0.8}
-  >
-    <Text style={fs.attachIcon}>＋</Text>
-    <Text style={fs.attachBtnText}>Attach File</Text>
-  </TouchableOpacity>
-
-</View>
-                <Text style={fs.attachHint}>Supported: PDF, MP4, MOV</Text>
+                </View>
+                <Text style={fs.attachHint}>JPG, PNG, GIF, WEBP, MP4, MOV, AVI, MKV · Max 50 MB each</Text>
               </Field>
-
-              {/* ACTIONS */}
-              <View style={fs.actions}>
-                <TouchableOpacity style={fs.cancelBtn} onPress={handleClose} activeOpacity={0.8}>
-                  <Text style={fs.cancelText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={fs.submitBtn} onPress={handleSubmit} activeOpacity={0.85}>
-                 <Text style={fs.submitText}>{editItem ? 'Update Support' : 'Add Support'}</Text>
-                </TouchableOpacity>
-              </View>
 
             </ScrollView>
           </KeyboardAvoidingView>
@@ -858,28 +837,30 @@ const handlePickAttachment = async () => {
 }
 
 const fs = StyleSheet.create({
-  safe         : { flex: 1, backgroundColor: '#fff' },
-  navbar       : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#fff' },
-  navCenter    : { flex: 1, alignItems: 'center' },
-  navTitle     : { fontSize: 17, fontWeight: '700', color: '#0F172A' },
-  accentBar    : { height: 3, backgroundColor: '#2563EB', opacity: 0.15 },
+  safe          : { flex: 1, backgroundColor: '#fff' },
+  navbar        : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#fff' },
+  navSideBtn    : { minWidth: 64, paddingHorizontal: 4, paddingVertical: 4 },
+  navCenter     : { flex: 1, alignItems: 'center' },
+  navTitle      : { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  navCancelText : { fontSize: 15, color: '#64748B', fontWeight: '500' },
+  navSubmitText : { fontSize: 15, color: '#2563EB', fontWeight: '700', textAlign: 'right' },
+  accentBar     : { height: 3, backgroundColor: '#2563EB', opacity: 0.15 },
   scroll        : { flex: 1, backgroundColor: '#FAFBFC' },
   scrollContent : { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 52 },
-  attachRow    : { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' },
-  attachBtn    : { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, borderWidth: 1.5, borderColor: '#BFDBFE', marginBottom: 8 },
-  attachIcon   : { fontSize: 16, color: '#1D4ED8', marginRight: 6 },
-  attachBtnText: { fontSize: 14, color: '#1D4ED8', fontWeight: '600' },
-  attachHint   : { fontSize: 11, color: '#94A3B8', marginTop: 2 },
-  actions    : { flexDirection: 'row', gap: 12, marginTop: 32 },
-  cancelBtn  : { flex: 1, paddingVertical: 15, borderRadius: 14, borderWidth: 1.5, borderColor: '#CBD5E1', alignItems: 'center', backgroundColor: '#fff' },
-  cancelText : { fontSize: 15, fontWeight: '600', color: '#64748B' },
-  submitBtn  : { flex: 2, paddingVertical: 15, borderRadius: 14, backgroundColor: '#2563EB', alignItems: 'center', shadowColor: '#2563EB', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
-  submitText : { fontSize: 15, fontWeight: '700', color: '#fff', letterSpacing: 0.3 },
-  existingPill   : { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0FDF4', borderRadius: 10, padding: 8, marginRight: 8, marginBottom: 8, borderWidth: 1, borderColor: '#BBF7D0', maxWidth: 180 },
-thumbImage     : { width: 40, height: 40, borderRadius: 6, marginRight: 8 },
-thumbIcon      : { fontSize: 28, marginRight: 8, width: 40, textAlign: 'center' },
-existingName   : { flex: 1, fontSize: 11, color: '#166534', fontWeight: '500' },
-existingRemove : { fontSize: 13, color: '#EF4444', fontWeight: '800', marginLeft: 6 },
+  attachHint    : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
+
+  // Grid-style attachment area
+  attachGrid    : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center' },
+  gridThumb     : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  gridImg       : { width: '100%', height: '100%' },
+  gridDoc       : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon   : { fontSize: 24 },
+  gridDocName   : { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridRemove    : { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  gridAddBtn    : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  gridAddIcon   : { fontSize: 22, marginBottom: 2 },
+  gridAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
 });
 
 // ── Support Card ──────────────────────────────────────────────────────────────
@@ -1145,11 +1126,9 @@ debugger;
     let res;
 
     if (formData.supportId) {
-      // ✅ UPDATE
-      res = await supportService.update(formData.supportId, payload,attachments );
+      res = await supportService.update(formData.supportId, payload, attachments);
     } else {
-      // ✅ CREATE
-      res = await supportService.create(payload,attachments );
+      res = await supportService.create(payload, attachments);
     }
 
     if (res?.success || res?.supportId || res?.data) {
@@ -1161,7 +1140,6 @@ debugger;
       Alert.alert('Error', res?.message ?? 'Failed to save support.');
     }
   } catch (e) {
-    debugger;
     console.error('Submit error:', e);
     Alert.alert('Error', 'Something went wrong.');
   }
@@ -1181,10 +1159,6 @@ debugger;
 
       {/* ── Header ── */}
       <View style={s.headerBar}>
-        <View>
-          <Text style={s.screenTitle}>Support</Text>
-          <Text style={s.screenSub}>Browse by category</Text>
-        </View>
        {userRole === 'Admin' && (
   <TouchableOpacity
     style={s.fab}
@@ -1252,11 +1226,9 @@ debugger;
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F7F9FC' },
 
-  headerBar   : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-  screenTitle : { fontSize: 22, fontWeight: '800', color: '#1A202C', letterSpacing: -0.3 },
-  screenSub   : { fontSize: 12, color: '#A0AEC0', marginTop: 1 },
-  fab         : { width: 42, height: 42, borderRadius: 14, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center', shadowColor: '#2563EB', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 5 },
-  fabText     : { fontSize: 22, color: '#fff', fontWeight: '400', lineHeight: 26 },
+  headerBar   : { flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 10, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
+  fab         : { width: 46, height: 46, borderRadius: 23, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', shadowColor: '#1E3A5F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 8, elevation: 6 },
+  fabText     : { fontSize: 26, color: '#fff', fontWeight: '300', lineHeight: 30, marginTop: -1 },
 
   tabBar        : { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
   tabBarContent : { paddingHorizontal: 10 },
