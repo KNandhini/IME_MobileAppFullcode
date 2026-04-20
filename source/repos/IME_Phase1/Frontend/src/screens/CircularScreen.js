@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
-import { Card, Title, Paragraph, Chip, FAB, IconButton } from 'react-native-paper';
+import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { Card, Title, Paragraph, Chip, IconButton } from 'react-native-paper';
 import { circularService } from '../services/circularService';
 import { Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -118,11 +118,9 @@ const CircularScreen = ({ navigation }) => {
       )}
 
       {/* FAB */}
-      <FAB
-        icon="plus"
-        style={styles.fab}
-        onPress={() => navigation.navigate('AddCircular')}
-      />
+      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddCircular')} activeOpacity={0.85}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
 
     </View>
   );
@@ -168,10 +166,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#999'
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    backgroundColor: '#2196F3'
-  }
+  fab:     { position: 'absolute', right: 20, bottom: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });

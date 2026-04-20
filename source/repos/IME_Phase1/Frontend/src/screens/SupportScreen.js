@@ -314,12 +314,12 @@ const att = StyleSheet.create({
 });
 
 // ── Full-screen Add Support Form ──────────────────────────────────────────────
-function AddSupportScreen({ visible, onClose, onSubmit,editItem }) {
+function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembers = [], preloadedMembersLoading = false }) {
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
-  const [members,           setMembers]           = useState([]);
-  const [membersLoading,    setMembersLoading]     = useState(false);
+  const [members,           setMembers]           = useState(preloadedMembers);
+  const [membersLoading,    setMembersLoading]     = useState(preloadedMembersLoading);
   const [categories,        setCategories]         = useState([]);
   const [categoriesLoading, setCategoriesLoading]  = useState(false);
   const [attachments,       setAttachments]        = useState([]);
@@ -341,92 +341,40 @@ function AddSupportScreen({ visible, onClose, onSubmit,editItem }) {
     createdBy:0,
   });
 
-  useEffect(() => {
-    if (visible) {
-      Animated.parallel([
-        Animated.timing(fadeAnim,  { toValue: 1, duration: 220, useNativeDriver: true }),
-        Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
-      ]).start();
-      loadMembers();
-      loadCategories();
-    } else {
-      Animated.parallel([
-        Animated.timing(fadeAnim,  { toValue: 0, duration: 180, useNativeDriver: true }),
-        Animated.timing(slideAnim, { toValue: 40, duration: 180, useNativeDriver: true }),
-      ]).start();
-    }
-  }, [visible]);
-useEffect(() => {
-  if (editItem && visible && members.length && categories.length) {
-    // ✅ Fetch full detail with attachments
-    const loadDetail = async () => {
-      try {
-        const detail = await supportService.getById(editItem.supportId);
-        const data = detail?.data ?? detail;
-
-        setForm({
-          personName: data.personName || '',
-          title: data.title || '',
-          amount: data.amount != null ? String(data.amount) : '',
-          description: data.description || '',
-          categoryId: categories.find(c => c.label === data.categoryName)?.value || null,
-          supportDate: data.supportDate ? data.supportDate.substring(0, 10) : '',
-          companyOrIndividual:
-            data.companyOrIndividual === 'Individual' ? 'Individual' : 'Company',
-          companyName:
-            data.companyOrIndividual !== 'Individual' ? (data.companyName || '') : '',
-          createdBy: 0,
-        });
-
-        // ✅ bind existing attachments from API
-        setExistingAttachments(data.attachments || []);
-      } catch (e) {
-        console.error('Load detail error:', e);
+  const loadMembers = async () => {
+    setMembersLoading(true);
+    try {
+      const res = await memberService.getAllMembers(1, 100);
+      if (res?.success) {
+        setMembers(
+          (res.data ?? []).map((m) => ({
+            label: m.fullName ?? '',
+            value: m.memberId,
+          }))
+        );
       }
-    };
-    loadDetail();
-  }
-}, [editItem, visible, members, categories]);
-
-
-const loadMembers = async () => {
-  setMembersLoading(true);
-  try {
-    const res = await memberService.getAllMembers(1, 100);
-    if (res?.success) {
-      setMembers(
-        (res.data ?? []).map((m) => ({
-          label: m.fullName ?? '',
-          value: m.memberId,
-        }))
-      );
+    } catch (e) {
+      console.error('Load members error:', e);
+    } finally {
+      setMembersLoading(false);
     }
-  } catch (e) {
-    console.error('Load members error:', e);
-  } finally {
-    setMembersLoading(false);
-  }
-};
+  };
 
   const loadCategories = async () => {
     setCategoriesLoading(true);
     try {
-   
       const res = await supportService.getCategories();
       if (res?.success || res?.length) {
-        
         setCategories(
           (res ?? [])
             .filter((c) => c.isActive)
             .map((c) => ({
               label    : c.categoryName,
               value    : c.categoryId,
-              // categoryType drives the "Company/Individual" logic
               isCompany: c.categoryType?.toLowerCase() === 'company',
             }))
         );
       } else {
-    
         setCategories(FALLBACK_CATEGORIES.map((c) => ({ ...c, isCompany: false })));
       }
     } catch (e) {
@@ -441,6 +389,56 @@ const loadMembers = async () => {
     setForm((p) => ({ ...p, [key]: val }));
     if (errors[key]) setErrors((e) => ({ ...e, [key]: null }));
   };
+
+  // Keep local members in sync with parent's preloaded list
+  useEffect(() => {
+    if (preloadedMembers.length > 0) {
+      setMembers(preloadedMembers);
+      setMembersLoading(false);
+    }
+  }, [preloadedMembers]);
+
+  useEffect(() => {
+    if (visible) {
+      Animated.parallel([
+        Animated.timing(fadeAnim,  { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
+      ]).start();
+      if (preloadedMembers.length === 0) loadMembers();
+      loadCategories();
+    } else {
+      Animated.parallel([
+        Animated.timing(fadeAnim,  { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 40, duration: 180, useNativeDriver: true }),
+      ]).start();
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (editItem && visible && members.length && categories.length) {
+      const loadDetail = async () => {
+        try {
+          const detail = await supportService.getById(editItem.supportId);
+          const data = detail?.data ?? detail;
+          setForm({
+            personName: data.personName || '',
+            title: data.title || '',
+            amount: data.amount != null ? String(data.amount) : '',
+            description: data.description || '',
+            categoryId: categories.find(c => c.label === data.categoryName)?.value || null,
+            supportDate: data.supportDate ? data.supportDate.substring(0, 10) : '',
+            companyOrIndividual: data.companyOrIndividual === 'Individual' ? 'Individual' : 'Company',
+            companyName: data.companyOrIndividual !== 'Individual' ? (data.companyName || '') : '',
+            createdBy: 0,
+          });
+          setExistingAttachments(data.attachments || []);
+        } catch (e) {
+          console.error('Load detail error:', e);
+        }
+      };
+      loadDetail();
+    }
+  }, [editItem, visible, members, categories]);
 
   const handleTitleChange = (val) => {
     if (!TITLE_ALLOWED.test(val)) return;
@@ -1048,21 +1046,33 @@ export default function SupportScreen() {
   const [categories,    setCategories]    = useState([]);
   const [tabsLoaded,    setTabsLoaded]    = useState(false);
   const [activeIndex,   setActiveIndex]   = useState(0);
-  const [formVisible,   setFormVisible]   = useState(false);
-  const [refreshSignal, setRefreshSignal] = useState(0);
-  const [editItem,      setEditItem]      = useState(null);
-  const [userRole,      setUserRole]      = useState(null);
-  const [submitting,    setSubmitting]    = useState(false);
-useEffect(() => {
-  loadTabs();
-  loadUserRole();
-}, []);
+  const [formVisible,    setFormVisible]   = useState(false);
+  const [refreshSignal,  setRefreshSignal] = useState(0);
+  const [editItem,       setEditItem]      = useState(null);
+  const [userRole,       setUserRole]      = useState(null);
+  const [submitting,     setSubmitting]    = useState(false);
+  const [memberList,     setMemberList]    = useState([]);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const loadUserRole = async () => {
+    const role = await getUserRole();
+    setUserRole(role);
+  };
 
-const loadUserRole = async () => {
-  const role = await getUserRole();
-  console.log("User Role:", role);
-  setUserRole(role);
-};
+  const loadMemberList = async () => {
+    setMembersLoading(true);
+    try {
+      const res = await memberService.getAllMembers(1, 100);
+      if (res?.success) {
+        setMemberList(
+          (res.data ?? []).map((m) => ({ label: m.fullName ?? '', value: m.memberId }))
+        );
+      }
+    } catch (e) {
+      console.error('Load members error:', e);
+    } finally {
+      setMembersLoading(false);
+    }
+  };
 
   const loadTabs = async () => {
     try {
@@ -1078,6 +1088,12 @@ const loadUserRole = async () => {
       setTabsLoaded(true);
     }
   };
+
+  useEffect(() => {
+    loadTabs();
+    loadUserRole();
+    loadMemberList();
+  }, []);
 
   const handleSubmit = async (formData, attachments = []) => {
     setSubmitting(true);
@@ -1133,11 +1149,6 @@ const loadUserRole = async () => {
   return (
     <SafeAreaView style={s.safe}>
 
-      {/* ── Header ── */}
-      <View style={s.headerBar}>
-        <Text style={s.headerTitle}>Support Services</Text>
-      </View>
-
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}
       <View style={s.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabBarContent}>
@@ -1185,6 +1196,8 @@ const loadUserRole = async () => {
         }}
         onSubmit={handleSubmit}
         editItem={editItem}
+        preloadedMembers={memberList}
+        preloadedMembersLoading={membersLoading}
       />
 
       {/* ── FAB — Material Design bottom-right ── */}
@@ -1212,8 +1225,8 @@ const s = StyleSheet.create({
 
   headerBar        : { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
   headerTitle      : { fontSize: 20, fontWeight: '700', color: '#1E3A5F' },
-  fab              : { position: 'absolute', bottom: 24, right: 20, width: 56, height: 56, borderRadius: 28, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', shadowColor: '#1E3A5F', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 8, zIndex: 100 },
-  fabText          : { fontSize: 30, color: '#fff', fontWeight: '300', lineHeight: 34, marginTop: -2 },
+  fab              : { position: 'absolute', bottom: 24, right: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100 },
+  fabText          : { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
   loadingOverlay   : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
   loadingOverlayText: { color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '600' },
 
