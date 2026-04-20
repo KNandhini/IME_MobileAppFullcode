@@ -194,7 +194,6 @@ public class CircularController : ControllerBase
             command.Parameters.AddWithValue("@CircularNumber", circularNumber ?? (object)DBNull.Value);
             command.Parameters.AddWithValue("@PublishDate",    DateTime.Parse(publishDate));
             command.Parameters.AddWithValue("@CreatedBy",      userId);
-            command.Parameters.AddWithValue("@CreatedDate",    DateTime.UtcNow);
 
             var circularId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
