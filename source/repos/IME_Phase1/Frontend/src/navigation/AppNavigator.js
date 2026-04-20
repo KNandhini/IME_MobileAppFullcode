@@ -35,9 +35,9 @@ import AboutScreen from '../screens/AboutScreen';
 import FundraiseListScreen from '../screens/FundraiseListScreen';
 import CreateFundScreen from '../screens/CreateFundScreen';
 import FundraiseViewScreen from '../screens/FundraiseViewScreen';
-import MemberManagementScreen      from '../screens/MemberManagementScreen';
-import AboutScreen                 from '../screens/AboutScreen';
-import FundScreen                  from '../screens/FundScreen';
+//import MemberManagementScreen      from '../screens/MemberManagementScreen';
+//import AboutScreen                 from '../screens/AboutScreen';
+import FundScreen                  from '../screens/FeedScreen';
 import RaiseFundScreen from '../screens/RaiseFundScreen';
 import CreatePostScreen            from '../screens/CreatePostScreen';
 const Stack = createStackNavigator();
@@ -183,7 +183,7 @@ const MainStack = () => (
 <Stack.Screen name="FundraiseView" component={FundraiseViewScreen} />
     {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
       <Stack.Screen name="RaiseFund" component={RaiseFundScreen} />
-    <Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />
+    {/*<Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />*/}
     <Stack.Screen name="CreatePost"       component={CreatePostScreen}       options={{ headerShown: false }} />
   </Stack.Navigator>
 );
