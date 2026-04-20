@@ -205,5 +205,24 @@ namespace IME.Infrastructure.Repositories
 
             };
         }
+
+        // In FundraiseRepository.cs — add this method
+
+        public async Task<bool> UpdateFilePathsAsync(int id, string? photoUrls, string? docUrls)
+        {
+            using var connection = await _dbContext.CreateOpenConnectionAsync();
+            using var command = _dbContext.CreateStoredProcCommand("sp_UpdateFundraiseFilePaths", connection);
+
+            command.Parameters.AddWithValue("@Id", id);
+            command.Parameters.AddWithValue("@BeneficiaryPhotoUrl", photoUrls ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@SupportingDocumentUrl", docUrls ?? (object)DBNull.Value);
+
+            using var reader = await command.ExecuteReaderAsync();
+            if (await reader.ReadAsync())
+                return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
+
+            return false;
+        }
     }
+
 }
