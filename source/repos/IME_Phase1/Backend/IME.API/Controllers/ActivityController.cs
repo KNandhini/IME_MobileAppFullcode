@@ -147,7 +147,7 @@ public class ActivityController : ControllerBase
                 Venue        = request.Venue,
                 Time         = request.Time,
                 ChiefGuest   = request.ChiefGuest,
-                UpdatedDate  = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
+                UpdatedDate  = request.UpdatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var success = await _activityRepository.UpdateActivityAsync(activity);

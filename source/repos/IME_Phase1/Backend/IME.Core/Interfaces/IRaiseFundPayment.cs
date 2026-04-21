@@ -10,6 +10,6 @@ namespace IME.Core.Interfaces
 {
     public interface IRaiseFundPayment
     {
-        Task<RaiseFundPaymentDto> InsertDonationAsync(RaiseFundPayment dto);
+        Task<RaiseFundPaymentDto?> InsertDonationAsync(RaiseFundPayment dto);
     }
 }

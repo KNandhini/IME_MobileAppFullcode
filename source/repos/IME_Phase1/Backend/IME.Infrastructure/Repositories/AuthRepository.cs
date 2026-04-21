@@ -66,7 +66,7 @@ public class AuthRepository : IAuthRepository
                 RoleName = reader.IsDBNull(reader.GetOrdinal("RoleName")) ? "" : reader.GetString(reader.GetOrdinal("RoleName")),
                 RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
                 MemberId = reader.IsDBNull(reader.GetOrdinal("MemberId")) ? null : reader.GetInt32(reader.GetOrdinal("MemberId")),
-                FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? null : reader.GetString(reader.GetOrdinal("FullName")),
+                FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? string.Empty : reader.GetString(reader.GetOrdinal("FullName")),
                 ProfilePhotoPath = profilePhotoBase64,
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,9 +11,9 @@ namespace IME.Core.Models
         public int MemberId { get; set; }
         public int FundId { get; set; }
         public decimal Amount { get; set; }
-        public string PaymentMode { get; set; }
-        public string TransactionId { get; set; }
-        public string PaymentStatus { get; set; }
+        public string PaymentMode { get; set; } = string.Empty;
+        public string TransactionId { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
 
         // Response fields filled after SP
         public int? Id { get; set; }

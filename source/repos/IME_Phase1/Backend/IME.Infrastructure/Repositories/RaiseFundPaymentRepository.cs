@@ -19,17 +19,17 @@ namespace IME.Infrastructure.Repositories
         _dbContext = dbContext;
     }
 
-    public async Task<RaiseFundPaymentDto> InsertDonationAsync(RaiseFundPayment payment)
+    public async Task<RaiseFundPaymentDto?> InsertDonationAsync(RaiseFundPayment dto)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_InsertRaiseFundPayment", connection);
 
-        command.Parameters.AddWithValue("@MemberId", payment.MemberId);
-        command.Parameters.AddWithValue("@FundId", payment.FundId);
-        command.Parameters.AddWithValue("@Amount", payment.Amount);
-        command.Parameters.AddWithValue("@PaymentMode", payment.PaymentMode ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@TransactionId", payment.TransactionId ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@PaymentStatus", payment.PaymentStatus ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@MemberId", dto.MemberId);
+        command.Parameters.AddWithValue("@FundId", dto.FundId);
+        command.Parameters.AddWithValue("@Amount", dto.Amount);
+        command.Parameters.AddWithValue("@PaymentMode", dto.PaymentMode ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@TransactionId", dto.TransactionId ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@PaymentStatus", dto.PaymentStatus ?? (object)DBNull.Value);
 
         using var reader = await command.ExecuteReaderAsync();
 
@@ -38,11 +38,11 @@ namespace IME.Infrastructure.Repositories
             return new RaiseFundPaymentDto
             {
                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                MemberId = payment.MemberId,
-                FundId = payment.FundId,
-                Amount = payment.Amount,
-                PaymentMode = payment.PaymentMode,
-                TransactionId = payment.TransactionId,
+                MemberId = dto.MemberId,
+                FundId = dto.FundId,
+                Amount = dto.Amount,
+                PaymentMode = dto.PaymentMode ?? string.Empty,
+                TransactionId = dto.TransactionId ?? string.Empty,
                 PaymentStatus = reader.GetString(reader.GetOrdinal("PaymentStatus")),
                 PaymentDate = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
                 TargetAmount = reader.GetDecimal(reader.GetOrdinal("TargetAmount")),

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,20 +10,20 @@ namespace IME.Core.Models
     {
         public int Id { get; set; }
 
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
         public int? Age { get; set; }
-        public string Gender { get; set; }
-        public string Place { get; set; }
-        public string Address { get; set; }
+        public string Gender { get; set; } = string.Empty;
+        public string Place { get; set; } = string.Empty;
+        public string Address { get; set; } = string.Empty;
         public string? ContactNumber { get; set; }
-        public string RelationToCommunity { get; set; }
+        public string RelationToCommunity { get; set; } = string.Empty;
 
-        public string FundTitle { get; set; }
-        public string FundCategory { get; set; }
-        public string Description { get; set; }
+        public string FundTitle { get; set; } = string.Empty;
+        public string FundCategory { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public decimal TargetAmount { get; set; }
         public decimal CollectedAmount { get; set; }
-        public string UrgencyLevel { get; set; }
+        public string UrgencyLevel { get; set; } = string.Empty;
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
@@ -31,14 +31,14 @@ namespace IME.Core.Models
         public string? SupportingDocumentUrl { get; set; }
         public string? BeneficiaryPhotoUrl { get; set; }
 
-        public string AccountHolderName { get; set; }
-        public string BankAccountNumber { get; set; }
-        public string IFSCCode { get; set; }
+        public string AccountHolderName { get; set; } = string.Empty;
+        public string BankAccountNumber { get; set; } = string.Empty;
+        public string IFSCCode { get; set; } = string.Empty;
         public string? UPIId { get; set; }
 
-        public string Status { get; set; }
+        public string Status { get; set; } = string.Empty;
 
-        public string CreatedBy { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
 
         public string? ModifiedBy { get; set; }
@@ -47,4 +47,3 @@ namespace IME.Core.Models
         public decimal MinimumAmount { get; set; }
     }
 }
-
