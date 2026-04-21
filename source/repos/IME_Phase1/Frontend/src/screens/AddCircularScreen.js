@@ -277,13 +277,13 @@ const AddCircularScreen = ({ route, navigation }) => {
 export default AddCircularScreen;
 
 const styles = StyleSheet.create({
-  safe        : { flex: 1, backgroundColor: '#fff' },
+  safe        : { flex: 1, backgroundColor: '#1E3A5F' },
 
-  navbar      : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#fff' },
+  navbar      : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 0, backgroundColor: '#1E3A5F' },
   navSide     : { minWidth: 64, paddingHorizontal: 4 },
-  navTitle    : { flex: 1, fontSize: 16, fontWeight: '700', color: '#0F172A', textAlign: 'center' },
-  cancelText  : { fontSize: 15, color: '#64748B', fontWeight: '500' },
-  saveText    : { fontSize: 15, color: '#2563EB', fontWeight: '700', textAlign: 'right' },
+  navTitle    : { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  cancelText  : { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText    : { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
   scroll        : { flex: 1, backgroundColor: '#FAFBFC' },
   scrollContent : { padding: 20, paddingBottom: 52 },

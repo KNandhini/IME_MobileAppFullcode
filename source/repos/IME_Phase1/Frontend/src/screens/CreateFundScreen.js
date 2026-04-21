@@ -980,12 +980,12 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 12, paddingVertical: 12,
     paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-    borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
-    backgroundColor: '#fff',
+    borderBottomWidth: 0,
+    backgroundColor: '#1E3A5F',
   },
   navSide:   { minWidth: 72, paddingHorizontal: 4 },
-  navTitle:  { flex: 1, fontSize: 16, fontWeight: '700', color: '#0F172A', textAlign: 'center' },
-  navCancel: { fontSize: 15, color: '#64748B', fontWeight: '500' },
+  navTitle:  { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
   navSave:   { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
   backBtn: {

@@ -561,7 +561,7 @@ export default function FeedScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="dark-content" backgroundColor="#f5f4f0" />
+      <StatusBar barStyle="light-content" backgroundColor="#1E3A5F" />
 
       <ScrollView
         style={s.feed}

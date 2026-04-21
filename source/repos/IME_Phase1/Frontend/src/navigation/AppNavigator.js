@@ -152,8 +152,7 @@ const MainStack = () => (
     {/* Activities */}
     <Stack.Screen name="Activities" component={ActivitiesScreen} options={{ title: 'Activities' }} />
     <Stack.Screen name="ActivityDetail" component={ActivityDetailScreen} options={{ title: 'Activity Details' }} />
-    <Stack.Screen name="ActivityForm" component={ActivityFormScreen}
-      options={({ route }) => ({ title: route.params?.activityId ? 'Edit Activity' : 'Add Activity' })} />
+    <Stack.Screen name="ActivityForm" component={ActivityFormScreen} options={{ headerShown: false }} />
     {/* News & Media */}
     <Stack.Screen name="News" component={NewsScreen} options={{ title: 'News & Media' }} />
     <Stack.Screen name="NewsDetail" component={NewsDetailScreen} options={{ title: 'News' }} />
@@ -173,8 +172,8 @@ const MainStack = () => (
     <Stack.Screen name="Organisation" component={OrganisationScreen} options={{ title: 'Our Team' }} />
     <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Notifications' }} />
     <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'My Profile' }} />
-    <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ title: 'Edit Profile' }} />
-    <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ title: 'Change Password' }} />
+    <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
