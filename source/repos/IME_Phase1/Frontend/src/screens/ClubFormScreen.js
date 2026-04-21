@@ -11,6 +11,13 @@ import { BASE_URL } from '../utils/api';
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
+const generateClubCode = () => {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let suffix = '';
+  for (let i = 0; i < 4; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
+  return `CLB-${suffix}`;
+};
+
 export default function ClubFormScreen({ route, navigation }) {
   const { clubId } = route.params || {};
   const isEditMode = !!clubId;
@@ -63,7 +70,11 @@ export default function ClubFormScreen({ route, navigation }) {
 
   useEffect(() => {
     loadLookups();
-    if (isEditMode) loadClub();
+    if (isEditMode) {
+      loadClub();
+    } else {
+      set('clubCode', generateClubCode());
+    }
   }, []);
 
   const loadLookups = async () => {
@@ -301,7 +312,12 @@ export default function ClubFormScreen({ route, navigation }) {
           <TextInput style={styles.input} value={form.clubName} onChangeText={v => set('clubName', v)} placeholder="Enter club name" placeholderTextColor="#bbb" />
         </Field>
         <Field label="Club Code">
-          <TextInput style={styles.input} value={form.clubCode} onChangeText={v => set('clubCode', v)} placeholder="e.g. IME001" placeholderTextColor="#bbb" />
+          <View style={styles.codeRow}>
+            <TextInput style={[styles.input, styles.codeInput]} value={form.clubCode} onChangeText={v => set('clubCode', v)} placeholder="e.g. CLB-AB12" placeholderTextColor="#bbb" autoCapitalize="characters" />
+            <TouchableOpacity style={styles.regenBtn} onPress={() => set('clubCode', generateClubCode())} activeOpacity={0.75}>
+              <Ionicons name="refresh" size={18} color="#1E3A5F" />
+            </TouchableOpacity>
+          </View>
         </Field>
         <Field label="Description">
           <TextInput style={[styles.input, styles.textarea]} value={form.description} onChangeText={v => set('description', v)} placeholder="Brief description" placeholderTextColor="#bbb" multiline numberOfLines={3} textAlignVertical="top" />
@@ -579,6 +595,9 @@ const styles = StyleSheet.create({
   fieldLabel: { fontSize: 12, color: '#666', marginBottom: 4, fontWeight: '600' },
 
   input:    { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#111' },
+  codeRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  codeInput: { flex: 1 },
+  regenBtn: { width: 42, height: 42, borderRadius: 10, backgroundColor: '#EBF0FA', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D0DBF0' },
   textarea: { minHeight: 80 },
 
   selector:            { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
