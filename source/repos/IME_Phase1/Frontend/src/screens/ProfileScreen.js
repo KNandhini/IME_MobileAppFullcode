@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert, StatusBar } from 'react-native';
 import { Button, Card, Avatar } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,6 +20,7 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
+      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
       <View style={styles.header}>
         <Avatar.Text size={80} label={user?.fullName?.[0] || 'U'} />
         <Text style={styles.name}>{user?.fullName || 'User'}</Text>
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#1E3A5F',
     padding: 30,
     alignItems: 'center',
   },

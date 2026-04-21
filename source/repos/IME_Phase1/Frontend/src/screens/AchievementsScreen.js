@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, RefreshControl, Image, StatusBar } from 'react-native';
 import { Card, Title, Paragraph } from 'react-native-paper';
 import { achievementService } from '../services/achievementService';
 
@@ -56,6 +56,7 @@ const AchievementsScreen = () => {
 
   return (
     <View style={styles.container}>
+      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
       <View style={styles.header}>
         <Text style={styles.headerTitle}>🏆 Hall of Fame</Text>
         <Text style={styles.headerSubtitle}>Celebrating Excellence</Text>
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   header: {
-    backgroundColor: '#2196F3',
+    backgroundColor: '#1E3A5F',
     padding: 20,
     alignItems: 'center',
   },

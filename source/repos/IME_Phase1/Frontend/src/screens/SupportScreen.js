@@ -575,7 +575,7 @@ const handlePickAttachment = async () => {
 
   return (
     <Modal visible={visible} animationType="none" transparent={false} statusBarTranslucent onRequestClose={handleClose}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <StatusBar barStyle="light-content" backgroundColor="#1E3A5F" />
       <SafeAreaView style={fs.safe}>
         <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
@@ -833,14 +833,14 @@ const handlePickAttachment = async () => {
 }
 
 const fs = StyleSheet.create({
-  safe          : { flex: 1, backgroundColor: '#fff' },
-  navbar        : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9', backgroundColor: '#fff' },
+  safe          : { flex: 1, backgroundColor: '#1E3A5F' },
+  navbar        : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: (StatusBar.currentHeight ?? 0) + 12, backgroundColor: '#1E3A5F' },
   navSideBtn    : { minWidth: 64, paddingHorizontal: 4, paddingVertical: 4 },
   navCenter     : { flex: 1, alignItems: 'center' },
-  navTitle      : { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  navCancelText : { fontSize: 15, color: '#64748B', fontWeight: '500' },
-  navSubmitText : { fontSize: 15, color: '#2563EB', fontWeight: '700', textAlign: 'right' },
-  accentBar     : { height: 3, backgroundColor: '#2563EB', opacity: 0.15 },
+  navTitle      : { fontSize: 16, fontWeight: '700', color: '#fff' },
+  navCancelText : { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  navSubmitText : { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+  accentBar     : { height: 3, backgroundColor: '#D4A017', opacity: 0.3 },
   scroll        : { flex: 1, backgroundColor: '#FAFBFC' },
   scrollContent : { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 52 },
   attachHint    : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
@@ -1181,6 +1181,7 @@ export default function SupportScreen() {
 
   return (
     <SafeAreaView style={s.safe}>
+      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}
       <View style={s.tabBar}>
