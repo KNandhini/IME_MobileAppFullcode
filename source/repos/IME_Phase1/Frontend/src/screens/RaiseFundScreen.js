@@ -432,7 +432,7 @@ export default function RaiseFundScreen({ route, navigation }) {
             [{
               text: 'Done',
               // FIX: navigate to FeedScreen instead of goBack()
-              onPress: () => navigation.navigate('Organisation'),
+              onPress: () => navigation.navigate('FundScreen'),
             }]
           );
 
@@ -526,10 +526,10 @@ export default function RaiseFundScreen({ route, navigation }) {
       {/* ── Main content ── */}
       <ScrollView contentContainerStyle={s.scroll}>
 
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+        {/*uchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={20} color="#333" />
           <Text style={s.backText}>Back</Text>
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
 
         {/* Post card */}
         <View style={s.postCard}>
