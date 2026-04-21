@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
 using IME.Core.Interfaces;
 using IME.Core.Models;
+using IME.Infrastructure.Services;
+using System.Data.SqlClient;
 
 namespace IME.API.Controllers;
 
@@ -13,11 +15,16 @@ public class MemberController : ControllerBase
 {
     private readonly IMemberRepository _memberRepository;
     private readonly EmailService _emailService;
+    private readonly PasswordService _passwordService;
+    private readonly IME.Infrastructure.Data.DatabaseContext _dbContext;
 
-    public MemberController(IMemberRepository memberRepository, EmailService emailService)
+    public MemberController(IMemberRepository memberRepository, EmailService emailService,
+        PasswordService passwordService, IME.Infrastructure.Data.DatabaseContext dbContext)
     {
         _memberRepository = memberRepository;
         _emailService = emailService;
+        _passwordService = passwordService;
+        _dbContext = dbContext;
     }
 
     [HttpGet("profile/{memberId}")]
@@ -260,6 +267,44 @@ public class MemberController : ControllerBase
                 Success = false,
                 Message = $"Error: {ex.Message}"
             });
+        }
+    }
+
+    [HttpPost("{memberId}/change-password")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<object>>> ChangePassword(
+        int memberId, [FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            using var connection = await _dbContext.CreateOpenConnectionAsync();
+
+            // Get current password hash
+            using var selectCmd = _dbContext.CreateCommand(
+                "SELECT u.PasswordHash FROM tbl_Users u " +
+                "INNER JOIN tbl_Members m ON m.UserId = u.UserId " +
+                "WHERE m.MemberId = @MemberId", connection);
+            selectCmd.Parameters.AddWithValue("@MemberId", memberId);
+            var hash = (await selectCmd.ExecuteScalarAsync())?.ToString();
+
+            if (string.IsNullOrEmpty(hash) || !_passwordService.VerifyPassword(request.CurrentPassword, hash))
+                return Ok(new ApiResponse<object> { Success = false, Message = "Current password is incorrect." });
+
+            var newHash = _passwordService.HashPassword(request.NewPassword);
+
+            using var updateCmd = _dbContext.CreateCommand(
+                "UPDATE u SET u.PasswordHash = @NewHash " +
+                "FROM tbl_Users u INNER JOIN tbl_Members m ON m.UserId = u.UserId " +
+                "WHERE m.MemberId = @MemberId", connection);
+            updateCmd.Parameters.AddWithValue("@NewHash", newHash);
+            updateCmd.Parameters.AddWithValue("@MemberId", memberId);
+            await updateCmd.ExecuteNonQueryAsync();
+
+            return Ok(new ApiResponse<object> { Success = true, Message = "Password changed successfully." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 }

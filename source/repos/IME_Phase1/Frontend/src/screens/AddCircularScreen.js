@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { circularService } from '../services/circularService';
+import { feedService } from '../services/feedService';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -115,7 +116,6 @@ const AddCircularScreen = ({ route, navigation }) => {
   };
 
   const saveCircular = async () => {
-    debugger;
     if (saving) return;
     if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
     try {
@@ -131,6 +131,9 @@ const AddCircularScreen = ({ route, navigation }) => {
         }, attachments);
       }
       if (response?.success) {
+        const action = editData ? 'Updated' : 'New';
+        const feedText = `📋 ${action} GO & Circular: ${title}${description ? '\n' + description : ''}`;
+        feedService.createPost(feedText).catch(() => {});
         Alert.alert('Success', editData ? 'Updated successfully.' : 'Created successfully.');
         navigation.goBack();
       } else {
