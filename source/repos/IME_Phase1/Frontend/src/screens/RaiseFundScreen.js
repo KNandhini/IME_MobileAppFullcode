@@ -415,7 +415,6 @@ export default function RaiseFundScreen({ route, navigation }) {
         console.log('Payment mode:', paymentMode); // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
 
         try {
-            debugger;
           const result = await storePayment({
             memberId     : memberData?.id || memberData?.memberId,
             fundId       : safePost.id,       // tbl_Fundraise.Id
@@ -431,7 +430,7 @@ export default function RaiseFundScreen({ route, navigation }) {
             `Balance remaining: ₹${result?.balanceAmount?.toLocaleString('en-IN') ?? '—'}`,
             [{
               text: 'Done',
-              onPress: () => navigation.navigate('FundraiseList'),
+              onPress: () => navigation.navigate('FundraiseView', { data: post }),
             }]
           );
 
@@ -442,7 +441,7 @@ export default function RaiseFundScreen({ route, navigation }) {
             `Payment received via ${paymentMode}\nTransaction ID: ${data.paymentId}\n(Record will sync shortly)`,
             [{
               text: 'OK',
-              onPress: () => navigation.navigate('FundraiseList'),
+              onPress: () => navigation.navigate('FundraiseView', { data: post }),
             }]
           );
         } finally {
