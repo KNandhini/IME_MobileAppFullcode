@@ -113,7 +113,7 @@ BEGIN
         -- Check if email already exists
         IF EXISTS (SELECT 1 FROM Users WHERE Email = @Email)
         BEGIN
-            SELECT -1 AS UserId, 'Email already exists' AS Message;
+            SELECT -1 AS UserId, -1 AS MemberId, 'Email already exists' AS Message;
             ROLLBACK TRANSACTION;
             RETURN;
         END
@@ -142,7 +142,7 @@ BEGIN
     END TRY
     BEGIN CATCH
         ROLLBACK TRANSACTION;
-        SELECT -1 AS UserId, ERROR_MESSAGE() AS Message;
+        SELECT -1 AS UserId, -1 AS MemberId, ERROR_MESSAGE() AS Message;
     END CATCH
 END
 GO
