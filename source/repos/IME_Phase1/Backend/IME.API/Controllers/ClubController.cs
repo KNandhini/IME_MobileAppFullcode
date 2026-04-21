@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
 using IME.Core.Interfaces;
 using IME.Core.Models;
+using IME.Infrastructure.Services;
 using System.Security.Claims;
 
 namespace IME.API.Controllers;
@@ -12,10 +13,14 @@ namespace IME.API.Controllers;
 public class ClubController : ControllerBase
 {
     private readonly IClubRepository _clubRepository;
+    private readonly FileStorageService _fileStorageService;
 
-    public ClubController(IClubRepository clubRepository)
+    private static readonly string[] AllowedImageTypes = { ".jpg", ".jpeg", ".png", ".webp" };
+
+    public ClubController(IClubRepository clubRepository, FileStorageService fileStorageService)
     {
         _clubRepository = clubRepository;
+        _fileStorageService = fileStorageService;
     }
 
     [HttpGet("all")]
@@ -29,8 +34,7 @@ public class ClubController : ControllerBase
         try
         {
             var clubs = await _clubRepository.GetAllClubsAsync(pageNumber, pageSize, search, isActive);
-            var dtos = clubs.Select(MapToDTO).ToList();
-            return Ok(new ApiResponse<List<ClubDTO>> { Success = true, Data = dtos });
+            return Ok(new ApiResponse<List<ClubDTO>> { Success = true, Data = clubs.Select(MapToDTO).ToList() });
         }
         catch (Exception ex)
         {
@@ -65,11 +69,8 @@ public class ClubController : ControllerBase
             if (string.IsNullOrWhiteSpace(request.ClubName))
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Club name is required" });
 
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value
-                        ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                        ?? "Admin";
-
-            var club = MapFromCreateDTO(request);
+            var userName = GetCurrentUser();
+            var club = MapFromDTO(request);
             club.CreatedBy = userName;
 
             var newId = await _clubRepository.CreateClubAsync(club);
@@ -90,11 +91,8 @@ public class ClubController : ControllerBase
             if (string.IsNullOrWhiteSpace(request.ClubName))
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Club name is required" });
 
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value
-                        ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                        ?? "Admin";
-
-            var club = MapFromCreateDTO(request);
+            var userName = GetCurrentUser();
+            var club = MapFromDTO(request);
             club.ClubId = id;
             club.ModifiedBy = userName;
 
@@ -110,16 +108,48 @@ public class ClubController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/logo")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<object>>> UploadLogo(int id, [FromForm] IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "No file provided" });
+
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedImageTypes.Contains(ext))
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Only JPG, PNG, WEBP images are allowed" });
+
+            if (file.Length > 5 * 1024 * 1024)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = "Image must be under 5 MB" });
+
+            var club = await _clubRepository.GetClubByIdAsync(id);
+            if (club == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Club not found" });
+
+            if (!string.IsNullOrEmpty(club.LogoPath))
+                _fileStorageService.DeleteFile(club.LogoPath);
+
+            var logoPath = await _fileStorageService.SaveFileAsync(file.OpenReadStream(), "Clubs", id, file.FileName);
+            var userName = GetCurrentUser();
+            await _clubRepository.UpdateClubLogoAsync(id, logoPath, userName);
+
+            return Ok(new ApiResponse<object> { Success = true, Data = new { LogoPath = logoPath }, Message = "Logo uploaded successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
         try
         {
-            var userName = User.FindFirst(ClaimTypes.Name)?.Value
-                        ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                        ?? "Admin";
-
+            var userName = GetCurrentUser();
             var deleted = await _clubRepository.DeleteClubAsync(id, userName);
             if (!deleted)
                 return NotFound(new ApiResponse<object> { Success = false, Message = "Club not found" });
@@ -164,6 +194,11 @@ public class ClubController : ControllerBase
         }
     }
 
+    private string GetCurrentUser() =>
+        User.FindFirst(ClaimTypes.Name)?.Value
+        ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+        ?? "Admin";
+
     private static ClubDTO MapToDTO(Club c) => new()
     {
         ClubId             = c.ClubId,
@@ -187,9 +222,10 @@ public class ClubController : ControllerBase
         ClubType           = c.ClubType,
         EstablishedDate    = c.EstablishedDate,
         TotalMembers       = c.TotalMembers,
-        AdminMemberId      = c.AdminMemberId,
-        AdminMemberName    = c.AdminMemberName,
+        AdminMemberIds     = c.AdminMemberIds,
+        AdminMemberNames   = c.AdminMemberNames,
         RegistrationNumber = c.RegistrationNumber,
+        LogoPath           = c.LogoPath,
         IsActive           = c.IsActive,
         CreatedBy          = c.CreatedBy,
         CreatedDate        = c.CreatedDate,
@@ -197,7 +233,7 @@ public class ClubController : ControllerBase
         ModifiedDate       = c.ModifiedDate,
     };
 
-    private static Club MapFromCreateDTO(CreateClubDTO d) => new()
+    private static Club MapFromDTO(CreateClubDTO d) => new()
     {
         ClubName           = d.ClubName,
         ClubCode           = d.ClubCode,
@@ -217,7 +253,8 @@ public class ClubController : ControllerBase
         ClubType           = d.ClubType,
         EstablishedDate    = d.EstablishedDate,
         TotalMembers       = d.TotalMembers,
-        AdminMemberId      = d.AdminMemberId,
+        AdminMemberIds     = d.AdminMemberIds,
+        AdminMemberNames   = d.AdminMemberNames,
         RegistrationNumber = d.RegistrationNumber,
         IsActive           = d.IsActive,
     };

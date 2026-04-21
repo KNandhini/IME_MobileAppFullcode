@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  Alert, ActivityIndicator, Modal, FlatList, Switch, Platform,
+  Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
+import { BASE_URL } from '../utils/api';
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
@@ -16,7 +18,7 @@ export default function ClubFormScreen({ route, navigation }) {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
 
-  // ── Lookup data ──────────────────────────────────────────────────────────
+  // ── Lookup data ───────────────────────────────────────────────────────────
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [members, setMembers] = useState([]);
@@ -27,6 +29,10 @@ export default function ClubFormScreen({ route, navigation }) {
   const [typeModal, setTypeModal] = useState(false);
   const [memberModal, setMemberModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+
+  // ── Logo state ────────────────────────────────────────────────────────────
+  const [logoUri, setLogoUri] = useState(null);      // new local pick
+  const [existingLogo, setExistingLogo] = useState(null); // from server
 
   // ── Form fields ───────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -50,8 +56,7 @@ export default function ClubFormScreen({ route, navigation }) {
     clubType: '',
     establishedDate: '',
     totalMembers: '',
-    adminMemberId: null,
-    adminMemberName: '',
+    adminMembers: [],   // [{memberId, fullName}]
     registrationNumber: '',
     isActive: true,
   });
@@ -74,6 +79,17 @@ export default function ClubFormScreen({ route, navigation }) {
     const res = await clubService.getById(clubId);
     if (res.success && res.data) {
       const d = res.data;
+
+      // Reconstruct adminMembers array from stored comma-sep strings
+      const adminMembers = [];
+      if (d.adminMemberIds) {
+        const ids = d.adminMemberIds.split(',').map(s => s.trim());
+        const names = (d.adminMemberNames || '').split(',').map(s => s.trim());
+        ids.forEach((id, i) => {
+          if (id) adminMembers.push({ memberId: parseInt(id, 10), fullName: names[i] || id });
+        });
+      }
+
       setForm({
         clubName:           d.clubName || '',
         clubCode:           d.clubCode || '',
@@ -95,11 +111,15 @@ export default function ClubFormScreen({ route, navigation }) {
         clubType:           d.clubType || '',
         establishedDate:    d.establishedDate ? d.establishedDate.split('T')[0] : '',
         totalMembers:       d.totalMembers != null ? String(d.totalMembers) : '',
-        adminMemberId:      d.adminMemberId || null,
-        adminMemberName:    d.adminMemberName || '',
+        adminMembers,
         registrationNumber: d.registrationNumber || '',
         isActive:           d.isActive !== false,
       });
+
+      if (d.logoPath) {
+        setExistingLogo(`${BASE_URL}/Uploads/${d.logoPath.replace(/\\/g, '/')}`);
+      }
+
       if (d.countryId) loadStates(d.countryId);
     }
     setLoading(false);
@@ -112,6 +132,25 @@ export default function ClubFormScreen({ route, navigation }) {
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
+  // ── Logo picker ───────────────────────────────────────────────────────────
+  const pickLogo = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Please allow access to your photo library.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (!result.canceled && result.assets?.length > 0) {
+      setLogoUri(result.assets[0].uri);
+    }
+  };
+
+  // ── Country / State ───────────────────────────────────────────────────────
   const selectCountry = async (country) => {
     set('countryId', country.countryId);
     set('countryName', country.countryName);
@@ -128,17 +167,31 @@ export default function ClubFormScreen({ route, navigation }) {
     setStateModal(false);
   };
 
-  const selectMember = (member) => {
-    set('adminMemberId', member.memberId);
-    set('adminMemberName', member.fullName);
-    setMemberModal(false);
-    setMemberSearch('');
+  // ── Multi-admin ───────────────────────────────────────────────────────────
+  const toggleAdminMember = (member) => {
+    setForm(prev => {
+      const exists = prev.adminMembers.some(m => m.memberId === member.memberId);
+      return {
+        ...prev,
+        adminMembers: exists
+          ? prev.adminMembers.filter(m => m.memberId !== member.memberId)
+          : [...prev.adminMembers, { memberId: member.memberId, fullName: member.fullName }],
+      };
+    });
+  };
+
+  const removeAdmin = (memberId) => {
+    setForm(prev => ({
+      ...prev,
+      adminMembers: prev.adminMembers.filter(m => m.memberId !== memberId),
+    }));
   };
 
   const filteredMembers = members.filter(m =>
     m.fullName?.toLowerCase().includes(memberSearch.toLowerCase())
   );
 
+  // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!form.clubName.trim()) {
       Alert.alert('Validation', 'Club Name is required.');
@@ -146,6 +199,7 @@ export default function ClubFormScreen({ route, navigation }) {
     }
 
     setSaving(true);
+
     const payload = {
       clubName:           form.clubName.trim(),
       clubCode:           form.clubCode.trim() || null,
@@ -165,7 +219,8 @@ export default function ClubFormScreen({ route, navigation }) {
       clubType:           form.clubType || null,
       establishedDate:    form.establishedDate || null,
       totalMembers:       form.totalMembers ? parseInt(form.totalMembers, 10) : 0,
-      adminMemberId:      form.adminMemberId,
+      adminMemberIds:     form.adminMembers.length ? form.adminMembers.map(m => m.memberId).join(',') : null,
+      adminMemberNames:   form.adminMembers.length ? form.adminMembers.map(m => m.fullName).join(', ') : null,
       registrationNumber: form.registrationNumber.trim() || null,
       isActive:           form.isActive,
     };
@@ -174,15 +229,24 @@ export default function ClubFormScreen({ route, navigation }) {
       ? await clubService.update(clubId, payload)
       : await clubService.create(payload);
 
-    setSaving(false);
-
-    if (res.success) {
-      Alert.alert('Success', isEditMode ? 'Club updated.' : 'Club created.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } else {
+    if (!res.success) {
+      setSaving(false);
       Alert.alert('Error', res.message || 'Something went wrong.');
+      return;
     }
+
+    const savedId = isEditMode ? clubId : res.data?.clubId;
+
+    // Upload logo if a new one was picked
+    if (logoUri && savedId) {
+      const fileName = logoUri.split('/').pop();
+      await clubService.uploadLogo(savedId, logoUri, fileName);
+    }
+
+    setSaving(false);
+    Alert.alert('Success', isEditMode ? 'Club updated.' : 'Club created.', [
+      { text: 'OK', onPress: () => navigation.goBack() },
+    ]);
   };
 
   if (loading) {
@@ -192,6 +256,8 @@ export default function ClubFormScreen({ route, navigation }) {
       </View>
     );
   }
+
+  const logoSource = logoUri ? { uri: logoUri } : existingLogo ? { uri: existingLogo } : null;
 
   return (
     <View style={styles.root}>
@@ -209,6 +275,25 @@ export default function ClubFormScreen({ route, navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+
+        {/* ── Club Logo ── */}
+        <View style={styles.logoSection}>
+          <TouchableOpacity style={styles.logoBox} onPress={pickLogo} activeOpacity={0.8}>
+            {logoSource ? (
+              <Image source={logoSource} style={styles.logoImage} />
+            ) : (
+              <View style={styles.logoPlaceholder}>
+                <Ionicons name="camera" size={32} color="#aaa" />
+                <Text style={styles.logoPlaceholderText}>Add Logo</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          {logoSource && (
+            <TouchableOpacity style={styles.changeLogoBtn} onPress={pickLogo}>
+              <Text style={styles.changeLogoText}>Change Logo</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* ── Basic Details ── */}
         <SectionHeader title="Basic Details" />
@@ -292,15 +377,7 @@ export default function ClubFormScreen({ route, navigation }) {
           </TouchableOpacity>
         </Field>
         <Field label="Established Date (YYYY-MM-DD)">
-          <TextInput
-            style={styles.input}
-            value={form.establishedDate}
-            onChangeText={v => set('establishedDate', v)}
-            placeholder="e.g. 1995-06-15"
-            placeholderTextColor="#bbb"
-            maxLength={10}
-            keyboardType="numbers-and-punctuation"
-          />
+          <TextInput style={styles.input} value={form.establishedDate} onChangeText={v => set('establishedDate', v)} placeholder="e.g. 1995-06-15" placeholderTextColor="#bbb" maxLength={10} keyboardType="numbers-and-punctuation" />
         </Field>
         <Row>
           <Field label="Total Members" flex>
@@ -310,12 +387,26 @@ export default function ClubFormScreen({ route, navigation }) {
             <TextInput style={styles.input} value={form.registrationNumber} onChangeText={v => set('registrationNumber', v)} placeholder="Registration no." placeholderTextColor="#bbb" />
           </Field>
         </Row>
-        <Field label="Admin Member">
-          <TouchableOpacity style={styles.selector} onPress={() => setMemberModal(true)}>
-            <Text style={form.adminMemberName ? styles.selectorValue : styles.selectorPlaceholder}>
-              {form.adminMemberName || 'Select admin member'}
+
+        {/* ── Admin Members (multi-select) ── */}
+        <Field label="Admin Members">
+          {form.adminMembers.length > 0 && (
+            <View style={styles.chipWrap}>
+              {form.adminMembers.map(m => (
+                <View key={m.memberId} style={styles.adminChip}>
+                  <Text style={styles.adminChipText}>{m.fullName}</Text>
+                  <TouchableOpacity onPress={() => removeAdmin(m.memberId)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
+                    <Ionicons name="close-circle" size={16} color="#1E3A5F" style={{ marginLeft: 4 }} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+          <TouchableOpacity style={[styles.selector, { marginTop: form.adminMembers.length ? 8 : 0 }]} onPress={() => setMemberModal(true)}>
+            <Text style={styles.selectorPlaceholder}>
+              {form.adminMembers.length ? '+ Add more admins' : 'Select admin members'}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#888" />
+            <Ionicons name="people" size={16} color="#888" />
           </TouchableOpacity>
         </Field>
 
@@ -367,11 +458,12 @@ export default function ClubFormScreen({ route, navigation }) {
         onClose={() => setTypeModal(false)}
       />
 
-      {/* ── Member Picker Modal ── */}
+      {/* ── Multi-Admin Member Modal ── */}
       <Modal visible={memberModal} animationType="slide" transparent onRequestClose={() => setMemberModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
-            <Text style={styles.modalTitle}>Select Admin Member</Text>
+            <Text style={styles.modalTitle}>Select Admin Members</Text>
+            <Text style={styles.modalSubtitle}>Tap to select/deselect. Tap Done when finished.</Text>
             <TextInput
               style={styles.modalSearch}
               value={memberSearch}
@@ -382,16 +474,26 @@ export default function ClubFormScreen({ route, navigation }) {
             <FlatList
               data={filteredMembers}
               keyExtractor={m => String(m.memberId)}
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.modalItem} onPress={() => selectMember(item)}>
-                  <Text style={styles.modalItemText}>{item.fullName}</Text>
-                  {item.email ? <Text style={styles.modalItemSub}>{item.email}</Text> : null}
-                </TouchableOpacity>
-              )}
+              style={{ maxHeight: 340 }}
+              renderItem={({ item }) => {
+                const selected = form.adminMembers.some(m => m.memberId === item.memberId);
+                return (
+                  <TouchableOpacity
+                    style={[styles.modalItem, selected && styles.modalItemSelected]}
+                    onPress={() => toggleAdminMember(item)}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.modalItemText, selected && styles.modalItemTextSelected]}>{item.fullName}</Text>
+                      {item.email ? <Text style={styles.modalItemSub}>{item.email}</Text> : null}
+                    </View>
+                    {selected && <Ionicons name="checkmark-circle" size={20} color="#1E3A5F" />}
+                  </TouchableOpacity>
+                );
+              }}
               ListEmptyComponent={<Text style={styles.modalEmpty}>No active members found</Text>}
             />
-            <TouchableOpacity style={styles.modalCancel} onPress={() => { setMemberModal(false); setMemberSearch(''); }}>
-              <Text style={styles.modalCancelText}>Cancel</Text>
+            <TouchableOpacity style={styles.modalDone} onPress={() => { setMemberModal(false); setMemberSearch(''); }}>
+              <Text style={styles.modalDoneText}>Done ({form.adminMembers.length} selected)</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -432,6 +534,7 @@ function PickerModal({ visible, title, items, keyProp, labelProp, onSelect, onCl
           <FlatList
             data={items}
             keyExtractor={item => String(item[keyProp])}
+            style={{ maxHeight: 380 }}
             renderItem={({ item }) => (
               <TouchableOpacity style={styles.modalItem} onPress={() => onSelect(item)}>
                 <Text style={styles.modalItemText}>{item[labelProp]}</Text>
@@ -449,7 +552,7 @@ function PickerModal({ visible, title, items, keyProp, labelProp, onSelect, onCl
 }
 
 const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: '#F0F2F5' },
+  root:     { flex: 1, backgroundColor: '#F0F2F5' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   header:      { backgroundColor: '#1E3A5F', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 44 : 54, paddingBottom: 14 },
@@ -458,6 +561,15 @@ const styles = StyleSheet.create({
   saveText:    { color: '#D4A017', fontSize: 16, fontWeight: '700', textAlign: 'right' },
 
   scroll: { paddingBottom: 40 },
+
+  // Logo
+  logoSection:        { alignItems: 'center', paddingVertical: 20, backgroundColor: '#fff', marginBottom: 2 },
+  logoBox:            { width: 110, height: 110, borderRadius: 55, overflow: 'hidden', backgroundColor: '#F0F2F5', borderWidth: 2, borderColor: '#E0E0E0', borderStyle: 'dashed' },
+  logoImage:          { width: '100%', height: '100%' },
+  logoPlaceholder:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  logoPlaceholderText:{ fontSize: 12, color: '#aaa', marginTop: 4 },
+  changeLogoBtn:      { marginTop: 10 },
+  changeLogoText:     { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
 
   sectionHeader: { backgroundColor: '#E8EDF5', paddingHorizontal: 16, paddingVertical: 8, marginTop: 8 },
   sectionTitle:  { fontSize: 12, fontWeight: '700', color: '#1E3A5F', textTransform: 'uppercase', letterSpacing: 0.6 },
@@ -471,22 +583,34 @@ const styles = StyleSheet.create({
 
   selector:            { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   selectorDisabled:    { backgroundColor: '#F5F5F5', borderColor: '#E8E8E8' },
-  selectorValue:       { fontSize: 14, color: '#111' },
-  selectorPlaceholder: { fontSize: 14, color: '#bbb' },
+  selectorValue:       { fontSize: 14, color: '#111', flex: 1 },
+  selectorPlaceholder: { fontSize: 14, color: '#bbb', flex: 1 },
 
-  row: { flexDirection: 'row', gap: 0 },
+  row: { flexDirection: 'row' },
+
+  // Admin chips
+  chipWrap:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  adminChip:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EBF0FA', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
+  adminChipText: { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
 
   switchRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#fff', marginTop: 2 },
   switchLabel: { fontSize: 15, color: '#333', fontWeight: '600' },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet:   { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '70%', padding: 20 },
-  modalTitle:   { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  modalSearch:  { backgroundColor: '#F0F2F5', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10, fontSize: 14, color: '#111' },
-  modalItem:    { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  modalItemText: { fontSize: 15, color: '#111' },
-  modalItemSub:  { fontSize: 12, color: '#888', marginTop: 2 },
-  modalEmpty:   { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  modalCancel:  { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  modalOverlay:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  modalSheet:    { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  modalTitle:    { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 4 },
+  modalSubtitle: { fontSize: 12, color: '#888', marginBottom: 10 },
+  modalSearch:   { backgroundColor: '#F0F2F5', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10, fontSize: 14, color: '#111' },
+
+  modalItem:         { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', flexDirection: 'row', alignItems: 'center' },
+  modalItemSelected: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8, marginBottom: 2 },
+  modalItemText:     { fontSize: 15, color: '#111' },
+  modalItemTextSelected: { color: '#1E3A5F', fontWeight: '600' },
+  modalItemSub:      { fontSize: 12, color: '#888', marginTop: 2 },
+  modalEmpty:        { textAlign: 'center', color: '#888', paddingVertical: 24 },
+
+  modalDone:     { marginTop: 14, backgroundColor: '#1E3A5F', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  modalDoneText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  modalCancel:   { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   modalCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
 });
