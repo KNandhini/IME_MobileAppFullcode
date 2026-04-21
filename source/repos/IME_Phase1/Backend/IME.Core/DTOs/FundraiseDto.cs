@@ -27,8 +27,8 @@ namespace IME.Core.DTOs
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
-        public string SupportingDocumentUrl { get; set; }
-        public string BeneficiaryPhotoUrl { get; set; }
+        public string? SupportingDocumentUrl { get; set; }
+        public string? BeneficiaryPhotoUrl { get; set; }
 
         public string AccountHolderName { get; set; }
         public string BankAccountNumber { get; set; }
@@ -40,5 +40,6 @@ namespace IME.Core.DTOs
         public int Id { get; set; }
         public decimal BalanceAmount { get; set; }
         public decimal MinimumAmount { get; set; }
+        public string? ModifiedBy { get; set; }
     }
 } 

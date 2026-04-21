@@ -237,15 +237,7 @@ const FundraiseListScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
 
-      {/* ── Header ── */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Fundraise</Text>
-          <Text style={styles.headerSub}>
-            {data.length} active campaign{data.length !== 1 ? 's' : ''}
-          </Text>
-        </View>
-      </View>
+    
 
       {/* ── Summary strip ── */}
       {data.length > 0 && (
