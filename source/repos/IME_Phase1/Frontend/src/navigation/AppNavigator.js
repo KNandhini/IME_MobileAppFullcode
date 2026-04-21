@@ -179,7 +179,7 @@ const MainStack = () => (
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
-    <Stack.Screen name="FundraiseList" component={FundraiseListScreen} options={{ ...HEADER_STYLE, title: 'IME Fund', headerShown: true }} />
+    <Stack.Screen name="FundraiseList" component={FundraiseListScreen} options={{ ...HEADER_STYLE, title: 'Fund List', headerShown: true }} />
     <Stack.Screen name="CreateFund" component={CreateFundScreen} options={{ headerShown: false }} />
     <Stack.Screen name="FundraiseView" component={FundraiseViewScreen} options={{ ...HEADER_STYLE, title: 'Fund Details' }} />
     {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
