@@ -353,19 +353,22 @@ function AmountModal({ visible, post, onClose, onProceed }) {
 export default function RaiseFundScreen({ route, navigation }) {
   const { post } = route.params;
 
-  const safePost = {
-    ...post,
-    raised: post.raised ?? post.collectedAmount ?? 0,
-    goal  : post.goal   ?? post.targetAmount    ?? 0,
-    title : post.title  || post.fundTitle       || '',
-    body  : post.body   || post.description     || '',
-    beneficiaryName: post.fullName       || '',
-    contactNumber  : post.contactNumber  || '',
-    upiId          : post.upiId          || '',
-    bankName       : post.bankName       || '',
-    accountNumber  : post.accountNumber  || '',
-     minimumAmount  : post.minimumAmount  ?? 1,
-  };
+  const buildSafePost = (p) => ({
+    ...p,
+    raised: p.raised ?? p.collectedAmount ?? 0,
+    goal  : p.goal   ?? p.targetAmount    ?? 0,
+    title : p.title  || p.fundTitle       || '',
+    body  : p.body   || p.description     || '',
+    beneficiaryName: p.fullName       || '',
+    contactNumber  : p.contactNumber  || '',
+    upiId          : p.upiId          || '',
+    bankName       : p.bankName       || '',
+    accountNumber  : p.accountNumber  || '',
+    minimumAmount  : p.minimumAmount  ?? 1,
+  });
+
+  const [livePost, setLivePost] = useState(buildSafePost(post));
+  const safePost = livePost;
 
   const [memberData,        setMemberData]        = useState(null);
   const [loadingMember,     setLoadingMember]     = useState(true);
@@ -402,7 +405,6 @@ export default function RaiseFundScreen({ route, navigation }) {
   // ─── WebView message handler ──────────────────────────────────────────────
   const handleWebViewMessage = async (event) => {
     try {
-        debugger;
       const data = JSON.parse(event.nativeEvent.data);
       console.log('Razorpay message:', data);
 
@@ -423,26 +425,28 @@ export default function RaiseFundScreen({ route, navigation }) {
             paymentMode,                      // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
           });
 
+          // Update progress in-place so user sees new amounts immediately
+          setLivePost(prev => buildSafePost({
+            ...prev,
+            collectedAmount: (prev.raised ?? 0) + paymentAmount,
+            raised:          (prev.raised ?? 0) + paymentAmount,
+            balanceAmount:   result?.balanceAmount ?? Math.max(0, (prev.goal ?? 0) - (prev.raised ?? 0) - paymentAmount),
+          }));
+
           Alert.alert(
             '✅ Thank you!',
             `Donated ₹${paymentAmount.toLocaleString('en-IN')} via ${paymentMode}\n` +
             `Transaction ID: ${data.paymentId}\n` +
             `Balance remaining: ₹${result?.balanceAmount?.toLocaleString('en-IN') ?? '—'}`,
-            [{
-              text: 'Done',
-              onPress: () => navigation.navigate('FundraiseView', { data: post }),
-            }]
+            [{ text: 'Done' }]
           );
 
         } catch (err) {
-          // Razorpay succeeded but DB failed — still navigate away
+          // Razorpay succeeded but DB failed — still stay on screen
           Alert.alert(
             'Payment Done',
             `Payment received via ${paymentMode}\nTransaction ID: ${data.paymentId}\n(Record will sync shortly)`,
-            [{
-              text: 'OK',
-              onPress: () => navigation.navigate('FundraiseView', { data: post }),
-            }]
+            [{ text: 'OK' }]
           );
         } finally {
           setProcessingPayment(false);
