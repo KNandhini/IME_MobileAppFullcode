@@ -222,6 +222,6 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { fontSize: 15, color: '#888' },
 
-  fab:     { position: 'absolute', bottom: 24, right: 20, backgroundColor: '#1E3A5F', borderRadius: 28, paddingVertical: 14, paddingHorizontal: 24, elevation: 6 },
-  fabText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  fab:     { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });
