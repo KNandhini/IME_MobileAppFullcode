@@ -1,7 +1,7 @@
 // services/supportService.js
-import api from '../utils/api';
+import api, { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const BASE_URL = 'http://10.0.2.2:51150/api';
+//const BASE_URL = 'http://10.0.2.2:51150/api';
 
 export const supportService = {
 
@@ -45,8 +45,8 @@ export const supportService = {
       type: file.mimeType || 'image/jpeg',
     });
   });
-
-  const response = await fetch(`${BASE_URL}/support`, {
+debugger;
+  const response = await fetch(`${BASE_URL}/api/support`, {
     method: 'POST',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -119,7 +119,7 @@ update: async (supportId, formData, attachments = []) => {
     });
   });
 
-  const response = await fetch(`${BASE_URL}/support/${supportId}`, {
+  const response = await fetch(`${BASE_URL}/api/support/${supportId}`, {
     method: 'PUT',
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

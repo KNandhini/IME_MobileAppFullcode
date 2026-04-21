@@ -54,7 +54,7 @@ const CreatePostScreen = ({ navigation }) => {
 
   // ── Submit post ───────────────────────────────────────────
   const handlePost = useCallback(async () => {
-
+debugger;
     if (!content.trim() && mediaItems.length === 0) {
       Alert.alert('Empty post', 'Write something or add a photo/video.');
       return;
@@ -69,6 +69,7 @@ const CreatePostScreen = ({ navigation }) => {
         Alert.alert('Failed', res.message || 'Could not create post. Please try again.');
       }
     } catch (e) {
+      debugger;
       const status    = e?.response?.status;
       const serverMsg = e?.response?.data?.message
                      || e?.response?.data?.title
