@@ -213,24 +213,21 @@ const FundraiseListScreen = ({ navigation, route }) => {
     }
   };
 
+  // Initial load only — no reload on focus
+  useEffect(() => { loadData(); }, []);
+
+  // Update list in-place when CreateFund passes back a changedItem param
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      const changedItem = route.params?.changedItem;
-      const isEdit      = route.params?.isEdit;
-      if (changedItem) {
-        if (isEdit) {
-          setData(prev => prev.map(d => d.id === changedItem.id ? changedItem : d));
-        } else {
-          setData(prev => [changedItem, ...prev]);
-        }
-        navigation.setParams({ changedItem: undefined, isEdit: undefined });
-        setLoading(false);
-      } else {
-        loadData();
-      }
-    });
-    return unsubscribe;
-  }, [navigation, route.params]);
+    const changedItem = route.params?.changedItem;
+    const isEdit      = route.params?.isEdit;
+    if (!changedItem) return;
+    if (isEdit) {
+      setData(prev => prev.map(d => d.id === changedItem.id ? changedItem : d));
+    } else {
+      setData(prev => [changedItem, ...prev]);
+    }
+    navigation.setParams({ changedItem: undefined, isEdit: undefined });
+  }, [route.params?.changedItem]);
 
   const handleDelete = (id) => {
     Alert.alert('Delete Fund', 'Are you sure you want to delete this fund?', [
