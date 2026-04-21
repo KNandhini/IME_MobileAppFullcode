@@ -198,7 +198,7 @@ function EmptyState({ onAdd }) {
 }
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
-const FundraiseListScreen = ({ navigation }) => {
+const FundraiseListScreen = ({ navigation, route }) => {
   const [data, setData]       = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -214,9 +214,23 @@ const FundraiseListScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', loadData);
+    const unsubscribe = navigation.addListener('focus', () => {
+      const changedItem = route.params?.changedItem;
+      const isEdit      = route.params?.isEdit;
+      if (changedItem) {
+        if (isEdit) {
+          setData(prev => prev.map(d => d.id === changedItem.id ? changedItem : d));
+        } else {
+          setData(prev => [changedItem, ...prev]);
+        }
+        navigation.setParams({ changedItem: undefined, isEdit: undefined });
+        setLoading(false);
+      } else {
+        loadData();
+      }
+    });
     return unsubscribe;
-  }, [navigation]);
+  }, [navigation, route.params]);
 
   const handleDelete = (id) => {
     Alert.alert('Delete Fund', 'Are you sure you want to delete this fund?', [

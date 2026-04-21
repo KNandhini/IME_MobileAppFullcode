@@ -431,8 +431,7 @@ export default function RaiseFundScreen({ route, navigation }) {
             `Balance remaining: ₹${result?.balanceAmount?.toLocaleString('en-IN') ?? '—'}`,
             [{
               text: 'Done',
-              // FIX: navigate to FeedScreen instead of goBack()
-              onPress: () => navigation.navigate('FundScreen'),
+              onPress: () => navigation.navigate('FundraiseList'),
             }]
           );
 
@@ -443,7 +442,7 @@ export default function RaiseFundScreen({ route, navigation }) {
             `Payment received via ${paymentMode}\nTransaction ID: ${data.paymentId}\n(Record will sync shortly)`,
             [{
               text: 'OK',
-              onPress: () => navigation.navigate('Organisation'),
+              onPress: () => navigation.navigate('FundraiseList'),
             }]
           );
         } finally {
@@ -525,11 +524,6 @@ export default function RaiseFundScreen({ route, navigation }) {
 
       {/* ── Main content ── */}
       <ScrollView contentContainerStyle={s.scroll}>
-
-        {/*uchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={20} color="#333" />
-          <Text style={s.backText}>Back</Text>
-        </TouchableOpacity>*/}
 
         {/* Post card */}
         <View style={s.postCard}>
