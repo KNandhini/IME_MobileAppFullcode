@@ -70,32 +70,40 @@ public class FeedController : ControllerBase
             if (postId <= 0)
                 return Ok(new ApiResponse<object> { Success = false, Message = "Failed to create post." });
 
-            // Save each media file
+            // Buffer all valid files into memory first, then save in parallel
             var savedMedia = new List<FeedMediaDTO>();
             if (files != null && files.Count > 0)
             {
+                var validFiles = new List<(MemoryStream Stream, string FileName, string MediaType, int Order)>();
                 int order = 1;
                 foreach (var file in files)
                 {
-                    if (file.Length == 0) continue;
-                    if (file.Length > 50 * 1024 * 1024) continue; // skip files > 50 MB
-
+                    if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
                     var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                     string mediaType;
+                    if (AllowedImageTypes.Contains(ext))      mediaType = "image";
+                    else if (AllowedVideoTypes.Contains(ext)) mediaType = "video";
+                    else                                       continue;
 
-                    if (AllowedImageTypes.Contains(ext))
-                        mediaType = "image";
-                    else if (AllowedVideoTypes.Contains(ext))
-                        mediaType = "video";
-                    else
-                        continue; // skip unsupported
+                    var ms = new MemoryStream();
+                    await file.CopyToAsync(ms);
+                    ms.Position = 0;
+                    validFiles.Add((ms, file.FileName, mediaType, order++));
+                }
 
-                    var filePath = await _fileStorageService.SaveFileAsync(
-                        file.OpenReadStream(), "Posts", postId, file.FileName);
+                // Save all files to disk in parallel, then insert DB records sequentially
+                var saveTasks = validFiles.Select(f =>
+                    _fileStorageService.SaveFileAsync(f.Stream, "Posts", postId, f.FileName)
+                        .ContinueWith(t => (Path: t.Result, f.MediaType, f.Order)));
 
-                    var media = await _feedRepository.AddPostMediaAsync(postId, filePath, mediaType, order++);
+                var results = await Task.WhenAll(saveTasks);
+                foreach (var r in results.OrderBy(r => r.Order))
+                {
+                    var media = await _feedRepository.AddPostMediaAsync(postId, r.Path, r.MediaType, r.Order);
                     savedMedia.Add(media);
                 }
+
+                foreach (var (ms, _, _, _) in validFiles) ms.Dispose();
             }
 
             return Ok(new ApiResponse<object>
