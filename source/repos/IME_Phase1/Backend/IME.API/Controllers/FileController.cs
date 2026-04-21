@@ -299,7 +299,7 @@ public class FileController : ControllerBase
             string? filePath = null;
             using (var connection = await _dbContext.CreateOpenConnectionAsync())
             {
-                string query = tableName switch
+                string? query = tableName switch
                 {
                     "Activities" => "SELECT FilePath FROM ActivityAttachments WHERE AttachmentId = @AttachmentId",
                     "News" => "SELECT FilePath FROM NewsAttachments WHERE AttachmentId = @AttachmentId",
@@ -342,7 +342,7 @@ public class FileController : ControllerBase
             // Delete from database
             using (var connection = await _dbContext.CreateOpenConnectionAsync())
             {
-                string deleteQuery = tableName switch
+                string? deleteQuery = tableName switch
                 {
                     "Activities" => "DELETE FROM ActivityAttachments WHERE AttachmentId = @AttachmentId",
                     "News" => "DELETE FROM NewsAttachments WHERE AttachmentId = @AttachmentId",
