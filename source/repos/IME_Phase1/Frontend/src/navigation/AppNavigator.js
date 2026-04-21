@@ -41,6 +41,8 @@ import FundScreen from '../screens/FeedScreen';
 import RaiseFundScreen from '../screens/RaiseFundScreen';
 import CreatePostScreen from '../screens/CreatePostScreen';
 import AddCircularScreen from '../screens/AddCircularScreen';
+import ClubListScreen from '../screens/ClubListScreen';
+import ClubFormScreen from '../screens/ClubFormScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -183,6 +185,8 @@ const MainStack = () => (
     <Stack.Screen name="FundraiseView" component={FundraiseViewScreen} options={{ ...HEADER_STYLE, title: 'Fund Details' }} />
     {/* <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} /> */}
     <Stack.Screen name="RaiseFund" component={RaiseFundScreen} options={{ ...HEADER_STYLE, title: 'Raise Fund' }} />
+    <Stack.Screen name="ClubList" component={ClubListScreen} options={{ ...HEADER_STYLE, title: 'Club List' }} />
+    <Stack.Screen name="ClubForm" component={ClubFormScreen} options={{ headerShown: false }} />
     {/*<Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />*/}
     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ headerShown: false }} />
     <Stack.Screen
