@@ -473,8 +473,11 @@ export default function CreateFundScreen() {
         }
       }
 
+      const updatedItem = isEdit
+        ? { ...data, ...payload, id: fundId }
+        : { ...payload, id: fundId };
       Alert.alert("Success", isEdit ? "Fund updated!" : "Fund created!");
-      navigation.goBack();
+      navigation.navigate('FundraiseList', { changedItem: updatedItem, isEdit });
     } catch (ex) {
       console.log("Submit error:", ex?.response?.data ?? ex.message);
       Alert.alert(
@@ -494,13 +497,26 @@ export default function CreateFundScreen() {
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
+    <View style={{ flex: 1, backgroundColor: C.bg }}>
+
+      {/* ── Top Navbar ── */}
+      <View style={s.navbar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={s.navSide}>
+          <Text style={s.navCancel}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={s.navTitle}>{isEdit ? 'Edit Fund' : 'Create Fund'}</Text>
+        <TouchableOpacity onPress={handleSubmit} style={s.navSide} disabled={submitting}>
+          {submitting
+            ? <ActivityIndicator size="small" color="#D4A017" />
+            : <Text style={s.navSave}>{isEdit ? 'Update' : 'Save'}</Text>}
+        </TouchableOpacity>
+      </View>
+
     <ScrollView
       style={s.root}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
-      {/* ── Top Bar ── */}
-
 
       {/* ══ BASIC INFO ══════════════════════════════════════════════════════ */}
       <View style={s.card}>
@@ -932,32 +948,17 @@ export default function CreateFundScreen() {
         </View>
       </View>
 
-      {/* ══ SUBMIT ══════════════════════════════════════════════════════════ */}
-      <View style={s.submitWrap}>
-        {(photoFiles.length > 0 || docFiles.length > 0) && (
-          <View style={s.uploadSummary}>
-            <Text style={s.uploadSummaryText}>
-              📤 {photoFiles.length} photo(s) + {docFiles.length} document(s) will upload on save
-            </Text>
-          </View>
-        )}
-        <TouchableOpacity
-          style={[s.submitBtn, submitting && { opacity: 0.6 }]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          {submitting ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={s.submitText}>
-              {isEdit ? "Update Fund" : "Create Fund"}
-            </Text>
-          )}
-        </TouchableOpacity>
-      </View>
+      {(photoFiles.length > 0 || docFiles.length > 0) && (
+        <View style={s.uploadSummary}>
+          <Text style={s.uploadSummaryText}>
+            📤 {photoFiles.length} photo(s) + {docFiles.length} document(s) will upload on save
+          </Text>
+        </View>
+      )}
 
       <View style={{ height: 50 }} />
     </ScrollView>
+    </View>
   );
 }
 
@@ -975,6 +976,17 @@ const s = StyleSheet.create({
     alignItems:       "center",
     gap:              12,
   },
+  navbar: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
+    backgroundColor: '#fff',
+  },
+  navSide:   { minWidth: 72, paddingHorizontal: 4 },
+  navTitle:  { flex: 1, fontSize: 16, fontWeight: '700', color: '#0F172A', textAlign: 'center' },
+  navCancel: { fontSize: 15, color: '#64748B', fontWeight: '500' },
+  navSave:   { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+
   backBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: "rgba(255,255,255,0.15)",
