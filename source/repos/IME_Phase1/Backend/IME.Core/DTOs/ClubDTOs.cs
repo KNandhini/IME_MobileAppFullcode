@@ -26,9 +26,10 @@ public class ClubDTO
     public string? ClubType { get; set; }
     public DateTime? EstablishedDate { get; set; }
     public int TotalMembers { get; set; }
-    public int? AdminMemberId { get; set; }
-    public string? AdminMemberName { get; set; }
+    public string? AdminMemberIds { get; set; }
+    public string? AdminMemberNames { get; set; }
     public string? RegistrationNumber { get; set; }
+    public string? LogoPath { get; set; }
 
     public bool IsActive { get; set; }
     public string? CreatedBy { get; set; }
@@ -60,7 +61,8 @@ public class CreateClubDTO
     public string? ClubType { get; set; }
     public DateTime? EstablishedDate { get; set; }
     public int TotalMembers { get; set; }
-    public int? AdminMemberId { get; set; }
+    public string? AdminMemberIds { get; set; }
+    public string? AdminMemberNames { get; set; }
     public string? RegistrationNumber { get; set; }
     public bool IsActive { get; set; } = true;
 }

@@ -9,6 +9,7 @@ public interface IClubRepository
     Task<int> CreateClubAsync(Club club);
     Task<bool> UpdateClubAsync(Club club);
     Task<bool> DeleteClubAsync(int clubId, string? modifiedBy);
+    Task<bool> UpdateClubLogoAsync(int clubId, string logoPath, string? modifiedBy);
     Task<List<Country>> GetCountriesAsync();
     Task<List<State>> GetStatesByCountryAsync(int countryId);
 }

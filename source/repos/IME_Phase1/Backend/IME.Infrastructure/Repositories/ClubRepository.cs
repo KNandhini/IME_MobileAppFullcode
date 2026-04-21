@@ -92,6 +92,22 @@ public class ClubRepository : IClubRepository
         return false;
     }
 
+    public async Task<bool> UpdateClubLogoAsync(int clubId, string logoPath, string? modifiedBy)
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_UpdateClubLogo", connection);
+
+        command.Parameters.AddWithValue("@ClubId", clubId);
+        command.Parameters.AddWithValue("@LogoPath", logoPath);
+        command.Parameters.AddWithValue("@ModifiedBy", (object?)modifiedBy ?? DBNull.Value);
+
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+            return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
+
+        return false;
+    }
+
     public async Task<List<Country>> GetCountriesAsync()
     {
         var list = new List<Country>();
@@ -153,9 +169,10 @@ public class ClubRepository : IClubRepository
         ClubType           = r.IsDBNull(r.GetOrdinal("ClubType"))           ? null : r.GetString(r.GetOrdinal("ClubType")),
         EstablishedDate    = r.IsDBNull(r.GetOrdinal("EstablishedDate"))    ? null : r.GetDateTime(r.GetOrdinal("EstablishedDate")),
         TotalMembers       = r.IsDBNull(r.GetOrdinal("TotalMembers"))       ? 0    : r.GetInt32(r.GetOrdinal("TotalMembers")),
-        AdminMemberId      = r.IsDBNull(r.GetOrdinal("AdminMemberId"))      ? null : r.GetInt32(r.GetOrdinal("AdminMemberId")),
-        AdminMemberName    = r.IsDBNull(r.GetOrdinal("AdminMemberName"))    ? null : r.GetString(r.GetOrdinal("AdminMemberName")),
+        AdminMemberIds     = r.IsDBNull(r.GetOrdinal("AdminMemberIds"))     ? null : r.GetString(r.GetOrdinal("AdminMemberIds")),
+        AdminMemberNames   = r.IsDBNull(r.GetOrdinal("AdminMemberNames"))   ? null : r.GetString(r.GetOrdinal("AdminMemberNames")),
         RegistrationNumber = r.IsDBNull(r.GetOrdinal("RegistrationNumber")) ? null : r.GetString(r.GetOrdinal("RegistrationNumber")),
+        LogoPath           = r.IsDBNull(r.GetOrdinal("LogoPath"))           ? null : r.GetString(r.GetOrdinal("LogoPath")),
         IsActive           = r.GetBoolean(r.GetOrdinal("IsActive")),
         IsDeleted          = r.GetBoolean(r.GetOrdinal("IsDeleted")),
         CreatedBy          = r.IsDBNull(r.GetOrdinal("CreatedBy"))          ? null : r.GetString(r.GetOrdinal("CreatedBy")),
@@ -184,7 +201,8 @@ public class ClubRepository : IClubRepository
         cmd.Parameters.AddWithValue("@ClubType",           (object?)club.ClubType           ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@EstablishedDate",    (object?)club.EstablishedDate     ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@TotalMembers",       club.TotalMembers);
-        cmd.Parameters.AddWithValue("@AdminMemberId",      (object?)club.AdminMemberId      ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@AdminMemberIds",     (object?)club.AdminMemberIds     ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@AdminMemberNames",   (object?)club.AdminMemberNames   ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@RegistrationNumber", (object?)club.RegistrationNumber ?? DBNull.Value);
         cmd.Parameters.AddWithValue("@IsActive",           club.IsActive);
     }

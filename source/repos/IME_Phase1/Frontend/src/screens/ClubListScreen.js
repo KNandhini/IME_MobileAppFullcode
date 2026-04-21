@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Alert, ActivityIndicator, RefreshControl,
+  Alert, ActivityIndicator, RefreshControl, Image,
 } from 'react-native';
 import { Searchbar, Chip } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { clubService } from '../services/clubService';
+import { BASE_URL } from '../utils/api';
 
 const FILTERS = ['All', 'Active', 'Inactive'];
 
@@ -77,12 +78,21 @@ export default function ClubListScreen({ navigation }) {
     );
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }) => {
+    const logoUrl = item.logoPath
+      ? `${BASE_URL}/Uploads/${item.logoPath.replace(/\\/g, '/')}`
+      : null;
+
+    return (
     <View style={styles.card}>
       <View style={styles.cardTop}>
-        <View style={styles.avatarBox}>
-          <Text style={styles.avatarText}>{(item.clubName || 'C').charAt(0).toUpperCase()}</Text>
-        </View>
+        {logoUrl ? (
+          <Image source={{ uri: logoUrl }} style={styles.logoImg} />
+        ) : (
+          <View style={styles.avatarBox}>
+            <Text style={styles.avatarText}>{(item.clubName || 'C').charAt(0).toUpperCase()}</Text>
+          </View>
+        )}
         <View style={styles.cardInfo}>
           <Text style={styles.clubName}>{item.clubName}</Text>
           {item.clubCode ? <Text style={styles.clubCode}>Code: {item.clubCode}</Text> : null}
@@ -91,7 +101,7 @@ export default function ClubListScreen({ navigation }) {
             ? <Text style={styles.clubMeta}>📍 {[item.city, item.stateName].filter(Boolean).join(', ')}</Text>
             : null}
           {item.contactNumber ? <Text style={styles.clubMeta}>📞 {item.contactNumber}</Text> : null}
-          {item.adminMemberName ? <Text style={styles.clubMeta}>👤 Admin: {item.adminMemberName}</Text> : null}
+          {item.adminMemberNames ? <Text style={styles.clubMeta}>👤 {item.adminMemberNames}</Text> : null}
         </View>
         <View style={[styles.badge, item.isActive ? styles.badgeActive : styles.badgeInactive]}>
           <Text style={[styles.badgeText, item.isActive ? styles.badgeTextActive : styles.badgeTextInactive]}>
@@ -112,6 +122,7 @@ export default function ClubListScreen({ navigation }) {
       </View>
     </View>
   );
+  };
 
   if (loading) {
     return (
@@ -164,7 +175,7 @@ export default function ClubListScreen({ navigation }) {
         onPress={() => navigation.navigate('ClubForm', {})}
         activeOpacity={0.85}
       >
-        <Text style={styles.fabText}>+ Add Club</Text>
+        <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     </View>
   );

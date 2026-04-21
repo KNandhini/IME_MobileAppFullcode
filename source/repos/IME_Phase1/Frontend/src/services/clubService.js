@@ -44,6 +44,22 @@ export const clubService = {
     }
   },
 
+  uploadLogo: async (clubId, imageUri, fileName) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', {
+        uri: imageUri,
+        name: fileName || 'logo.jpg',
+        type: 'image/jpeg',
+      });
+      const response = await api.post(`/club/${clubId}/logo`, formData);
+      return response.data;
+    } catch (error) {
+      console.error('Upload logo error:', error);
+      return { success: false, message: error.message };
+    }
+  },
+
   delete: async (clubId) => {
     try {
       const response = await api.delete(`/club/${clubId}`);
