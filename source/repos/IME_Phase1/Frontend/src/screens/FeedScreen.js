@@ -516,8 +516,6 @@ export default function FeedScreen({ navigation }) {
   const [selItems,  setSelItems]  = useState([]);   // imageItems array
   const [selIdx,    setSelIdx]    = useState(0);
 
-  useFocusEffect(useCallback(() => { fetchFundraisers(); }, []));
-
   const fetchFundraisers = async () => {
     try {
       setLoading(true); setError(null);
@@ -532,6 +530,8 @@ export default function FeedScreen({ navigation }) {
       setLoading(false);
     }
   };
+
+  useFocusEffect(useCallback(() => { fetchFundraisers(); }, []));
 
   // imageItems: Array<{ path, name }> — only image-type media items
   const openViewer = (imageItems, idx = 0) => {
