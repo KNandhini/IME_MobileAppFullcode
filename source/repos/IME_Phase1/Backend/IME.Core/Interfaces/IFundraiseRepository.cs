@@ -14,5 +14,7 @@ namespace IME.Core.Interfaces
         Task<int> CreateFundraiseAsync(Fundraise fundraise);
         Task<bool> UpdateFundraiseAsync(Fundraise fundraise);
         Task<bool> DeleteFundraiseAsync(int id);
+        Task<bool> UpdateFilePathsAsync(int id, string? photoUrls, string? docUrls); // 🆕
+
     }
 }

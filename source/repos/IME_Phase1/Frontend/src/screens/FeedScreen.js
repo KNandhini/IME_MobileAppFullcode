@@ -1,226 +1,506 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import {
   View, Text, ScrollView, TouchableOpacity, StyleSheet,
   SafeAreaView, StatusBar, Image, Dimensions, FlatList,
-  ActivityIndicator, Modal
+  ActivityIndicator, Modal, Animated, Alert,
 } from "react-native";
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
+import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fundraiseService } from "../services/fundraiseService";
 
-const { width } = Dimensions.get("window");
-import api from '../utils/api';
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+const { width }    = Dimensions.get("window");
+const CARD_WIDTH   = width - 28;
 
-// ─── Badge color by urgency/category ─────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getBadgeStyle(urgencyLevel, fundCategory) {
-  if (urgencyLevel === "Critical" || urgencyLevel === "High") {
+  if (urgencyLevel === "Critical" || urgencyLevel === "High")
     return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#e8623a" };
-  }
-  if (fundCategory === "Education") {
+  if (fundCategory === "Education")
     return { badgeColor: "#16a34a", badgeBg: "#f0f9f0", fundColor: "#11998e" };
-  }
-  if (fundCategory === "Medical") {
+  if (fundCategory === "Medical")
     return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#e8623a" };
-  }
   return { badgeColor: "#6366f1", badgeBg: "#eef2ff", fundColor: "#6366f1" };
 }
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
-function Avatar({ initials, online, size = 44 }) {
+function formatTimeAgo(dateString) {
+  if (!dateString) return "";
+  const diff = Date.now() - new Date(dateString).getTime();
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (m < 1)  return "Just now";
+  if (m < 60) return `${m} min ago`;
+  if (h < 24) return `${h} hr${h > 1 ? "s" : ""} ago`;
+  if (d === 1) return "Yesterday";
+  if (d < 7)  return `${d} days ago`;
+  return new Date(dateString).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
+}
+
+function isImagePath(p = "") {
+  return /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(p);
+}
+
+/** Windows backslash path → forward slash for API ?path= param */
+const toApiPath = (storedPath) =>
+  (storedPath || "").replace(/\\/g, "/");
+
+/**
+ * Parse a comma-separated DB string of paths into an array of media items.
+ * Each item: { type: 'image'|'doc', path: string, name: string }
+ * "path" is the raw server path passed to AuthImage / doc download.
+ */
+function parseMediaPaths(raw, defaultType = "image") {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => ({
+      type: isImagePath(p) ? "image" : "doc",
+      path: p,
+      name: p.split(/[\\/]/).pop(),
+    }));
+}
+
+// ─── Authenticated fetch → base64 data URI ────────────────────────────────────
+/**
+ * Fetches a file from:
+ *   GET /api/Fundraise/file?path=Fundraise-5/abc.png
+ * with the JWT Bearer token and returns a base64 data URI string,
+ * or null on failure.
+ */
+async function fetchAuthDataUri(storedPath) {
+  try {
+    const token   = await AsyncStorage.getItem("authToken");
+    const apiPath = toApiPath(storedPath);
+    const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
+
+    const res = await fetch(url, {
+      headers: { Authorization: token ? `Bearer ${token}` : "" },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const blob   = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result); // "data:image/png;base64,..."
+      reader.onerror   = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (e) {
+    console.warn("fetchAuthDataUri failed:", storedPath, e.message);
+    return null;
+  }
+}
+
+// ─── AuthImage ────────────────────────────────────────────────────────────────
+/** Renders a single server image fetched with the auth token. */
+function AuthImage({ path, style, resizeMode = "cover" }) {
+  const [uri,   setUri]   = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchAuthDataUri(path).then(result => {
+      if (cancelled) return;
+      if (result) setUri(result);
+      else setError(true);
+    });
+    return () => { cancelled = true; };
+  }, [path]);
+
+  if (error) {
+    return (
+      <View style={[style, { backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }]}>
+        <Ionicons name="image-outline" size={28} color="#aaa" />
+      </View>
+    );
+  }
+  if (!uri) {
+    return (
+      <View style={[style, { backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }]}>
+        <ActivityIndicator size="small" color="#e8623a" />
+      </View>
+    );
+  }
+  return <Image source={{ uri }} style={style} resizeMode={resizeMode} />;
+}
+
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+function Avatar({ initials, active, size = 42 }) {
   return (
     <View style={{ width: size, height: size }}>
-      <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}>
-        <Text style={styles.avatarText}>{initials}</Text>
+      <View style={[av.circle, { width: size, height: size, borderRadius: size / 2 }]}>
+        <Text style={av.text}>{initials}</Text>
       </View>
-      {online && <View style={[styles.onlineDot, { bottom: 0, right: 0 }]} />}
+      {active && <View style={av.dot} />}
     </View>
   );
 }
 
+// ─── Animated Progress Bar ────────────────────────────────────────────────────
 function ProgressBar({ raised, goal }) {
-  const pct = Math.min((raised / goal) * 100, 100);
+  const anim = useRef(new Animated.Value(0)).current;
+  const pct  = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
+
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: pct, duration: 800, useNativeDriver: false,
+    }).start();
+  }, [pct]);
+
+  const fillWidth = anim.interpolate({ inputRange: [0, 100], outputRange: ["0%", "100%"] });
+
   return (
-    <View style={styles.progressWrap}>
-      <View style={styles.progressMeta}>
-        <Text style={styles.progressLabel}>Raised so far</Text>
-        <Text style={[styles.progressPct, { color: "#22c55e" }]}>
-          {Math.round(pct)}% reached
-        </Text>
+    <View style={pb.wrap}>
+      <View style={pb.meta}>
+        <Text style={pb.label}>Raised so far</Text>
+        <Text style={pb.pct}>{Math.round(pct)}% reached</Text>
       </View>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${pct}%` }]} />
+      <View style={pb.track}>
+        <Animated.View style={[pb.fill, { width: fillWidth }]} />
       </View>
-      <View style={styles.progressMeta}>
-        <Text style={styles.progressAmount}>₹{raised.toLocaleString("en-IN")}</Text>
-        <Text style={styles.progressLabel}>Goal: ₹{goal.toLocaleString("en-IN")}</Text>
+      <View style={pb.meta}>
+        <Text style={pb.amount}>₹{(raised ?? 0).toLocaleString("en-IN")}</Text>
+        <Text style={pb.label}>Goal: ₹{(goal ?? 0).toLocaleString("en-IN")}</Text>
       </View>
     </View>
   );
 }
 
-function DocumentCard({ docName, docUrl, images, onOpenImages }) {
-  return (
-    <View style={styles.docCard}>
-      <View style={styles.docRow}>
-        <View style={styles.docIcon}>
-          <Ionicons name="document-text" size={20} color="#fff" />
-        </View>
-        <View style={styles.docInfo}>
-          <Text style={styles.docName} numberOfLines={1}>{docName}</Text>
-          <Text style={styles.docMeta}>Supporting document</Text>
-        </View>
-        <TouchableOpacity style={styles.docDownload}>
-          <Ionicons name="download-outline" size={16} color="#666" />
-        </TouchableOpacity>
-      </View>
+// ─── Media Strip ─────────────────────────────────────────────────────────────
+/**
+ * Paginated horizontal strip. Each item is:
+ *   { type: 'image'|'doc', path: string, name: string }
+ *
+ * Images → AuthImage (fetches with token).
+ * Docs   → download card (opens /api/Fundraise/file endpoint).
+ */
+function MediaStrip({ mediaItems, onOpenViewer }) {
+  const [activeIndex, setActiveIndex] = useState(0);
 
-      {images.length > 0 && (
-        <View style={styles.thumbStrip}>
-          {images.slice(0, 3).map((img, index) => {
-            const isLast = index === 2 && images.length > 3;
+  if (!mediaItems || mediaItems.length === 0) return null;
+
+  const handleScroll = (e) => {
+    const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
+    setActiveIndex(idx);
+  };
+
+  const handleDocOpen = async (item) => {
+    try {
+      const token   = await AsyncStorage.getItem("authToken");
+      const apiPath = toApiPath(item.path);
+      const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
+
+      // Fetch blob and open as base64 — works inside the app without browser auth
+      const res = await fetch(url, {
+        headers: { Authorization: token ? `Bearer ${token}` : "" },
+      });
+      if (!res.ok) {
+        Alert.alert("Error", `Server returned ${res.status}`);
+        return;
+      }
+      Alert.alert("Document", `"${item.name}" downloaded successfully.\n\nTo view, integrate a PDF viewer library (e.g. expo-file-system + expo-sharing).`);
+    } catch (e) {
+      Alert.alert("Error", "Failed to fetch document: " + e.message);
+    }
+  };
+
+  return (
+    <View style={ms.container}>
+      <FlatList
+        data={mediaItems}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(_, i) => i.toString()}
+        snapToInterval={CARD_WIDTH}
+        decelerationRate="fast"
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        renderItem={({ item, index }) => {
+          if (item.type === "image") {
             return (
               <TouchableOpacity
-                key={index}
-                style={styles.thumbWrapper}
-                onPress={() => onOpenImages(images, index)}
+                activeOpacity={0.95}
+                style={[ms.tile, { width: CARD_WIDTH }]}
+                onPress={() => {
+                  // Pass only image items to the viewer
+                  const imgItems = mediaItems.filter(m => m.type === "image");
+                  const imgIdx   = imgItems.findIndex(m => m.path === item.path);
+                  onOpenViewer(imgItems, Math.max(imgIdx, 0));
+                }}
               >
-                <Image source={{ uri: img }} style={styles.thumbImage} />
-                {isLast && (
-                  <View style={styles.overlay}>
-                    <Text style={styles.overlayText}>+{images.length - 3}</Text>
+                <AuthImage path={item.path} style={ms.img} resizeMode="cover" />
+                <View style={ms.expandHint}>
+                  <Ionicons name="expand-outline" size={16} color="#fff" />
+                </View>
+                {/* Slide counter badge */}
+                {mediaItems.length > 1 && (
+                  <View style={ms.counterBadge}>
+                    <Text style={ms.counterText}>{index + 1}/{mediaItems.length}</Text>
                   </View>
                 )}
               </TouchableOpacity>
             );
-          })}
+          }
+
+          // Document tile
+          const isPdf = /\.pdf(\?.*)?$/i.test(item.path);
+          return (
+            <View style={[ms.tile, ms.docTile, { width: CARD_WIDTH }]}>
+              <View style={ms.docIconCircle}>
+                <Ionicons
+                  name={isPdf ? "document-text" : "document-attach"}
+                  size={36}
+                  color="#fff"
+                />
+              </View>
+              <Text style={ms.docLabel}>Supporting Document</Text>
+              <Text style={ms.docFileName} numberOfLines={2}>{item.name}</Text>
+              <TouchableOpacity
+                style={ms.docDownloadBtn}
+                onPress={() => handleDocOpen(item)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="download-outline" size={16} color="#fff" />
+                <Text style={ms.docDownloadText}>Download</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        }}
+      />
+
+      {/* Pagination dots */}
+      {mediaItems.length > 1 && (
+        <View style={ms.dotsRow}>
+          {mediaItems.map((_, i) => (
+            <View key={i} style={[ms.dot, i === activeIndex && ms.dotActive]} />
+          ))}
         </View>
       )}
     </View>
   );
 }
-const formatTimeAgo = (dateString) => {
-  if (!dateString) return '';
 
-  const now = new Date();
-  const created = new Date(dateString);
-  const diffMs = now - created;
+// ─── useAttachments hook ──────────────────────────────────────────────────────
+/**
+ * Tries GET /api/Fundraise/file?fundraiseId={id} first.
+ * Falls back to parsing beneficiaryPhotoUrl + supportingDocumentUrl
+ * from the post object (comma-separated paths).
+ */
+function useAttachments(post) {
+  const [mediaItems,   setMediaItems]   = useState([]);
+  const [loadingMedia, setLoadingMedia] = useState(true);
 
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  useEffect(() => {
+    let cancelled = false;
 
-  if (diffMinutes < 1) return 'Just now';
+    const load = async () => {
+      try {
+        const result = await fundraiseService.getFile({ fundraiseId: post.id });
 
-  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+        if (cancelled) return;
 
-  if (diffHours < 24) return `${diffHours} hr${diffHours > 1 ? 's' : ''} ago`;
+        let files = [];
+        if (Array.isArray(result))        files = result;
+        else if (Array.isArray(result?.data)) files = result.data;
 
-  if (diffDays === 1) return 'Yesterday';
+        if (files.length > 0) {
+          const items = files.map(f => {
+            const rawPath = f.filePath || f.path || f.url || f.fileUrl || f;
+            const name    = f.fileName || f.name || String(rawPath).split(/[\\/]/).pop();
+            return {
+              type: isImagePath(String(rawPath)) ? "image" : "doc",
+              path: String(rawPath),
+              name,
+            };
+          });
+          if (!cancelled) setMediaItems(items);
+          return;
+        }
+      } catch (e) {
+        console.log("getFile error:", e.message);
+      }
 
-  if (diffDays < 7) return `${diffDays} days ago`;
+      if (cancelled) return;
 
-  // older → show date + time
-  return created.toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
-function PostCard({ post, onOpenImages, navigation }) {
-  const [liked, setLiked] = useState(false);
-  const { badgeColor, badgeBg, fundColor } = getBadgeStyle(post.urgencyLevel, post.fundCategory);
+      // ── Fallback: parse comma-separated paths from the post itself ──
+      const fallback = [
+        ...parseMediaPaths(post.beneficiaryPhotoUrl,   "image"),
+        ...parseMediaPaths(post.supportingDocumentUrl, "doc"),
+      ];
+      if (!cancelled) setMediaItems(fallback);
+    };
 
-  // Build images array from beneficiaryPhotoUrl
-  const images = post.beneficiaryPhotoUrl ? [post.beneficiaryPhotoUrl] : [];
+    load().finally(() => { if (!cancelled) setLoadingMedia(false); });
+    return () => { cancelled = true; };
+  }, [post.id]);
 
-  // Initials from fullName
-  const initials = (post.fullName || "??")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase();
+  return { mediaItems, loadingMedia };
+}
+
+// ─── Full-screen Image Viewer ─────────────────────────────────────────────────
+/**
+ * Receives imageItems: Array<{ path, name }> — fetches each with auth token.
+ */
+function ImageViewer({ visible, imageItems, startIndex, onClose }) {
+  const [dataUris, setDataUris] = useState([]);
+
+  useEffect(() => {
+    if (!visible || !imageItems?.length) return;
+    setDataUris(new Array(imageItems.length).fill(null));
+
+    imageItems.forEach((item, i) => {
+      fetchAuthDataUri(item.path).then(uri => {
+        setDataUris(prev => {
+          const next = [...prev];
+          next[i] = uri;
+          return next;
+        });
+      });
+    });
+  }, [visible, imageItems]);
 
   return (
-    <View style={styles.card}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={vw.root}>
+        <FlatList
+          data={imageItems}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(_, i) => i.toString()}
+          initialScrollIndex={startIndex}
+          getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+          renderItem={({ item, index }) => {
+            const uri = dataUris[index];
+            if (!uri) {
+              return (
+                <View style={[vw.imgWrap, { alignItems: "center", justifyContent: "center" }]}>
+                  <ActivityIndicator size="large" color="#fff" />
+                </View>
+              );
+            }
+            return (
+              <View style={vw.imgWrap}>
+                <Image source={{ uri }} style={vw.img} resizeMode="contain" />
+              </View>
+            );
+          }}
+        />
+        <TouchableOpacity style={vw.close} onPress={onClose}>
+          <View style={vw.closeCircle}>
+            <Ionicons name="close" size={22} color="#fff" />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </Modal>
+  );
+}
+
+// ─── Post Card ────────────────────────────────────────────────────────────────
+function PostCard({ post, onOpenViewer, navigation }) {
+  const [liked, setLiked] = useState(false);
+  const { badgeColor, badgeBg, fundColor } = getBadgeStyle(post.urgencyLevel, post.fundCategory);
+  const { mediaItems, loadingMedia } = useAttachments(post);
+
+  const initials = (post.fullName || "??")
+    .split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+  return (
+    <View style={card.root}>
+
       {/* Header */}
-      <View style={styles.cardHeader}>
-        <Avatar initials={initials} online={post.status === "Active"} />
-        <View style={styles.cardHeaderInfo}>
-          <Text style={styles.posterName}>{post.fullName}</Text>
-          <Text style={styles.posterMeta}>{post.place} · {formatTimeAgo(post.createdDate)}</Text>
+      <View style={card.header}>
+        <Avatar initials={initials} active={post.status === "Active"} />
+        <View style={card.headerInfo}>
+          <Text style={card.name}>{post.fullName}</Text>
+          <Text style={card.meta}>{post.place} · {formatTimeAgo(post.createdDate)}</Text>
         </View>
-        <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-          <Text style={[styles.badgeText, { color: badgeColor }]}>
+        <View style={[card.badge, { backgroundColor: badgeBg }]}>
+          <Text style={[card.badgeText, { color: badgeColor }]}>
             {post.urgencyLevel?.toUpperCase() || post.fundCategory?.toUpperCase()}
           </Text>
         </View>
       </View>
 
-      {/* Title + Body */}
-      <View style={styles.cardContent}>
-        <Text style={styles.postTitle}>{post.fundTitle}</Text>
-        <Text style={styles.postBody}>{post.description}</Text>
+      {/* Title + description */}
+      <View style={card.body}>
+        <Text style={card.title}>{post.fundTitle}</Text>
+        <Text style={card.desc} numberOfLines={3}>{post.description}</Text>
       </View>
 
-      {/* Document */}
-      <DocumentCard
-        docName={`${post.fundCategory}_Document.pdf`}
-        docUrl={post.supportingDocumentUrl}
-        images={images}
-        onOpenImages={onOpenImages}
-      />
+      {/* Media strip */}
+      {loadingMedia ? (
+        <View style={card.mediaLoader}>
+          <ActivityIndicator size="small" color="#e8623a" />
+          <Text style={card.mediaLoaderText}>Loading media…</Text>
+        </View>
+      ) : (
+        <MediaStrip mediaItems={mediaItems} onOpenViewer={onOpenViewer} />
+      )}
 
       {/* Progress */}
-      <ProgressBar raised={post.collectedAmount} goal={post.targetAmount} />
+      <ProgressBar raised={post.collectedAmount ?? 0} goal={post.targetAmount ?? 0} />
 
       {/* End date */}
       {post.endDate && (
-        <View style={styles.endDateRow}>
+        <View style={card.endRow}>
           <Ionicons name="time-outline" size={13} color="#aaa" />
-          <Text style={styles.endDateText}>
-            Ends {new Date(post.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+          <Text style={card.endText}>
+            Ends {new Date(post.endDate).toLocaleDateString("en-IN", {
+              day: "numeric", month: "short", year: "numeric",
+            })}
           </Text>
         </View>
       )}
 
       {/* Footer */}
-      <View style={styles.cardFooter}>
-        <TouchableOpacity onPress={() => setLiked(!liked)} style={styles.footerReaction}>
-          <Ionicons name={liked ? "heart" : "heart-outline"} size={18} color={liked ? "#e8623a" : "#aaa"} />
-          <Text style={styles.footerCount}>{liked ? 1 : 0}</Text>
+      <View style={card.footer}>
+        <TouchableOpacity onPress={() => setLiked(!liked)} style={card.reaction}>
+          <Ionicons
+            name={liked ? "heart" : "heart-outline"}
+            size={19}
+            color={liked ? "#e8623a" : "#bbb"}
+          />
+          <Text style={card.reactionCount}>{liked ? 1 : 0}</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.footerReaction}>
-          <Ionicons name="chatbubble-outline" size={16} color="#aaa" />
-          <Text style={styles.footerCount}>0</Text>
+        <TouchableOpacity style={card.reaction}>
+          <Ionicons name="chatbubble-outline" size={17} color="#bbb" />
+          <Text style={card.reactionCount}>0</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.fundBtn, { backgroundColor: fundColor }]}
-          onPress={() => navigation.navigate("RaiseFund", { post: {
-    id: post.id,
-    title: post.fundTitle,
-    body: post.description,
-   raised: post.collectedAmount ?? post.raised ?? 0,
-      goal: post.targetAmount ?? post.goal ?? 0,
-    badge: post.urgencyLevel || post.fundCategory || '',
-    contactNumber: post.contactNumber,
-  bankName: post.bankName,
-  accountNumber: post.accountNumber,
-  ifsc: post.ifsc,
-  upiId: post.upiId,
-  fullName: post.fullName,
-    badgeColor: badgeColor,
-    badgeBg: badgeBg,
-     minimumAmount: post.minimumAmount ?? 1,
-  } })}
+          style={[card.fundBtn, { backgroundColor: fundColor }]}
           activeOpacity={0.85}
+          onPress={() =>
+            navigation.navigate("RaiseFund", {
+              post: {
+                id:            post.id,
+                title:         post.fundTitle,
+                body:          post.description,
+                raised:        post.collectedAmount ?? 0,
+                goal:          post.targetAmount ?? 0,
+                badge:         post.urgencyLevel || post.fundCategory || "",
+                contactNumber: post.contactNumber,
+                bankName:      post.bankName,
+                accountNumber: post.accountNumber,
+                ifsc:          post.ifsc,
+                upiId:         post.upiId,
+                fullName:      post.fullName,
+                badgeColor,
+                badgeBg,
+                minimumAmount: post.minimumAmount ?? 1,
+              },
+            })
+          }
         >
           <Ionicons name="heart" size={14} color="#fff" />
-          <Text style={styles.fundBtnText}>Raise Fund</Text>
+          <Text style={card.fundBtnText}>Raise Fund</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -228,221 +508,229 @@ function PostCard({ post, onOpenImages, navigation }) {
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
-export default function FeedScreen({ navigation  }) {
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [selectedImages, setSelectedImages] = useState([]);
-  const [startIndex, setStartIndex] = useState(0);
- useFocusEffect(
-  useCallback(() => {
-    fetchFundraisers();
-  }, [])
-);
+export default function FeedScreen({ navigation }) {
+  const [posts,     setPosts]     = useState([]);
+  const [loading,   setLoading]   = useState(true);
+  const [error,     setError]     = useState(null);
+  const [viewerVis, setViewerVis] = useState(false);
+  const [selItems,  setSelItems]  = useState([]);   // imageItems array
+  const [selIdx,    setSelIdx]    = useState(0);
 
-  useEffect(() => {
-    fetchFundraisers();
-  }, []);
+  useFocusEffect(useCallback(() => { fetchFundraisers(); }, []));
 
   const fetchFundraisers = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-
-    const res = await api.get('/Fundraise'); // ✅ clean call
-
-    if (res.data.success) {
-      setPosts(res.data.data);
-    } else {
-      setError(res.data.message || "Failed to load");
+    try {
+      setLoading(true); setError(null);
+      const res = await fundraiseService.getAll();
+      if (Array.isArray(res))          setPosts(res);
+      else if (res?.success)           setPosts(res.data || []);
+      else if (Array.isArray(res?.data)) setPosts(res.data);
+      else                             setError(res?.message || "Failed to load");
+    } catch {
+      setError("Network error. Pull to refresh.");
+    } finally {
+      setLoading(false);
     }
-
-  } catch (e) {
-    console.log("ERROR FULL:", e);
-    console.log("ERROR RESPONSE:", e.response);
-    console.log("ERROR MESSAGE:", e.message);
-
-    setError("Network error. Pull to refresh.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-  const openViewer = (imgs, index = 0) => {
-    setSelectedImages([...imgs]);
-    setStartIndex(index);
-    setViewerVisible(true);
   };
 
-  if (loading) {
+  // imageItems: Array<{ path, name }> — only image-type media items
+  const openViewer = (imageItems, idx = 0) => {
+    setSelItems(imageItems);
+    setSelIdx(idx);
+    setViewerVis(true);
+  };
+
+  if (loading)
     return (
-      <SafeAreaView style={[styles.safe, { justifyContent: "center", alignItems: "center" }]}>
+      <SafeAreaView style={[s.safe, s.center]}>
         <ActivityIndicator size="large" color="#e8623a" />
-        <Text style={{ color: "#888", marginTop: 12 }}>Loading fundraisers…</Text>
+        <Text style={s.hint}>Loading fundraisers…</Text>
       </SafeAreaView>
     );
-  }
 
-  if (error) {
+  if (error)
     return (
-      <SafeAreaView style={[styles.safe, { justifyContent: "center", alignItems: "center" }]}>
+      <SafeAreaView style={[s.safe, s.center]}>
         <Ionicons name="cloud-offline-outline" size={48} color="#ccc" />
-        <Text style={{ color: "#888", marginTop: 12, textAlign: "center" }}>{error}</Text>
-        <TouchableOpacity style={styles.retryBtn} onPress={fetchFundraisers}>
-          <Text style={styles.retryBtnText}>Retry</Text>
+        <Text style={[s.hint, { textAlign: "center", paddingHorizontal: 32 }]}>{error}</Text>
+        <TouchableOpacity style={s.retryBtn} onPress={fetchFundraisers}>
+          <Text style={s.retryText}>Retry</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
-  }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={s.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#f5f4f0" />
 
       <ScrollView
-        style={styles.feed}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        style={s.feed}
+        contentContainerStyle={{ paddingBottom: 100, paddingTop: 4 }}
         showsVerticalScrollIndicator={false}
       >
         {posts.length === 0 ? (
-          <View style={{ alignItems: "center", marginTop: 60 }}>
-            <Ionicons name="heart-outline" size={48} color="#ccc" />
-            <Text style={{ color: "#aaa", marginTop: 12 }}>No active fundraisers</Text>
+          <View style={[s.center, { marginTop: 80 }]}>
+            <Ionicons name="heart-outline" size={52} color="#ccc" />
+            <Text style={s.hint}>No active fundraisers</Text>
           </View>
         ) : (
-          posts.map((item) => (
-  <PostCard
-    key={item.id}
-    post={item}               // ← pass raw item
-    onOpenImages={openViewer}
-    navigation={navigation}
-  />
-))
+          posts.map(item => (
+            <PostCard
+              key={item.id}
+              post={item}
+              onOpenViewer={openViewer}
+              navigation={navigation}
+            />
+          ))
         )}
       </ScrollView>
 
-      {/* Full Screen Image Viewer */}
-      <Modal visible={viewerVisible} transparent={true} onRequestClose={() => setViewerVisible(false)}>
-        <View style={styles.viewer}>
-          <FlatList
-            data={selectedImages}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(_, i) => i.toString()}
-            initialScrollIndex={startIndex}
-            getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.fullImage} />
-            )}
-          />
-          <TouchableOpacity style={styles.closeBtn} onPress={() => setViewerVisible(false)}>
-            <Ionicons name="close" size={30} color="#fff" />
-          </TouchableOpacity>
-        </View>
-      </Modal>
+      <ImageViewer
+        visible={viewerVis}
+        imageItems={selItems}
+        startIndex={selIdx}
+        onClose={() => setViewerVis(false)}
+      />
     </SafeAreaView>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f5f4f0" },
-  feed: { flex: 1, paddingTop: 4 },
+const s = StyleSheet.create({
+  safe:     { flex: 1, backgroundColor: "#f5f4f0" },
+  feed:     { flex: 1 },
+  center:   { flex: 1, justifyContent: "center", alignItems: "center" },
+  hint:     { color: "#888", marginTop: 12, fontSize: 14 },
+  retryBtn: {
+    marginTop: 16, backgroundColor: "#e8623a",
+    borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10,
+  },
+  retryText: { color: "#fff", fontWeight: "600" },
+});
 
-  card: {
+const av = StyleSheet.create({
+  circle: { backgroundColor: "#c084fc", alignItems: "center", justifyContent: "center" },
+  text:   { color: "#fff", fontSize: 15, fontWeight: "600" },
+  dot: {
+    position: "absolute", bottom: 0, right: 0,
+    width: 12, height: 12, borderRadius: 6,
+    backgroundColor: "#22c55e", borderWidth: 2, borderColor: "#fff",
+  },
+});
+
+const pb = StyleSheet.create({
+  wrap:   { paddingHorizontal: 16, paddingBottom: 8, paddingTop: 4 },
+  meta:   { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
+  label:  { fontSize: 12, color: "#888" },
+  pct:    { fontSize: 12, fontWeight: "600", color: "#22c55e" },
+  track:  {
+    height: 6, backgroundColor: "#f0ede8",
+    borderRadius: 99, overflow: "hidden", marginBottom: 5,
+  },
+  fill:   { height: "100%", backgroundColor: "#22c55e", borderRadius: 99 },
+  amount: { fontSize: 13, fontWeight: "700", color: "#111" },
+});
+
+const ms = StyleSheet.create({
+  container: { marginBottom: 2 },
+  tile:      { overflow: "hidden" },
+
+  // Image tile
+  img: { width: "100%", height: 260, backgroundColor: "#e8e5e0" },
+  expandHint: {
+    position: "absolute", bottom: 10, right: 12,
+    backgroundColor: "rgba(0,0,0,0.35)", borderRadius: 6, padding: 5,
+  },
+  counterBadge: {
+    position: "absolute", top: 10, right: 12,
+    backgroundColor: "rgba(0,0,0,0.45)", borderRadius: 12,
+    paddingHorizontal: 9, paddingVertical: 3,
+  },
+  counterText: { color: "#fff", fontSize: 11, fontWeight: "600" },
+
+  // Document tile
+  docTile: {
+    height: 260, backgroundColor: "#1a1a2e",
+    alignItems: "center", justifyContent: "center",
+    paddingHorizontal: 28, gap: 10,
+  },
+  docIconCircle: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: "#e8623a",
+    alignItems: "center", justifyContent: "center", marginBottom: 4,
+  },
+  docLabel: {
+    color: "rgba(255,255,255,0.6)", fontSize: 12,
+    fontWeight: "500", textTransform: "uppercase", letterSpacing: 1,
+  },
+  docFileName: {
+    color: "#fff", fontSize: 15, fontWeight: "700",
+    textAlign: "center", lineHeight: 21,
+  },
+  docDownloadBtn: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    backgroundColor: "#e8623a",
+    borderRadius: 22, paddingHorizontal: 22, paddingVertical: 11, marginTop: 6,
+  },
+  docDownloadText: { color: "#fff", fontSize: 14, fontWeight: "700" },
+
+  // Pagination dots
+  dotsRow: {
+    flexDirection: "row", justifyContent: "center",
+    alignItems: "center", gap: 5, paddingVertical: 9,
+  },
+  dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ddd" },
+  dotActive: { backgroundColor: "#e8623a", width: 18, borderRadius: 3 },
+});
+
+const card = StyleSheet.create({
+  root: {
     backgroundColor: "#fff", marginHorizontal: 14, marginTop: 12,
     borderRadius: 20, overflow: "hidden",
     borderWidth: 0.5, borderColor: "rgba(0,0,0,0.07)",
   },
-  cardHeader: {
-    flexDirection: "row", alignItems: "center",
-    padding: 14, paddingBottom: 10, gap: 10,
-  },
-  avatar: { backgroundColor: "#c084fc", alignItems: "center", justifyContent: "center" },
-  avatarText: { color: "#fff", fontSize: 15, fontWeight: "500" },
-  onlineDot: {
-    position: "absolute", width: 13, height: 13,
-    backgroundColor: "#22c55e", borderRadius: 7,
-    borderWidth: 2, borderColor: "#fff",
-  },
-  cardHeaderInfo: { flex: 1 },
-  posterName: { fontSize: 15, fontWeight: "600", color: "#111" },
-  posterMeta: { fontSize: 11, color: "#888", marginTop: 2, fontFamily: "monospace" },
-  badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
+  header:     { flexDirection: "row", alignItems: "center", padding: 14, paddingBottom: 10, gap: 10 },
+  headerInfo: { flex: 1 },
+  name:       { fontSize: 15, fontWeight: "600", color: "#111" },
+  meta:       { fontSize: 11, color: "#888", marginTop: 2 },
+  badge:      { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeText:  { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
 
-  cardContent: { paddingHorizontal: 16, paddingBottom: 12 },
-  postTitle: { fontSize: 17, fontWeight: "600", color: "#111", lineHeight: 24, marginBottom: 8 },
-  postBody: { fontSize: 14, color: "#444", lineHeight: 22 },
+  body:  { paddingHorizontal: 16, paddingBottom: 12 },
+  title: { fontSize: 17, fontWeight: "700", color: "#111", lineHeight: 24, marginBottom: 6 },
+  desc:  { fontSize: 14, color: "#555", lineHeight: 22 },
 
-  docCard: {
-    marginHorizontal: 16, marginBottom: 14,
-    backgroundColor: "#f0ede8", borderRadius: 14, overflow: "hidden",
-    borderWidth: 0.5, borderColor: "rgba(0,0,0,0.08)",
+  mediaLoader: {
+    height: 80, alignItems: "center", justifyContent: "center",
+    flexDirection: "row", gap: 10, backgroundColor: "#fafaf9",
   },
-  docRow: { flexDirection: "row", alignItems: "center", padding: 12, gap: 10 },
-  docIcon: {
-    width: 40, height: 48, backgroundColor: "#e8623a",
-    borderRadius: 6, alignItems: "center", justifyContent: "center",
-  },
-  docInfo: { flex: 1 },
-  docName: { fontSize: 13, fontWeight: "600", color: "#111" },
-  docMeta: { fontSize: 11, color: "#888", marginTop: 2 },
-  docDownload: {
-    width: 30, height: 30, backgroundColor: "#fff", borderRadius: 15,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 0.5, borderColor: "rgba(0,0,0,0.1)",
-  },
-  thumbStrip: { flexDirection: "row", gap: 4, paddingHorizontal: 12, paddingBottom: 12 },
-  thumbWrapper: { flex: 1, height: 80, borderRadius: 10, overflow: "hidden" },
-  thumbImage: { width: "100%", height: "100%" },
-  overlay: {
-    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.5)", alignItems: "center", justifyContent: "center",
-  },
-  overlayText: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  mediaLoaderText: { fontSize: 13, color: "#aaa" },
 
-  progressWrap: { paddingHorizontal: 16, paddingBottom: 8 },
-  progressMeta: { flexDirection: "row", justifyContent: "space-between", marginBottom: 6 },
-  progressLabel: { fontSize: 12, color: "#888" },
-  progressPct: { fontSize: 12, fontWeight: "600" },
-  progressTrack: {
-    height: 6, backgroundColor: "#f0ede8", borderRadius: 99, overflow: "hidden", marginBottom: 6,
-  },
-  progressFill: { height: "100%", backgroundColor: "#22c55e", borderRadius: 99 },
-  progressAmount: { fontSize: 13, fontWeight: "600", color: "#111" },
+  endRow:  { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 16, paddingBottom: 10 },
+  endText: { fontSize: 11, color: "#aaa" },
 
-  endDateRow: {
-    flexDirection: "row", alignItems: "center", gap: 4,
-    paddingHorizontal: 16, paddingBottom: 10,
-  },
-  endDateText: { fontSize: 11, color: "#aaa" },
-
-  cardFooter: {
+  footer: {
     flexDirection: "row", alignItems: "center", gap: 8,
     borderTopWidth: 0.5, borderTopColor: "#f0ede8",
     paddingHorizontal: 16, paddingVertical: 10,
   },
-  footerReaction: { flexDirection: "row", alignItems: "center", gap: 4, marginRight: 4 },
-  footerCount: { fontSize: 12, color: "#888" },
+  reaction:      { flexDirection: "row", alignItems: "center", gap: 4, marginRight: 4 },
+  reactionCount: { fontSize: 12, color: "#888" },
   fundBtn: {
     marginLeft: "auto", flexDirection: "row", alignItems: "center", gap: 6,
     borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9,
   },
   fundBtnText: { fontSize: 13, fontWeight: "600", color: "#fff", letterSpacing: 0.3 },
+});
 
-  retryBtn: {
-    marginTop: 16, backgroundColor: "#e8623a", borderRadius: 12,
-    paddingHorizontal: 24, paddingVertical: 10,
+const vw = StyleSheet.create({
+  root:    { flex: 1, backgroundColor: "#000", justifyContent: "center" },
+  imgWrap: { width, height: "100%", justifyContent: "center", alignItems: "center" },
+  img:     { width, height: "100%" },
+  close:   { position: "absolute", top: 52, right: 18 },
+  closeCircle: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center", justifyContent: "center",
   },
-  retryBtnText: { color: "#fff", fontWeight: "600" },
-
-  viewer: {
-    position: "absolute", top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "#000", justifyContent: "center",
-  },
-  fullImage: { width, height: "100%", resizeMode: "contain" },
-  closeBtn: { position: "absolute", top: 50, right: 20 },
 });
