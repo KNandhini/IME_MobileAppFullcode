@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View, Text, TextInput, ScrollView,
   StyleSheet, TouchableOpacity, Alert, Modal,
-  FlatList, Image, Platform, ActivityIndicator
+  FlatList, Image, Platform, ActivityIndicator, StatusBar
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -979,6 +979,7 @@ const s = StyleSheet.create({
   navbar: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 12, paddingVertical: 12,
+    paddingTop: (StatusBar.currentHeight ?? 0) + 12,
     borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
     backgroundColor: '#fff',
   },
