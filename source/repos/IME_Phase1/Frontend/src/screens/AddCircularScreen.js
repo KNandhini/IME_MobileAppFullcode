@@ -115,6 +115,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   };
 
   const saveCircular = async () => {
+    debugger;
     if (saving) return;
     if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
     try {
