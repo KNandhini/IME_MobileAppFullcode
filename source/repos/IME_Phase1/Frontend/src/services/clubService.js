@@ -70,6 +70,16 @@ export const clubService = {
     }
   },
 
+  getNextCode: async () => {
+    try {
+      const response = await api.get('/club/next-code');
+      return response.data;
+    } catch (error) {
+      console.error('Get next club code error:', error);
+      return { success: false, message: error.message };
+    }
+  },
+
   getCountries: async () => {
     try {
       const response = await api.get('/club/countries');
