@@ -108,6 +108,16 @@ public class ClubRepository : IClubRepository
         return false;
     }
 
+    public async Task<string> GetNextClubCodeAsync()
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetNextClubCode", connection);
+        using var reader = await command.ExecuteReaderAsync();
+        if (await reader.ReadAsync())
+            return reader.GetString(reader.GetOrdinal("NextCode"));
+        return "CLUB001";
+    }
+
     public async Task<List<Country>> GetCountriesAsync()
     {
         var list = new List<Country>();

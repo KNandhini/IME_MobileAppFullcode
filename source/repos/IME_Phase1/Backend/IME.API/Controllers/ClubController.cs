@@ -42,7 +42,7 @@ public class ClubController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<ClubDTO>>> GetById(int id)
     {
@@ -82,7 +82,7 @@ public class ClubController : ControllerBase
         }
     }
 
-    [HttpPut("{id}")]
+    [HttpPut("{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Update(int id, [FromBody] UpdateClubDTO request)
     {
@@ -108,7 +108,7 @@ public class ClubController : ControllerBase
         }
     }
 
-    [HttpPost("{id}/logo")]
+    [HttpPost("{id:int}/logo")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> UploadLogo(int id, [FromForm] IFormFile file)
     {
@@ -143,7 +143,7 @@ public class ClubController : ControllerBase
         }
     }
 
-    [HttpDelete("{id}")]
+    [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
@@ -155,6 +155,21 @@ public class ClubController : ControllerBase
                 return NotFound(new ApiResponse<object> { Success = false, Message = "Club not found" });
 
             return Ok(new ApiResponse<object> { Success = true, Message = "Club deleted successfully" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+    [HttpGet("next-code")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<object>>> GetNextCode()
+    {
+        try
+        {
+            var code = await _clubRepository.GetNextClubCodeAsync();
+            return Ok(new ApiResponse<object> { Success = true, Data = new { Code = code } });
         }
         catch (Exception ex)
         {

@@ -11,13 +11,6 @@ import { BASE_URL } from '../utils/api';
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
-const generateClubCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let suffix = '';
-  for (let i = 0; i < 4; i++) suffix += chars[Math.floor(Math.random() * chars.length)];
-  return `CLB-${suffix}`;
-};
-
 export default function ClubFormScreen({ route, navigation }) {
   const { clubId } = route.params || {};
   const isEditMode = !!clubId;
@@ -73,9 +66,14 @@ export default function ClubFormScreen({ route, navigation }) {
     if (isEditMode) {
       loadClub();
     } else {
-      set('clubCode', generateClubCode());
+      fetchNextCode();
     }
   }, []);
+
+  const fetchNextCode = async () => {
+    const res = await clubService.getNextCode();
+    if (res.success && res.data?.code) set('clubCode', res.data.code);
+  };
 
   const loadLookups = async () => {
     const [cRes, mRes] = await Promise.all([
@@ -314,7 +312,7 @@ export default function ClubFormScreen({ route, navigation }) {
         <Field label="Club Code">
           <View style={styles.codeRow}>
             <TextInput style={[styles.input, styles.codeInput]} value={form.clubCode} onChangeText={v => set('clubCode', v)} placeholder="e.g. CLB-AB12" placeholderTextColor="#bbb" autoCapitalize="characters" />
-            <TouchableOpacity style={styles.regenBtn} onPress={() => set('clubCode', generateClubCode())} activeOpacity={0.75}>
+            <TouchableOpacity style={styles.regenBtn} onPress={fetchNextCode} activeOpacity={0.75}>
               <Ionicons name="refresh" size={18} color="#1E3A5F" />
             </TouchableOpacity>
           </View>
