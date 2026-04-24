@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
 import { BASE_URL } from '../utils/api';
@@ -17,6 +18,7 @@ export default function ClubFormScreen({ route, navigation }) {
 
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditMode);
+  const [errors, setErrors] = useState({});
 
   // ── Lookup data ───────────────────────────────────────────────────────────
   const [countries, setCountries] = useState([]);
@@ -30,9 +32,13 @@ export default function ClubFormScreen({ route, navigation }) {
   const [memberModal, setMemberModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
 
+  // ── Date picker state ─────────────────────────────────────────────────────
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+
   // ── Logo state ────────────────────────────────────────────────────────────
-  const [logoUri, setLogoUri] = useState(null);      // new local pick
-  const [existingLogo, setExistingLogo] = useState(null); // from server
+  const [logoUri, setLogoUri] = useState(null);
+  const [existingLogo, setExistingLogo] = useState(null);
 
   // ── Form fields ───────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -56,7 +62,7 @@ export default function ClubFormScreen({ route, navigation }) {
     clubType: '',
     establishedDate: '',
     totalMembers: '',
-    adminMembers: [],   // [{memberId, fullName}]
+    adminMembers: [],
     registrationNumber: '',
     isActive: true,
   });
@@ -88,8 +94,6 @@ export default function ClubFormScreen({ route, navigation }) {
     const res = await clubService.getById(clubId);
     if (res.success && res.data) {
       const d = res.data;
-
-      // Reconstruct adminMembers array from stored comma-sep strings
       const adminMembers = [];
       if (d.adminMemberIds) {
         const ids = d.adminMemberIds.split(',').map(s => s.trim());
@@ -98,7 +102,6 @@ export default function ClubFormScreen({ route, navigation }) {
           if (id) adminMembers.push({ memberId: parseInt(id, 10), fullName: names[i] || id });
         });
       }
-
       setForm({
         clubName:           d.clubName || '',
         clubCode:           d.clubCode || '',
@@ -124,11 +127,9 @@ export default function ClubFormScreen({ route, navigation }) {
         registrationNumber: d.registrationNumber || '',
         isActive:           d.isActive !== false,
       });
-
       if (d.logoPath) {
         setExistingLogo(`${BASE_URL}/Uploads/${d.logoPath.replace(/\\/g, '/')}`);
       }
-
       if (d.countryId) loadStates(d.countryId);
     }
     setLoading(false);
@@ -150,7 +151,7 @@ export default function ClubFormScreen({ route, navigation }) {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsEditing: false,
       aspect: [1, 1],
       quality: 0.8,
     });
@@ -200,13 +201,150 @@ export default function ClubFormScreen({ route, navigation }) {
     m.fullName?.toLowerCase().includes(memberSearch.toLowerCase())
   );
 
-  // ── Save ──────────────────────────────────────────────────────────────────
-  const handleSave = async () => {
-    if (!form.clubName.trim()) {
-      Alert.alert('Validation', 'Club Name is required.');
-      return;
+  // ── Date picker ───────────────────────────────────────────────────────────
+  const today = new Date();
+  const minDate = new Date();
+  minDate.setFullYear(today.getFullYear() - 200);
+
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  // ── Validation ────────────────────────────────────────────────────────────
+  const validate = () => {
+    const e = {};
+
+    // Club Name — mandatory, max 200
+    
+
+    // Club Code — mandatory
+    if (!form.clubCode.trim()) {
+      e.clubCode = 'Club Code is required.';
     }
 
+    // Country — mandatory
+    if (!form.countryId) {
+      e.countryId = 'Country is required.';
+    }
+
+    // State — mandatory
+    if (!form.stateId) {
+      e.stateId = 'State is required.';
+    }
+    // Club Name — alphabets only (letters + spaces)
+if (!form.clubName.trim()) {
+  e.clubName = 'Club Name is required.';
+} else if (!/^[A-Za-z\s]+$/.test(form.clubName.trim())) {
+  e.clubName = 'Club Name must contain alphabets only.';
+}
+
+// Description — no special chars except - . , /
+if (form.description && /[^A-Za-z0-9\s\-.,/]/.test(form.description)) {
+  e.description = 'Description allows only letters, numbers, spaces and - . , /';
+}
+
+// City — alphabets only
+if (!form.city.trim()) {
+  e.city = 'City is required.';
+} else if (!/^[A-Za-z\s]+$/.test(form.city.trim())) {
+  e.city = 'City must contain alphabets only.';
+}
+
+// District — alphabets only
+if (!form.district.trim()) {
+  e.district = 'District is required.';
+} else if (!/^[A-Za-z\s]+$/.test(form.district.trim())) {
+  e.district = 'District must contain alphabets only.';
+}
+
+    // Pincode — numbers only, max 10
+    if (form.pincode && !/^\d+$/.test(form.pincode)) {
+      e.pincode = 'Pincode must contain numbers only.';
+    }
+
+    // Address Line 1 — mandatory, max 250, allow letters/digits/space/.,/-
+    if (!form.addressLine1.trim()) {
+      e.addressLine1 = 'Address Line 1 is required.';
+    } else if (form.addressLine1.length > 250) {
+      e.addressLine1 = 'Address Line 1 must be at most 250 characters.';
+    } else if (/[^A-Za-z0-9\s.,\-/]/.test(form.addressLine1)) {
+      e.addressLine1 = 'Address Line 1 allows only letters, numbers, spaces and . , - /';
+    }
+
+    // Address Line 2 — optional, max 250, allow letters/digits/space/.,
+    if (form.addressLine2) {
+      if (form.addressLine2.length > 250) {
+        e.addressLine2 = 'Address Line 2 must be at most 250 characters.';
+      } else if (/[^A-Za-z0-9\s.,]/.test(form.addressLine2)) {
+        e.addressLine2 = 'Address Line 2 allows only letters, numbers, spaces and . ,';
+      }
+    }
+
+   // In validate()
+if (!form.contactPersonName.trim()) {
+  e.contactPersonName = 'Contact Person is required.';
+} else if (!/^[A-Za-z\s]+$/.test(form.contactPersonName.trim())) {
+  e.contactPersonName = 'Contact Person must contain alphabets only.';
+} else if (form.contactPersonName.length > 150) {
+  e.contactPersonName = 'Contact Person must be at most 150 characters.';
+}
+    // Contact Number — mandatory, numbers only
+    if (!form.contactNumber.trim()) {
+      e.contactNumber = 'Contact Number is required.';
+    } else if (!/^\d+$/.test(form.contactNumber)) {
+      e.contactNumber = 'Contact Number must contain numbers only.';
+    }
+
+    // Email — mandatory, valid format
+    // Allow domains like .com  .com.au  .edu.in
+    // Reject repeated TLDs like .com.com  .au.au
+    if (!form.email.trim()) {
+      e.email = 'Email is required.';
+    } else if (!form.email.includes('@')) {
+      e.email = 'Invalid email — missing @.';
+    } else {
+      const emailRegex = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z]{2,})+$/;
+      const repeatedTLD = /(\.[A-Za-z]{2,})\1+/; // catches .com.com, .au.au
+      if (!emailRegex.test(form.email)) {
+        e.email = 'Invalid email address.';
+      } else if (repeatedTLD.test(form.email.split('@')[1])) {
+        e.email = 'Invalid email — repeated domain extension (e.g. .com.com).';
+      }
+    }
+
+    // Club Type — mandatory
+    if (!form.clubType) {
+      e.clubType = 'Club Type is required.';
+    }
+
+    // Established Date — mandatory
+    if (!form.establishedDate) {
+      e.establishedDate = 'Established Date is required.';
+    }
+// Total Members — max 4 digits
+if (form.totalMembers && form.totalMembers.length > 4) {
+  e.totalMembers = 'Total Members must be at most 4 digits.';
+}
+
+// Registration Number — alphanumeric, max 15
+if (form.registrationNumber) {
+  if (!/^[A-Za-z0-9]+$/.test(form.registrationNumber)) {
+    e.registrationNumber = 'Registration Number must be alphanumeric.';
+  } else if (form.registrationNumber.length > 15) {
+    e.registrationNumber = 'Registration Number must be max 15 characters.';
+  }
+}
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  // ── Save ──────────────────────────────────────────────────────────────────
+  const handleSave = async () => {
+    if (!validate()) return;
+debugger;
     setSaving(true);
 
     const payload = {
@@ -243,10 +381,9 @@ export default function ClubFormScreen({ route, navigation }) {
       Alert.alert('Error', res.message || 'Something went wrong.');
       return;
     }
-
+debugger;
     const savedId = isEditMode ? clubId : res.data?.clubId;
 
-    // Upload logo if a new one was picked
     if (logoUri && savedId) {
       const fileName = logoUri.split('/').pop();
       await clubService.uploadLogo(savedId, logoUri, fileName);
@@ -306,34 +443,68 @@ export default function ClubFormScreen({ route, navigation }) {
 
         {/* ── Basic Details ── */}
         <SectionHeader title="Basic Details" />
+
         <Field label="Club Name *">
-          <TextInput style={styles.input} value={form.clubName} onChangeText={v => set('clubName', v)} placeholder="Enter club name" placeholderTextColor="#bbb" />
+          <TextInput
+            style={[styles.input, errors.clubName && styles.inputError]}
+            value={form.clubName}
+onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}            placeholder="Enter club name"
+            placeholderTextColor="#bbb"
+            maxLength={200}
+          />
         </Field>
-        <Field label="Club Code">
+        {errors.clubName && <Text style={styles.error}>{errors.clubName}</Text>}
+
+        <Field label="Club Code *">
           <View style={styles.codeRow}>
-            <TextInput style={[styles.input, styles.codeInput]} value={form.clubCode} onChangeText={v => set('clubCode', v)} placeholder="e.g. CLB-AB12" placeholderTextColor="#bbb" autoCapitalize="characters" />
+            <TextInput
+              style={[styles.input, styles.codeInput, errors.clubCode && styles.inputError]}
+              value={form.clubCode}
+              onChangeText={v => set('clubCode', v)}
+              placeholder="e.g. CLB-AB12"
+              placeholderTextColor="#bbb"
+              autoCapitalize="characters"
+            />
             <TouchableOpacity style={styles.regenBtn} onPress={fetchNextCode} activeOpacity={0.75}>
               <Ionicons name="refresh" size={18} color="#1E3A5F" />
             </TouchableOpacity>
           </View>
         </Field>
-        <Field label="Description">
-          <TextInput style={[styles.input, styles.textarea]} value={form.description} onChangeText={v => set('description', v)} placeholder="Brief description" placeholderTextColor="#bbb" multiline numberOfLines={3} textAlignVertical="top" />
-        </Field>
+        {errors.clubCode && <Text style={styles.error}>{errors.clubCode}</Text>}
+
+       <Field label="Description">
+  <TextInput
+    style={[styles.input, styles.textarea, errors.description && styles.inputError]}
+    value={form.description}
+    onChangeText={v => set('description', v.replace(/[^A-Za-z0-9\s\-.,/]/g, ''))}
+    placeholder="Brief description"
+    placeholderTextColor="#bbb"
+    multiline
+    numberOfLines={3}
+    textAlignVertical="top"
+  />
+</Field>
+{errors.description && <Text style={styles.error}>{errors.description}</Text>}
 
         {/* ── Location Details ── */}
         <SectionHeader title="Location Details" />
-        <Field label="Country">
-          <TouchableOpacity style={styles.selector} onPress={() => setCountryModal(true)}>
+
+        <Field label="Country *">
+          <TouchableOpacity
+            style={[styles.selector, errors.countryId && styles.selectorError]}
+            onPress={() => setCountryModal(true)}
+          >
             <Text style={form.countryName ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.countryName || 'Select country'}
             </Text>
             <Ionicons name="chevron-down" size={16} color="#888" />
           </TouchableOpacity>
         </Field>
-        <Field label="State">
+        {errors.countryId && <Text style={styles.error}>{errors.countryId}</Text>}
+
+        <Field label="State *">
           <TouchableOpacity
-            style={[styles.selector, !form.countryId && styles.selectorDisabled]}
+            style={[styles.selector, !form.countryId && styles.selectorDisabled, errors.stateId && styles.selectorError]}
             onPress={() => form.countryId && setStateModal(true)}
           >
             <Text style={form.stateName ? styles.selectorValue : styles.selectorPlaceholder}>
@@ -342,63 +513,216 @@ export default function ClubFormScreen({ route, navigation }) {
             <Ionicons name="chevron-down" size={16} color="#888" />
           </TouchableOpacity>
         </Field>
-        <Row>
-          <Field label="City" flex>
-            <TextInput style={styles.input} value={form.city} onChangeText={v => set('city', v)} placeholder="City" placeholderTextColor="#bbb" />
-          </Field>
-          <Field label="District" flex>
-            <TextInput style={styles.input} value={form.district} onChangeText={v => set('district', v)} placeholder="District" placeholderTextColor="#bbb" />
-          </Field>
-        </Row>
-        <Field label="Address Line 1">
-          <TextInput style={styles.input} value={form.addressLine1} onChangeText={v => set('addressLine1', v)} placeholder="Street / Building" placeholderTextColor="#bbb" />
+        {errors.stateId && <Text style={styles.error}>{errors.stateId}</Text>}
+
+        
+          <Row>
+  <Field label="City *" flex>
+    <TextInput
+      style={[styles.input, errors.city && styles.inputError]}
+      value={form.city}
+     onChangeText={v => set('city', v.replace(/[^A-Za-z\s]/g, ''))}
+      placeholder="Enter city"
+      placeholderTextColor="#bbb"
+    />
+    {errors.city && <Text style={styles.error}>{errors.city}</Text>}
+  </Field>
+
+  <Field label="District *" flex>
+    <TextInput
+      style={[styles.input, errors.district && styles.inputError]}
+      value={form.district}
+     onChangeText={v => set('district', v.replace(/[^A-Za-z\s]/g, ''))}
+      placeholder="Enter district"
+      placeholderTextColor="#bbb"
+    />
+    {errors.district && <Text style={styles.error}>{errors.district}</Text>}
+  </Field>
+</Row>
+        <Field label="Address Line 1 *">
+         <TextInput
+  style={[styles.input, styles.textarea, errors.addressLine1 && styles.inputError]}
+  value={form.addressLine1}
+  onChangeText={v => set('addressLine1', v.slice(0, 250))}
+  placeholder="Street / Building"
+  placeholderTextColor="#bbb"
+  maxLength={250}
+  multiline
+  numberOfLines={3}
+  textAlignVertical="top"
+/>
         </Field>
+        {errors.addressLine1 && <Text style={styles.error}>{errors.addressLine1}</Text>}
+
         <Field label="Address Line 2">
-          <TextInput style={styles.input} value={form.addressLine2} onChangeText={v => set('addressLine2', v)} placeholder="Area / Landmark" placeholderTextColor="#bbb" />
+         <TextInput
+  style={[styles.input, styles.textarea, errors.addressLine2 && styles.inputError]}
+  value={form.addressLine2}
+  onChangeText={v => set('addressLine2', v.slice(0, 250))}
+  placeholder="Area / Landmark"
+  placeholderTextColor="#bbb"
+  maxLength={250}
+  multiline
+  numberOfLines={3}
+  textAlignVertical="top"
+/>
         </Field>
+        {errors.addressLine2 && <Text style={styles.error}>{errors.addressLine2}</Text>}
+
         <Field label="Pincode">
-          <TextInput style={styles.input} value={form.pincode} onChangeText={v => set('pincode', v)} placeholder="6-digit pincode" placeholderTextColor="#bbb" keyboardType="number-pad" maxLength={10} />
+          <TextInput
+            style={[styles.input, errors.pincode && styles.inputError]}
+            value={form.pincode}
+            onChangeText={v => set('pincode', v.replace(/[^0-9]/g, '').slice(0, 10))}
+            placeholder="Pincode"
+            placeholderTextColor="#bbb"
+            keyboardType="number-pad"
+            maxLength={10}
+          />
         </Field>
+        {errors.pincode && <Text style={styles.error}>{errors.pincode}</Text>}
 
         {/* ── Contact Details ── */}
         <SectionHeader title="Contact Details" />
-        <Field label="Contact Person">
-          <TextInput style={styles.input} value={form.contactPersonName} onChangeText={v => set('contactPersonName', v)} placeholder="Contact person name" placeholderTextColor="#bbb" />
+
+        <Field label="Contact Person *">
+          <TextInput
+            style={[styles.input, errors.contactPersonName && styles.inputError]}
+            value={form.contactPersonName}
+            onChangeText={v => set('contactPersonName', v.slice(0, 150))}
+            placeholder="Contact person name"
+            placeholderTextColor="#bbb"
+            maxLength={150}
+          />
         </Field>
+        {errors.contactPersonName && <Text style={styles.error}>{errors.contactPersonName}</Text>}
+
         <Row>
-          <Field label="Phone" flex>
-            <TextInput style={styles.input} value={form.contactNumber} onChangeText={v => set('contactNumber', v)} placeholder="+91 XXXXXXXXXX" placeholderTextColor="#bbb" keyboardType="phone-pad" />
+          <Field label="Phone *" flex>
+            <TextInput
+              style={[styles.input, errors.contactNumber && styles.inputError]}
+              value={form.contactNumber}
+              onChangeText={v => set('contactNumber', v.replace(/[^0-9]/g, ''))}
+              placeholder="+91 XXXXXXXXXX"
+              placeholderTextColor="#bbb"
+              keyboardType="phone-pad"
+                maxLength={10}
+            />
           </Field>
           <Field label="Alternate" flex>
-            <TextInput style={styles.input} value={form.alternateNumber} onChangeText={v => set('alternateNumber', v)} placeholder="Alternate no." placeholderTextColor="#bbb" keyboardType="phone-pad" />
+            <TextInput
+              style={styles.input}
+              value={form.alternateNumber}
+              onChangeText={v => set('alternateNumber', v.replace(/[^0-9]/g, ''))}
+              placeholder="Alternate no."
+              placeholderTextColor="#bbb"
+              keyboardType="phone-pad"
+                maxLength={10}
+            />
           </Field>
         </Row>
-        <Field label="Email">
-          <TextInput style={styles.input} value={form.email} onChangeText={v => set('email', v)} placeholder="club@example.com" placeholderTextColor="#bbb" keyboardType="email-address" autoCapitalize="none" />
+        {errors.contactNumber && <Text style={[styles.error, { paddingHorizontal: 16 }]}>{errors.contactNumber}</Text>}
+
+        <Field label="Email *">
+          <TextInput
+            style={[styles.input, errors.email && styles.inputError]}
+            value={form.email}
+            onChangeText={v => set('email', v)}
+            placeholder="club@example.com"
+            placeholderTextColor="#bbb"
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
         </Field>
+        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+
         <Field label="Website">
-          <TextInput style={styles.input} value={form.website} onChangeText={v => set('website', v)} placeholder="https://..." placeholderTextColor="#bbb" keyboardType="url" autoCapitalize="none" />
+          <TextInput
+            style={styles.input}
+            value={form.website}
+            onChangeText={v => set('website', v)}
+            placeholder="https://..."
+            placeholderTextColor="#bbb"
+            keyboardType="url"
+            autoCapitalize="none"
+          />
         </Field>
 
         {/* ── Club Info ── */}
         <SectionHeader title="Club Info" />
-        <Field label="Club Type">
-          <TouchableOpacity style={styles.selector} onPress={() => setTypeModal(true)}>
+
+        <Field label="Club Type *">
+          <TouchableOpacity
+            style={[styles.selector, errors.clubType && styles.selectorError]}
+            onPress={() => setTypeModal(true)}
+          >
             <Text style={form.clubType ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.clubType || 'Select club type'}
             </Text>
             <Ionicons name="chevron-down" size={16} color="#888" />
           </TouchableOpacity>
         </Field>
-        <Field label="Established Date (YYYY-MM-DD)">
-          <TextInput style={styles.input} value={form.establishedDate} onChangeText={v => set('establishedDate', v)} placeholder="e.g. 1995-06-15" placeholderTextColor="#bbb" maxLength={10} keyboardType="numbers-and-punctuation" />
+        {errors.clubType && <Text style={styles.error}>{errors.clubType}</Text>}
+
+        {/* ── Established Date — Date Picker ── */}
+        <Field label="Established Date *">
+          <TouchableOpacity
+            style={[styles.selector, errors.establishedDate && styles.selectorError]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={form.establishedDate ? styles.selectorValue : styles.selectorPlaceholder}>
+              {form.establishedDate || 'Select date'}
+            </Text>
+            <Ionicons name="calendar-outline" size={16} color="#888" />
+          </TouchableOpacity>
         </Field>
+        {errors.establishedDate && <Text style={styles.error}>{errors.establishedDate}</Text>}
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate || new Date()}
+            mode="date"
+            display="default"
+            minimumDate={minDate}
+            maximumDate={today}
+            onChange={(event, date) => {
+              setShowDatePicker(false);
+              if (event.type === 'set' && date) {
+                setSelectedDate(date);
+                set('establishedDate', formatDate(date));
+              }
+            }}
+          />
+        )}
+
         <Row>
           <Field label="Total Members" flex>
-            <TextInput style={styles.input} value={form.totalMembers} onChangeText={v => set('totalMembers', v)} placeholder="0" placeholderTextColor="#bbb" keyboardType="number-pad" />
+            <TextInput
+  style={styles.input}
+  value={form.totalMembers}
+  onChangeText={v => set('totalMembers', v.replace(/[^0-9]/g, '').slice(0, 4))}
+  placeholder="0"
+  placeholderTextColor="#bbb"
+  keyboardType="number-pad"
+  maxLength={4}
+/>
+{errors.totalMembers && (
+  <Text style={[styles.error, { paddingHorizontal: 16 }]}>
+    {errors.totalMembers}
+  </Text>
+)}
           </Field>
           <Field label="Reg. Number" flex>
-            <TextInput style={styles.input} value={form.registrationNumber} onChangeText={v => set('registrationNumber', v)} placeholder="Registration no." placeholderTextColor="#bbb" />
+            <TextInput
+  style={[styles.input, errors.registrationNumber && styles.inputError]}
+  value={form.registrationNumber}
+  onChangeText={v =>
+    set('registrationNumber', v.replace(/[^A-Za-z0-9]/g, '').slice(0, 15))
+  }
+  placeholder="Registration no."
+  placeholderTextColor="#bbb"
+  maxLength={15}
+/>
+{errors.registrationNumber && <Text style={styles.error}>{errors.registrationNumber}</Text>}
           </Field>
         </Row>
 
@@ -416,7 +740,10 @@ export default function ClubFormScreen({ route, navigation }) {
               ))}
             </View>
           )}
-          <TouchableOpacity style={[styles.selector, { marginTop: form.adminMembers.length ? 8 : 0 }]} onPress={() => setMemberModal(true)}>
+          <TouchableOpacity
+            style={[styles.selector, { marginTop: form.adminMembers.length ? 8 : 0 }]}
+            onPress={() => setMemberModal(true)}
+          >
             <Text style={styles.selectorPlaceholder}>
               {form.adminMembers.length ? '+ Add more admins' : 'Select admin members'}
             </Text>
@@ -577,31 +904,35 @@ const styles = StyleSheet.create({
   scroll: { paddingBottom: 40 },
 
   // Logo
-  logoSection:        { alignItems: 'center', paddingVertical: 20, backgroundColor: '#fff', marginBottom: 2 },
-  logoBox:            { width: 110, height: 110, borderRadius: 55, overflow: 'hidden', backgroundColor: '#F0F2F5', borderWidth: 2, borderColor: '#E0E0E0', borderStyle: 'dashed' },
-  logoImage:          { width: '100%', height: '100%' },
-  logoPlaceholder:    { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logoPlaceholderText:{ fontSize: 12, color: '#aaa', marginTop: 4 },
-  changeLogoBtn:      { marginTop: 10 },
-  changeLogoText:     { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
+  logoSection:         { alignItems: 'center', paddingVertical: 20, backgroundColor: '#fff', marginBottom: 2 },
+  logoBox:             { width: 110, height: 110, borderRadius: 55, overflow: 'hidden', backgroundColor: '#F0F2F5', borderWidth: 2, borderColor: '#E0E0E0', borderStyle: 'dashed' },
+  logoImage:           { width: '100%', height: '100%' },
+  logoPlaceholder:     { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  logoPlaceholderText: { fontSize: 12, color: '#aaa', marginTop: 4 },
+  changeLogoBtn:       { marginTop: 10 },
+  changeLogoText:      { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
 
   sectionHeader: { backgroundColor: '#E8EDF5', paddingHorizontal: 16, paddingVertical: 8, marginTop: 8 },
   sectionTitle:  { fontSize: 12, fontWeight: '700', color: '#1E3A5F', textTransform: 'uppercase', letterSpacing: 0.6 },
 
-  field:     { paddingHorizontal: 16, paddingTop: 12 },
-  fieldFlex: { flex: 1 },
+  field:      { paddingHorizontal: 16, paddingTop: 12 },
+  fieldFlex:  { flex: 1 },
   fieldLabel: { fontSize: 12, color: '#666', marginBottom: 4, fontWeight: '600' },
 
-  input:    { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#111' },
-  codeRow:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  codeInput: { flex: 1 },
-  regenBtn: { width: 42, height: 42, borderRadius: 10, backgroundColor: '#EBF0FA', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D0DBF0' },
-  textarea: { minHeight: 80 },
+  input:      { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#111' },
+  inputError: { borderColor: '#D32F2F', borderWidth: 1.5 },
+  codeRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  codeInput:  { flex: 1 },
+  regenBtn:   { width: 42, height: 42, borderRadius: 10, backgroundColor: '#EBF0FA', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D0DBF0' },
+  textarea:   { minHeight: 80 },
 
   selector:            { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   selectorDisabled:    { backgroundColor: '#F5F5F5', borderColor: '#E8E8E8' },
+  selectorError:       { borderColor: '#D32F2F', borderWidth: 1.5 },
   selectorValue:       { fontSize: 14, color: '#111', flex: 1 },
   selectorPlaceholder: { fontSize: 14, color: '#bbb', flex: 1 },
+
+  error: { color: '#D32F2F', fontSize: 12, marginTop: 4, marginBottom: 4, paddingHorizontal: 16 },
 
   row: { flexDirection: 'row' },
 
@@ -619,15 +950,15 @@ const styles = StyleSheet.create({
   modalSubtitle: { fontSize: 12, color: '#888', marginBottom: 10 },
   modalSearch:   { backgroundColor: '#F0F2F5', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10, fontSize: 14, color: '#111' },
 
-  modalItem:         { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', flexDirection: 'row', alignItems: 'center' },
-  modalItemSelected: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8, marginBottom: 2 },
-  modalItemText:     { fontSize: 15, color: '#111' },
+  modalItem:             { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', flexDirection: 'row', alignItems: 'center' },
+  modalItemSelected:     { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8, marginBottom: 2 },
+  modalItemText:         { fontSize: 15, color: '#111' },
   modalItemTextSelected: { color: '#1E3A5F', fontWeight: '600' },
-  modalItemSub:      { fontSize: 12, color: '#888', marginTop: 2 },
-  modalEmpty:        { textAlign: 'center', color: '#888', paddingVertical: 24 },
+  modalItemSub:          { fontSize: 12, color: '#888', marginTop: 2 },
+  modalEmpty:            { textAlign: 'center', color: '#888', paddingVertical: 24 },
 
-  modalDone:     { marginTop: 14, backgroundColor: '#1E3A5F', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  modalDoneText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  modalCancel:   { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  modalDone:       { marginTop: 14, backgroundColor: '#1E3A5F', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  modalDoneText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
+  modalCancel:     { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   modalCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
 });

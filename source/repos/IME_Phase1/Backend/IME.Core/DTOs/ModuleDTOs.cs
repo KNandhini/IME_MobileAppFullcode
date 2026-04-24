@@ -31,6 +31,8 @@ public class SupportDTO
     public string? CompanyName { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
+    public int? ClubId { get; set; }           // ? ADD
+    public string? ClubName { get; set; }      // ? ADD
     public DateTime CreatedDate { get; set; }
 }
 
@@ -46,8 +48,9 @@ public class SupportDetailDTO
     public decimal? Amount { get; set; }
     public string? CompanyOrIndividual { get; set; }
     public string? CompanyName { get; set; }
-
     public string CategoryName { get; set; } = string.Empty;
+    public int? ClubId { get; set; }           // ? ADD
+    public string? ClubName { get; set; }      // ? ADD
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
     public List<SupportAttachmentDTO> Attachments { get; set; } = new();
@@ -56,6 +59,7 @@ public class SupportDetailDTO
 public class CreateSupportDTO
 {
     public int CategoryId { get; set; }
+    public int? ClubId { get; set; }           // ? ADD
     public string? PhotoPath { get; set; }
     public string? PersonName { get; set; }
     public string Title { get; set; } = string.Empty;
@@ -70,6 +74,7 @@ public class CreateSupportDTO
 public class UpdateSupportDTO
 {
     public int CategoryId { get; set; }
+    public int? ClubId { get; set; }           // ? ADD
     public string? PhotoPath { get; set; }
     public string? PersonName { get; set; }
     public string Title { get; set; } = string.Empty;

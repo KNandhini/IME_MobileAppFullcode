@@ -53,7 +53,9 @@ const ActivityFormScreen = ({ route, navigation }) => {
   const [saving, setSaving] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [formData, setFormData] = useState({
-    title: '', description: '', venue: '', coordinator: '',
+    activityName: '', description: '', venue: '', coordinator: '',
+    chiefGuest: '',       
+    time:"",  
     status: 'Upcoming',
   });
   const [activityDate, setActivityDate] = useState(null);
@@ -69,10 +71,12 @@ const ActivityFormScreen = ({ route, navigation }) => {
       if (res.success && res.data) {
         const d = res.data;
         setFormData({
-          title: d.title || '',
+          activityName: d.activityName || '',
           description: d.description || '',
           venue: d.venue || '',
           coordinator: d.coordinator || '',
+            chiefGuest: d.chiefGuest || '',   // ← ADD THIS
+            time:d.time||"",
           status: d.status || 'Upcoming',
         });
         if (d.activityDate) setActivityDate(new Date(d.activityDate));
@@ -136,33 +140,46 @@ const ActivityFormScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim() || !formData.description.trim() || !formData.venue.trim()) {
-      Alert.alert('Error', 'Title, description and venue are required.');
-      return;
-    }
-    if (!activityDate) {
-      Alert.alert('Error', 'Activity date is required.');
-      return;
-    }
-    setSaving(true);
-    try {
-      const payload = {
-        ...formData,
-        activityDate: activityDate.toISOString(),
-        registrationDeadline: registrationDeadline ? registrationDeadline.toISOString() : null,
-      };
-      const res = isEditMode
-        ? await activityService.update(activityId, payload)
-        : await activityService.create(payload);
+    debugger;
+  if (!formData.activityName.trim() || !formData.description.trim() || !formData.venue.trim()) {
+    Alert.alert('Error', 'Activity name, description and venue are required.');
+    return;
+  }
+  if (!activityDate) {
+    Alert.alert('Error', 'Activity date is required.');
+    return;
+  }
+  setSaving(true);
+  try {
+    const payload = {
+      activityName:          formData.activityName,
+      description:           formData.description,
+      venue:                 formData.venue,
+      time:                  formData.time,
+      chiefGuest:            formData.chiefGuest,
+      coordinator:           formData.coordinator,
+      status:                formData.status,
+      activityDate:          activityDate.toISOString(),
+      registrationDeadline:  registrationDeadline ? registrationDeadline.toISOString() : null,
+    };
+    const res = isEditMode
+      ? await activityService.update(activityId, payload)
+      : await activityService.create(payload);
 
-      if (res.success) {
-        Alert.alert('Success', isEditMode ? 'Activity updated.' : 'Activity created.', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
-      } else { Alert.alert('Error', res.message || 'Operation failed.'); }
-    } catch (e) { Alert.alert('Error', 'An error occurred.'); }
-    finally { setSaving(false); }
-  };
+    if (res.success) {
+      Alert.alert('Success', isEditMode ? 'Activity updated.' : 'Activity created.', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } else {
+      Alert.alert('Error', res.message || 'Operation failed.');
+    }
+  } catch (e) {
+    debugger;
+    Alert.alert('Error', 'An error occurred.');
+  } finally {
+    setSaving(false);
+  }
+};
 
   return (
     <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
@@ -184,10 +201,25 @@ const ActivityFormScreen = ({ route, navigation }) => {
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Activity Details</Text>
-              <TextInput label="Title *" value={formData.title} onChangeText={(v) => update('title', v)} mode="outlined" style={styles.input} />
+              <TextInput label="Title *" value={formData.activityName} onChangeText={(v) => update('activityName', v)} mode="outlined" style={styles.input} />
               <TextInput label="Description *" value={formData.description} onChangeText={(v) => update('description', v)} mode="outlined" multiline numberOfLines={4} style={styles.input} />
               <TextInput label="Venue *" value={formData.venue} onChangeText={(v) => update('venue', v)} mode="outlined" style={styles.input} />
               <TextInput label="Coordinator" value={formData.coordinator} onChangeText={(v) => update('coordinator', v)} mode="outlined" style={styles.input} />
+           <TextInput
+  label="Chief Guest"
+  value={formData.chiefGuest}
+  onChangeText={(v) => update('chiefGuest', v)}
+  mode="outlined"
+  style={styles.input}
+/>
+<TextInput
+  label="Time (e.g. 10:00 AM)"
+  value={formData.time}
+  onChangeText={(v) => update('time', v)}
+  mode="outlined"
+  style={styles.input}
+  placeholder="e.g. 10:00 AM"
+/>
             </Card.Content>
           </Card>
 

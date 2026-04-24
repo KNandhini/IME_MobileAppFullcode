@@ -14,11 +14,13 @@ export const activityService = {
   },
 
   create: async (activityData) => {
+    debugger;
     const response = await api.post('/activity', activityData);
     return response.data;
   },
 
   update: async (activityId, activityData) => {
+    debugger;
     const response = await api.put(`/activity/${activityId}`, activityData);
     return response.data;
   },

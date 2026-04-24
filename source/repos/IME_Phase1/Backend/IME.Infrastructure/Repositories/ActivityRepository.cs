@@ -53,6 +53,9 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@ChiefGuest",   (object?)activity.ChiefGuest    ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedBy",    (object?)activity.CreatedBy     ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedDate",  activity.CreatedDate);
+        command.Parameters.AddWithValue("@Coordinator", (object?)activity.Coordinator ?? DBNull.Value); // ← ADD
+        command.Parameters.AddWithValue("@Status", (object?)activity.Status ?? "Upcoming");   // ← ADD
+        command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value); // ← ADD
 
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);
@@ -70,7 +73,9 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@Time",         (object?)activity.Time          ?? DBNull.Value);
         command.Parameters.AddWithValue("@ChiefGuest",   (object?)activity.ChiefGuest    ?? DBNull.Value);
         command.Parameters.AddWithValue("@UpdatedDate",  (object?)activity.UpdatedDate   ?? DateTime.UtcNow);
-
+        command.Parameters.AddWithValue("@Coordinator", (object?)activity.Coordinator ?? DBNull.Value); // ← ADD
+        command.Parameters.AddWithValue("@Status", (object?)activity.Status ?? DBNull.Value); // ← ADD
+        command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value); // ← ADD
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
             return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
