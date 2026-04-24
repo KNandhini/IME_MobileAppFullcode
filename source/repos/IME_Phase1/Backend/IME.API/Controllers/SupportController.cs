@@ -48,23 +48,25 @@ public class SupportController : ControllerBase
 
     // ?? POST api/support ??????????????????????????????????????????????????????
     [HttpPost]
-    [DisableRequestSizeLimit]                                        // ? ADD
-    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]        // ? ADD
+    [DisableRequestSizeLimit]
+    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
     public async Task<IActionResult> Create(
-        [FromForm] int categoryId,
-        [FromForm] string? personName,
-        [FromForm] string? title,
-        [FromForm] string? description,
-        [FromForm] string? supportDate,
-        [FromForm] string? companyOrIndividual,
-        [FromForm] string? companyName,
-        [FromForm] string? amount,
-        [FromForm] int createdBy,
-        [FromForm] List<IFormFile>? files)
+     [FromForm] int categoryId,
+     [FromForm] int? clubId,                    // ? ADD
+     [FromForm] string? personName,
+     [FromForm] string? title,
+     [FromForm] string? description,
+     [FromForm] string? supportDate,
+     [FromForm] string? companyOrIndividual,
+     [FromForm] string? companyName,
+     [FromForm] string? amount,
+     [FromForm] int createdBy,
+     [FromForm] List<IFormFile>? files)
     {
         var dto = new CreateSupportDTO
         {
             CategoryId = categoryId,
+            ClubId = clubId,          // ? ADD
             PersonName = personName,
             Title = title ?? string.Empty,
             Description = description,
@@ -84,13 +86,13 @@ public class SupportController : ControllerBase
         return Ok(new { success = true, data = created });
     }
 
-    // ?? PUT api/support/{supportId} ???????????????????????????????????????????
     [HttpPut("{supportId:int}")]
-    [DisableRequestSizeLimit]                                        // ? ADD
-    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]        // ? ADD
+    [DisableRequestSizeLimit]
+    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
     public async Task<IActionResult> Update(
         int supportId,
         [FromForm] int categoryId,
+        [FromForm] int? clubId,                    // ? ADD
         [FromForm] string? personName,
         [FromForm] string? title,
         [FromForm] string? description,
@@ -103,6 +105,7 @@ public class SupportController : ControllerBase
         var dto = new UpdateSupportDTO
         {
             CategoryId = categoryId,
+            ClubId = clubId,          // ? ADD
             PersonName = personName,
             Title = title ?? string.Empty,
             Description = description,

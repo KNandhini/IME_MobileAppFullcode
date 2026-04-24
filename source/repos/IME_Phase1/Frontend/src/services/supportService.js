@@ -35,7 +35,7 @@ export const supportService = {
   safeAppend('companyName', formData.companyName);
   safeAppend('amount', formData.amount);
   safeAppend('createdBy', formData.createdBy);
-
+safeAppend('clubId',     formData.clubId);      
   attachments.forEach((file) => {
     const uri = file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`;
 
@@ -108,7 +108,7 @@ update: async (supportId, formData, attachments = []) => {
   safeAppend('companyOrIndividual', formData.companyOrIndividual);
   safeAppend('companyName', formData.companyName);
   safeAppend('amount', formData.amount);
-
+safeAppend('clubId',     formData.clubId);      
   attachments.forEach((file) => {
     const uri = file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`;
 

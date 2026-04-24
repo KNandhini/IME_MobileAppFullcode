@@ -15,6 +15,8 @@ import { Linking } from 'react-native';
 // At the top of AddSupportScreen, import:
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { clubService } from '../services/clubService';
+import { BASE_URL } from '../utils/api';  // ✅ add this
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -317,7 +319,8 @@ const att = StyleSheet.create({
 function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembers = [], preloadedMembersLoading = false }) {
   const fadeAnim  = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
-
+const [clubs,        setClubs]        = useState([]);
+const [clubsLoading, setClubsLoading] = useState(false);
   const [members,           setMembers]           = useState(preloadedMembers);
   const [membersLoading,    setMembersLoading]     = useState(preloadedMembersLoading);
   const [categories,        setCategories]         = useState([]);
@@ -329,19 +332,48 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 //const [imgError, setImgError] = useState(false);
   // Form state uses DB column names directly
   const [form, setForm] = useState({
-    personName            : null,   // FK → member
+  //  personName            : null,   // FK → member
     title               : '',     // Title  nvarchar(400)
     amount              : '',     // Amount (extra column)
     description         : '',     // Description nvarchar(max)
     categoryId          : null,   // CategoryId int → tbl_SupportCategory
     supportDate         : '',     // SupportDate date
-    
+     clubId              : null,   // ✅ ADD
     companyOrIndividual : null,   // CompanyOrIndividual nvarchar(400) — driven by category type
     // companyName is only used when category type = Company; stored into companyOrIndividual
     companyName         : '',
     createdBy:0,
   });
 
+// 3. Load clubs function
+const loadClubs = async () => {
+  setClubsLoading(true);
+  try {
+    const res = await clubService.getAll(1, 50, '', true); // active clubs only
+    if (res?.success && res?.data) {
+      setClubs(
+        (res.data ?? []).map((c) => ({
+          label: c.clubName,
+          value: c.clubId,
+        }))
+      );
+    }
+  } catch (e) {
+    console.error('Load clubs error:', e);
+  } finally {
+    setClubsLoading(false);
+  }
+};
+
+// 4. Call loadClubs inside the visible useEffect (alongside loadCategories)
+useEffect(() => {
+  if (visible) {
+    // ... existing animations ...
+    if (preloadedMembers.length === 0) loadMembers();
+    loadCategories();
+    loadClubs();   // ✅ ADD
+  }
+}, [visible]);
   const loadMembers = async () => {
     setMembersLoading(true);
     try {
@@ -422,11 +454,12 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
           const detail = await supportService.getById(editItem.supportId);
           const data = detail?.data ?? detail;
           setForm({
-            personName: data.personName || '',
+          //  personName: data.personName || '',
             title: data.title || '',
-            amount: data.amount != null ? String(data.amount) : '',
+            amount: data.amount != null ? String(data.amount) : 0,
             description: data.description || '',
             categoryId: categories.find(c => c.label === data.categoryName)?.value || null,
+             clubId              : data.clubId ?? null,   // ✅ ADD
             supportDate: data.supportDate ? data.supportDate.substring(0, 10) : '',
             companyOrIndividual: data.companyOrIndividual === 'Individual' ? 'Individual' : 'Company',
             companyName: data.companyOrIndividual !== 'Individual' ? (data.companyName || '') : '',
@@ -463,7 +496,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 
   const validate = () => {
     const e = {};
-    if (!form.personName)                                       e.memberId    = 'Please select a person';
+   // if (!form.personName)                                       e.memberId    = 'Please select a person';
     if (!form.title.trim())                                   e.title       = 'Title is required';
     if (!form.categoryId)                                     e.categoryId  = 'Please select a category';
     if (!form.supportDate)                                    e.supportDate = 'Date is required';
@@ -487,7 +520,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   };
 
   const handleClose = () => {
-    setForm({ personName: null, title: '', amount: '', description: '', categoryId: null, supportDate: '', companyOrIndividual: null, companyName: '' });
+    setForm({ personName: null,clubId:null, title: '', amount: '', description: '', categoryId: null, clubId: null, supportDate: '', companyOrIndividual: null, companyName: '' });
     setAttachments([]);
     setErrors({});
       setExistingAttachments([]);
@@ -620,6 +653,14 @@ const handlePickAttachment = async () => {
                 loading={membersLoading}
               />*/}
               <Dropdown
+  label="Club"
+  options={clubs}
+  value={form.clubId}
+  onChange={(v) => setField('clubId', v)}
+  placeholder="Select club…"
+  loading={clubsLoading}
+/>
+             {/* <Dropdown
   label="Support Person *"
   options={members}
   value={
@@ -632,7 +673,7 @@ const handlePickAttachment = async () => {
   placeholder="Select member…"
   error={errors.memberId}
   loading={membersLoading}
-/>
+/>*/}
 
               {/* TITLE */}
               <Field
@@ -905,14 +946,14 @@ function SupportCard({ item, userRole, onEdit, onDelete }) {
     ]}
   >
     <Text style={s.photoPlaceholderText}>
-      {getInitial(item.personName)}
+      {getInitial(item.clubName)}
     </Text>
   </View>
 )}
 
         <View style={s.textContainer}>
           <Text style={s.title} numberOfLines={1}>{item.title}</Text>
-          <Text style={s.personName}>{item.personName}</Text>
+          <Text style={s.clubName}>{item.clubName}</Text>
           <Text style={s.description} numberOfLines={2}>{item.description}</Text>
 
           <View style={s.metaRow}>
@@ -966,7 +1007,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
       setRefreshing(false);
     }
   };*/
-  const loadSupport = async () => {
+ /* const loadSupport = async () => {
   setLoading(true);
   try {
    
@@ -999,6 +1040,48 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
     }));
 
     // ✅ SET FINAL DATA
+    setSupportList(enrichedList);
+
+  } catch (error) {
+    console.error('Failed to load support:', error);
+    setSupportList([]);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};*/
+const loadSupport = async () => {
+  setLoading(true);
+  try {
+
+    // ✅ Fetch support + clubs in parallel (removed members fetch)
+    const [response, clubsRes] = await Promise.all([
+      supportService.getByCategory(categoryId),
+      clubService.getAll(1, 200, '', true),
+    ]);
+
+    // ✅ Build club logo map keyed by clubId
+    const clubLogoMap = {};
+    if (clubsRes?.success && clubsRes?.data) {
+      (clubsRes.data ?? []).forEach((c) => {
+        if (c.logoPath) {
+          // Same pattern as ClubFormScreen uses for existingLogo
+          clubLogoMap[c.clubId] = `${BASE_URL}/Uploads/${c.logoPath.replace(/\\/g, '/')}`;
+        }
+      });
+    }
+
+    // ✅ Normalize support list
+    const list = Array.isArray(response)
+      ? response
+      : response?.data ?? [];
+
+    // ✅ Merge club logo into each item using clubId
+    const enrichedList = list.map((item) => ({
+      ...item,
+      image: clubLogoMap[item.clubId] ?? null,  // 👈 clubId instead of personName
+    }));
+
     setSupportList(enrichedList);
 
   } catch (error) {
@@ -1133,12 +1216,14 @@ export default function SupportScreen() {
     try {
       const userId = await getUserId();
       const payload = {
-        personName          : formData.personName,
+        //personName          : formData.personName,
         title               : formData.title,
         amount              : parseFloat(formData.amount) || 0,
         description         : formData.description,
         categoryId          : formData.categoryId,
         supportDate         : formData.supportDate,
+        clubId              : formData.clubId ?? null,   // ✅ ADD
+
         companyOrIndividual : formData.companyOrIndividual,
         companyName         : formData.companyOrIndividual === 'Company' ? formData.companyName : null,
         createdBy           : userId,
@@ -1157,7 +1242,7 @@ export default function SupportScreen() {
         setRefreshSignal((prev) => prev + 1);
 
         // Post to home feed (fire-and-forget)
-        const feedContent = `Support: ${formData.title}${formData.personName ? ` – ${formData.personName}` : ''}${formData.description ? `\n${formData.description}` : ''}`;
+        const feedContent = `Support: ${formData.title}${formData.clubName ? ` – ${formData.clubName}` : ''}${formData.description ? `\n${formData.description}` : ''}`;
         feedService.createPost(feedContent).catch((e) => console.error('Feed post failed:', e));
       } else {
         Alert.alert('Error', res?.message ?? 'Failed to save support.');

@@ -99,6 +99,9 @@ public class ActivityController : ControllerBase
                 Venue        = request.Venue,
                 Time         = request.Time,
                 ChiefGuest   = request.ChiefGuest,
+                Coordinator = request.Coordinator,           // ← ADD
+                Status = request.Status ?? "Upcoming",  // ← ADD
+                RegistrationDeadline = request.RegistrationDeadline,  // ← ADD
                 CreatedBy    = userId,
                 CreatedDate  = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
@@ -147,6 +150,9 @@ public class ActivityController : ControllerBase
                 Venue        = request.Venue,
                 Time         = request.Time,
                 ChiefGuest   = request.ChiefGuest,
+                Coordinator = request.Coordinator,           // ← ADD
+                Status = request.Status,                // ← ADD
+                RegistrationDeadline = request.RegistrationDeadline,  // ← ADD
                 UpdatedDate  = request.UpdatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 

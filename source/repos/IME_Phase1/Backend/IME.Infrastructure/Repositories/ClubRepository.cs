@@ -56,7 +56,8 @@ public class ClubRepository : IClubRepository
 
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
-            return reader.GetInt32(reader.GetOrdinal("NewClubId"));
+            //return reader.GetInt32(reader.GetOrdinal("NewClubId"));
+            return Convert.ToInt32(reader["NewClubId"]);
 
         return 0;
     }

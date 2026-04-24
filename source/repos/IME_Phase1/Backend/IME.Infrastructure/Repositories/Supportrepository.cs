@@ -74,6 +74,8 @@ public class SupportRepository : ISupportRepository
                 SupportId = reader.GetInt32(reader.GetOrdinal("SupportId")),
                 CategoryId = reader.GetInt32(reader.GetOrdinal("CategoryId")),
                 CategoryName = reader.GetString(reader.GetOrdinal("CategoryName")),
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),   // ✅ ADD
+                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")), // ✅ ADD
                 PhotoPath = reader.IsDBNull(reader.GetOrdinal("PhotoPath")) ? null : reader.GetString(reader.GetOrdinal("PhotoPath")),
                 PersonName = reader.IsDBNull(reader.GetOrdinal("PersonName")) ? null : reader.GetString(reader.GetOrdinal("PersonName")),
                 Title = reader.GetString(reader.GetOrdinal("Title")),
@@ -115,6 +117,7 @@ public class SupportRepository : ISupportRepository
         using var command = _dbContext.CreateStoredProcCommand("sp_CreateSupport", connection);
 
         command.Parameters.AddWithValue("@CategoryId", dto.CategoryId);
+        command.Parameters.AddWithValue("@ClubId", (object?)dto.ClubId ?? DBNull.Value); // ✅ ADD
         command.Parameters.AddWithValue("@PhotoPath", (object?)dto.PhotoPath ?? DBNull.Value);
         command.Parameters.AddWithValue("@PersonName", (object?)dto.PersonName ?? DBNull.Value);
         command.Parameters.AddWithValue("@Title", dto.Title);
@@ -123,14 +126,13 @@ public class SupportRepository : ISupportRepository
         command.Parameters.AddWithValue("@CompanyOrIndividual", (object?)dto.CompanyOrIndividual ?? DBNull.Value);
         command.Parameters.AddWithValue("@CompanyName", (object?)dto.CompanyName ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedBy", dto.CreatedBy);
+
         var param = command.Parameters.Add("@Amount", SqlDbType.Decimal);
-
-        param.Precision = 18;  // adjust based on your DB column
+        param.Precision = 18;
         param.Scale = 2;
-
         param.Value = dto.Amount ?? (object)DBNull.Value;
-        using var reader = await command.ExecuteReaderAsync();
 
+        using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
             return reader.GetInt32(reader.GetOrdinal("SupportId"));
 
@@ -145,6 +147,7 @@ public class SupportRepository : ISupportRepository
 
         command.Parameters.AddWithValue("@SupportId", supportId);
         command.Parameters.AddWithValue("@CategoryId", dto.CategoryId);
+        command.Parameters.AddWithValue("@ClubId", (object?)dto.ClubId ?? DBNull.Value); // ✅ ADD
         command.Parameters.AddWithValue("@PhotoPath", (object?)dto.PhotoPath ?? DBNull.Value);
         command.Parameters.AddWithValue("@PersonName", (object?)dto.PersonName ?? DBNull.Value);
         command.Parameters.AddWithValue("@Title", dto.Title);
@@ -152,22 +155,18 @@ public class SupportRepository : ISupportRepository
         command.Parameters.AddWithValue("@SupportDate", (object?)dto.SupportDate ?? DBNull.Value);
         command.Parameters.AddWithValue("@CompanyOrIndividual", (object?)dto.CompanyOrIndividual ?? DBNull.Value);
         command.Parameters.AddWithValue("@CompanyName", (object?)dto.CompanyName ?? DBNull.Value);
+
         var param = command.Parameters.Add("@Amount", SqlDbType.Decimal);
-
-        param.Precision = 18;  // adjust based on your DB column
+        param.Precision = 18;
         param.Scale = 2;
-
         param.Value = dto.Amount ?? (object)DBNull.Value;
-        //  command.Parameters.AddWithValue("@UpdatedBy", updatedBy);
 
         using var reader = await command.ExecuteReaderAsync();
-
         if (await reader.ReadAsync())
             return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
 
         return false;
     }
-
     // ── Delete ────────────────────────────────────────────────────────────────
     public async Task<bool> DeleteAsync(int supportId)
     {
@@ -258,15 +257,12 @@ public class SupportRepository : ISupportRepository
             SupportDate = reader.IsDBNull(reader.GetOrdinal("SupportDate")) ? null : reader.GetDateTime(reader.GetOrdinal("SupportDate")),
             CompanyOrIndividual = reader.IsDBNull(reader.GetOrdinal("CompanyOrIndividual")) ? null : reader.GetString(reader.GetOrdinal("CompanyOrIndividual")),
             CompanyName = reader.IsDBNull(reader.GetOrdinal("CompanyName")) ? null : reader.GetString(reader.GetOrdinal("CompanyName")),
+            CategoryId = reader["CategoryId"] == DBNull.Value ? 0 : Convert.ToInt32(reader["CategoryId"]),
             CategoryName = reader.GetString(reader.GetOrdinal("CategoryName")),
+            ClubId = reader["ClubId"] == DBNull.Value ? null : Convert.ToInt32(reader["ClubId"]),    // ✅ ADD
+            ClubName = reader["ClubName"] == DBNull.Value ? null : reader["ClubName"].ToString(),        // ✅ ADD
+            Amount = reader["Amount"] == DBNull.Value ? null : Convert.ToDecimal(reader["Amount"]),
             CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-            CategoryId = reader["CategoryId"] == DBNull.Value
-            ? 0
-            : Convert.ToInt32(reader["CategoryId"]),
-
-            Amount = reader["Amount"] == DBNull.Value
-            ? null
-            : Convert.ToDecimal(reader["Amount"])
         };
     }
 }

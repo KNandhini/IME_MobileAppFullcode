@@ -1,5 +1,6 @@
-import api from '../utils/api';
-
+import api, { BASE_URL } from '../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+//const BASE_URL = 'http://10.0.2.2:51150/api';
 export const clubService = {
   getAll: async (pageNumber = 1, pageSize = 50, search = '', isActive = null) => {
     try {
@@ -45,20 +46,50 @@ export const clubService = {
   },
 
   uploadLogo: async (clubId, imageUri, fileName) => {
-    try {
-      const formData = new FormData();
-      formData.append('file', {
-        uri: imageUri,
-        name: fileName || 'logo.jpg',
-        type: 'image/jpeg',
-      });
-      const response = await api.post(`/club/${clubId}/logo`, formData);
-      return response.data;
-    } catch (error) {
-      console.error('Upload logo error:', error);
-      return { success: false, message: error.message };
-    }
+  try {
+    debugger;
+    const token = await AsyncStorage.getItem('authToken');
+    const formData = new FormData();
+
+    formData.append('file', {
+      uri: imageUri,
+      name: fileName || 'logo.jpg',
+      type: 'image/jpeg',
+    });
+debugger;
+    const response = await fetch(`${BASE_URL}/api/club/${clubId}/logo`, {
+      method: 'POST',
+      headers: {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   },
+      body: formData,
+    });
+    console.log("FINAL URL:", `${BASE_URL}/api/club/${clubId}/logo`);
+
+    // ✅ Read as text first
+    const text = await response.text();
+
+    // ✅ Try parsing safely
+    const data = text ? JSON.parse(text) : {};
+
+    // 🔍 Debug
+    console.log("Status:", response.status);
+    console.log("Response:", data);
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: data?.message || `HTTP ${response.status}`,
+      };
+    }
+
+    return data;
+
+  } catch (error) {
+    console.error('Upload logo error:', error);
+    return { success: false, message: error.message };
+  }
+},
 
   delete: async (clubId) => {
     try {
