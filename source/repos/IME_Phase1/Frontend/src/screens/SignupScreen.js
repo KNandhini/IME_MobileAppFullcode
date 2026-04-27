@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal, Image,
+  TouchableOpacity, Modal, Image,FlatList
 } from 'react-native';
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
-
+import { clubService } from '../services/clubService';
+//import { Modal, FlatList } from 'react-native'; // Modal already imported, just ensure FlatList is there
 const SignupScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', confirmPassword: '',
@@ -26,9 +27,25 @@ const SignupScreen = ({ navigation }) => {
   const [welcomeVisible, setWelcomeVisible] = useState(true);
   const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
+// ── Location state ─────────────────────────────────────────────────────────
+const [countries,       setCountries]       = useState([]);
+const [states,          setStates]          = useState([]);
+const [clubs,           setClubs]           = useState([]);
+
+const [countryModal,    setCountryModal]    = useState(false);
+const [stateModal,      setStateModal]      = useState(false);
+const [clubModal,       setClubModal]       = useState(false);
+
+const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
+const [selectedState,   setSelectedState]   = useState(null); // { stateId, stateName }
+const [selectedClub,    setSelectedClub]    = useState(null); // { clubId, clubName }
+
+const [statesLoading,   setStatesLoading]   = useState(false);
+const [clubsLoading,    setClubsLoading]    = useState(false);
 
   useEffect(() => {
     fetchFee();
+     loadCountries(); // ✅ ADD THIS
   }, []);
 
   const fetchFee = async () => {
@@ -39,7 +56,50 @@ const SignupScreen = ({ navigation }) => {
       console.warn('Fee fetch failed:', e.message);
     }
   };
+const loadCountries = async () => {
+  try {
+    debugger;
+    const res = await clubService.getCountries();
+    if (res.success) setCountries(res.data || []);
+  } catch (e) {
+    console.warn('Countries fetch failed:', e.message);
+  }
+};
 
+const loadStates = async (countryId) => {
+  setStatesLoading(true);
+  setStates([]);
+  setSelectedState(null);
+  setSelectedClub(null);
+  setClubs([]);
+  try {
+    const res = await clubService.getStatesByCountry(countryId);
+    if (res.success) setStates(res.data || []);
+  } catch (e) {
+    console.warn('States fetch failed:', e.message);
+  } finally {
+    setStatesLoading(false);
+  }
+};
+
+const loadClubsByState = async (stateId) => {
+  setClubsLoading(true);
+  setClubs([]);
+  setSelectedClub(null);
+  try {
+    const res = await clubService.getAll(1, 200, '', true);
+    if (res.success && res.data) {
+      debugger;
+      // Filter clubs by selected statea
+      const filtered = res.data.filter(c => c.stateId === stateId);
+      setClubs(filtered);
+    }
+  } catch (e) {
+    console.warn('Clubs fetch failed:', e.message);
+  } finally {
+    setClubsLoading(false);
+  }
+};
   const updateField = (field, value) => {
     let v = value;
     if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
@@ -47,7 +107,7 @@ const SignupScreen = ({ navigation }) => {
     else if (field === 'contactNumber') v = value.replace(/[^0-9]/g, '').slice(0, 10);
     else if (field === 'age') v = value.replace(/[^0-9]/g, '').slice(0, 3);
     else if (field === 'address') v = value.replace(/[^A-Za-z0-9\s,./-]/g, '').slice(0, 250);
-    else if (field === 'place') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
+    //else if (field === 'place') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
     setFormData((prev) => ({ ...prev, [field]: v }));
   };
 
@@ -76,8 +136,10 @@ const SignupScreen = ({ navigation }) => {
     if (!formData.address) e.address = 'Required';
     if (!formData.gender) e.gender = 'Required';
     if (!formData.age) e.age = 'Required';
-    if (!formData.place) e.place = 'Required';
+    //if (!formData.place) e.place = 'Required';
     if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
+    if (!selectedCountry) e.country = 'Required';       // ✅ NEW
+  if (!selectedState)   e.state   = 'Required';       // ✅ NEW
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -99,38 +161,49 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
-  const handleSignup = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      const { confirmPassword, ...payload } = formData;
-      const response = await api.post('/Auth/signup', { ...payload, age: parseInt(formData.age) });
-      const res = response.data;
-      if (res.success) {
-        navigation.navigate('RegistrationPayment', {
-          userId: res.data.userId,
-          memberId: res.data.memberId,
-          feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
-          memberName: formData.fullName,
-          memberEmail: formData.email,
-          memberPassword: formData.password,
-          profilePhotoUri: profilePhoto?.uri ?? null,
-        });
-      } else {
-        Alert.alert('Failed', res.message);
-      }
-    } catch (e) {
-      const status    = e?.response?.status;
-      const serverMsg = e?.response?.data?.message
-                     || e?.response?.data?.title
-                     || e?.message
-                     || 'Network error';
-      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
+const handleSignup = async () => {
+  if (!validate()) return;
+  setLoading(true);
+  try {
+    // ✅ Explicit payload — no spread, no extra fields
+    const payload = {
+      fullName:      formData.fullName,
+      email:         formData.email,
+      password:      formData.password,
+      contactNumber: formData.contactNumber,
+      address:       formData.address,
+      gender:        formData.gender,
+      age:           parseInt(formData.age),
+      dateOfBirth:   formData.dateOfBirth,
+      designationId: formData.designationId,
+      countryId:     selectedCountry?.countryId ?? null,
+      stateId:       selectedState?.stateId     ?? null,
+      clubId:        selectedClub?.clubId        ?? null,
+    };
 
+    const response = await api.post('/Auth/signup', payload);
+    const res = response.data;
+    if (res.success) {
+      navigation.navigate('RegistrationPayment', {
+        userId:          res.data.userId,
+        memberId:        res.data.memberId,
+        feeAmount:       currentFee ? parseFloat(currentFee.amount) : 0,
+        memberName:      formData.fullName,
+        memberEmail:     formData.email,
+        memberPassword:  formData.password,
+        profilePhotoUri: profilePhoto?.uri ?? null,
+      });
+    } else {
+      Alert.alert('Failed', res.message);
+    }
+  } catch (e) {
+    const status    = e?.response?.status;
+    const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
+    Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
@@ -199,7 +272,62 @@ const SignupScreen = ({ navigation }) => {
           multiline mode="outlined" theme={{ roundness: 10 }}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.address && <Text style={styles.error}>{errors.address}</Text>}
+{/* ── Address Line (kept) ── */}
+        {/* ── Country ── */}
+        <TouchableOpacity onPress={() => setCountryModal(true)}>
+          <View pointerEvents="none">
+            <TextInput
+              label="Country *"
+              value={selectedCountry?.countryName || ''}
+              mode="outlined"
+              theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB"
+              activeOutlineColor="#1976D2"
+              style={styles.input}
+              editable={false}
+            />
+          </View>
+        </TouchableOpacity>
+        {errors.country && <Text style={styles.error}>{errors.country}</Text>}
 
+        {/* ── State ── */}
+        <TouchableOpacity
+          onPress={() => selectedCountry ? setStateModal(true) : Alert.alert('Select country first')}
+          activeOpacity={0.8}
+        >
+          <View pointerEvents="none">
+            <TextInput
+              label={statesLoading ? 'Loading states…' : 'State *'}
+              value={selectedState?.stateName || ''}
+              mode="outlined"
+              theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB"
+              activeOutlineColor="#1976D2"
+              style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
+              editable={false}
+            />
+          </View>
+        </TouchableOpacity>
+        {errors.state && <Text style={styles.error}>{errors.state}</Text>}
+
+        {/* ── Club (optional, filtered by state) ── */}
+        <TouchableOpacity
+          onPress={() => selectedState ? setClubModal(true) : Alert.alert('Select state first')}
+          activeOpacity={0.8}
+        >
+          <View pointerEvents="none">
+            <TextInput
+              label={clubsLoading ? 'Loading clubs…' : 'Club *'}
+              value={selectedClub?.clubName || ''}
+              mode="outlined"
+              theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB"
+              activeOutlineColor="#1976D2"
+              style={[styles.input, !selectedState && { opacity: 0.5 }]}
+              editable={false}
+            />
+          </View>
+        </TouchableOpacity>
         <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
           <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
             contentStyle={{ width: menuWidth }}
@@ -244,9 +372,9 @@ const SignupScreen = ({ navigation }) => {
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
-        <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
+       {/* <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
           mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.place && <Text style={styles.error}>{errors.place}</Text>}
+        {errors.place && <Text style={styles.error}>{errors.place}</Text>}*/}
 
         {/* Profile Photo */}
         <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
@@ -274,6 +402,96 @@ const SignupScreen = ({ navigation }) => {
       <Button mode="text" onPress={() => navigation.navigate('Login')} style={styles.linkButton}>
         Already have an account? Login
       </Button>
+      {/* ── Country Modal ── */}
+      <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Select Country</Text>
+            <FlatList
+              data={countries}
+              keyExtractor={item => String(item.countryId)}
+              style={{ maxHeight: 380 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.pickerItem}
+                  onPress={() => {
+                    setSelectedCountry(item);
+                    setCountryModal(false);
+                    loadStates(item.countryId);
+                  }}
+                >
+                  <Text style={styles.pickerItemText}>{item.countryName}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
+            />
+            <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryModal(false)}>
+              <Text style={styles.pickerCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── State Modal ── */}
+      <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Select State</Text>
+            <FlatList
+              data={states}
+              keyExtractor={item => String(item.stateId)}
+              style={{ maxHeight: 380 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.pickerItem}
+                  onPress={() => {
+                    setSelectedState(item);
+                    setStateModal(false);
+                    loadClubsByState(item.stateId);
+                  }}
+                >
+                  <Text style={styles.pickerItemText}>{item.stateName}</Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
+            />
+            <TouchableOpacity style={styles.pickerCancel} onPress={() => setStateModal(false)}>
+              <Text style={styles.pickerCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── Club Modal ── */}
+      <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
+        <View style={styles.pickerOverlay}>
+          <View style={styles.pickerSheet}>
+            <Text style={styles.pickerTitle}>Select Club</Text>
+            <FlatList
+              data={clubs}
+              keyExtractor={item => String(item.clubId)}
+              style={{ maxHeight: 380 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[styles.pickerItem, selectedClub?.clubId === item.clubId && styles.pickerItemActive]}
+                  onPress={() => {
+                    setSelectedClub(item);
+                    setClubModal(false);
+                  }}
+                >
+                  <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
+                    {item.clubName}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
+            />
+            <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
+              <Text style={styles.pickerCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -311,6 +529,17 @@ const styles = StyleSheet.create({
   proceedBtn:     { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
   proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   backLink:       { color: '#1976D2', fontSize: 14 },
+  // Picker modals
+  pickerOverlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  pickerSheet:         { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  pickerTitle:         { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+  pickerItem:          { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  pickerItemActive:    { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
+  pickerItemText:      { fontSize: 15, color: '#111' },
+  pickerItemTextActive:{ color: '#1E3A5F', fontWeight: '700' },
+  pickerEmpty:         { textAlign: 'center', color: '#888', paddingVertical: 24 },
+  pickerCancel:        { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  pickerCancelText:    { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
 });
 
 export default SignupScreen;

@@ -75,11 +75,10 @@ public class AuthRepository : IAuthRepository
         return null;
     }
 
-    public async Task<(int userId, int memberId, string message)> CreateUserAsync(User user, Member member)
+    public async Task<(int userId, int memberId, string message, string? countryName, string? stateName, string? clubName)> CreateUserAsync(User user, Member member)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_CreateUser", connection);
-
         command.Parameters.AddWithValue("@Email", user.Email);
         command.Parameters.AddWithValue("@PasswordHash", user.PasswordHash);
         command.Parameters.AddWithValue("@RoleId", user.RoleId);
@@ -92,21 +91,25 @@ public class AuthRepository : IAuthRepository
         command.Parameters.AddWithValue("@Place", member.Place ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@DesignationId", member.DesignationId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@ProfilePhotoPath", member.ProfilePhotoPath ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@CountryId", member.CountryId ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@StateId", member.StateId ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@ClubId", member.ClubId ?? (object)DBNull.Value);
 
         using var reader = await command.ExecuteReaderAsync();
-
         if (await reader.ReadAsync())
         {
             return (
                 reader.GetInt32(reader.GetOrdinal("UserId")),
                 reader.GetInt32(reader.GetOrdinal("MemberId")),
-                reader.GetString(reader.GetOrdinal("Message"))
+                reader.GetString(reader.GetOrdinal("Message")),
+                // ? Read joined names back
+                reader.IsDBNull(reader.GetOrdinal("CountryName")) ? null : reader.GetString(reader.GetOrdinal("CountryName")),
+                reader.IsDBNull(reader.GetOrdinal("StateName")) ? null : reader.GetString(reader.GetOrdinal("StateName")),
+                reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName"))
             );
         }
-
-        return (-1, -1, "Failed to create user");
+        return (-1, -1, "Failed to create user", null, null, null);
     }
-
     public async Task<User?> ValidateUserForPasswordResetAsync(string email, DateTime dateOfBirth)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();

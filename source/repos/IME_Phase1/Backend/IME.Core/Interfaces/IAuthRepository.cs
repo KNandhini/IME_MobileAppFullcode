@@ -6,7 +6,7 @@ public interface IAuthRepository
 {
     Task<User?> GetUserByEmailAsync(string email);
     Task<User?> ValidateUserCredentialsAsync(string email, string passwordHash);
-    Task<(int userId, int memberId, string message)> CreateUserAsync(User user, Member member);
+    Task<(int userId, int memberId, string message, string? countryName, string? stateName, string? clubName)> CreateUserAsync(User user, Member member);
     Task<User?> ValidateUserForPasswordResetAsync(string email, DateTime dateOfBirth);
     Task<bool> ResetPasswordAsync(int userId, string newPasswordHash);
 }

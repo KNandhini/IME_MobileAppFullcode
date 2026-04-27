@@ -110,7 +110,7 @@ public class AuthController : ControllerBase
             {
                 Email = request.Email,
                 PasswordHash = passwordHash,
-                RoleId = 2, // Member role
+                RoleId = 2,
                 IsActive = true
             };
 
@@ -125,10 +125,15 @@ public class AuthController : ControllerBase
                 Place = request.Place,
                 DesignationId = request.DesignationId,
                 ProfilePhotoPath = request.ProfilePhotoPath,
-                MembershipStatus = "Pending"
+                MembershipStatus = "Pending",
+                CountryId = request.CountryId,
+                StateId = request.StateId,
+                ClubId = request.ClubId,
             };
 
-            var (userId, memberId, message) = await _authRepository.CreateUserAsync(user, member);
+            // ? FIXED: 6-value tuple to match updated repository
+            var (userId, memberId, message, countryName, stateName, clubName)
+                = await _authRepository.CreateUserAsync(user, member);
 
             if (userId > 0)
             {
@@ -136,7 +141,14 @@ public class AuthController : ControllerBase
                 {
                     Success = true,
                     Message = "Registration successful. Pending admin approval.",
-                    Data = new { UserId = userId, MemberId = memberId }
+                    Data = new
+                    {
+                        UserId = userId,
+                        MemberId = memberId,
+                        CountryName = countryName,  // ? from JOIN
+                        StateName = stateName,    // ? from JOIN
+                        ClubName = clubName,     // ? from JOIN
+                    }
                 });
             }
 

@@ -24,7 +24,8 @@ public class ClubController : ControllerBase
     }
 
     [HttpGet("all")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<List<ClubDTO>>>> GetAll(
         [FromQuery] int pageNumber = 1,
         [FromQuery] int pageSize = 50,
@@ -178,7 +179,8 @@ public class ClubController : ControllerBase
     }
 
     [HttpGet("countries")]
-    [Authorize]
+    // [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<List<CountryDTO>>>> GetCountries()
     {
         try
@@ -194,7 +196,8 @@ public class ClubController : ControllerBase
     }
 
     [HttpGet("states/{countryId}")]
-    [Authorize]
+    //  [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<List<StateDTO>>>> GetStates(int countryId)
     {
         try

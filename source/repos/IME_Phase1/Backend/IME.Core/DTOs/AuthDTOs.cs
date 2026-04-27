@@ -31,6 +31,12 @@ public class SignupRequestDTO
     public string Place { get; set; } = string.Empty;
     public int DesignationId { get; set; }
     public string? ProfilePhotoPath { get; set; }
+    public int? CountryId { get; set; }
+  
+    public int? StateId { get; set; }
+  
+    public int? ClubId { get; set; }
+  
 }
 
 public class ForgotPasswordRequestDTO
