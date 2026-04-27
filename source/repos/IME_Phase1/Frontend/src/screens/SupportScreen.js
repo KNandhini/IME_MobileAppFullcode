@@ -907,10 +907,10 @@ const fs = StyleSheet.create({
 });
 
 // ── Support Card ──────────────────────────────────────────────────────────────
-function SupportCard({ item, userRole, onEdit, onDelete }) {
+function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
   const [imgError, setImgError] = useState(false);
   return (
-    <View style={s.card}>
+    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
 
       {/* ── TOP ROW: badge + action buttons ── */}
       <View style={s.cardTopRow}>
@@ -970,7 +970,7 @@ function SupportCard({ item, userRole, onEdit, onDelete }) {
         </View>
       </View>
 
-    </View>
+    </TouchableOpacity>
   );
 }
 function categoryColor(id) {
@@ -979,7 +979,7 @@ function categoryColor(id) {
 }
 
 // ── Tab Content ───────────────────────────────────────────────────────────────
-function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit }) {
+function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation }) {
   const [supportList, setSupportList] = useState([]);
   const [loading,     setLoading]     = useState(false);
   const [refreshing,  setRefreshing]  = useState(false);
@@ -1144,8 +1144,9 @@ const loadSupport = async () => {
         <SupportCard
           item={item}
           userRole={userRole}
-          onEdit={onEdit}           // ✅ passed from parent
-          onDelete={handleDelete}   // ✅ local handler
+          onEdit={onEdit}
+          onDelete={handleDelete}
+          onPress={() => navigation?.navigate('SupportDetail', { supportId: item.supportId, item })}
         />
       )}
       keyExtractor={(item) => item.supportId?.toString() ?? Math.random().toString()}
@@ -1158,7 +1159,7 @@ const loadSupport = async () => {
 }
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
-export default function SupportScreen() {
+export default function SupportScreen({ navigation }) {
   const [categories,    setCategories]    = useState([]);
   const [tabsLoaded,    setTabsLoaded]    = useState(false);
   const [activeIndex,   setActiveIndex]   = useState(0);
@@ -1297,6 +1298,7 @@ export default function SupportScreen() {
               refresh={activeIndex === index ? refreshSignal : 0}
               userRole={userRole}
               setRefreshSignal={setRefreshSignal}
+              navigation={navigation}
               onEdit={(item) => {
                 setEditItem(item);
                 setFormVisible(true);

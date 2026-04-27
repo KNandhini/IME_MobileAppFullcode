@@ -167,13 +167,35 @@ function mapPaymentMode(method) {
 // ─── API: fetch member details ────────────────────────────────────────────────
 const fetchMemberDetails = async () => {
   const userStr = await AsyncStorage.getItem('userData');
-  if (!userStr) throw new Error('User not found');
+  if (!userStr) throw new Error('No user session');
   const user = JSON.parse(userStr);
-  const memberId = user?.memberId || user?.id;
-  if (!memberId) throw new Error('Member ID missing');
-  const res = await api.get(`/member/profile/${memberId}`);
-  if (res.data.success) return res.data.data;
-  throw new Error(res.data.message || 'Failed to fetch member');
+
+  // Handle both camelCase and PascalCase keys (backend may vary)
+  const memberId =
+    user?.memberId || user?.MemberId || user?.id;
+  const userId =
+    user?.userId || user?.UserId;
+
+  if (memberId) {
+    try {
+      const res = await api.get(`/member/profile/${memberId}`);
+      const body = res.data;
+      if (body?.success || body?.Success) {
+        return body?.data || body?.Data;
+      }
+    } catch (_) {
+      // API unreachable or returned error — fall through to stored data
+    }
+  }
+
+  // Always return stored login data as fallback so memberData is never null
+  return {
+    id: memberId || userId,
+    memberId: memberId || userId,
+    fullName: user?.fullName || user?.FullName || '',
+    email: user?.email || user?.Email || '',
+    contactNumber: user?.contactNumber || user?.ContactNumber || '',
+  };
 };
 
 // ─── API: store payment ───────────────────────────────────────────────────────
@@ -380,7 +402,10 @@ export default function RaiseFundScreen({ route, navigation }) {
   useEffect(() => {
     fetchMemberDetails()
       .then(setMemberData)
-      .catch(() => Alert.alert('Error', 'Could not load member details'))
+      .catch((err) => {
+        console.warn('fetchMemberDetails failed:', err.message);
+        Alert.alert('Session Expired', 'Please log out and log in again.');
+      })
       .finally(() => setLoadingMember(false));
   }, []);
 

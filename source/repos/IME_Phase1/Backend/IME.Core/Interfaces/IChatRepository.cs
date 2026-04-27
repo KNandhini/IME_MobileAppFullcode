@@ -7,6 +7,6 @@ public interface IChatRepository
 {
     Task<ChatConversation?> GetOrCreateConversationAsync(int myMemberId, int otherMemberId);
     Task<List<ChatMessage>> GetConversationMessagesAsync(int conversationId, int pageNumber, int pageSize);
-    Task<(int MessageId, DateTime SentDate)> SendMessageAsync(int conversationId, int senderId, string text);
+    Task<(int MessageId, DateTime SentDate)> SendMessageAsync(int conversationId, int senderId, string text, DateTime? sentDate = null);
     Task<List<ConversationDTO>> GetUserConversationsAsync(int memberId);
 }

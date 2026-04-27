@@ -115,11 +115,12 @@ GO
 CREATE OR ALTER PROCEDURE sp_SendChatMessage
     @ConversationId INT,
     @SenderId       INT,
-    @MessageText    NVARCHAR(MAX)
+    @MessageText    NVARCHAR(MAX),
+    @SentDate       DATETIME = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @Now DATETIME = GETDATE();
+    DECLARE @Now DATETIME = COALESCE(@SentDate, GETDATE());
 
     INSERT INTO tbl_chat_messages (ConversationId, SenderId, MessageText, SentDate, IsRead)
     VALUES (@ConversationId, @SenderId, @MessageText, @Now, 0);
