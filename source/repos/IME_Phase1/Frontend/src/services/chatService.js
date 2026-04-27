@@ -23,9 +23,12 @@ export const chatService = {
     }
   },
 
-  sendMessage: async (conversationId, messageText) => {
+  sendMessage: async (conversationId, messageText, sentDate) => {
     try {
-      const response = await api.post(`/chat/conversation/${conversationId}/messages`, { messageText });
+      const response = await api.post(`/chat/conversation/${conversationId}/messages`, {
+        messageText,
+        sentDate: sentDate ?? new Date().toISOString(),
+      });
       return response.data;
     } catch (error) {
       console.error('sendMessage error:', error);

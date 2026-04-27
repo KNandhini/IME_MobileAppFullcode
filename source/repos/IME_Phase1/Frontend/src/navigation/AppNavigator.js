@@ -46,6 +46,7 @@ import ClubFormScreen from '../screens/ClubFormScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ChatsListScreen from '../screens/ChatsListScreen';
+import SupportDetailScreen from '../screens/SupportDetailScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -211,6 +212,7 @@ const MainStack = () => (
     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ headerShown: false }} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="SupportDetail" component={SupportDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen
       name="AddCircular"
       component={AddCircularScreen}

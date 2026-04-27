@@ -121,7 +121,12 @@ public class ChatController : ControllerBase
             if (string.IsNullOrWhiteSpace(request.MessageText))
                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Message cannot be empty." });
 
-            var (messageId, sentDate) = await _chatRepository.SendMessageAsync(conversationId, memberId, request.MessageText);
+            DateTime? parsedDate = null;
+            if (!string.IsNullOrWhiteSpace(request.SentDate) &&
+                DateTime.TryParse(request.SentDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out var pd))
+                parsedDate = pd;
+
+            var (messageId, sentDate) = await _chatRepository.SendMessageAsync(conversationId, memberId, request.MessageText, parsedDate);
             return Ok(new ApiResponse<object>
             {
                 Success = true,

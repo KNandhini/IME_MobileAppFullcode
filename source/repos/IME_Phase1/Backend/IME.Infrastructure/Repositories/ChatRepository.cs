@@ -69,7 +69,7 @@ public class ChatRepository : IChatRepository
         return messages;
     }
 
-    public async Task<(int MessageId, DateTime SentDate)> SendMessageAsync(int conversationId, int senderId, string text)
+    public async Task<(int MessageId, DateTime SentDate)> SendMessageAsync(int conversationId, int senderId, string text, DateTime? sentDate = null)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command    = _dbContext.CreateStoredProcCommand("sp_SendChatMessage", connection);
@@ -77,6 +77,7 @@ public class ChatRepository : IChatRepository
         command.Parameters.AddWithValue("@ConversationId", conversationId);
         command.Parameters.AddWithValue("@SenderId",       senderId);
         command.Parameters.AddWithValue("@MessageText",    text);
+        command.Parameters.AddWithValue("@SentDate",       (object?)(sentDate ?? DateTime.UtcNow));
 
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())

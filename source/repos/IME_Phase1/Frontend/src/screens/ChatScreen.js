@@ -78,7 +78,9 @@ const ChatScreen = ({ navigation, route }) => {
     setInputText('');
     setSending(true);
 
-    // Optimistic update
+    const clientTime = new Date().toISOString();
+
+    // Optimistic update with client local time
     const tempId = Date.now() * -1;
     const optimistic = {
       messageId:      tempId,
@@ -86,7 +88,7 @@ const ChatScreen = ({ navigation, route }) => {
       senderId:       user?.memberId ?? 0,
       senderName:     user?.fullName ?? 'Me',
       messageText:    text,
-      sentDate:       new Date().toISOString(),
+      sentDate:       clientTime,
       isRead:         false,
       isOwn:          true,
     };
@@ -94,7 +96,7 @@ const ChatScreen = ({ navigation, route }) => {
     setTimeout(() => scrollToBottom(), 50);
 
     try {
-      const res = await chatService.sendMessage(conversationId, text);
+      const res = await chatService.sendMessage(conversationId, text, clientTime);
       if (res.success) {
         // Replace optimistic message with real one
         setMessages(prev =>
