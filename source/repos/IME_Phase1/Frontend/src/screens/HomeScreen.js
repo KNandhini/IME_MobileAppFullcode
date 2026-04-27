@@ -195,7 +195,7 @@ const HomeScreen = ({ navigation }) => {
       <FlatList
         data={posts}
         keyExtractor={(item, index) => `${item.type}-${item.id}-${index}`}
-        renderItem={({ item }) => <FeedCard item={item} />}
+        renderItem={({ item }) => <FeedCard item={item} navigation={navigation} />}
         ListHeaderComponent={renderFeedHeader}
         ListFooterComponent={renderFeedFooter}
         onEndReached={handleLoadMore}
