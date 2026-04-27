@@ -43,6 +43,9 @@ import CreatePostScreen from '../screens/CreatePostScreen';
 import AddCircularScreen from '../screens/AddCircularScreen';
 import ClubListScreen from '../screens/ClubListScreen';
 import ClubFormScreen from '../screens/ClubFormScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
+import ChatScreen from '../screens/ChatScreen';
+import ChatsListScreen from '../screens/ChatsListScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -144,6 +147,23 @@ const MainTabs = () => (
         ),
       }}
     />
+    <Tab.Screen
+      name="ChatsTab"
+      component={ChatsListScreen}
+      options={{
+        title: 'Chats',
+        headerStyle: { backgroundColor: '#1E3A5F' },
+        headerTintColor: '#fff',
+        headerTitleStyle: { fontWeight: '700' },
+        headerShown: false,
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>📩</Text>
+            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
+          </View>
+        ),
+      }}
+    />
   </Tab.Navigator>
 
 );
@@ -189,6 +209,8 @@ const MainStack = () => (
     <Stack.Screen name="ClubForm" component={ClubFormScreen} options={{ headerShown: false }} />
     {/*<Stack.Screen name="About"            component={AboutScreen}            options={{ title: 'About IME' }} />*/}
     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
     <Stack.Screen
       name="AddCircular"
       component={AddCircularScreen}

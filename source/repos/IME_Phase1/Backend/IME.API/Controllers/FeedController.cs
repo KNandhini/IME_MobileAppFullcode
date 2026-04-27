@@ -41,6 +41,24 @@ public class FeedController : ControllerBase
         }
     }
 
+    // ── GET /api/feed/member/{memberId} ──────────────────────
+    [HttpGet("member/{memberId:int}")]
+    public async Task<ActionResult<ApiResponse<FeedResponseDTO>>> GetMemberFeed(
+        int memberId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize   = 10)
+    {
+        try
+        {
+            var feed = await _feedRepository.GetMemberFeedAsync(memberId, pageNumber, pageSize);
+            return Ok(new ApiResponse<FeedResponseDTO> { Success = true, Data = feed });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<FeedResponseDTO> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
     // ── POST /api/feed/post  (multipart: content + files[]) ─
     [HttpPost("post")]
     public async Task<ActionResult<ApiResponse<object>>> CreatePost(

@@ -104,7 +104,7 @@ const SingleImage = ({ imagePath }) => {
 };
 
 // ── Main card ─────────────────────────────────────────────────────────────────
-const FeedCard = ({ item }) => {
+const FeedCard = ({ item, navigation }) => {
   const colorIndex  = (item.id || 0) % AVATAR_COLORS.length;
   const avatarColor = AVATAR_COLORS[colorIndex];
   const memberName  = item.memberName || 'IME Admin';
@@ -125,7 +125,22 @@ const FeedCard = ({ item }) => {
         </View>
 
         <View style={styles.headerMeta}>
-          <Text style={styles.memberName}>{memberName}</Text>
+          <TouchableOpacity
+            activeOpacity={navigation && item.memberId ? 0.6 : 1}
+            onPress={() => {
+              if (navigation && item.memberId) {
+                navigation.navigate('UserProfile', {
+                  memberId:   item.memberId,
+                  memberName: memberName,
+                  email:      item.email,
+                });
+              }
+            }}
+          >
+            <Text style={[styles.memberName, navigation && item.memberId && styles.memberNameLink]}>
+              {memberName}
+            </Text>
+          </TouchableOpacity>
           <View style={styles.metaRow}>
             <View style={styles.typeBadge}>
               <Text style={styles.typeBadgeText}>{typeMeta.icon} {typeMeta.label}</Text>
@@ -219,7 +234,8 @@ const styles = StyleSheet.create({
   avatar:       { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
   avatarLetter: { color: '#fff', fontSize: 18, fontWeight: '700' },
   headerMeta:   { flex: 1, marginLeft: 10 },
-  memberName:   { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
+  memberName:     { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
+  memberNameLink: { color: '#1E3A5F' },
   metaRow:      { flexDirection: 'row', alignItems: 'center' },
   typeBadge: {
     backgroundColor: '#EEF2FF',

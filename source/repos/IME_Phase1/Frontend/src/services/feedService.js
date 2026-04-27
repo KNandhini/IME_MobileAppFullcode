@@ -9,6 +9,18 @@ export const feedService = {
     return response.data; // { success, data: { items, pageNumber, pageSize, hasMore } }
   },
 
+  getMemberFeed: async (memberId, pageNumber = 1, pageSize = 10) => {
+    try {
+      const response = await api.get(`/feed/member/${memberId}`, {
+        params: { pageNumber, pageSize },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('getMemberFeed error:', error);
+      return { success: false, message: error.message };
+    }
+  },
+
   // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.
   createPost: async (content, mediaItems = []) => {
     debugger;

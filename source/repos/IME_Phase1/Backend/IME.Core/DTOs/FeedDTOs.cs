@@ -12,7 +12,9 @@ public class FeedItemDTO
 {
     public int               Id          { get; set; }
     public string            Type        { get; set; } = string.Empty; // Post | Activity | News | Circular
+    public int?              MemberId    { get; set; }
     public string            MemberName  { get; set; } = string.Empty;
+    public string?           Email       { get; set; }
     public string            Title       { get; set; } = string.Empty;
     public string?           Description { get; set; }
     public bool              HasImage    { get; set; }
