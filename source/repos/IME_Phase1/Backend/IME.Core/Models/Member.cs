@@ -19,4 +19,7 @@ public class Member
     public string? Reason { get; set; }   // optional (only for Reject)
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
+    public int? CountryId { get; set; }
+    public int? StateId { get; set; }
+    public int? ClubId { get; set; }
 }
