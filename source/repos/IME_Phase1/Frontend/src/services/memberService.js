@@ -3,6 +3,7 @@ import api from '../utils/api';
 export const memberService = {
   getProfile: async (memberId) => {
     try {
+      debugger;
       const response = await api.get(`/member/profile/${memberId}`);
       return response.data;
     } catch (error) {
@@ -13,6 +14,7 @@ export const memberService = {
 
   updateProfile: async (memberId, profileData) => {
     try {
+      debugger;
       const response = await api.put(`/member/profile/${memberId}`, profileData);
       return response.data;
     } catch (error) {

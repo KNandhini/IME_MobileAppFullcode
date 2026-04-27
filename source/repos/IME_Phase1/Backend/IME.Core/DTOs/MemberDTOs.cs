@@ -18,6 +18,13 @@ public class MemberProfileDTO
     public string MembershipStatus { get; set; } = string.Empty;
     public string? Reason { get; set; }   // optional (only for Reject)
     public DateTime CreatedDate { get; set; }
+    public byte[]? ProfilePhoto { get; set; }
+    public int? CountryId { get; set; }
+    public string? CountryName { get; set; }
+    public int? StateId { get; set; }
+    public string? StateName { get; set; }
+    public int? ClubId { get; set; }
+    public string? ClubName { get; set; }
 }
 
 public class UpdateMemberProfileDTO

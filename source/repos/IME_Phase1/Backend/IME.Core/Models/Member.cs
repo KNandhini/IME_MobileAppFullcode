@@ -20,6 +20,9 @@ public class Member
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
     public int? CountryId { get; set; }
+    public string? CountryName { get; set; }
     public int? StateId { get; set; }
+    public string? StateName { get; set; }
     public int? ClubId { get; set; }
+    public string? ClubName { get; set; }
 }

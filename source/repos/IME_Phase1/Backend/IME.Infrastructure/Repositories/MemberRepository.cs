@@ -30,16 +30,68 @@ public class MemberRepository : IMemberRepository
             {
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
                 UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
-                Email=reader.GetString(reader.GetOrdinal("Email")),
+
+                Email = reader.GetString(reader.GetOrdinal("Email")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
-                Address = reader.IsDBNull(reader.GetOrdinal("Address")) ? null : reader.GetString(reader.GetOrdinal("Address")),
-                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber")) ? null : reader.GetString(reader.GetOrdinal("ContactNumber")),
-                Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
-                Age = reader.IsDBNull(reader.GetOrdinal("Age")) ? null : reader.GetInt32(reader.GetOrdinal("Age")),
+
+                Address = reader.IsDBNull(reader.GetOrdinal("Address"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Address")),
+
+                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("ContactNumber")),
+
+                Gender = reader.IsDBNull(reader.GetOrdinal("Gender"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Gender")),
+
+                Age = reader.IsDBNull(reader.GetOrdinal("Age"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("Age")),
+
                 DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
-                Place = reader.IsDBNull(reader.GetOrdinal("Place")) ? null : reader.GetString(reader.GetOrdinal("Place")),
-                DesignationId = reader.IsDBNull(reader.GetOrdinal("DesignationId")) ? null : reader.GetInt32(reader.GetOrdinal("DesignationId")),
-                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+
+                Place = reader.IsDBNull(reader.GetOrdinal("Place"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Place")),
+
+                DesignationId = reader.IsDBNull(reader.GetOrdinal("DesignationId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("DesignationId")),
+
+                // ? NEW FIELDS
+                CountryId = reader.IsDBNull(reader.GetOrdinal("CountryId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("CountryId")),
+
+                CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("CountryName")),
+
+                StateId = reader.IsDBNull(reader.GetOrdinal("StateId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("StateId")),
+
+                StateName = reader.IsDBNull(reader.GetOrdinal("StateName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("StateName")),
+
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("ClubId")),
+
+                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("ClubName")),
+
+                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
+    ? null
+    : (byte[])reader["ProfilePhoto"],
+
                 MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")),
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
             };
@@ -90,16 +142,53 @@ public class MemberRepository : IMemberRepository
             members.Add(new Member
             {
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
+
                 Email = reader.GetString(reader.GetOrdinal("Email")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
-                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber")) ? null : reader.GetString(reader.GetOrdinal("ContactNumber")),
-                Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
+
+                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("ContactNumber")),
+
+                Gender = reader.IsDBNull(reader.GetOrdinal("Gender"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Gender")),
+
                 MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")),
-                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
-                
+
+                // ? NEW FIELDS
+                CountryId = reader.IsDBNull(reader.GetOrdinal("CountryId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("CountryId")),
+
+                CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("CountryName")),
+
+                StateId = reader.IsDBNull(reader.GetOrdinal("StateId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("StateId")),
+
+                StateName = reader.IsDBNull(reader.GetOrdinal("StateName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("StateName")),
+
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId"))
+                    ? null
+                    : reader.GetInt32(reader.GetOrdinal("ClubId")),
+
+                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("ClubName")),
+
+                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+
                 ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
-    ? null
-    : (byte[])reader["ProfilePhoto"],
+                    ? null
+                    : (byte[])reader["ProfilePhoto"],
+
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
             });
         }

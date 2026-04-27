@@ -56,7 +56,19 @@ public class MemberController : ControllerBase
                 DateOfBirth = member.DateOfBirth,
                 Place = member.Place,
                 DesignationId = member.DesignationId,
+
                 ProfilePhotoPath = member.ProfilePhotoPath,
+
+                // ? FIXED
+                ProfilePhoto = member.ProfilePhoto ,
+                // ?? You missed this line also
+                CountryId = member.CountryId,
+                CountryName = member.CountryName,
+                StateId = member.StateId,
+                StateName = member.StateName,
+                ClubId = member.ClubId,
+                ClubName = member.ClubName,
+
                 MembershipStatus = member.MembershipStatus,
                 CreatedDate = member.CreatedDate
             };
