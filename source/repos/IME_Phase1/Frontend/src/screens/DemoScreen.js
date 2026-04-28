@@ -504,14 +504,14 @@ const DemoScreen = ({ navigation }) => {
         ))}
       </View>
 
-      {/* ── Main slide content ── */}
-      <View style={[styles.slideArea, { backgroundColor: slide.color }]}>
-        {/* Phone mockup */}
+      {/* ── Full colored content area ── */}
+      <View style={[styles.contentArea, { backgroundColor: slide.color }]}>
+
+        {/* Phone mockup — large, fills available space */}
         <Animated.View style={[
-          styles.phoneMockup,
+          styles.phoneMockupWrap,
           { opacity: slideOpacity, transform: [{ translateY: slideTranslate }] },
         ]}>
-          {/* Phone frame */}
           <View style={styles.phoneFrame}>
             <View style={styles.phoneSpeaker} />
             <View style={styles.phoneScreen}>
@@ -521,59 +521,61 @@ const DemoScreen = ({ navigation }) => {
           </View>
         </Animated.View>
 
-        {/* Step indicator */}
-        <View style={styles.stepBadge}>
-          <Text style={[styles.stepText, { color: slide.accent }]}>
-            {current + 1} / {total}
-          </Text>
-        </View>
-      </View>
+        {/* ── Bottom strip: description + dots + nav ── */}
+        <Animated.View style={[styles.bottomStrip, { opacity: slideOpacity }]}>
+          {/* Step badge + subtitle */}
+          <View style={styles.stepRow}>
+            <View style={styles.stepBadge}>
+              <Text style={[styles.stepText, { color: slide.accent }]}>
+                {current + 1} / {total}
+              </Text>
+            </View>
+            <Text style={styles.infoSubtitle} numberOfLines={1}>{slide.subtitle}</Text>
+          </View>
 
-      {/* ── Bottom info panel ── */}
-      <View style={styles.infoPanel}>
-        <Animated.View style={{ opacity: slideOpacity }}>
-          <Text style={styles.infoSubtitle}>{slide.subtitle}</Text>
-          <Text style={styles.infoTitle}>{slide.title}</Text>
-          <Text style={styles.infoDesc}>{slide.desc}</Text>
-        </Animated.View>
+          {/* Title + description */}
+          <Text style={styles.infoTitle} numberOfLines={1}>{slide.title}</Text>
+          <Text style={styles.infoDesc} numberOfLines={2}>{slide.desc}</Text>
 
-        {/* ── Navigation ── */}
-        <View style={styles.navRow}>
-          <TouchableOpacity
-            style={[styles.navBtn, current === 0 && styles.navBtnDisabled]}
-            onPress={() => goTo(current - 1)}
-            disabled={current === 0}>
-            <MaterialCommunityIcons name="chevron-left" size={22} color={current === 0 ? '#BCC5CF' : NAVY} />
-            <Text style={[styles.navBtnText, current === 0 && { color: '#BCC5CF' }]}>Prev</Text>
-          </TouchableOpacity>
-
-          {/* Dot indicators */}
+          {/* Dots */}
           <View style={styles.dotsRow}>
             {SLIDES.map((_, i) => (
               <TouchableOpacity key={i} onPress={() => goTo(i)}>
                 <View style={[
                   styles.dot,
                   i === current && styles.dotActive,
-                  { backgroundColor: i === current ? NAVY : '#BCC5CF' },
+                  { backgroundColor: i === current ? WHITE : 'rgba(255,255,255,0.35)' },
                 ]} />
               </TouchableOpacity>
             ))}
           </View>
 
-          {current < total - 1 ? (
-            <TouchableOpacity style={styles.navBtn} onPress={() => goTo(current + 1)}>
-              <Text style={styles.navBtnText}>Next</Text>
-              <MaterialCommunityIcons name="chevron-right" size={22} color={NAVY} />
-            </TouchableOpacity>
-          ) : (
+          {/* Prev / Next buttons */}
+          <View style={styles.navRow}>
             <TouchableOpacity
-              style={[styles.navBtn, styles.navBtnCta]}
-              onPress={() => navigation.goBack()}>
-              <Text style={[styles.navBtnText, { color: WHITE }]}>Login</Text>
-              <MaterialCommunityIcons name="login" size={18} color={WHITE} />
+              style={[styles.navBtn, current === 0 && styles.navBtnDisabled]}
+              onPress={() => goTo(current - 1)}
+              disabled={current === 0}>
+              <MaterialCommunityIcons name="chevron-left" size={20} color={current === 0 ? 'rgba(255,255,255,0.35)' : WHITE} />
+              <Text style={[styles.navBtnText, current === 0 && { color: 'rgba(255,255,255,0.35)' }]}>Prev</Text>
             </TouchableOpacity>
-          )}
-        </View>
+
+            {current < total - 1 ? (
+              <TouchableOpacity style={[styles.navBtn, styles.navBtnNext]} onPress={() => goTo(current + 1)}>
+                <Text style={[styles.navBtnText, { color: slide.color }]}>Next</Text>
+                <MaterialCommunityIcons name="chevron-right" size={20} color={slide.color} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.navBtn, styles.navBtnNext]}
+                onPress={() => navigation.goBack()}>
+                <Text style={[styles.navBtnText, { color: slide.color }]}>Login</Text>
+                <MaterialCommunityIcons name="login" size={18} color={slide.color} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </Animated.View>
+
       </View>
     </View>
   );
@@ -581,7 +583,7 @@ const DemoScreen = ({ navigation }) => {
 
 // ── Styles ────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F0F4F8' },
+  root: { flex: 1 },
 
   topBar: {
     flexDirection: 'row',
@@ -611,112 +613,131 @@ const styles = StyleSheet.create({
   },
   stripFill: { height: '100%', borderRadius: 2 },
 
-  // Slide area
-  slideArea: {
+  // Full colored content area
+  contentArea: {
+    flex: 1,
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingBottom: 24,
+    paddingTop: 10,
+    paddingBottom: 14,
+    paddingHorizontal: 12,
   },
-  phoneMockup: { alignItems: 'center' },
-  phoneFrame: {
-    width: W * 0.52,
-    height: H * 0.38,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 28,
-    padding: 10,
+
+  // Phone mockup — expands to fill space above bottom strip
+  phoneMockupWrap: {
+    flex: 1,
     alignItems: 'center',
-    elevation: 16,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  phoneFrame: {
+    width: W * 0.72,
+    height: H * 0.52,
+    backgroundColor: '#1A1A2E',
+    borderRadius: 34,
+    padding: 12,
+    alignItems: 'center',
+    elevation: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    borderWidth: 2,
-    borderColor: '#333',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.45,
+    shadowRadius: 20,
+    borderWidth: 2.5,
+    borderColor: '#2A2A3E',
   },
   phoneSpeaker: {
-    width: 40, height: 4, borderRadius: 2,
-    backgroundColor: '#333', marginBottom: 8,
+    width: 44, height: 5, borderRadius: 3,
+    backgroundColor: '#2A2A3E', marginBottom: 10,
   },
   phoneScreen: {
     flex: 1, width: '100%',
     backgroundColor: NAVY,
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: 'hidden',
   },
   phoneHome: {
-    width: 28, height: 4, borderRadius: 2,
-    backgroundColor: '#444', marginTop: 8,
+    width: 32, height: 5, borderRadius: 3,
+    backgroundColor: '#2A2A3E', marginTop: 10,
   },
 
+  // Bottom info strip (inside colored area)
+  bottomStrip: {
+    width: '100%',
+    backgroundColor: 'rgba(0,0,0,0.22)',
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginTop: 10,
+  },
+
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   stepBadge: {
-    marginTop: 12,
-    backgroundColor: 'rgba(0,0,0,0.25)',
-    borderRadius: 16,
-    paddingVertical: 4,
-    paddingHorizontal: 14,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderRadius: 10,
+    paddingVertical: 2,
+    paddingHorizontal: 10,
+    marginRight: 8,
   },
-  stepText: { fontSize: 12, fontWeight: '700' },
+  stepText: { fontSize: 11, fontWeight: '700' },
 
-  // Info panel
-  infoPanel: {
-    flex: 1,
-    backgroundColor: WHITE,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 16,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-  },
   infoSubtitle: {
     fontSize: 11, fontWeight: '700',
-    color: GOLD, letterSpacing: 1.5,
-    textTransform: 'uppercase', marginBottom: 4,
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    flex: 1,
   },
   infoTitle: {
-    fontSize: 18, fontWeight: '800',
-    color: NAVY, marginBottom: 8,
-    lineHeight: 24,
-  },
-  infoDesc: {
-    fontSize: 13, color: '#6B7A8D',
+    fontSize: 15, fontWeight: '800',
+    color: WHITE, marginBottom: 3,
     lineHeight: 20,
   },
-
-  // Navigation
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 16,
+  infoDesc: {
+    fontSize: 12, color: 'rgba(255,255,255,0.7)',
+    lineHeight: 17,
   },
-  navBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    backgroundColor: '#F0F4F8',
-    minWidth: 70,
-    justifyContent: 'center',
-  },
-  navBtnDisabled: { opacity: 0.4 },
-  navBtnCta: { backgroundColor: NAVY },
-  navBtnText: { fontSize: 13, fontWeight: '700', color: NAVY, marginHorizontal: 2 },
 
+  // Dots
   dotsRow: {
-    flex: 1, flexDirection: 'row',
-    justifyContent: 'center', alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
     flexWrap: 'wrap',
+    marginTop: 10,
+    marginBottom: 8,
   },
   dot: {
     width: 6, height: 6, borderRadius: 3,
     marginHorizontal: 3,
   },
   dotActive: { width: 18, borderRadius: 3 },
+
+  // Navigation
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  navBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    minWidth: 76,
+    justifyContent: 'center',
+  },
+  navBtnDisabled: { opacity: 0.3 },
+  navBtnNext: {
+    backgroundColor: WHITE,
+    borderColor: WHITE,
+  },
+  navBtnText: { fontSize: 13, fontWeight: '700', color: WHITE, marginHorizontal: 2 },
 });
 
 export default DemoScreen;
