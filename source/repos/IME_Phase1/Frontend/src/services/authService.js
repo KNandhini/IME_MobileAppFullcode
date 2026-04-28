@@ -13,7 +13,8 @@ export const authService = {
 
       if (token) {
         await AsyncStorage.setItem('authToken', token);
-        await AsyncStorage.setItem('userData', JSON.stringify(data));
+        const { profilePhoto, ProfilePhoto, profilePhotoPath, ProfilePhotoPath, ...safeData } = data;
+        await AsyncStorage.setItem('userData', JSON.stringify(safeData));
       }
 
       return { success: !!(res.success !== false && token), data, message: res.message };

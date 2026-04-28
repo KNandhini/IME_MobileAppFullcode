@@ -152,7 +152,7 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.logoText}>IME</Text>
           </View>
           <View>
-            <Text style={styles.appName}>Indian Mechanical Engineers</Text>
+            <Text style={styles.appName}>Indian Municipal Engineers</Text>
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>
