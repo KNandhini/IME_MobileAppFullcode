@@ -80,6 +80,7 @@ builder.Services.AddScoped<IRaiseFundPayment, RaiseFundPaymentRepository>();
 builder.Services.AddScoped<ISupportRepository, SupportRepository>();
 builder.Services.AddScoped<IClubRepository, ClubRepository>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<IMunicipalCorpRepository, MunicipalCorpRepository>();
 builder.Services.AddHttpClient(); 
 // Register Services
 builder.Services.AddSingleton(new JwtService(
