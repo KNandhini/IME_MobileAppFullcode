@@ -10,6 +10,7 @@ import {
   StatusBar,
   Dimensions,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
@@ -74,7 +75,7 @@ const FadeIn = ({ children, delay = 0, style }) => {
 };
 
 // ── Main Screen ─────────────────────────────────────────────────
-const AboutScreen = () => {
+const AboutScreen = ({ navigation }) => {
   const goldLine = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -187,6 +188,25 @@ const AboutScreen = () => {
               ))}
             </View>
           </View>
+        </FadeIn>
+
+        {/* ── App Overview Presentation ── */}
+        <FadeIn delay={750}>
+          <TouchableOpacity
+            style={styles.presentationBtn}
+            onPress={() => navigation.navigate('Presentation')}
+            activeOpacity={0.88}>
+            <View style={styles.presentationLeft}>
+              <View style={styles.presentationIconWrap}>
+                <MaterialCommunityIcons name="presentation-play" size={26} color={GOLD} />
+              </View>
+              <View style={styles.presentationText}>
+                <Text style={styles.presentationTitle}>View App Overview</Text>
+                <Text style={styles.presentationSub}>Explore all features in a guided presentation</Text>
+              </View>
+            </View>
+            <MaterialCommunityIcons name="chevron-right" size={22} color={NAVY} />
+          </TouchableOpacity>
         </FadeIn>
 
         {/* ── Contact Banner ── */}
@@ -423,6 +443,51 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: GREY,
+  },
+
+  // Presentation button
+  presentationBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: WHITE,
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 12,
+    padding: 16,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    borderLeftWidth: 4,
+    borderLeftColor: GOLD,
+  },
+  presentationLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  presentationIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(212,160,23,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
+  },
+  presentationText: { flex: 1 },
+  presentationTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: NAVY,
+    marginBottom: 3,
+  },
+  presentationSub: {
+    fontSize: 12,
+    color: GREY,
+    lineHeight: 16,
   },
 
   // Contact
