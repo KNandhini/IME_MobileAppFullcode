@@ -49,6 +49,7 @@ import ChatsListScreen from '../screens/ChatsListScreen';
 import SupportDetailScreen from '../screens/SupportDetailScreen';
 import MunicipalMapScreen from '../screens/MunicipalMapScreen';
 import DemoScreen from '../screens/DemoScreen';
+import PresentationScreen from '../screens/PresentationScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -68,6 +69,7 @@ const AuthStack = () => (
     <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: true, title: 'About IMC', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
     <Stack.Screen name="MunicipalMap" component={MunicipalMapScreen} />
     <Stack.Screen name="Demo" component={DemoScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
@@ -218,6 +220,7 @@ const MainStack = () => (
     <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SupportDetail" component={SupportDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
     <Stack.Screen
       name="AddCircular"
       component={AddCircularScreen}
