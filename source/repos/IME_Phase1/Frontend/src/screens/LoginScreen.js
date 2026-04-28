@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Alert,
-  Animated, StatusBar, Modal, Dimensions,
+  Animated, StatusBar, Dimensions,
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { TextInput } from 'react-native-paper';
-import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';
@@ -14,15 +13,11 @@ const { width } = Dimensions.get('window');
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
-// Replace with your actual demo YouTube video ID
-const DEMO_VIDEO_ID = 'dQw4w9WgXcQ';
-
 const LoginScreen = ({ navigation }) => {
   const [email,      setEmail]      = useState('');
   const [password,   setPassword]   = useState('');
   const [loading,    setLoading]    = useState(false);
   const [secureText, setSecureText] = useState(true);
-  const [videoModal, setVideoModal] = useState(false);
 
   const { login } = useAuth();
 
@@ -143,7 +138,7 @@ const LoginScreen = ({ navigation }) => {
             <TouchableOpacity
               style={styles.signupBtn}
               onPress={() => navigation.navigate('Signup')}>
-              <Text style={styles.signupBtnText}>Create New Account</Text>
+              <Text style={styles.signupBtnText}>Register New Member</Text>
             </TouchableOpacity>
           </View>
 
@@ -157,7 +152,7 @@ const LoginScreen = ({ navigation }) => {
             <QuickAction
               icon="play-circle-outline"
               label="Watch Demo"
-              onPress={() => setVideoModal(true)}
+              onPress={() => navigation.navigate('Demo')}
             />
             <QuickAction
               icon="map-search-outline"
@@ -183,32 +178,6 @@ const LoginScreen = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* Video modal */}
-      <Modal
-        visible={videoModal}
-        animationType="slide"
-        onRequestClose={() => setVideoModal(false)}>
-        <View style={styles.videoModal}>
-          <View style={styles.videoHeader}>
-            <Text style={styles.videoTitle}>App Demo</Text>
-            <TouchableOpacity onPress={() => setVideoModal(false)}>
-              <MaterialCommunityIcons name="close" size={26} color="#fff" />
-            </TouchableOpacity>
-          </View>
-          <WebView
-            source={{ uri: `https://www.youtube.com/embed/${DEMO_VIDEO_ID}?autoplay=1&rel=0` }}
-            style={{ flex: 1 }}
-            allowsFullscreenVideo
-            javaScriptEnabled
-            mediaPlaybackRequiresUserAction={false}
-          />
-          <View style={styles.videoFooter}>
-            <Text style={styles.videoFooterText}>
-              See how to navigate and use the IMC Member Portal
-            </Text>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
@@ -334,18 +303,6 @@ const styles = StyleSheet.create({
   statsDivider:{ width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
 
   footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 },
-
-  // Video modal
-  videoModal:  { flex: 1, backgroundColor: '#000' },
-  videoHeader: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight ?? 0) + 10,
-    paddingBottom: 12, paddingHorizontal: 16,
-  },
-  videoTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  videoFooter: { backgroundColor: NAVY, padding: 12, alignItems: 'center' },
-  videoFooterText: { color: 'rgba(255,255,255,0.7)', fontSize: 12, textAlign: 'center' },
 });
 
 export default LoginScreen;

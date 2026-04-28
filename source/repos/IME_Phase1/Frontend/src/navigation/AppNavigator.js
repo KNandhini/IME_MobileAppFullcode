@@ -48,6 +48,7 @@ import ChatScreen from '../screens/ChatScreen';
 import ChatsListScreen from '../screens/ChatsListScreen';
 import SupportDetailScreen from '../screens/SupportDetailScreen';
 import MunicipalMapScreen from '../screens/MunicipalMapScreen';
+import DemoScreen from '../screens/DemoScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -66,6 +67,7 @@ const AuthStack = () => (
       options={{ headerShown: true, title: 'Complete Payment', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: true, title: 'About IMC', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
     <Stack.Screen name="MunicipalMap" component={MunicipalMapScreen} />
+    <Stack.Screen name="Demo" component={DemoScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
