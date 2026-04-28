@@ -267,7 +267,7 @@ const MunicipalMapScreen = ({ navigation }) => {
       {/* Level pills */}
       <View style={styles.levelRow}>
         {LEVEL_LABELS.map((lbl, i) => (
-          <View key={i} style={[styles.levelPill, i === level && styles.levelPillActive, i > 0 && { marginLeft: 6 }]}>
+          <View key={lbl} style={[styles.levelPill, i === level && styles.levelPillActive, i > 0 && { marginLeft: 6 }]}>
             <Text style={[styles.levelPillText, i === level && styles.levelPillTextActive]}>
               {lbl}
             </Text>
