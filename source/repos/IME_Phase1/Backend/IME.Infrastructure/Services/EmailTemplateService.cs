@@ -26,7 +26,7 @@ public class EmailTemplateService
           <!-- Header -->
           <tr>
             <td style=""background:#1E3A5F;padding:36px 40px;text-align:center;"">
-              <p style=""margin:0 0 6px;color:rgba(255,255,255,0.7);font-size:13px;letter-spacing:2px;text-transform:uppercase;"">Indian Mechanical Engineers</p>
+              <p style=""margin:0 0 6px;color:rgba(255,255,255,0.7);font-size:13px;letter-spacing:2px;text-transform:uppercase;"">Indian Municipal Engineers</p>
               <h1 style=""margin:0;color:#D4A017;font-size:28px;font-weight:800;letter-spacing:1px;"">IME</h1>
               <p style=""margin:10px 0 0;color:rgba(255,255,255,0.85);font-size:15px;"">Membership Registration Confirmed</p>
             </td>
@@ -118,7 +118,7 @@ public class EmailTemplateService
           <tr>
             <td style=""background:#1E3A5F;padding:20px 40px;text-align:center;"">
               <p style=""margin:0 0 4px;color:rgba(255,255,255,0.6);font-size:12px;"">This is an automated email. Please do not reply.</p>
-              <p style=""margin:0;color:rgba(255,255,255,0.4);font-size:11px;"">© {DateTime.Now.Year} Indian Mechanical Engineers. All rights reserved.</p>
+              <p style=""margin:0;color:rgba(255,255,255,0.4);font-size:11px;"">© {DateTime.Now.Year} Indian Municipal Engineers. All rights reserved.</p>
             </td>
           </tr>
 

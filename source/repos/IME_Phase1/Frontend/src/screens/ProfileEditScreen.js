@@ -59,7 +59,6 @@ const [profilePhoto, setProfilePhoto] = useState(null);
   const loadProfile = async () => {
     setPageLoading(true);
     try {
-      debugger;
       const userStr = await AsyncStorage.getItem('userData');
       if (!userStr) return;
       const user = JSON.parse(userStr);
@@ -67,7 +66,6 @@ const [profilePhoto, setProfilePhoto] = useState(null);
       setMemberId(id);
 
       const res = await memberService.getProfile(id);
-      console.log('Profile API response:', JSON.stringify(res, null, 2));
 
       if (res.success && res.data) {
         const d = res.data;
@@ -235,8 +233,7 @@ const uploadProfilePhoto = async (photoUri) => {
       const res = await memberService.updateProfile(memberId, payload);
      
 if (res.success) {
-debugger;
-  // ✅ Upload image AFTER profile update
+  // Upload image AFTER profile update
  if (profilePhoto) {
   await uploadProfilePhoto(profilePhoto);
 }
