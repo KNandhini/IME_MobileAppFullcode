@@ -129,6 +129,7 @@ const LoginScreen = ({ navigation }) => {
                 name={loading ? 'loading' : 'login'}
                 size={18}
                 color="#fff"
+                style={styles.loginBtnIcon}
               />
               <Text style={styles.loginBtnText}>{loading ? 'Signing in…' : 'Sign In'}</Text>
             </TouchableOpacity>
@@ -282,15 +283,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     elevation: 3,
   },
+  loginBtnIcon: { marginRight: 8 },
   loginBtnDisabled: { opacity: 0.7 },
   loginBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16, gap: 10 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
   dividerLine: { flex: 1, height: 1, backgroundColor: '#E2E8F0' },
-  dividerText: { color: '#8090A0', fontSize: 12, fontWeight: '600' },
+  dividerText: { color: '#8090A0', fontSize: 12, fontWeight: '600', marginHorizontal: 10 },
 
   signupBtn: {
     borderWidth: 2, borderColor: NAVY, borderRadius: 12,
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   signupBtnText: { color: NAVY, fontSize: 15, fontWeight: '700' },
 
   // Quick actions
-  quickRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14, gap: 10 },
+  quickRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   quickAction: {
     flex: 1,
     backgroundColor: 'rgba(255,255,255,0.1)',

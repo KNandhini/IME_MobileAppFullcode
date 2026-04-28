@@ -146,7 +146,7 @@ const MunicipalMapScreen = ({ navigation }) => {
     <View style={styles.corpCard}>
       {/* Header */}
       <View style={styles.corpCardHeader}>
-        <View style={styles.corpIconBadge}>
+        <View style={[styles.corpIconBadge, { marginRight: 12 }]}>
           <MaterialCommunityIcons name="office-building" size={22} color={NAVY} />
         </View>
         <View style={{ flex: 1 }}>
@@ -159,35 +159,35 @@ const MunicipalMapScreen = ({ navigation }) => {
       <View style={styles.infoGrid}>
         {item.mayorName && (
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="account-tie" size={14} color={NAVY} />
+            <MaterialCommunityIcons name="account-tie" size={14} color={NAVY} style={styles.infoRowIcon} />
             <Text style={styles.infoLabel}>Mayor</Text>
             <Text style={styles.infoValue}>{item.mayorName}</Text>
           </View>
         )}
         {item.population && (
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="account-group" size={14} color={NAVY} />
+            <MaterialCommunityIcons name="account-group" size={14} color={NAVY} style={styles.infoRowIcon} />
             <Text style={styles.infoLabel}>Population</Text>
             <Text style={styles.infoValue}>{item.population}</Text>
           </View>
         )}
         {item.area && (
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="map-outline" size={14} color={NAVY} />
+            <MaterialCommunityIcons name="map-outline" size={14} color={NAVY} style={styles.infoRowIcon} />
             <Text style={styles.infoLabel}>Area</Text>
             <Text style={styles.infoValue}>{item.area}</Text>
           </View>
         )}
         {item.wardCount != null && (
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="grid" size={14} color={NAVY} />
+            <MaterialCommunityIcons name="grid" size={14} color={NAVY} style={styles.infoRowIcon} />
             <Text style={styles.infoLabel}>Wards</Text>
             <Text style={styles.infoValue}>{item.wardCount}</Text>
           </View>
         )}
         {item.establishedYear && (
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="calendar" size={14} color={NAVY} />
+            <MaterialCommunityIcons name="calendar" size={14} color={NAVY} style={styles.infoRowIcon} />
             <Text style={styles.infoLabel}>Est.</Text>
             <Text style={styles.infoValue}>{item.establishedYear}</Text>
           </View>
@@ -204,18 +204,18 @@ const MunicipalMapScreen = ({ navigation }) => {
       {/* Action buttons */}
       <View style={styles.corpActions}>
         <TouchableOpacity style={styles.actionBtn} onPress={() => openMap(item)}>
-          <MaterialCommunityIcons name="google-maps" size={16} color={NAVY} />
+          <MaterialCommunityIcons name="google-maps" size={16} color={NAVY} style={styles.actionBtnIcon} />
           <Text style={styles.actionBtnText}>Map</Text>
         </TouchableOpacity>
         {item.contactNumber && (
           <TouchableOpacity style={styles.actionBtn} onPress={() => callCorp(item)}>
-            <MaterialCommunityIcons name="phone" size={16} color={NAVY} />
+            <MaterialCommunityIcons name="phone" size={16} color={NAVY} style={styles.actionBtnIcon} />
             <Text style={styles.actionBtnText}>Call</Text>
           </TouchableOpacity>
         )}
         {item.email && (
           <TouchableOpacity style={styles.actionBtn} onPress={() => emailCorp(item)}>
-            <MaterialCommunityIcons name="email" size={16} color={NAVY} />
+            <MaterialCommunityIcons name="email" size={16} color={NAVY} style={styles.actionBtnIcon} />
             <Text style={styles.actionBtnText}>Email</Text>
           </TouchableOpacity>
         )}
@@ -223,7 +223,7 @@ const MunicipalMapScreen = ({ navigation }) => {
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionBtnPrimary]}
             onPress={() => Linking.openURL(`https://${item.website.replace(/^https?:\/\//, '')}`)}>
-            <MaterialCommunityIcons name="web" size={16} color="#fff" />
+            <MaterialCommunityIcons name="web" size={16} color="#fff" style={styles.actionBtnIcon} />
             <Text style={[styles.actionBtnText, { color: '#fff' }]}>Website</Text>
           </TouchableOpacity>
         )}
@@ -250,7 +250,7 @@ const MunicipalMapScreen = ({ navigation }) => {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={goBack}>
+        <TouchableOpacity style={[styles.backBtn, { marginRight: 10 }]} onPress={goBack}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
@@ -261,13 +261,13 @@ const MunicipalMapScreen = ({ navigation }) => {
             </Text>
           )}
         </View>
-        <MaterialCommunityIcons name={LEVEL_ICONS[level]} size={22} color={GOLD} />
+        <MaterialCommunityIcons name={LEVEL_ICONS[level]} size={22} color={GOLD} style={{ marginLeft: 10 }} />
       </View>
 
       {/* Level pills */}
       <View style={styles.levelRow}>
         {LEVEL_LABELS.map((lbl, i) => (
-          <View key={i} style={[styles.levelPill, i === level && styles.levelPillActive]}>
+          <View key={i} style={[styles.levelPill, i === level && styles.levelPillActive, i > 0 && { marginLeft: 6 }]}>
             <Text style={[styles.levelPillText, i === level && styles.levelPillTextActive]}>
               {lbl}
             </Text>
@@ -316,7 +316,6 @@ const styles = StyleSheet.create({
     paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 48,
     paddingBottom: 14,
     paddingHorizontal: 16,
-    gap: 10,
   },
   backBtn: {
     width: 36, height: 36, borderRadius: 18,
@@ -332,8 +331,8 @@ const styles = StyleSheet.create({
     backgroundColor: NAVY,
     paddingHorizontal: 12,
     paddingBottom: 12,
-    gap: 6,
   },
+  levelPillWrap: { flex: 1, marginHorizontal: 3 },
   levelPill: {
     flex: 1, paddingVertical: 5, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.12)',
@@ -383,8 +382,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    gap: 12,
   },
+  corpIconBadgeWrap: { marginRight: 12 },
   corpIconBadge: {
     width: 42, height: 42, borderRadius: 10,
     backgroundColor: GOLD,
@@ -393,8 +392,9 @@ const styles = StyleSheet.create({
   corpName: { color: '#fff', fontSize: 15, fontWeight: '700', lineHeight: 20 },
   corpCode: { color: GOLD, fontSize: 11, fontWeight: '700', marginTop: 2, letterSpacing: 1 },
 
-  infoGrid: { padding: 14, gap: 8 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoGrid: { padding: 14 },
+  infoRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  infoRowIcon: { marginRight: 6 },
   infoLabel: { fontSize: 12, color: '#6B7A8D', width: 72, fontWeight: '600' },
   infoValue: { fontSize: 13, color: '#2D3748', fontWeight: '500', flexShrink: 1 },
 
@@ -402,19 +402,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     padding: 10,
-    gap: 8,
     borderTopWidth: 1,
     borderTopColor: '#F0F4F8',
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
     paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 20,
     backgroundColor: '#EEF2F8',
+    marginRight: 8,
+    marginBottom: 6,
   },
+  actionBtnIcon: { marginRight: 4 },
   actionBtnPrimary: { backgroundColor: NAVY },
   actionBtnText: { fontSize: 12, fontWeight: '600', color: NAVY },
 

@@ -6,58 +6,53 @@ const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
 const IMELogo = ({ size = 'large', animated = true }) => {
-  const scale = useRef(new Animated.Value(0.7)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!animated) {
-      scale.setValue(1);
-      opacity.setValue(1);
-      return;
-    }
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, tension: 60, friction: 7, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 600, useNativeDriver: true }),
-    ]).start();
+    Animated.timing(opacity, {
+      toValue: 1,
+      duration: animated ? 700 : 0,
+      useNativeDriver: true,
+    }).start();
   }, []);
 
-  const isSmall = size === 'small';
-  const iconSize  = isSmall ? 28 : 44;
-  const ringSize  = isSmall ? 70 : 108;
-  const innerSize = isSmall ? 54 : 84;
-  const acronymFs = isSmall ? 14 : 22;
-  const nameFs    = isSmall ? 9  : 12;
+  const isSmall  = size === 'small';
+  const iconSize = isSmall ? 28 : 44;
+  const ringSize = isSmall ? 74 : 110;
+  const innerSize = isSmall ? 56 : 86;
 
   return (
-    <Animated.View style={[styles.container, { opacity, transform: [{ scale }] }]}>
-      {/* Outer decorative ring */}
-      <View style={[styles.outerRing, { width: ringSize, height: ringSize, borderRadius: ringSize / 2 }]}>
-        {/* Gold arc segments */}
-        <View style={[styles.arcTop,    { width: ringSize - 8, borderRadius: (ringSize - 8) / 2 }]} />
-        {/* Inner circle */}
-        <View style={[styles.innerCircle, { width: innerSize, height: innerSize, borderRadius: innerSize / 2 }]}>
+    <Animated.View style={[styles.container, { opacity }]}>
+      {/* Outer ring */}
+      <View style={[styles.outerRing, {
+        width: ringSize, height: ringSize, borderRadius: ringSize / 2,
+      }]}>
+        {/* Inner glow circle */}
+        <View style={[styles.innerCircle, {
+          width: innerSize, height: innerSize, borderRadius: innerSize / 2,
+        }]}>
           <MaterialCommunityIcons name="city-variant-outline" size={iconSize} color={GOLD} />
         </View>
-        {/* Corner gear dots */}
-        <View style={[styles.dot, { top: 4,  left:  ringSize / 2 - 3 }]} />
+
+        {/* Decorative dots */}
+        <View style={[styles.dot, { top: 4, left: ringSize / 2 - 3 }]} />
         <View style={[styles.dot, { bottom: 4, left: ringSize / 2 - 3 }]} />
-        <View style={[styles.dot, { left: 4,  top:  ringSize / 2 - 3 }]} />
-        <View style={[styles.dot, { right: 4, top:  ringSize / 2 - 3 }]} />
+        <View style={[styles.dot, { left: 4, top: ringSize / 2 - 3 }]} />
+        <View style={[styles.dot, { right: 4, top: ringSize / 2 - 3 }]} />
       </View>
 
-      {/* IMC acronym */}
+      {/* IMC acronym with gold bars */}
       <View style={styles.textRow}>
         <View style={styles.goldBar} />
-        <Text style={[styles.acronym, { fontSize: acronymFs }]}>IMC</Text>
+        <Text style={[styles.acronym, { fontSize: isSmall ? 14 : 22 }]}>IMC</Text>
         <View style={styles.goldBar} />
       </View>
 
       {/* Full name */}
-      <Text style={[styles.fullName, { fontSize: nameFs }]}>
+      <Text style={[styles.fullName, { fontSize: isSmall ? 9 : 12 }]}>
         Indian Municipal Corporation
       </Text>
 
-      {/* Tagline */}
       {!isSmall && (
         <Text style={styles.tagline}>Serving Cities · Building Futures</Text>
       )}
@@ -83,12 +78,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
   },
-  arcTop: {
-    position: 'absolute',
-    height: '100%',
-    borderWidth: 1,
-    borderColor: 'rgba(212,160,23,0.25)',
-  },
   innerCircle: {
     backgroundColor: 'rgba(212,160,23,0.12)',
     alignItems: 'center',
@@ -106,7 +95,6 @@ const styles = StyleSheet.create({
   textRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
     marginBottom: 4,
   },
   goldBar: {
@@ -114,6 +102,7 @@ const styles = StyleSheet.create({
     height: 2,
     backgroundColor: GOLD,
     borderRadius: 1,
+    marginHorizontal: 8,
   },
   acronym: {
     color: GOLD,
