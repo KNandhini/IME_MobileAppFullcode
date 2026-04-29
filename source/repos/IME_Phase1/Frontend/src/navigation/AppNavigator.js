@@ -50,6 +50,9 @@ import SupportDetailScreen from '../screens/SupportDetailScreen';
 import MunicipalMapScreen from '../screens/MunicipalMapScreen';
 import DemoScreen from '../screens/DemoScreen';
 import PresentationScreen from '../screens/PresentationScreen';
+import CircularDetailScreen from '../screens/CircularDetailScreen';
+import AchievementDetailScreen from '../screens/AchievementDetailScreen';
+import AchievementFormScreen from '../screens/AchievementFormScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -219,8 +222,13 @@ const MainStack = () => (
     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ headerShown: false }} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="SupportDetail" component={SupportDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="SupportDetail" component={SupportDetailScreen} options={{ headerShown: false, presentation: 'modal' }} />
     <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="CircularDetail" component={CircularDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="AchievementDetail" component={AchievementDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="AchievementForm" component={AchievementFormScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="RegistrationPayment" component={RegistrationPaymentScreen}
+      options={{ headerShown: true, title: 'Complete Payment', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
     <Stack.Screen
       name="AddCircular"
       component={AddCircularScreen}

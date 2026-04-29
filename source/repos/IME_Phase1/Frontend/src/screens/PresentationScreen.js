@@ -334,7 +334,7 @@ const HTML = `<!DOCTYPE html>
   <div class="footer">
     <button class="btn-ghost" id="prev-btn" onclick="go(-1)" disabled>&#8592; Back</button>
     <span class="swipe-hint">swipe or tap to navigate</span>
-    <button class="btn" id="next-btn" onclick="go(1)">Next &#8594;</button>
+    <button class="btn" id="next-btn" onclick="go(1)">Next</button>
   </div>
 
 </div>
@@ -352,7 +352,7 @@ const HTML = `<!DOCTYPE html>
     }
     document.getElementById('counter').textContent = (cur + 1) + ' / ' + total;
     document.getElementById('prev-btn').disabled = cur === 0;
-    document.getElementById('next-btn').textContent = cur === total - 1 ? '&#8635; Restart' : 'Next &#8594;';
+    document.getElementById('next-btn').textContent = cur === total - 1 ? 'Restart' : 'Next';
     document.getElementById('progress').style.width = ((cur + 1) / total * 100) + '%';
   }
 

@@ -38,17 +38,20 @@ const CircularScreen = ({ navigation }) => {
   };
 
   const renderCircular = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => navigation.navigate('CircularDetail', { item })}
+      activeOpacity={0.85}>
       {/* Top row: chip + Edit/Delete buttons */}
       <View style={styles.cardHeader}>
         {item.circularNumber
           ? <View style={styles.chip}><Text style={styles.chipText}>{item.circularNumber}</Text></View>
           : <View />}
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.editBtn} onPress={() => navigation.navigate('AddCircular', { item })}>
+          <TouchableOpacity style={styles.editBtn} onPress={(e) => { e.stopPropagation(); navigation.navigate('AddCircular', { item }); }}>
             <Text style={styles.editText}>Edit</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteBtn} onPress={() => deleteCircular(item.circularId)}>
+          <TouchableOpacity style={styles.deleteBtn} onPress={(e) => { e.stopPropagation(); deleteCircular(item.circularId); }}>
             <Text style={styles.deleteText}>Delete</Text>
           </TouchableOpacity>
         </View>
@@ -56,12 +59,15 @@ const CircularScreen = ({ navigation }) => {
 
       <Text style={styles.title}>{item.title}</Text>
       {item.description ? (
-        <Text style={styles.description} numberOfLines={3}>{item.description}</Text>
+        <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
       ) : null}
-      <Text style={styles.date}>
-        {item.publishDate ? new Date(item.publishDate).toLocaleDateString('en-IN') : ''}
-      </Text>
-    </View>
+      <View style={styles.dateRow}>
+        <Text style={styles.date}>
+          {item.publishDate ? new Date(item.publishDate).toLocaleDateString('en-IN') : ''}
+        </Text>
+        <Text style={styles.viewHint}>Tap to view ›</Text>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -107,7 +113,9 @@ const styles = StyleSheet.create({
 
   title:          { fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 4 },
   description:    { fontSize: 13, color: '#64748B', lineHeight: 19, marginBottom: 8 },
+  dateRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   date:           { fontSize: 12, color: '#94A3B8' },
+  viewHint:       { fontSize: 11, color: '#3B82F6', fontWeight: '600' },
 
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyText:      { fontSize: 16, color: '#999' },

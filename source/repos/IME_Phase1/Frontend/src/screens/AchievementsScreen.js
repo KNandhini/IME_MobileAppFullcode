@@ -1,153 +1,209 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, Image, StatusBar } from 'react-native';
-import { Card, Title, Paragraph } from 'react-native-paper';
+import React, { useState, useCallback } from 'react';
+import {
+  View, Text, StyleSheet, FlatList, RefreshControl,
+  TouchableOpacity, StatusBar, Image, Alert,
+} from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { achievementService } from '../services/achievementService';
+import { useAuth } from '../context/AuthContext';
 
-const AchievementsScreen = () => {
-  const [achievements, setAchievements] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
+const NAVY = '#1E3A5F';
+const GOLD = '#D4A017';
 
-  useEffect(() => {
-    loadAchievements();
-  }, []);
+const AVATAR_COLORS = ['#1E3A5F', '#D4A017', '#27AE60', '#8E44AD', '#E67E22', '#2980B9'];
 
-  const loadAchievements = async () => {
-    setLoading(true);
-    try {
-      const response = await achievementService.getAll();
-      if (response.success) {
-        setAchievements(response.data);
-      }
-    } catch (error) {
-      console.error('Failed to load achievements:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadAchievements();
-  };
-
-  const renderAchievement = ({ item }) => (
-    <Card style={styles.card}>
-      <View style={styles.cardHeader}>
-        {item.photoPath && (
-          <Image source={{ uri: item.photoPath }} style={styles.photo} />
-        )}
-        <View style={styles.headerText}>
-          <Text style={styles.memberName}>{item.memberName}</Text>
-          <Text style={styles.date}>
-            {item.achievementDate
-              ? new Date(item.achievementDate).toLocaleDateString()
-              : ''}
-          </Text>
-        </View>
-      </View>
-      <Card.Content>
-        <Title style={styles.title}>{item.title}</Title>
-        <Paragraph numberOfLines={3}>{item.description}</Paragraph>
-      </Card.Content>
-    </Card>
-  );
+const AchievementCard = ({ item, onPress, onDelete, index }) => {
+  const bg = AVATAR_COLORS[index % AVATAR_COLORS.length];
+  const initials = (item.memberName || 'M').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const dateStr = item.achievementDate
+    ? new Date(item.achievementDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : '';
 
   return (
-    <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🏆 Hall of Fame</Text>
-        <Text style={styles.headerSubtitle}>Celebrating Excellence</Text>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.85}>
+      {/* Circular member avatar */}
+      <View style={styles.avatarWrap}>
+        {item.memberPhotoPath ? (
+          <Image source={{ uri: item.memberPhotoPath }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarFallback, { backgroundColor: bg }]}>
+            <Text style={styles.avatarInitials}>{initials}</Text>
+          </View>
+        )}
+        {/* Gold trophy badge */}
+        <View style={styles.trophyBadge}>
+          <Text style={{ fontSize: 10 }}>🏆</Text>
+        </View>
       </View>
 
-      {achievements.length === 0 && !loading ? (
-        <View style={styles.emptyContainer}>
+      {/* Member name */}
+      <Text style={styles.memberName} numberOfLines={1}>{item.memberName || 'Member'}</Text>
+
+      {/* Achievement title */}
+      <Text style={styles.achTitle} numberOfLines={2}>{item.title}</Text>
+
+      {/* Date */}
+      {dateStr ? <Text style={styles.achDate}>{dateStr}</Text> : null}
+
+      {/* Delete button */}
+      <TouchableOpacity
+        style={styles.deleteBtn}
+        onPress={(e) => { e.stopPropagation(); onDelete(item.achievementId); }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <MaterialCommunityIcons name="trash-can-outline" size={16} color="#EF4444" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+};
+
+const AchievementsScreen = ({ navigation }) => {
+  const [achievements, setAchievements] = useState([]);
+  const [refreshing, setRefreshing]     = useState(false);
+  const { user } = useAuth();
+
+  useFocusEffect(useCallback(() => { load(); }, []));
+
+  const load = async () => {
+    try {
+      const res = await achievementService.getAll();
+      if (res.success) setAchievements(res.data || []);
+    } catch (e) { console.error('Achievements load error:', e); }
+    finally { setRefreshing(false); }
+  };
+
+  const onRefresh = () => { setRefreshing(true); load(); };
+
+  const handleDelete = (id) => {
+    Alert.alert('Delete Achievement', 'Are you sure you want to delete this achievement?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete', style: 'destructive',
+        onPress: async () => {
+          try {
+            await achievementService.delete(id);
+            load();
+          } catch { Alert.alert('Error', 'Failed to delete.'); }
+        },
+      },
+    ]);
+  };
+
+  return (
+    <View style={styles.root}>
+      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>🏆 Hall of Fame</Text>
+        <Text style={styles.headerSub}>Celebrating Excellence</Text>
+      </View>
+
+      {achievements.length === 0 && !refreshing ? (
+        <View style={styles.empty}>
+          <MaterialCommunityIcons name="trophy-outline" size={56} color="#CBD5E1" />
           <Text style={styles.emptyText}>No achievements yet</Text>
+          <Text style={styles.emptySub}>Be the first to add one!</Text>
         </View>
       ) : (
         <FlatList
           data={achievements}
-          renderItem={renderAchievement}
+          numColumns={2}
+          renderItem={({ item, index }) => (
+            <AchievementCard
+              item={item}
+              index={index}
+              onPress={() => navigation.navigate('AchievementDetail', { item })}
+              onDelete={handleDelete}
+            />
+          )}
           keyExtractor={(item) => item.achievementId.toString()}
           contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          columnWrapperStyle={styles.row}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[NAVY]} />}
         />
       )}
+
+      {/* FAB — all members can add */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('AchievementForm')}
+        activeOpacity={0.85}>
+        <MaterialCommunityIcons name="plus" size={26} color={GOLD} />
+      </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
+  root: { flex: 1, backgroundColor: '#F0F4F8' },
+
   header: {
-    backgroundColor: '#1E3A5F',
-    padding: 20,
-    alignItems: 'center',
+    backgroundColor: NAVY, padding: 20, alignItems: 'center',
+    paddingTop: (StatusBar.currentHeight || 0) + 20,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 5,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#fff',
-    opacity: 0.9,
-  },
-  list: {
-    padding: 15,
-  },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 4 },
+  headerSub:   { fontSize: 13, color: 'rgba(255,255,255,0.7)' },
+
+  list: { padding: 12, paddingBottom: 90 },
+  row:  { justifyContent: 'space-between' },
+
   card: {
-    marginBottom: 15,
+    width: '48%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    position: 'relative',
+  },
+
+  avatarWrap: { position: 'relative', marginBottom: 10 },
+  avatar: {
+    width: 72, height: 72, borderRadius: 36,
+    borderWidth: 3, borderColor: GOLD,
+  },
+  avatarFallback: { alignItems: 'center', justifyContent: 'center' },
+  avatarInitials: { color: '#fff', fontSize: 22, fontWeight: '800' },
+  trophyBadge: {
+    position: 'absolute', bottom: -2, right: -2,
+    backgroundColor: '#fff', borderRadius: 10, width: 20, height: 20,
+    alignItems: 'center', justifyContent: 'center',
     elevation: 2,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    padding: 15,
-    alignItems: 'center',
-    backgroundColor: '#FFF9C4',
-  },
-  photo: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
-  },
-  headerText: {
-    flex: 1,
-  },
+
   memberName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 13, fontWeight: '700', color: NAVY,
+    textAlign: 'center', marginBottom: 4,
   },
-  date: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 4,
+  achTitle: {
+    fontSize: 12, color: '#475569',
+    textAlign: 'center', lineHeight: 17, marginBottom: 6,
   },
-  title: {
-    fontSize: 16,
-    color: '#2196F3',
-    marginTop: 8,
+  achDate: { fontSize: 10, color: '#94A3B8', textAlign: 'center' },
+
+  deleteBtn: {
+    position: 'absolute', top: 8, right: 8,
+    padding: 4,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
+
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  emptyText: { fontSize: 18, color: '#94A3B8', marginTop: 12, fontWeight: '600' },
+  emptySub:  { fontSize: 13, color: '#CBD5E1', marginTop: 4 },
+
+  fab: {
+    position: 'absolute', right: 20, bottom: 24,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: NAVY,
+    alignItems: 'center', justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2, shadowRadius: 8,
   },
 });
 
