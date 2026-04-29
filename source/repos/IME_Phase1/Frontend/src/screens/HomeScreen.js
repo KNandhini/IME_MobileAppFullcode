@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, StatusBar, RefreshControl, Alert,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Menu } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -24,36 +25,44 @@ const HomeScreen = ({ navigation }) => {
   const [menuVisible,  setMenuVisible]  = useState(false);
   const paymentPopupShown = useRef(false);
 
-  // ── Payment pending popup (once per session) ──
+  // ── Payment pending popup (once per session, driven by local AsyncStorage flag) ──
   useEffect(() => {
     if (paymentPopupShown.current) return;
-    const isPending =
-      user?.paymentStatus === 'Pending' ||
-      user?.paymentStatus === 'Unpaid'  ||
-      user?.membershipStatus === 'Pending' ||
-      user?.isPaymentPending === true;
+    checkPaymentGrace();
+  }, []);
 
-    if (isPending) {
+  const checkPaymentGrace = async () => {
+    try {
+      const raw = await AsyncStorage.getItem('paymentGrace');
+      if (!raw) return;
+      const grace = JSON.parse(raw);
+      if (!grace?.pending) return;
+
+      const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
+      const elapsed = Date.now() - (grace.registeredAt || 0);
+
+      if (elapsed > THREE_DAYS_MS) {
+        // Grace period expired — clear flag silently
+        await AsyncStorage.removeItem('paymentGrace');
+        return;
+      }
+
+      const daysLeft = Math.ceil((THREE_DAYS_MS - elapsed) / (24 * 60 * 60 * 1000));
       paymentPopupShown.current = true;
+
       Alert.alert(
         '⚠️ Payment Pending',
-        'Your membership registration payment is pending.\n\nPlease complete your payment to maintain full access to IMC Portal.',
+        `Your membership registration payment is pending.\n\nYou have ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining to complete payment before your account expires.`,
         [
           {
             text: 'Pay Now',
-            onPress: () => navigation.navigate('RegistrationPayment', {
-              userId:      user?.userId      || user?.id,
-              memberId:    user?.memberId    || user?.id,
-              feeAmount:   user?.registrationFee || user?.feeAmount,
-              memberName:  user?.fullName    || user?.name,
-              memberEmail: user?.email,
-            }),
+            onPress: () => navigation.navigate('RegistrationPayment', grace.paymentParams || {}),
           },
           { text: 'Remind Me Later', style: 'cancel' },
         ],
       );
-    }
-  }, [user]);
+    } catch (_) {}
+  };
 
   // ── Reload on screen focus ──────────────────
   useFocusEffect(useCallback(() => {

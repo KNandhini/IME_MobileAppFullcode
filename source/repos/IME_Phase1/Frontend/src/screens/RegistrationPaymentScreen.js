@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Alert, ActivityIndicator, Modal, Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
@@ -283,6 +284,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             plainPassword: memberPassword ?? '',
           });
 
+          await AsyncStorage.removeItem('paymentGrace');
           if (res.data.success) {
             Alert.alert(
               'Registration Complete!',
@@ -301,6 +303,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             );
           }
         } catch (e) {
+          await AsyncStorage.removeItem('paymentGrace');
           // Network/server error after Razorpay success — still navigate to Login
           Alert.alert(
             'Payment Received',

@@ -6,6 +6,7 @@ import {
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
 //import { Modal, FlatList } from 'react-native'; // Modal already imported, just ensure FlatList is there
@@ -190,6 +191,13 @@ const handleSignup = async () => {
         memberPassword:  formData.password,
         profilePhotoUri: profilePhoto?.uri ?? null,
       };
+      // Store grace period locally — backend doesn't need to know
+      await AsyncStorage.setItem('paymentGrace', JSON.stringify({
+        pending:      true,
+        registeredAt: Date.now(),
+        memberId:     res.data.memberId,
+        paymentParams,
+      }));
       Alert.alert(
         'Registration Successful! 🎉',
         'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
