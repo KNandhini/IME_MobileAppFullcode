@@ -106,12 +106,11 @@ BEGIN
     -- ── New registration ───────────────────────────────────────────────────
     BEGIN TRANSACTION;
     BEGIN TRY
-        DECLARE @NewUserId INT =
-            ISNULL((SELECT MAX(UserId) FROM tbl_Users WITH (UPDLOCK, HOLDLOCK)), 0) + 1;
+        -- UserId is IDENTITY — do not specify it; SQL Server assigns it
+        INSERT INTO tbl_Users (Email, PasswordHash, RoleId, IsActive)
+        VALUES (@Email, @PasswordHash, @RoleId, 1);
 
-        -- IsActive = 1: user can log in during the 3-day grace period
-        INSERT INTO tbl_Users (UserId, Email, PasswordHash, RoleId, IsActive)
-        VALUES (@NewUserId, @Email, @PasswordHash, @RoleId, 1);
+        DECLARE @NewUserId INT = SCOPE_IDENTITY();
 
         INSERT INTO tbl_Members (
             UserId, FullName, Address, ContactNumber, Gender, Age,
