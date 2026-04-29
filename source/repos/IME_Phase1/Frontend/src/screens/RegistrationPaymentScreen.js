@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Alert, ActivityIndicator, Modal, Image,
@@ -12,11 +12,25 @@ import api from '../utils/api';
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
 const RegistrationPaymentScreen = ({ route, navigation }) => {
-  const { userId, memberId, feeAmount, memberName, memberEmail, memberPassword, profilePhotoUri } = route.params || {};
+  const { userId, memberId, memberName, memberEmail, memberPassword, profilePhotoUri } = route.params || {};
 
-  const [profilePhoto, setProfilePhoto] = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
-  const [showWebView, setShowWebView] = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
+  const [profilePhoto,      setProfilePhoto]      = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
+  const [showWebView,       setShowWebView]        = useState(false);
+  const [processingPayment, setProcessingPayment]  = useState(false);
+  const [feeAmount,         setFeeAmount]          = useState(route.params?.feeAmount ?? 0);
+  const [feeId,             setFeeId]              = useState(null);
+
+  // Always fetch the current fee from the backend — params value may be stale or 0
+  useEffect(() => {
+    api.get('/payment/latest-fee')
+      .then(res => {
+        if (res.data?.success && res.data?.data) {
+          setFeeAmount(parseFloat(res.data.data.amount) || 0);
+          setFeeId(res.data.data.feeId ?? null);
+        }
+      })
+      .catch(() => {}); // silently keep param value if request fails
+  }, []);
 
   const pickProfilePhoto = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
