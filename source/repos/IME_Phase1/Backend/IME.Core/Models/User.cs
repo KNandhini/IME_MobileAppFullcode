@@ -14,4 +14,6 @@ public class User
     public string FullName { get; set; } = string.Empty;
     public int? MemberId { get; set; }
     public string? ProfilePhotoPath { get; set; }
+    public string? MembershipStatus { get; set; }
+    public DateTime? GraceExpiryDate { get; set; }
 }

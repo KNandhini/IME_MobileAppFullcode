@@ -66,7 +66,9 @@ public class AuthController : ControllerBase
                 MemberId = fullUser.MemberId,
                 FullName = fullUser.FullName,
                 ProfilePhotoPath = fullUser.ProfilePhotoPath,
-                Token = token
+                Token = token,
+                MembershipStatus = fullUser.MembershipStatus,
+                GraceExpiryDate = fullUser.GraceExpiryDate
             };
 
             return Ok(new ApiResponse<LoginResponseDTO>

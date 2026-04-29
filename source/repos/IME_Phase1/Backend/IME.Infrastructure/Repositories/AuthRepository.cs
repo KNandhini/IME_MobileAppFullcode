@@ -68,7 +68,9 @@ public class AuthRepository : IAuthRepository
                 MemberId = reader.IsDBNull(reader.GetOrdinal("MemberId")) ? null : reader.GetInt32(reader.GetOrdinal("MemberId")),
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? string.Empty : reader.GetString(reader.GetOrdinal("FullName")),
                 ProfilePhotoPath = profilePhotoBase64,
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                MembershipStatus = reader.IsDBNull(reader.GetOrdinal("MembershipStatus")) ? null : reader.GetString(reader.GetOrdinal("MembershipStatus")),
+                GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate"))
             };
         }
 
