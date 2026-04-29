@@ -26,10 +26,11 @@ function getBadgeStyle(urgencyLevel, fundCategory) {
 
 function formatTimeAgo(dateString) {
   if (!dateString) return "";
-  const diff = Date.now() - new Date(dateString).getTime();
-  const m = Math.floor(diff / 60000);
-  const h = Math.floor(diff / 3600000);
-  const d = Math.floor(diff / 86400000);
+  const diffMs = Date.now() - new Date(dateString).getTime();
+  if (diffMs < 0) return "Just now";
+  const m = Math.floor(diffMs / 60000);
+  const h = Math.floor(diffMs / 3600000);
+  const d = Math.floor(diffMs / 86400000);
   if (m < 1)  return "Just now";
   if (m < 60) return `${m} min ago`;
   if (h < 24) return `${h} hr${h > 1 ? "s" : ""} ago`;

@@ -21,13 +21,9 @@ const TYPE_LABELS = {
 
 const getTimeAgo = (dateString) => {
   if (!dateString) return '';
-  // If the server returns UTC time without a timezone suffix (e.g. "2025-04-16T10:30:00"),
-  // JS treats it as local time. Append 'Z' to force UTC parsing.
-  const normalized = /[Zz]$|[+-]\d{2}:\d{2}$/.test(dateString)
-    ? dateString
-    : dateString + 'Z';
-  const diff = Math.floor((Date.now() - new Date(normalized).getTime()) / 1000);
-  if (diff < 60)      return 'Just now';
+  // Server returns local IST time without timezone suffix — parse as local time directly.
+  const diff = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000);
+  if (diff < 0 || diff < 60) return 'Just now';
   if (diff < 3600)    return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400)   return `${Math.floor(diff / 3600)}h ago`;
   if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;

@@ -23,7 +23,6 @@ export const feedService = {
 
   // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.
   createPost: async (content, mediaItems = []) => {
-    debugger;
     const token = await AsyncStorage.getItem('authToken');
 
     const formData = new FormData();

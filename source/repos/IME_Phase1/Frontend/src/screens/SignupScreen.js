@@ -58,7 +58,6 @@ const [clubsLoading,    setClubsLoading]    = useState(false);
   };
 const loadCountries = async () => {
   try {
-    debugger;
     const res = await clubService.getCountries();
     if (res.success) setCountries(res.data || []);
   } catch (e) {
@@ -89,8 +88,6 @@ const loadClubsByState = async (stateId) => {
   try {
     const res = await clubService.getAll(1, 200, '', true);
     if (res.success && res.data) {
-      debugger;
-      // Filter clubs by selected statea
       const filtered = res.data.filter(c => c.stateId === stateId);
       setClubs(filtered);
     }
@@ -184,7 +181,7 @@ const handleSignup = async () => {
     const response = await api.post('/Auth/signup', payload);
     const res = response.data;
     if (res.success) {
-      navigation.navigate('RegistrationPayment', {
+      const paymentParams = {
         userId:          res.data.userId,
         memberId:        res.data.memberId,
         feeAmount:       currentFee ? parseFloat(currentFee.amount) : 0,
@@ -192,7 +189,28 @@ const handleSignup = async () => {
         memberEmail:     formData.email,
         memberPassword:  formData.password,
         profilePhotoUri: profilePhoto?.uri ?? null,
-      });
+      };
+      Alert.alert(
+        'Registration Successful! 🎉',
+        'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
+        [
+          {
+            text: 'Pay Now',
+            onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+          },
+          {
+            text: 'Pay Later (3 days)',
+            style: 'cancel',
+            onPress: () => {
+              Alert.alert(
+                'Account Activated',
+                'Your account is active for 3 days. Please complete payment before it expires.',
+                [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
+              );
+            },
+          },
+        ],
+      );
     } else {
       Alert.alert('Failed', res.message);
     }
@@ -214,18 +232,19 @@ const handleSignup = async () => {
             <Text style={styles.modalTitle}>Welcome to IME</Text>
             <Text style={styles.modalSubtitle}>Member Registration</Text>
             <Text style={styles.modalBody}>
-              To join as an IME member, please complete the registration form and pay the annual membership fee.
+              Complete the registration form to join the IMC community. You can pay the annual membership fee now or within 3 days of registration.
             </Text>
             {currentFee ? (
               <View style={styles.feeBox}>
                 <Text style={styles.feeLabel}>Annual Membership Fee</Text>
                 <Text style={styles.feeAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
+                <Text style={styles.feeNote}>Complete payment within 3 days</Text>
               </View>
             ) : (
               <Text style={styles.noFee}>No fee currently set. Contact admin.</Text>
             )}
             <TouchableOpacity style={styles.proceedBtn} onPress={() => setWelcomeVisible(false)}>
-              <Text style={styles.proceedBtnText}>Proceed to Register</Text>
+              <Text style={styles.proceedBtnText}>Start Registration</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
               <Text style={styles.backLink}>Already a member? Login</Text>
@@ -395,7 +414,7 @@ const handleSignup = async () => {
         </TouchableOpacity>
 
         <Button mode="contained" onPress={handleSignup} loading={loading} style={styles.button} labelStyle={{ fontSize: 16 }}>
-          Proceed to Payment
+          Register
         </Button>
       </View>
 
@@ -525,6 +544,7 @@ const styles = StyleSheet.create({
   feeBox:         { backgroundColor: '#1E3A5F', borderRadius: 12, padding: 20, alignItems: 'center', width: '100%', marginBottom: 20 },
   feeLabel:       { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
   feeAmount:      { color: '#D4A017', fontSize: 32, fontWeight: 'bold', marginTop: 4 },
+  feeNote:        { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 6 },
   noFee:          { color: '#999', fontSize: 13, marginBottom: 20 },
   proceedBtn:     { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
   proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },

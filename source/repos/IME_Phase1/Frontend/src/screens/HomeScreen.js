@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar, RefreshControl,
+  ActivityIndicator, StatusBar, RefreshControl, Alert,
 } from 'react-native';
 import { Menu } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
@@ -22,6 +22,38 @@ const HomeScreen = ({ navigation }) => {
   const [initialLoad,  setInitialLoad]  = useState(true);
   const [error,        setError]        = useState(null);
   const [menuVisible,  setMenuVisible]  = useState(false);
+  const paymentPopupShown = useRef(false);
+
+  // ── Payment pending popup (once per session) ──
+  useEffect(() => {
+    if (paymentPopupShown.current) return;
+    const isPending =
+      user?.paymentStatus === 'Pending' ||
+      user?.paymentStatus === 'Unpaid'  ||
+      user?.membershipStatus === 'Pending' ||
+      user?.isPaymentPending === true;
+
+    if (isPending) {
+      paymentPopupShown.current = true;
+      Alert.alert(
+        '⚠️ Payment Pending',
+        'Your membership registration payment is pending.\n\nPlease complete your payment to maintain full access to IMC Portal.',
+        [
+          {
+            text: 'Pay Now',
+            onPress: () => navigation.navigate('RegistrationPayment', {
+              userId:      user?.userId      || user?.id,
+              memberId:    user?.memberId    || user?.id,
+              feeAmount:   user?.registrationFee || user?.feeAmount,
+              memberName:  user?.fullName    || user?.name,
+              memberEmail: user?.email,
+            }),
+          },
+          { text: 'Remind Me Later', style: 'cancel' },
+        ],
+      );
+    }
+  }, [user]);
 
   // ── Reload on screen focus ──────────────────
   useFocusEffect(useCallback(() => {
