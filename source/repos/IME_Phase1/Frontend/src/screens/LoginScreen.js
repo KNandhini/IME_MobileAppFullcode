@@ -40,7 +40,29 @@ const LoginScreen = ({ navigation }) => {
     try {
       const response = await login(email, password);
       if (!response.success) {
-        Alert.alert('Login Failed', response.message || 'Invalid credentials');
+        if (response.message === 'GRACE_EXPIRED') {
+          const d = response.data || {};
+          Alert.alert(
+            'Grace Period Expired',
+            'Your 3-day free period has ended.\n\nComplete your payment to activate your account.',
+            [
+              {
+                text: 'Pay Now',
+                onPress: () => navigation.navigate('RegistrationPayment', {
+                  userId:      d.userId      ?? d.UserId,
+                  memberId:    d.memberId    ?? d.MemberId,
+                  memberEmail: email,
+                  memberName:  d.fullName    ?? d.FullName ?? '',
+                  memberPassword: password,
+                  feeAmount:   0,
+                }),
+              },
+              { text: 'Cancel', style: 'cancel' },
+            ],
+          );
+        } else {
+          Alert.alert('Login Failed', response.message || 'Invalid credentials');
+        }
       }
     } catch {
       Alert.alert('Error', 'An error occurred during login');

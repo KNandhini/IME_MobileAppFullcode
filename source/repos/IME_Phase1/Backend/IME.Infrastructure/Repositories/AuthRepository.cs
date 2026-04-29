@@ -70,7 +70,8 @@ public class AuthRepository : IAuthRepository
                 ProfilePhotoPath = profilePhotoBase64,
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 MembershipStatus = reader.IsDBNull(reader.GetOrdinal("MembershipStatus")) ? null : reader.GetString(reader.GetOrdinal("MembershipStatus")),
-                GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate"))
+                GraceExpiryDate  = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate"))  ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")),
+                LoginStatus      = reader.IsDBNull(reader.GetOrdinal("LoginStatus"))       ? null : reader.GetString(reader.GetOrdinal("LoginStatus"))
             };
         }
 
