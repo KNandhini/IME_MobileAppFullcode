@@ -82,7 +82,7 @@ BEGIN
 
     IF @ExistingUserId IS NOT NULL
     BEGIN
-        -- User registered but never completed payment — let them resume
+        -- Pending payment, grace still valid — let them resume
         IF @ExistingStatus = 'Pending'
            AND (@ExistingExpiry IS NULL OR @ExistingExpiry > GETDATE())
         BEGIN
@@ -97,7 +97,24 @@ BEGIN
             RETURN;
         END
 
-        -- Fully registered or expired — genuine duplicate
+        -- Pending payment, grace EXPIRED — still allow them to pay
+        IF @ExistingStatus = 'Pending'
+           AND @ExistingExpiry IS NOT NULL AND @ExistingExpiry <= GETDATE()
+        BEGIN
+            -- Reset grace window from now so they can complete payment
+            UPDATE tbl_Members
+            SET GraceExpiryDate = DATEADD(DAY, 3, GETDATE())
+            WHERE MemberId = @ExistingMemId;
+
+            UPDATE tbl_Users SET IsActive = 1 WHERE UserId = @ExistingUserId;
+
+            SELECT @ExistingUserId AS UserId, @ExistingMemId AS MemberId,
+                   'GRACE_EXPIRED' AS Message,
+                   NULL AS CountryName, NULL AS StateName, NULL AS ClubName;
+            RETURN;
+        END
+
+        -- Fully registered (Active) — genuine duplicate
         SELECT -1 AS UserId, -1 AS MemberId, 'Email already registered' AS Message,
                NULL AS CountryName, NULL AS StateName, NULL AS ClubName;
         RETURN;
@@ -169,7 +186,14 @@ BEGIN
         m.ProfilePhotoPath,
         m.ProfilePhoto,
         m.MembershipStatus,
-        m.GraceExpiryDate
+        m.GraceExpiryDate,
+        CASE
+            WHEN m.MembershipStatus = 'Pending'
+                 AND m.GraceExpiryDate IS NOT NULL
+                 AND m.GraceExpiryDate < GETDATE() THEN 'GRACE_EXPIRED'
+            WHEN m.MembershipStatus = 'Pending'    THEN 'PENDING_PAYMENT'
+            ELSE 'OK'
+        END AS LoginStatus
     FROM tbl_Users u
     LEFT JOIN tbl_Roles   r ON r.RoleId = u.RoleId
     LEFT JOIN tbl_Members m ON m.UserId = u.UserId

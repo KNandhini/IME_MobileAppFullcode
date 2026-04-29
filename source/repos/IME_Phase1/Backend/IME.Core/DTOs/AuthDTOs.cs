@@ -18,6 +18,7 @@ public class LoginResponseDTO
     public string Token { get; set; } = string.Empty;
     public string? MembershipStatus { get; set; }
     public DateTime? GraceExpiryDate { get; set; }
+    public string? LoginStatus { get; set; }   // OK | PENDING_PAYMENT | GRACE_EXPIRED
 }
 
 public class SignupRequestDTO

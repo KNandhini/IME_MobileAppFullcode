@@ -193,6 +193,7 @@ const handleSignup = async () => {
       };
 
       const isPendingPayment = res.message === 'PENDING_PAYMENT';
+      const isGraceExpired   = res.message === 'GRACE_EXPIRED';
 
       // Always refresh the local grace flag (covers re-register after back-press)
       await AsyncStorage.setItem('paymentGrace', JSON.stringify({
@@ -202,7 +203,23 @@ const handleSignup = async () => {
         paymentParams,
       }));
 
-      if (isPendingPayment) {
+      if (isGraceExpired) {
+        Alert.alert(
+          'Grace Period Expired',
+          'Your 3-day free period had ended, but we\'ve reset it.\n\nComplete your payment now to activate your account.',
+          [
+            {
+              text: 'Pay Now',
+              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+            },
+            {
+              text: 'Pay Later',
+              style: 'cancel',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ],
+        );
+      } else if (isPendingPayment) {
         // Account already exists, payment not completed — resume payment
         Alert.alert(
           'Payment Pending',

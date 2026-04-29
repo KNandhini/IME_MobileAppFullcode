@@ -16,4 +16,5 @@ public class User
     public string? ProfilePhotoPath { get; set; }
     public string? MembershipStatus { get; set; }
     public DateTime? GraceExpiryDate { get; set; }
+    public string? LoginStatus { get; set; }   // OK | PENDING_PAYMENT | GRACE_EXPIRED
 }
