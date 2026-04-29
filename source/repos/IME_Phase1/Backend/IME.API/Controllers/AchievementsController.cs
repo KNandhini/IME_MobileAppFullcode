@@ -230,30 +230,23 @@ public class AchievementsController : ControllerBase
                 newPhotoPath = await _fileStorageService.SaveFileAsync(
                     photo.OpenReadStream(), "Achievements", id, photo.FileName);
 
-            var photoSql = newPhotoPath != null ? ", PhotoPath = @PhotoPath" : "";
-            using var updateCmd = _dbContext.CreateCommand(
-                $@"UPDATE Achievements SET
-                       MemberName      = @MemberName,
-                       Title           = @Title,
-                       Description     = @Description,
-                       AchievementDate = @AchievementDate,
-                       UpdatedDate     = GETDATE()
-                       {photoSql}
-                   WHERE AchievementId = @AchievementId",
-                connection);
-
+            // Use sp_UpdateAchievement — NULL PhotoPath = keep existing
+            using var updateCmd = _dbContext.CreateStoredProcCommand("sp_UpdateAchievement", connection);
             updateCmd.Parameters.AddWithValue("@AchievementId",  id);
             updateCmd.Parameters.AddWithValue("@MemberName",     memberName);
             updateCmd.Parameters.AddWithValue("@Title",          title);
             updateCmd.Parameters.AddWithValue("@Description",    (object?)description ?? DBNull.Value);
             updateCmd.Parameters.AddWithValue("@AchievementDate",
                 achievementDate != null && DateTime.TryParse(achievementDate, out var dt) ? dt : DBNull.Value);
-            if (newPhotoPath != null)
-                updateCmd.Parameters.AddWithValue("@PhotoPath", newPhotoPath);
+            updateCmd.Parameters.AddWithValue("@PhotoPath",      (object?)newPhotoPath ?? DBNull.Value);
 
-            var rows = await updateCmd.ExecuteNonQueryAsync();
+            using var updReader = await updateCmd.ExecuteReaderAsync();
+            await updReader.ReadAsync();
+            var rows = updReader.IsDBNull(updReader.GetOrdinal("RowsAffected"))
+                ? 0 : updReader.GetInt32(updReader.GetOrdinal("RowsAffected"));
+            updReader.Close();
 
-            // Save new attachment if provided
+            // Save new attachment if provided — replaces old one
             if (attachment != null && AllowedAttachmentTypes.Contains(Path.GetExtension(attachment.FileName).ToLowerInvariant()))
             {
                 var attachPath = await _fileStorageService.SaveFileAsync(
@@ -293,10 +286,13 @@ public class AchievementsController : ControllerBase
         try
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command = _dbContext.CreateCommand(
-                "DELETE FROM Achievements WHERE AchievementId = @AchievementId", connection);
+            using var command = _dbContext.CreateStoredProcCommand("sp_DeleteAchievement", connection);
             command.Parameters.AddWithValue("@AchievementId", id);
-            var rows = await command.ExecuteNonQueryAsync();
+
+            using var reader = await command.ExecuteReaderAsync();
+            await reader.ReadAsync();
+            var rows = reader.IsDBNull(reader.GetOrdinal("RowsAffected"))
+                ? 0 : reader.GetInt32(reader.GetOrdinal("RowsAffected"));
 
             return Ok(new ApiResponse<object>
             {

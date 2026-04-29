@@ -192,4 +192,40 @@ BEGIN
 END;
 GO
 
+-- ── 7. sp_UpdateAchievement ──────────────────────────────
+CREATE OR ALTER PROCEDURE sp_UpdateAchievement
+    @AchievementId   INT,
+    @MemberName      NVARCHAR(200),
+    @Title           NVARCHAR(300),
+    @Description     NVARCHAR(MAX) = NULL,
+    @AchievementDate DATE          = NULL,
+    @PhotoPath       NVARCHAR(500) = NULL   -- NULL = keep existing photo
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE Achievements SET
+        MemberName      = @MemberName,
+        Title           = @Title,
+        Description     = @Description,
+        AchievementDate = @AchievementDate,
+        PhotoPath       = CASE WHEN @PhotoPath IS NOT NULL THEN @PhotoPath ELSE PhotoPath END,
+        UpdatedDate     = GETDATE()
+    WHERE AchievementId = @AchievementId;
+
+    SELECT @@ROWCOUNT AS RowsAffected;
+END;
+GO
+
+-- ── 8. sp_DeleteAchievement ──────────────────────────────
+--   AchievementAttachments rows are removed via ON DELETE CASCADE
+CREATE OR ALTER PROCEDURE sp_DeleteAchievement
+    @AchievementId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE FROM Achievements WHERE AchievementId = @AchievementId;
+    SELECT @@ROWCOUNT AS RowsAffected;
+END;
+GO
+
 PRINT 'SQL_GracePeriod_Achievements applied successfully.';
