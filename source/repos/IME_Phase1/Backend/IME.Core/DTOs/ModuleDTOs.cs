@@ -140,6 +140,8 @@ public class AchievementDTO
     public int AchievementId { get; set; }
     public string MemberName { get; set; } = string.Empty;
     public string? PhotoPath { get; set; }
+    public string? MemberPhotoPath { get; set; }   // alias of PhotoPath for frontend
+    public string? AttachmentPath { get; set; }     // first attachment URL for list view
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateTime? AchievementDate { get; set; }
@@ -151,6 +153,8 @@ public class AchievementDetailDTO
     public int AchievementId { get; set; }
     public string MemberName { get; set; } = string.Empty;
     public string? PhotoPath { get; set; }
+    public string? MemberPhotoPath { get; set; }   // alias of PhotoPath for frontend
+    public string? AttachmentPath { get; set; }     // first attachment URL for detail view
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public DateTime? AchievementDate { get; set; }

@@ -16,6 +16,8 @@ public class LoginResponseDTO
     public string? FullName { get; set; }
     public string? ProfilePhotoPath { get; set; }
     public string Token { get; set; } = string.Empty;
+    public string? MembershipStatus { get; set; }
+    public DateTime? GraceExpiryDate { get; set; }
 }
 
 public class SignupRequestDTO
