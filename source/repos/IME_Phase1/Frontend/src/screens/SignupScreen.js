@@ -191,36 +191,59 @@ const handleSignup = async () => {
         memberPassword:  formData.password,
         profilePhotoUri: profilePhoto?.uri ?? null,
       };
-      // Store grace period locally — backend doesn't need to know
+
+      const isPendingPayment = res.message === 'PENDING_PAYMENT';
+
+      // Always refresh the local grace flag (covers re-register after back-press)
       await AsyncStorage.setItem('paymentGrace', JSON.stringify({
         pending:      true,
         registeredAt: Date.now(),
         memberId:     res.data.memberId,
         paymentParams,
       }));
-      Alert.alert(
-        'Registration Successful! 🎉',
-        'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
-        [
-          {
-            text: 'Pay Now',
-            onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-          },
-          {
-            text: 'Pay Later (3 days)',
-            style: 'cancel',
-            onPress: () => {
-              Alert.alert(
-                'Account Activated',
-                'Your account is active for 3 days. Please complete payment before it expires.',
-                [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
-              );
+
+      if (isPendingPayment) {
+        // Account already exists, payment not completed — resume payment
+        Alert.alert(
+          'Payment Pending',
+          'Your account is already registered but payment is incomplete.\n\nComplete payment now to activate your account.',
+          [
+            {
+              text: 'Pay Now',
+              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
             },
-          },
-        ],
-      );
+            {
+              text: 'Pay Later',
+              style: 'cancel',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ],
+        );
+      } else {
+        Alert.alert(
+          'Registration Successful! 🎉',
+          'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
+          [
+            {
+              text: 'Pay Now',
+              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+            },
+            {
+              text: 'Pay Later (3 days)',
+              style: 'cancel',
+              onPress: () => {
+                Alert.alert(
+                  'Account Activated',
+                  'Your account is active for 3 days. Please complete payment before it expires.',
+                  [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
+                );
+              },
+            },
+          ],
+        );
+      }
     } else {
-      Alert.alert('Failed', res.message);
+      Alert.alert('Registration Failed', res.message);
     }
   } catch (e) {
     const status    = e?.response?.status;
