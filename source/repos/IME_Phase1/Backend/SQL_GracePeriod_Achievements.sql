@@ -64,16 +64,48 @@ CREATE OR ALTER PROCEDURE sp_CreateUser
 AS
 BEGIN
     SET NOCOUNT ON;
-    BEGIN TRANSACTION;
-    BEGIN TRY
-        IF EXISTS (SELECT 1 FROM tbl_Users WHERE Email = @Email)
+
+    -- ── Duplicate check (outside transaction) ──────────────────────────────
+    DECLARE @ExistingUserId  INT          = NULL;
+    DECLARE @ExistingMemId   INT          = NULL;
+    DECLARE @ExistingStatus  NVARCHAR(50) = NULL;
+    DECLARE @ExistingExpiry  DATETIME     = NULL;
+
+    SELECT
+        @ExistingUserId = u.UserId,
+        @ExistingMemId  = m.MemberId,
+        @ExistingStatus = m.MembershipStatus,
+        @ExistingExpiry = m.GraceExpiryDate
+    FROM tbl_Users u
+    LEFT JOIN tbl_Members m ON m.UserId = u.UserId
+    WHERE u.Email = @Email;
+
+    IF @ExistingUserId IS NOT NULL
+    BEGIN
+        -- User registered but never completed payment — let them resume
+        IF @ExistingStatus = 'Pending'
+           AND (@ExistingExpiry IS NULL OR @ExistingExpiry > GETDATE())
         BEGIN
-            SELECT -1 AS UserId, -1 AS MemberId, 'Email already exists' AS Message,
+            -- Refresh grace window so they get another 3 days from now
+            UPDATE tbl_Members
+            SET GraceExpiryDate = DATEADD(DAY, 3, GETDATE())
+            WHERE MemberId = @ExistingMemId;
+
+            SELECT @ExistingUserId AS UserId, @ExistingMemId AS MemberId,
+                   'PENDING_PAYMENT' AS Message,
                    NULL AS CountryName, NULL AS StateName, NULL AS ClubName;
-            ROLLBACK TRANSACTION;
             RETURN;
         END
 
+        -- Fully registered or expired — genuine duplicate
+        SELECT -1 AS UserId, -1 AS MemberId, 'Email already registered' AS Message,
+               NULL AS CountryName, NULL AS StateName, NULL AS ClubName;
+        RETURN;
+    END
+
+    -- ── New registration ───────────────────────────────────────────────────
+    BEGIN TRANSACTION;
+    BEGIN TRY
         DECLARE @NewUserId INT =
             ISNULL((SELECT MAX(UserId) FROM tbl_Users WITH (UPDLOCK, HOLDLOCK)), 0) + 1;
 
@@ -97,7 +129,6 @@ BEGIN
 
         COMMIT TRANSACTION;
 
-        -- Return with joined lookup names (adjust table/column names if yours differ)
         SELECT
             @NewUserId   AS UserId,
             @NewMemberId AS MemberId,
