@@ -11,29 +11,30 @@ import {
   Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Video, ResizeMode } from 'expo-av';
 
 const { width } = Dimensions.get('window');
 
-// ── Palette (matches AppNavigator header) ──────────────────────
+// ── Palette ────────────────────────────────────────────────────
 const NAVY  = '#1E3A5F';
 const GOLD  = '#D4A017';
 const LIGHT = '#F0F4F8';
 const WHITE = '#FFFFFF';
 const GREY  = '#6B7A8D';
 
-// ── Data ────────────────────────────────────────────────────────
+// ── Data ───────────────────────────────────────────────────────
 const STATS = [
-  { value: '1965', label: 'Founded' },
+  { value: '1965',   label: 'Founded' },
   { value: '2,500+', label: 'Members' },
-  { value: '58+', label: 'Years of Service' },
-  { value: '12', label: 'Regional Chapters' },
+  { value: '58+',    label: 'Years of Service' },
+  { value: '12',     label: 'Regional Chapters' },
 ];
 
 const VALUES = [
-  { icon: '🏛️', title: 'Integrity',    desc: 'Upholding the highest ethical standards in public service and professional conduct.' },
-  { icon: '⚙️', title: 'Excellence',   desc: 'Driving innovation and best practices in municipal engineering across the nation.' },
-  { icon: '🤝', title: 'Community',    desc: 'Fostering a collaborative network of professionals committed to public welfare.' },
-  { icon: '📚', title: 'Knowledge',    desc: 'Continuous learning through research, seminars, publications, and mentorship.' },
+  { icon: '🏛️', title: 'Integrity',  desc: 'Upholding the highest ethical standards in public service and professional conduct.' },
+  { icon: '⚙️', title: 'Excellence', desc: 'Driving innovation and best practices in municipal engineering across the nation.' },
+  { icon: '🤝', title: 'Community',  desc: 'Fostering a collaborative network of professionals committed to public welfare.' },
+  { icon: '📚', title: 'Knowledge',  desc: 'Continuous learning through research, seminars, publications, and mentorship.' },
 ];
 
 const OBJECTIVES = [
@@ -45,24 +46,18 @@ const OBJECTIVES = [
   'Publish technical journals and research in the field',
 ];
 
-// ── Animated Fade-In component ──────────────────────────────────
+// ── Animated Fade-In ───────────────────────────────────────────
 const FadeIn = ({ children, delay = 0, style }) => {
-  const opacity = useRef(new Animated.Value(0)).current;
+  const opacity    = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
     Animated.parallel([
       Animated.timing(opacity, {
-        toValue: 1,
-        duration: 600,
-        delay,
-        useNativeDriver: true,
+        toValue: 1, duration: 600, delay, useNativeDriver: true,
       }),
       Animated.timing(translateY, {
-        toValue: 0,
-        duration: 500,
-        delay,
-        useNativeDriver: true,
+        toValue: 0, duration: 500, delay, useNativeDriver: true,
       }),
     ]).start();
   }, []);
@@ -74,16 +69,14 @@ const FadeIn = ({ children, delay = 0, style }) => {
   );
 };
 
-// ── Main Screen ─────────────────────────────────────────────────
+// ── Main Screen ────────────────────────────────────────────────
 const AboutScreen = ({ navigation }) => {
   const goldLine = useRef(new Animated.Value(0)).current;
+  const videoRef = useRef(null);
 
   useEffect(() => {
     Animated.timing(goldLine, {
-      toValue: 1,
-      duration: 900,
-      delay: 300,
-      useNativeDriver: false,
+      toValue: 1, duration: 900, delay: 300, useNativeDriver: false,
     }).start();
   }, []);
 
@@ -115,8 +108,6 @@ const AboutScreen = ({ navigation }) => {
               Advancing the profession that builds and sustains the cities of tomorrow.
             </Text>
           </FadeIn>
-
-          {/* Decorative circles */}
           <View style={styles.decorCircle1} />
           <View style={styles.decorCircle2} />
         </View>
@@ -158,7 +149,7 @@ const AboutScreen = ({ navigation }) => {
           <View style={[styles.section, styles.sectionAlt]}>
             <View style={styles.sectionHead}>
               <View style={styles.goldAccent} />
-              <Text style={styles.sectionTitle}>Our Objectives</Text>
+              <Text style={[styles.sectionTitle, { color: WHITE }]}>Our Objectives</Text>
             </View>
             {OBJECTIVES.map((obj, i) => (
               <View key={i} style={styles.objectiveRow}>
@@ -190,23 +181,28 @@ const AboutScreen = ({ navigation }) => {
           </View>
         </FadeIn>
 
-        {/* ── App Overview Presentation ── */}
+        {/* ── App Overview Video ── */}
         <FadeIn delay={750}>
-          <TouchableOpacity
-            style={styles.presentationBtn}
-            onPress={() => navigation.navigate('Presentation')}
-            activeOpacity={0.88}>
-            <View style={styles.presentationLeft}>
-              <View style={styles.presentationIconWrap}>
-                <MaterialCommunityIcons name="presentation-play" size={26} color={GOLD} />
-              </View>
-              <View style={styles.presentationText}>
-                <Text style={styles.presentationTitle}>View App Overview</Text>
-                <Text style={styles.presentationSub}>Explore all features in a guided presentation</Text>
-              </View>
+          <View style={styles.videoSection}>
+            <View style={styles.sectionHead}>
+              <View style={styles.goldAccent} />
+              <Text style={styles.sectionTitle}>Institute of municipal engineers</Text>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={22} color={NAVY} />
-          </TouchableOpacity>
+            <Text style={styles.videoSubtitle}>
+              Watch a History institute of municipal engineers
+            </Text>
+            <View style={styles.videoWrapper}>
+              <Video
+                ref={videoRef}
+                source={require('../assets/Untitled design.mp4')}
+                style={styles.video}
+                resizeMode={ResizeMode.CONTAIN}
+                useNativeControls
+                shouldPlay={false}
+                isLooping={false}
+              />
+            </View>
+          </View>
         </FadeIn>
 
         {/* ── Contact Banner ── */}
@@ -250,7 +246,7 @@ const AboutScreen = ({ navigation }) => {
   );
 };
 
-// ── Styles ───────────────────────────────────────────────────────
+// ── Styles ─────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -445,16 +441,13 @@ const styles = StyleSheet.create({
     color: GREY,
   },
 
-  // Presentation button
-  presentationBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  // Video Section
+  videoSection: {
     backgroundColor: WHITE,
     marginHorizontal: 16,
     marginTop: 16,
     borderRadius: 12,
-    padding: 16,
+    padding: 20,
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -463,31 +456,20 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: GOLD,
   },
-  presentationLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  presentationIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: 'rgba(212,160,23,0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  presentationText: { flex: 1 },
-  presentationTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: NAVY,
-    marginBottom: 3,
-  },
-  presentationSub: {
-    fontSize: 12,
+  videoSubtitle: {
+    fontSize: 13,
     color: GREY,
-    lineHeight: 16,
+    marginTop: -8,
+    marginBottom: 14,
+  },
+  videoWrapper: {
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+  },
+  video: {
+    width: '100%',
+    height: (width - 72) * (9 / 16), // 16:9 aspect ratio
   },
 
   // Contact
