@@ -54,21 +54,40 @@ public class AuthController : ControllerBase
 
             var fullUser = userWithDetails ?? user;
 
+            // Grace period expired — block login, return data so frontend can navigate to payment
+            if (fullUser.LoginStatus == "GRACE_EXPIRED")
+            {
+                return Ok(new ApiResponse<LoginResponseDTO>
+                {
+                    Success = false,
+                    Message = "GRACE_EXPIRED",
+                    Data = new LoginResponseDTO
+                    {
+                        UserId   = fullUser.UserId,
+                        MemberId = fullUser.MemberId,
+                        Email    = fullUser.Email,
+                        FullName = fullUser.FullName,
+                        LoginStatus = "GRACE_EXPIRED"
+                    }
+                });
+            }
+
             // Generate JWT token
             var token = _jwtService.GenerateToken(fullUser.UserId, fullUser.RoleId, fullUser.RoleName, null, fullUser.Email);
 
             var response = new LoginResponseDTO
             {
-                UserId = fullUser.UserId,
-                Email = fullUser.Email,
-                RoleId = fullUser.RoleId,
-                RoleName = fullUser.RoleName,
-                MemberId = fullUser.MemberId,
-                FullName = fullUser.FullName,
+                UserId           = fullUser.UserId,
+                Email            = fullUser.Email,
+                RoleId           = fullUser.RoleId,
+                RoleName         = fullUser.RoleName,
+                MemberId         = fullUser.MemberId,
+                FullName         = fullUser.FullName,
                 ProfilePhotoPath = fullUser.ProfilePhotoPath,
-                Token = token,
+                Token            = token,
                 MembershipStatus = fullUser.MembershipStatus,
-                GraceExpiryDate = fullUser.GraceExpiryDate
+                GraceExpiryDate  = fullUser.GraceExpiryDate,
+                LoginStatus      = fullUser.LoginStatus
             };
 
             return Ok(new ApiResponse<LoginResponseDTO>
