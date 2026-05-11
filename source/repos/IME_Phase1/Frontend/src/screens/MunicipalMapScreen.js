@@ -349,11 +349,17 @@ window.showStateLevel = async function(items){
 window.showDistrictLevel = async function(items,stateName,camLat,camLng){
   polyLayer.clearLayers(); lblLayer.clearLayers();
   if(camLat!=null&&camLng!=null) map.setView([camLat,camLng],7,{animate:true});
+  // Show hardcoded centroid labels immediately while polygons load
   items.forEach(function(it){ if(it.lat!=null&&it.lng!=null) addLabel([it.lat,it.lng],it.label); });
   var gotPolygons=false;
   function districtStyle(color){
     return {color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
   }
+  function isPolygonFeature(f){
+    var t=f&&f.geometry&&f.geometry.type||'';
+    return t==='Polygon'||t==='MultiPolygon';
+  }
+  // ── Try Overpass (one bulk request) ──────────────────────────────────────
   try{
     var q='[out:geojson][timeout:60][maxsize:67108864];'+
       'rel["name"="'+stateName+'"]["admin_level"="4"]["boundary"="administrative"]->.state;'+
@@ -363,11 +369,12 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
       'out geom;';
     var r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
     var gj=await r.json();
-    if(gj&&gj.features&&gj.features.length>=3){
+    var polyFeatures=(gj&&gj.features||[]).filter(isPolygonFeature);
+    if(polyFeatures.length>=3){
       gotPolygons=true;
       lblLayer.clearLayers();
       var ci=0;
-      gj.features.forEach(function(f){
+      polyFeatures.forEach(function(f){
         var nm=f.properties.name||f.properties['name:en']||'';
         var item=matchItem(items,nm);
         var color=COLORS[ci++%COLORS.length];
@@ -381,23 +388,46 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
       });
     }
   }catch(e){ console.error('Overpass error:',e); }
+  // ── Nominatim fallback: per-district, staggered ───────────────────────
   if(!gotPolygons){
     items.forEach(function(item,idx){
       var color=COLORS[idx%COLORS.length];
       setTimeout(async function(){
         try{
+          // Fetch up to 5 results, pick the first one that is an administrative boundary polygon
           var q=encodeURIComponent(item.label+' district, '+stateName+', India');
-          var r=await fetch('https://nominatim.openstreetmap.org/search?format=json&q='+q+'&polygon_geojson=1&polygon_threshold=0.003&limit=1',{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
+          var r=await fetch(
+            'https://nominatim.openstreetmap.org/search?format=json&q='+q+
+            '&polygon_geojson=1&polygon_threshold=0&limit=5&countrycodes=in',
+            {headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}}
+          );
           var d=await r.json();
-          if(d.length>0&&d[0].geojson){
-            lblLayer.clearLayers();
-            var layer=L.geoJSON(d[0].geojson,{
+          var hit=null;
+          for(var i=0;i<d.length;i++){
+            var geo=d[i].geojson;
+            if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')&&d[i].class==='boundary'){
+              hit=d[i]; break;
+            }
+          }
+          // If no boundary polygon found, accept any polygon result
+          if(!hit){
+            for(var i=0;i<d.length;i++){
+              var geo=d[i].geojson;
+              if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')){ hit=d[i]; break; }
+            }
+          }
+          if(hit){
+            var layer=L.geoJSON(hit.geojson,{
               style:function(){ return districtStyle(color); },
               interactive:true
             });
             var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); });
             layer.addTo(polyLayer);
-            try{ addLabel(layer.getBounds().getCenter(),item.label); }catch(e){}
+            // Replace centroid label with polygon-centred label
+            try{
+              var center=layer.getBounds().getCenter();
+              addLabel([center.lat,center.lng],item.label);
+            }catch(e){}
           }
         }catch(e){}
       },idx*200);
