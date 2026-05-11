@@ -388,46 +388,29 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
       });
     }
   }catch(e){ console.error('Overpass error:',e); }
-  // ── Nominatim fallback: per-district, staggered ───────────────────────
+  // ── Fallback: reverse-geocode each district centroid at county zoom ──
+  // Reverse geocoding at the known lat/lng is far more reliable than
+  // forward search — it returns exactly the admin boundary that contains
+  // the hardcoded centroid point (no name-matching or class-filtering needed).
   if(!gotPolygons){
     items.forEach(function(item,idx){
       var color=COLORS[idx%COLORS.length];
       setTimeout(async function(){
         try{
-          // Fetch up to 5 results, pick the first one that is an administrative boundary polygon
-          var q=encodeURIComponent(item.label+' district, '+stateName+', India');
-          var r=await fetch(
-            'https://nominatim.openstreetmap.org/search?format=json&q='+q+
-            '&polygon_geojson=1&polygon_threshold=0&limit=5&countrycodes=in',
-            {headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}}
-          );
+          var url='https://nominatim.openstreetmap.org/reverse?format=json'+
+            '&lat='+item.lat+'&lon='+item.lng+
+            '&polygon_geojson=1&zoom=8';
+          var r=await fetch(url,{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
           var d=await r.json();
-          var hit=null;
-          for(var i=0;i<d.length;i++){
-            var geo=d[i].geojson;
-            if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')&&d[i].class==='boundary'){
-              hit=d[i]; break;
-            }
-          }
-          // If no boundary polygon found, accept any polygon result
-          if(!hit){
-            for(var i=0;i<d.length;i++){
-              var geo=d[i].geojson;
-              if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')){ hit=d[i]; break; }
-            }
-          }
-          if(hit){
-            var layer=L.geoJSON(hit.geojson,{
+          var geo=d.geojson;
+          if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')){
+            var layer=L.geoJSON(geo,{
               style:function(){ return districtStyle(color); },
               interactive:true
             });
             var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); });
             layer.addTo(polyLayer);
-            // Replace centroid label with polygon-centred label
-            try{
-              var center=layer.getBounds().getCenter();
-              addLabel([center.lat,center.lng],item.label);
-            }catch(e){}
+            try{ var c=layer.getBounds().getCenter(); addLabel([c.lat,c.lng],item.label); }catch(e){}
           }
         }catch(e){}
       },idx*200);
