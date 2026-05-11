@@ -349,10 +349,11 @@ window.showStateLevel = async function(items){
 window.showDistrictLevel = async function(items,stateName,camLat,camLng){
   polyLayer.clearLayers(); lblLayer.clearLayers();
   if(camLat!=null&&camLng!=null) map.setView([camLat,camLng],7,{animate:true});
-  // Show coordinate labels immediately while polygons load
   items.forEach(function(it){ if(it.lat!=null&&it.lng!=null) addLabel([it.lat,it.lng],it.label); });
   var gotPolygons=false;
-  // One Overpass request for all district boundaries (rel[...] + map_to_area — correct syntax)
+  function districtStyle(color){
+    return {color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
+  }
   try{
     var q='[out:geojson][timeout:60][maxsize:67108864];'+
       'rel["name"="'+stateName+'"]["admin_level"="4"]["boundary"="administrative"]->.state;'+
@@ -370,14 +371,16 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
         var nm=f.properties.name||f.properties['name:en']||'';
         var item=matchItem(items,nm);
         var color=COLORS[ci++%COLORS.length];
-        var layer=L.geoJSON(f,{style:{color:'#fff',weight:1,fillColor:color,fillOpacity:0.65,interactive:!!item}});
+        var layer=L.geoJSON(f,{
+          style:function(){ return districtStyle(color); },
+          interactive:!!item
+        });
         if(item){ (function(id){ layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); }); })(item.id); }
         layer.addTo(polyLayer);
-        addLabel(layer.getBounds().getCenter(),nm||(item&&item.label)||'');
+        try{ addLabel(layer.getBounds().getCenter(),nm||(item&&item.label)||''); }catch(e){}
       });
     }
   }catch(e){ console.error('Overpass error:',e); }
-  // Nominatim fallback: fetch per-district polygon (staggered 200 ms apart)
   if(!gotPolygons){
     items.forEach(function(item,idx){
       var color=COLORS[idx%COLORS.length];
@@ -387,9 +390,14 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
           var r=await fetch('https://nominatim.openstreetmap.org/search?format=json&q='+q+'&polygon_geojson=1&polygon_threshold=0.003&limit=1',{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
           var d=await r.json();
           if(d.length>0&&d[0].geojson){
-            var layer=L.geoJSON(d[0].geojson,{style:{color:'#fff',weight:1,fillColor:color,fillOpacity:0.65,interactive:true}});
+            lblLayer.clearLayers();
+            var layer=L.geoJSON(d[0].geojson,{
+              style:function(){ return districtStyle(color); },
+              interactive:true
+            });
             var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); });
-            layer.addTo(polyLayer); addLabel(layer.getBounds().getCenter(),item.label);
+            layer.addTo(polyLayer);
+            try{ addLabel(layer.getBounds().getCenter(),item.label); }catch(e){}
           }
         }catch(e){}
       },idx*200);
@@ -781,6 +789,10 @@ const MunicipalMapScreen = ({ navigation }) => {
   const activeTab     = Math.max(0, level - 1);
   const HEADER_LABELS = ['', 'States', 'Districts', 'Corporations'];
 
+  const goToLogin = useCallback(() => {
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  }, [navigation]);
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -800,8 +812,12 @@ const MunicipalMapScreen = ({ navigation }) => {
             </Text>
           )}
         </View>
-        <TouchableOpacity onPress={loadMap}>
+        <TouchableOpacity onPress={loadMap} style={{ marginRight: 10 }}>
           <MaterialCommunityIcons name="refresh" size={22} color={GOLD} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.loginBackBtn} onPress={goToLogin}>
+          <MaterialCommunityIcons name="logout" size={18} color={NAVY} />
+          <Text style={styles.loginBackBtnText}>Login</Text>
         </TouchableOpacity>
       </View>
 
@@ -859,6 +875,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center', marginRight: 10,
   },
+  loginBackBtn: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: GOLD, borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 6, gap: 4,
+  },
+  loginBackBtnText: { color: NAVY, fontWeight: '700', fontSize: 12 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
   breadcrumb:  { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
