@@ -1,6 +1,5 @@
 namespace IME.Core.DTOs;
 
-
 public class SupportAttachmentDTO
 {
     public int AttachmentId { get; set; }
@@ -146,6 +145,7 @@ public class AchievementDTO
     public string? Description { get; set; }
     public DateTime? AchievementDate { get; set; }
     public DateTime CreatedDate { get; set; }
+     
 }
 
 public class AchievementDetailDTO

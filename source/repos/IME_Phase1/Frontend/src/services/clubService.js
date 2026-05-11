@@ -113,7 +113,6 @@ debugger;
 
   getCountries: async () => {
     try {
-      debugger;
       const response = await api.get('/club/countries');
       return response.data;
     } catch (error) {
