@@ -79,6 +79,49 @@ const STATE_COORDS = {
   lakshadweep:                   { latitude: 10.5667, longitude: 72.6417 },
 };
 
+const KNOWN_DISTRICTS = {
+  tamilnadu: [
+    { name: 'Ariyalur',        lat: 11.1400, lng: 79.0767 },
+    { name: 'Chengalpattu',    lat: 12.6921, lng: 79.9757 },
+    { name: 'Chennai',         lat: 13.0827, lng: 80.2707 },
+    { name: 'Coimbatore',      lat: 11.0168, lng: 76.9558 },
+    { name: 'Cuddalore',       lat: 11.7480, lng: 79.7714 },
+    { name: 'Dharmapuri',      lat: 12.1277, lng: 78.1580 },
+    { name: 'Dindigul',        lat: 10.3624, lng: 77.9695 },
+    { name: 'Erode',           lat: 11.3410, lng: 77.7172 },
+    { name: 'Kallakurichi',    lat: 11.7382, lng: 78.9598 },
+    { name: 'Kanchipuram',     lat: 12.8333, lng: 79.7000 },
+    { name: 'Kanyakumari',     lat:  8.0883, lng: 77.5385 },
+    { name: 'Karur',           lat: 10.9601, lng: 78.0766 },
+    { name: 'Krishnagiri',     lat: 12.5186, lng: 78.2137 },
+    { name: 'Madurai',         lat:  9.9252, lng: 78.1198 },
+    { name: 'Mayiladuthurai',  lat: 11.1026, lng: 79.6530 },
+    { name: 'Nagapattinam',    lat: 10.7667, lng: 79.8440 },
+    { name: 'Namakkal',        lat: 11.2190, lng: 78.1674 },
+    { name: 'Nilgiris',        lat: 11.4916, lng: 76.7337 },
+    { name: 'Perambalur',      lat: 11.2342, lng: 78.8806 },
+    { name: 'Pudukkottai',     lat: 10.3797, lng: 78.8214 },
+    { name: 'Ramanathapuram',  lat:  9.3762, lng: 78.8309 },
+    { name: 'Ranipet',         lat: 12.9277, lng: 79.3328 },
+    { name: 'Salem',           lat: 11.6643, lng: 78.1460 },
+    { name: 'Sivaganga',       lat:  9.8473, lng: 78.4801 },
+    { name: 'Tenkasi',         lat:  8.9602, lng: 77.3151 },
+    { name: 'Thanjavur',       lat: 10.7870, lng: 79.1378 },
+    { name: 'Theni',           lat:  9.9935, lng: 77.4760 },
+    { name: 'Thoothukudi',     lat:  8.7642, lng: 78.1348 },
+    { name: 'Tiruchirappalli', lat: 10.7905, lng: 78.7047 },
+    { name: 'Tirunelveli',     lat:  8.7139, lng: 77.7567 },
+    { name: 'Tirupattur',      lat: 12.4954, lng: 78.5707 },
+    { name: 'Tiruppur',        lat: 11.1075, lng: 77.3398 },
+    { name: 'Tiruvallur',      lat: 13.1435, lng: 79.9083 },
+    { name: 'Tiruvannamalai',  lat: 12.2253, lng: 79.0747 },
+    { name: 'Tiruvarur',       lat: 10.7732, lng: 79.6367 },
+    { name: 'Vellore',         lat: 12.9165, lng: 79.1325 },
+    { name: 'Viluppuram',      lat: 11.9401, lng: 79.4861 },
+    { name: 'Virudhunagar',    lat:  9.5769, lng: 77.9618 },
+  ],
+};
+
 const CORP_TYPE_COLORS = {
   'Municipal Corporation': '#1565C0',
   'Municipality':          '#2E7D32',
@@ -152,6 +195,15 @@ const fetchCorpsFromAI = async (districtName, stateName) => {
 };
 
 const fetchDistrictsFromAI = async stateName => {
+  const key = normalize(stateName);
+  if (KNOWN_DISTRICTS[key]) {
+    return KNOWN_DISTRICTS[key].map(d => ({
+      districtName: d.name,
+      districtId:   normalize(d.name),
+      _centroid:    { latitude: d.lat, longitude: d.lng },
+    }));
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
