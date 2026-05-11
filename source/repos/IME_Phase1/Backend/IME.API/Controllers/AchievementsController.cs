@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
+using IME.API.Requests;
 using System.Data.SqlClient;
 using IME.Infrastructure.Data;
 using IME.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 
 namespace IME.API.Controllers;
 
@@ -23,8 +25,6 @@ public class AchievementsController : ControllerBase
         _dbContext = dbContext;
         _fileStorageService = fileStorageService;
     }
-
-    // ── helpers ──────────────────────────────────────────────────────────────
 
     private string BuildFileUrl(string relativePath)
     {
@@ -105,7 +105,6 @@ public class AchievementsController : ControllerBase
             };
             reader.Close();
 
-            // Load attachments
             using var attachCmd = _dbContext.CreateCommand(
                 "SELECT * FROM AchievementAttachments WHERE AchievementId = @AchievementId", connection);
             attachCmd.Parameters.AddWithValue("@AchievementId", id);
@@ -125,7 +124,6 @@ public class AchievementsController : ControllerBase
                 });
             }
 
-            // Populate flat AttachmentPath from first attachment
             achievement.AttachmentPath = achievement.Attachments.FirstOrDefault()?.FilePath;
 
             return Ok(new ApiResponse<AchievementDetailDTO> { Success = true, Data = achievement });
@@ -137,63 +135,55 @@ public class AchievementsController : ControllerBase
     }
 
     // ── POST /api/achievements ────────────────────────────────────────────────
-    // Open to all authenticated users (any member can add their own achievement)
     [HttpPost]
-    public async Task<ActionResult<ApiResponse<object>>> Create(
-        [FromForm] string memberName,
-        [FromForm] string title,
-        [FromForm] string? description,
-        [FromForm] string? achievementDate,
-        [FromForm] IFormFile? photo,
-        [FromForm] IFormFile? attachment)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ApiResponse<object>>> Create([FromForm] AchievementCreateRequest request)
     {
         try
         {
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 
-            // Insert achievement record first to get its ID
             using var connection = await _dbContext.CreateOpenConnectionAsync();
             using var command = _dbContext.CreateStoredProcCommand("sp_CreateAchievement", connection);
-            command.Parameters.AddWithValue("@MemberName",      memberName);
-            command.Parameters.AddWithValue("@PhotoPath",       DBNull.Value);  // updated after file save
-            command.Parameters.AddWithValue("@Title",           title);
-            command.Parameters.AddWithValue("@Description",     (object?)description ?? DBNull.Value);
-            command.Parameters.AddWithValue("@AchievementDate", achievementDate != null && DateTime.TryParse(achievementDate, out var dt) ? dt : DBNull.Value);
-            command.Parameters.AddWithValue("@CreatedBy",       userId);
+            command.Parameters.AddWithValue("@MemberName",      request.MemberName);
+            command.Parameters.AddWithValue("@PhotoPath",       DBNull.Value);
+            command.Parameters.AddWithValue("@Title",           request.Title);
+            command.Parameters.AddWithValue("@Description",     (object?)request.Description ?? DBNull.Value);
+            command.Parameters.AddWithValue("@AchievementDate",
+                request.AchievementDate != null && DateTime.TryParse(request.AchievementDate, out var dt)
+                    ? dt : DBNull.Value);
+            command.Parameters.AddWithValue("@CreatedBy", userId);
 
             var achievementId = Convert.ToInt32(await command.ExecuteScalarAsync());
 
-            // Save photo
-            if (photo != null && AllowedPhotoTypes.Contains(Path.GetExtension(photo.FileName).ToLowerInvariant()))
+            if (request.Photo != null && AllowedPhotoTypes.Contains(Path.GetExtension(request.Photo.FileName).ToLowerInvariant()))
             {
                 var photoPath = await _fileStorageService.SaveFileAsync(
-                    photo.OpenReadStream(), "Achievements", achievementId, photo.FileName);
+                    request.Photo.OpenReadStream(), "Achievements", achievementId, request.Photo.FileName);
 
                 using var updateCmd = _dbContext.CreateCommand(
-                    "UPDATE Achievements SET PhotoPath = @PhotoPath WHERE AchievementId = @AchievementId",
-                    connection);
-                updateCmd.Parameters.AddWithValue("@PhotoPath",      photoPath);
-                updateCmd.Parameters.AddWithValue("@AchievementId",  achievementId);
+                    "UPDATE Achievements SET PhotoPath = @PhotoPath WHERE AchievementId = @AchievementId", connection);
+                updateCmd.Parameters.AddWithValue("@PhotoPath",     photoPath);
+                updateCmd.Parameters.AddWithValue("@AchievementId", achievementId);
                 await updateCmd.ExecuteNonQueryAsync();
             }
 
-            // Save attachment
-            if (attachment != null && AllowedAttachmentTypes.Contains(Path.GetExtension(attachment.FileName).ToLowerInvariant()))
+            if (request.Attachment != null && AllowedAttachmentTypes.Contains(Path.GetExtension(request.Attachment.FileName).ToLowerInvariant()))
             {
                 var attachPath = await _fileStorageService.SaveFileAsync(
-                    attachment.OpenReadStream(), "Achievements", achievementId, attachment.FileName);
+                    request.Attachment.OpenReadStream(), "Achievements", achievementId, request.Attachment.FileName);
 
                 using var insertAttach = _dbContext.CreateCommand(
                     "INSERT INTO AchievementAttachments (AchievementId, FileName, FilePath) VALUES (@AchievementId, @FileName, @FilePath)",
                     connection);
                 insertAttach.Parameters.AddWithValue("@AchievementId", achievementId);
-                insertAttach.Parameters.AddWithValue("@FileName",      attachment.FileName);
+                insertAttach.Parameters.AddWithValue("@FileName",      request.Attachment.FileName);
                 insertAttach.Parameters.AddWithValue("@FilePath",      attachPath);
                 await insertAttach.ExecuteNonQueryAsync();
             }
 
             await NotificationController.CreateContentNotificationAsync(
-                _dbContext, "Achievements", achievementId, "New Achievement", $"{memberName}: {title}");
+                _dbContext, "Achievements", achievementId, "New Achievement", $"{request.MemberName}: {request.Title}");
 
             return Ok(new ApiResponse<object>
             {
@@ -209,35 +199,27 @@ public class AchievementsController : ControllerBase
     }
 
     // ── PUT /api/achievements/{id} ────────────────────────────────────────────
-    // Open to all authenticated users
     [HttpPut("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Update(
-        int id,
-        [FromForm] string memberName,
-        [FromForm] string title,
-        [FromForm] string? description,
-        [FromForm] string? achievementDate,
-        [FromForm] IFormFile? photo,
-        [FromForm] IFormFile? attachment)
+    [Consumes("multipart/form-data")]
+    public async Task<ActionResult<ApiResponse<object>>> Update(int id, [FromForm] AchievementUpdateRequest request)
     {
         try
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
 
-            // Save new photo if provided
             string? newPhotoPath = null;
-            if (photo != null && AllowedPhotoTypes.Contains(Path.GetExtension(photo.FileName).ToLowerInvariant()))
+            if (request.Photo != null && AllowedPhotoTypes.Contains(Path.GetExtension(request.Photo.FileName).ToLowerInvariant()))
                 newPhotoPath = await _fileStorageService.SaveFileAsync(
-                    photo.OpenReadStream(), "Achievements", id, photo.FileName);
+                    request.Photo.OpenReadStream(), "Achievements", id, request.Photo.FileName);
 
-            // Use sp_UpdateAchievement — NULL PhotoPath = keep existing
             using var updateCmd = _dbContext.CreateStoredProcCommand("sp_UpdateAchievement", connection);
             updateCmd.Parameters.AddWithValue("@AchievementId",  id);
-            updateCmd.Parameters.AddWithValue("@MemberName",     memberName);
-            updateCmd.Parameters.AddWithValue("@Title",          title);
-            updateCmd.Parameters.AddWithValue("@Description",    (object?)description ?? DBNull.Value);
+            updateCmd.Parameters.AddWithValue("@MemberName",     request.MemberName);
+            updateCmd.Parameters.AddWithValue("@Title",          request.Title);
+            updateCmd.Parameters.AddWithValue("@Description",    (object?)request.Description ?? DBNull.Value);
             updateCmd.Parameters.AddWithValue("@AchievementDate",
-                achievementDate != null && DateTime.TryParse(achievementDate, out var dt) ? dt : DBNull.Value);
+                request.AchievementDate != null && DateTime.TryParse(request.AchievementDate, out var dt)
+                    ? dt : DBNull.Value);
             updateCmd.Parameters.AddWithValue("@PhotoPath",      (object?)newPhotoPath ?? DBNull.Value);
 
             using var updReader = await updateCmd.ExecuteReaderAsync();
@@ -246,11 +228,10 @@ public class AchievementsController : ControllerBase
                 ? 0 : updReader.GetInt32(updReader.GetOrdinal("RowsAffected"));
             updReader.Close();
 
-            // Save new attachment if provided — replaces old one
-            if (attachment != null && AllowedAttachmentTypes.Contains(Path.GetExtension(attachment.FileName).ToLowerInvariant()))
+            if (request.Attachment != null && AllowedAttachmentTypes.Contains(Path.GetExtension(request.Attachment.FileName).ToLowerInvariant()))
             {
                 var attachPath = await _fileStorageService.SaveFileAsync(
-                    attachment.OpenReadStream(), "Achievements", id, attachment.FileName);
+                    request.Attachment.OpenReadStream(), "Achievements", id, request.Attachment.FileName);
 
                 using var delOld = _dbContext.CreateCommand(
                     "DELETE FROM AchievementAttachments WHERE AchievementId = @AchievementId", connection);
@@ -261,7 +242,7 @@ public class AchievementsController : ControllerBase
                     "INSERT INTO AchievementAttachments (AchievementId, FileName, FilePath) VALUES (@AchievementId, @FileName, @FilePath)",
                     connection);
                 insertAttach.Parameters.AddWithValue("@AchievementId", id);
-                insertAttach.Parameters.AddWithValue("@FileName",      attachment.FileName);
+                insertAttach.Parameters.AddWithValue("@FileName",      request.Attachment.FileName);
                 insertAttach.Parameters.AddWithValue("@FilePath",      attachPath);
                 await insertAttach.ExecuteNonQueryAsync();
             }
@@ -279,7 +260,6 @@ public class AchievementsController : ControllerBase
     }
 
     // ── DELETE /api/achievements/{id} ─────────────────────────────────────────
-    // Open to all authenticated users
     [HttpDelete("{id}")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
