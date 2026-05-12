@@ -79,6 +79,49 @@ const STATE_COORDS = {
   lakshadweep:                   { latitude: 10.5667, longitude: 72.6417 },
 };
 
+const KNOWN_DISTRICTS = {
+  tamilnadu: [
+    { name: 'Ariyalur',        lat: 11.1400, lng: 79.0767 },
+    { name: 'Chengalpattu',    lat: 12.6921, lng: 79.9757 },
+    { name: 'Chennai',         lat: 13.0827, lng: 80.2707 },
+    { name: 'Coimbatore',      lat: 11.0168, lng: 76.9558 },
+    { name: 'Cuddalore',       lat: 11.7480, lng: 79.7714 },
+    { name: 'Dharmapuri',      lat: 12.1277, lng: 78.1580 },
+    { name: 'Dindigul',        lat: 10.3624, lng: 77.9695 },
+    { name: 'Erode',           lat: 11.3410, lng: 77.7172 },
+    { name: 'Kallakurichi',    lat: 11.7382, lng: 78.9598 },
+    { name: 'Kanchipuram',     lat: 12.8333, lng: 79.7000 },
+    { name: 'Kanyakumari',     lat:  8.0883, lng: 77.5385 },
+    { name: 'Karur',           lat: 10.9601, lng: 78.0766 },
+    { name: 'Krishnagiri',     lat: 12.5186, lng: 78.2137 },
+    { name: 'Madurai',         lat:  9.9252, lng: 78.1198 },
+    { name: 'Mayiladuthurai',  lat: 11.1026, lng: 79.6530 },
+    { name: 'Nagapattinam',    lat: 10.7667, lng: 79.8440 },
+    { name: 'Namakkal',        lat: 11.2190, lng: 78.1674 },
+    { name: 'Nilgiris',        lat: 11.4916, lng: 76.7337 },
+    { name: 'Perambalur',      lat: 11.2342, lng: 78.8806 },
+    { name: 'Pudukkottai',     lat: 10.3797, lng: 78.8214 },
+    { name: 'Ramanathapuram',  lat:  9.3762, lng: 78.8309 },
+    { name: 'Ranipet',         lat: 12.9277, lng: 79.3328 },
+    { name: 'Salem',           lat: 11.6643, lng: 78.1460 },
+    { name: 'Sivaganga',       lat:  9.8473, lng: 78.4801 },
+    { name: 'Tenkasi',         lat:  8.9602, lng: 77.3151 },
+    { name: 'Thanjavur',       lat: 10.7870, lng: 79.1378 },
+    { name: 'Theni',           lat:  9.9935, lng: 77.4760 },
+    { name: 'Thoothukudi',     lat:  8.7642, lng: 78.1348 },
+    { name: 'Tiruchirappalli', lat: 10.7905, lng: 78.7047 },
+    { name: 'Tirunelveli',     lat:  8.7139, lng: 77.7567 },
+    { name: 'Tirupattur',      lat: 12.4954, lng: 78.5707 },
+    { name: 'Tiruppur',        lat: 11.1075, lng: 77.3398 },
+    { name: 'Tiruvallur',      lat: 13.1435, lng: 79.9083 },
+    { name: 'Tiruvannamalai',  lat: 12.2253, lng: 79.0747 },
+    { name: 'Tiruvarur',       lat: 10.7732, lng: 79.6367 },
+    { name: 'Vellore',         lat: 12.9165, lng: 79.1325 },
+    { name: 'Viluppuram',      lat: 11.9401, lng: 79.4861 },
+    { name: 'Virudhunagar',    lat:  9.5769, lng: 77.9618 },
+  ],
+};
+
 const CORP_TYPE_COLORS = {
   'Municipal Corporation': '#1565C0',
   'Municipality':          '#2E7D32',
@@ -152,6 +195,15 @@ const fetchCorpsFromAI = async (districtName, stateName) => {
 };
 
 const fetchDistrictsFromAI = async stateName => {
+  const key = normalize(stateName);
+  if (KNOWN_DISTRICTS[key]) {
+    return KNOWN_DISTRICTS[key].map(d => ({
+      districtName: d.name,
+      districtId:   normalize(d.name),
+      _centroid:    { latitude: d.lat, longitude: d.lng },
+    }));
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -297,10 +349,17 @@ window.showStateLevel = async function(items){
 window.showDistrictLevel = async function(items,stateName,camLat,camLng){
   polyLayer.clearLayers(); lblLayer.clearLayers();
   if(camLat!=null&&camLng!=null) map.setView([camLat,camLng],7,{animate:true});
-  // Show coordinate labels immediately while polygons load
+  // Show hardcoded centroid labels immediately while polygons load
   items.forEach(function(it){ if(it.lat!=null&&it.lng!=null) addLabel([it.lat,it.lng],it.label); });
   var gotPolygons=false;
-  // One Overpass request for all district boundaries (rel[...] + map_to_area — correct syntax)
+  function districtStyle(color){
+    return {color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
+  }
+  function isPolygonFeature(f){
+    var t=f&&f.geometry&&f.geometry.type||'';
+    return t==='Polygon'||t==='MultiPolygon';
+  }
+  // ── Try Overpass (one bulk request) ──────────────────────────────────────
   try{
     var q='[out:geojson][timeout:60][maxsize:67108864];'+
       'rel["name"="'+stateName+'"]["admin_level"="4"]["boundary"="administrative"]->.state;'+
@@ -310,34 +369,48 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
       'out geom;';
     var r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
     var gj=await r.json();
-    if(gj&&gj.features&&gj.features.length>=3){
+    var polyFeatures=(gj&&gj.features||[]).filter(isPolygonFeature);
+    if(polyFeatures.length>=3){
       gotPolygons=true;
       lblLayer.clearLayers();
       var ci=0;
-      gj.features.forEach(function(f){
+      polyFeatures.forEach(function(f){
         var nm=f.properties.name||f.properties['name:en']||'';
         var item=matchItem(items,nm);
         var color=COLORS[ci++%COLORS.length];
-        var layer=L.geoJSON(f,{style:{color:'#fff',weight:1,fillColor:color,fillOpacity:0.65,interactive:!!item}});
+        var layer=L.geoJSON(f,{
+          style:function(){ return districtStyle(color); },
+          interactive:!!item
+        });
         if(item){ (function(id){ layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); }); })(item.id); }
         layer.addTo(polyLayer);
-        addLabel(layer.getBounds().getCenter(),nm||(item&&item.label)||'');
+        try{ addLabel(layer.getBounds().getCenter(),nm||(item&&item.label)||''); }catch(e){}
       });
     }
   }catch(e){ console.error('Overpass error:',e); }
-  // Nominatim fallback: fetch per-district polygon (staggered 200 ms apart)
+  // ── Fallback: reverse-geocode each district centroid at county zoom ──
+  // Reverse geocoding at the known lat/lng is far more reliable than
+  // forward search — it returns exactly the admin boundary that contains
+  // the hardcoded centroid point (no name-matching or class-filtering needed).
   if(!gotPolygons){
     items.forEach(function(item,idx){
       var color=COLORS[idx%COLORS.length];
       setTimeout(async function(){
         try{
-          var q=encodeURIComponent(item.label+' district, '+stateName+', India');
-          var r=await fetch('https://nominatim.openstreetmap.org/search?format=json&q='+q+'&polygon_geojson=1&polygon_threshold=0.003&limit=1',{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
+          var url='https://nominatim.openstreetmap.org/reverse?format=json'+
+            '&lat='+item.lat+'&lon='+item.lng+
+            '&polygon_geojson=1&zoom=8';
+          var r=await fetch(url,{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
           var d=await r.json();
-          if(d.length>0&&d[0].geojson){
-            var layer=L.geoJSON(d[0].geojson,{style:{color:'#fff',weight:1,fillColor:color,fillOpacity:0.65,interactive:true}});
+          var geo=d.geojson;
+          if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')){
+            var layer=L.geoJSON(geo,{
+              style:function(){ return districtStyle(color); },
+              interactive:true
+            });
             var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); });
-            layer.addTo(polyLayer); addLabel(layer.getBounds().getCenter(),item.label);
+            layer.addTo(polyLayer);
+            try{ var c=layer.getBounds().getCenter(); addLabel([c.lat,c.lng],item.label); }catch(e){}
           }
         }catch(e){}
       },idx*200);
@@ -729,6 +802,10 @@ const MunicipalMapScreen = ({ navigation }) => {
   const activeTab     = Math.max(0, level - 1);
   const HEADER_LABELS = ['', 'States', 'Districts', 'Corporations'];
 
+  const goToLogin = useCallback(() => {
+    navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
+  }, [navigation]);
+
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
@@ -748,8 +825,12 @@ const MunicipalMapScreen = ({ navigation }) => {
             </Text>
           )}
         </View>
-        <TouchableOpacity onPress={loadMap}>
+        <TouchableOpacity onPress={loadMap} style={{ marginRight: 10 }}>
           <MaterialCommunityIcons name="refresh" size={22} color={GOLD} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.loginBackBtn} onPress={goToLogin}>
+          <MaterialCommunityIcons name="logout" size={18} color={NAVY} />
+          <Text style={styles.loginBackBtnText}>Login</Text>
         </TouchableOpacity>
       </View>
 
@@ -807,6 +888,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center', justifyContent: 'center', marginRight: 10,
   },
+  loginBackBtn: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: GOLD, borderRadius: 20,
+    paddingHorizontal: 12, paddingVertical: 6, gap: 4,
+  },
+  loginBackBtnText: { color: NAVY, fontWeight: '700', fontSize: 12 },
   headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
   breadcrumb:  { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
