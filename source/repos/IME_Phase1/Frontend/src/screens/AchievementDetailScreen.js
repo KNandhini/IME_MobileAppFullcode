@@ -1,17 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect,useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   StatusBar, Image, Linking, Modal,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
+import { BASE_URL } from '../utils/api';
+import { achievementService } from '../services/achievementService';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
 const AchievementDetailScreen = ({ route, navigation }) => {
-  const { item } = route.params || {};
-  const [imgViewer, setImgViewer] = useState(false);
+ // const { item } = route.params || {};
+ const { item, memberPhoto } = route.params || {};
+  const [imgViewer, setImgViewer] = useState(null);
+const [attachments, setAttachments] = useState([]);
   if (!item) return null;
+  useEffect(() => {
+  loadAttachments();
+}, []);
+
+const loadAttachments = async () => {
+  try {
+    const res = await achievementService.getAttachments(
+      item.achievementId
+    );
+
+    console.log('ATTACHMENTS API:', res);
+
+    if (res?.data) {
+      setAttachments(res.data);
+    }
+  } catch (err) {
+    console.log('ATTACHMENT ERROR', err);
+  }
+};
 
   const dateStr = item.achievementDate
     ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
@@ -38,15 +60,26 @@ const AchievementDetailScreen = ({ route, navigation }) => {
 
         {/* Member circular photo */}
         <View style={styles.heroSection}>
-          {item.memberPhotoPath ? (
+          {/*{item.memberPhotoPath ? (
             <Image source={{ uri: item.memberPhotoPath }} style={styles.heroAvatar} />
-          ) : (
-            <View style={[styles.heroAvatar, styles.heroAvatarFallback]}>
-              <Text style={styles.heroInitials}>
-                {(item.memberName || 'M').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
-              </Text>
-            </View>
-          )}
+          ) : (*/}
+         {memberPhoto ? (
+    <Image
+      source={{ uri: memberPhoto }}
+      style={styles.heroAvatar}
+    />
+  ) : (
+    <View style={[styles.heroAvatar, styles.heroAvatarFallback]}>
+      <Text style={styles.heroInitials}>
+        {(item.memberName || 'M')
+          .split(' ')
+          .map(w => w[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase()}
+      </Text>
+    </View>
+  )}
           <View style={styles.trophyCircle}>
             <Text style={{ fontSize: 18 }}>🏆</Text>
           </View>
@@ -78,7 +111,7 @@ const AchievementDetailScreen = ({ route, navigation }) => {
         ) : null}
 
         {/* Attachment */}
-        {item.attachmentPath ? (
+        {/*{item.attachmentPath ? (
           <View style={styles.attachSection}>
             <Text style={styles.attachLabel}>Attachment</Text>
             {isImage(item.attachmentPath) ? (
@@ -96,17 +129,60 @@ const AchievementDetailScreen = ({ route, navigation }) => {
               </TouchableOpacity>
             )}
           </View>
-        ) : null}
+        ) : null}*/}
+   <View style={styles.attachSection}>
+  <Text style={styles.attachLabel}>Attachments</Text>
+
+  {attachments.map((attachment, index) => {
+    const filePath = attachment.filePath;
+
+    return isImage(filePath) ? (
+      <TouchableOpacity
+        key={attachment.attachmentId || index}
+        onPress={() => setImgViewer(filePath)}
+        activeOpacity={0.85}
+        style={{ marginBottom: 14 }}
+      >
+        <Image
+          source={{ uri: filePath }}
+          style={styles.attachImage}
+          resizeMode="contain"
+        />
+
+        <Text style={styles.attachHint}>
+          Tap to enlarge
+        </Text>
+      </TouchableOpacity>
+    ) : (
+      <TouchableOpacity
+        key={attachment.attachmentId || index}
+        style={styles.downloadBtn}
+        onPress={() => Linking.openURL(filePath)}
+      >
+        <MaterialCommunityIcons
+          name="download-outline"
+          size={18}
+          color="#fff"
+        />
+
+        <Text style={styles.downloadText}>
+          Download Attachment
+        </Text>
+      </TouchableOpacity>
+    );
+  })}
+</View>
       </ScrollView>
 
       {/* Image viewer modal */}
-      <Modal visible={imgViewer} transparent animationType="fade" onRequestClose={() => setImgViewer(false)}>
+      <Modal visible={!!imgViewer} transparent animationType="fade" onRequestClose={() => setImgViewer(null)}>
         <View style={styles.viewerOverlay}>
-          <TouchableOpacity style={styles.viewerClose} onPress={() => setImgViewer(false)}>
+          <TouchableOpacity style={styles.viewerClose} onPress={() => setImgViewer(null)}>
             <MaterialCommunityIcons name="close" size={26} color="#fff" />
           </TouchableOpacity>
           <Image
-            source={{ uri: item.attachmentPath }}
+           // source={{ uri: item.attachmentPath }}
+           source={{ uri: imgViewer }}
             style={styles.viewerImage}
             resizeMode="contain"
           />
@@ -177,7 +253,13 @@ const styles = StyleSheet.create({
 
   attachSection: { width: '100%', marginBottom: 20 },
   attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-  attachImage: { width: '100%', height: 200, borderRadius: 12 },
+attachImage: {
+  width: '100%',
+  height: 220,
+  borderRadius: 12,
+  resizeMode: 'contain',
+  backgroundColor: '#fff',
+},
   attachHint:  { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
   downloadBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',

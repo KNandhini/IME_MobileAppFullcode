@@ -113,7 +113,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   // ── Welcome strip ────────────────────────────
-  const renderFeedHeader = () => (
+ const renderFeedHeader = () => (
+  <View>
     <View style={styles.welcomeStrip}>
       <View style={styles.welcomeAvatar}>
         <Text style={styles.welcomeAvatarLetter}>
@@ -134,7 +135,20 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.newPostBtnText}>+</Text>
       </TouchableOpacity>
     </View>
-  );
+
+    {/* Law Bot card as its own row below the strip */}
+    <TouchableOpacity
+      style={styles.lawBotCard}
+      onPress={() => navigation.navigate('LawBot')}
+      activeOpacity={0.85}
+    >
+      <Text style={styles.lawBotTitle}>⚖️ Law Assistant</Text>
+      <Text style={styles.lawBotSubtitle}>
+        Ask questions about the 74th Amendment Act
+      </Text>
+    </TouchableOpacity>
+  </View>
+);
 
   // ── Footer loader / end message ──────────────
   const renderFeedFooter = () => (
@@ -337,6 +351,17 @@ const styles = StyleSheet.create({
   emptyIcon:    { fontSize: 48, marginBottom: 12 },
   emptyText:    { fontSize: 16, fontWeight: '700', color: '#555' },
   emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
+  lawBotCard: {
+  backgroundColor: '#EEF4FB',
+  marginHorizontal: 16,
+  marginBottom: 8,
+  borderRadius: 10,
+  padding: 12,
+  borderWidth: 0.5,
+  borderColor: '#B5D4F4',
+},
+lawBotTitle:    { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
 });
 
 export default HomeScreen;

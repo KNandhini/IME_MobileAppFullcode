@@ -74,14 +74,18 @@ builder.Services.AddScoped<IActivityRepository, ActivityRepository>();
 
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IFeedRepository, FeedRepository>();
-
+builder.Services.AddScoped<INewsRepository, NewsRepository>();
 builder.Services.AddScoped<IFundraiseRepository, FundraiseRepository>();
 builder.Services.AddScoped<IRaiseFundPayment, RaiseFundPaymentRepository>();
 builder.Services.AddScoped<ISupportRepository, SupportRepository>();
 builder.Services.AddScoped<IClubRepository, ClubRepository>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
+builder.Services.AddScoped<ICircularRepository, CircularRepository>();
+builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
+builder.Services.AddHttpClient();
+
+builder.Services.AddScoped<LawBotService>();
 builder.Services.AddScoped<IMunicipalCorpRepository, MunicipalCorpRepository>();
-builder.Services.AddHttpClient(); 
 // Register Services
 builder.Services.AddSingleton(new JwtService(
     jwtSettings["SecretKey"]!,
