@@ -1,6 +1,30 @@
 import api, { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const getToken = async () => {
+  try {
+    const raw = await AsyncStorage.getItem('userData');
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.token ?? parsed?.Token ?? null;
+  } catch {
+    return null;
+  }
+};
+
+const multipartFetch = async (method, url, form) => {
+  const token = await getToken();
+  const response = await fetch(`${BASE_URL}/api${url}`, {
+    method,
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      // NO Content-Type — fetch sets multipart/form-data + boundary automatically
+    },
+    body: form,
+  });
+  return response.json();
+};
+
 export const circularService = {
 
   getAll: async () => {
@@ -14,47 +38,39 @@ export const circularService = {
   },
 
   create: async (data, attachments = []) => {
-    const token = await AsyncStorage.getItem('authToken');
-    const form  = new FormData();
-
-    form.append('title',          data.title);
-    form.append('publishDate',    data.publishDate);
+    const form = new FormData();
+    form.append('title',       data.title);
+    form.append('publishDate', data.publishDate);
     if (data.description)    form.append('description',    data.description);
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
 
     attachments.forEach((file) => {
-      const uri = file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`;
-      form.append('files', { uri, name: file.fileName || `attachment_${Date.now()}`, type: file.mimeType || 'application/octet-stream' });
+      form.append('files', {
+        uri:  file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
+        name: file.fileName || file.name || `file_${Date.now()}.jpg`,
+        type: file.mimeType || file.type || 'application/octet-stream',
+      });
     });
 
-    const response = await fetch(`${BASE_URL}/api/circular`, {
-      method: 'POST',
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: form,
-    });
-    return response.json();
+    return multipartFetch('POST', '/circular', form);
   },
 
   update: async (circularId, data, attachments = []) => {
-    const token = await AsyncStorage.getItem('authToken');
-    const form  = new FormData();
-
-    form.append('title',          data.title);
-    form.append('publishDate',    data.publishDate);
+    const form = new FormData();
+    form.append('title',       data.title);
+    form.append('publishDate', data.publishDate);
     if (data.description)    form.append('description',    data.description);
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
 
     attachments.forEach((file) => {
-      const uri = file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`;
-      form.append('files', { uri, name: file.fileName || `attachment_${Date.now()}`, type: file.mimeType || 'application/octet-stream' });
+      form.append('files', {
+        uri:  file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
+        name: file.fileName || file.name || `file_${Date.now()}.jpg`,
+        type: file.mimeType || file.type || 'application/octet-stream',
+      });
     });
 
-    const response = await fetch(`${BASE_URL}/api/circular/${circularId}`, {
-      method: 'PUT',
-      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: form,
-    });
-    return response.json();
+    return multipartFetch('PUT', `/circular/${circularId}`, form);
   },
 
   delete: async (circularId) => {

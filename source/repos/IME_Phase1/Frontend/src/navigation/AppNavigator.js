@@ -53,6 +53,7 @@ import PresentationScreen from '../screens/PresentationScreen';
 import CircularDetailScreen from '../screens/CircularDetailScreen';
 import AchievementDetailScreen from '../screens/AchievementDetailScreen';
 import AchievementFormScreen from '../screens/AchievementFormScreen';
+import LawBotScreen from '../screens/LawBotScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -232,11 +233,11 @@ const MainStack = () => (
     <Stack.Screen
       name="AddCircular"
       component={AddCircularScreen}
-      options={({ route }) => ({
-        title: route.params?.item ? 'Edit Circular' : 'Add Circular'
-      })}
-    />
+     options={{ headerShown: false }} />
+      <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
+  
+  
 
 
 

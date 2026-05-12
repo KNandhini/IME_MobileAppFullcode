@@ -137,6 +137,7 @@ public class UpdateCircularDTO
 public class AchievementDTO
 {
     public int AchievementId { get; set; }
+    public int MemberId { get; set; }
     public string MemberName { get; set; } = string.Empty;
     public string? PhotoPath { get; set; }
     public string? MemberPhotoPath { get; set; }   // alias of PhotoPath for frontend
@@ -151,6 +152,7 @@ public class AchievementDTO
 public class AchievementDetailDTO
 {
     public int AchievementId { get; set; }
+    public int MemberId { get; set; }
     public string MemberName { get; set; } = string.Empty;
     public string? PhotoPath { get; set; }
     public string? MemberPhotoPath { get; set; }   // alias of PhotoPath for frontend

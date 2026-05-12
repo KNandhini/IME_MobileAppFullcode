@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
-using System.Data.SqlClient;
-using IME.Infrastructure.Data;
+using IME.Core.Interfaces;
 using IME.Infrastructure.Services;
 
 namespace IME.API.Controllers;
@@ -12,165 +11,69 @@ namespace IME.API.Controllers;
 [Authorize]
 public class CircularController : ControllerBase
 {
-    private readonly DatabaseContext   _dbContext;
+    private readonly ICircularRepository _circularRepository;
     private readonly FileStorageService _fileStorageService;
 
-    private static readonly string[] AllowedImageTypes = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
-    private static readonly string[] AllowedVideoTypes = { ".mp4", ".mov", ".avi", ".mkv", ".webm" };
-    private static readonly string[] AllowedDocTypes   = { ".pdf", ".doc", ".docx" };
+    private static readonly string[] AllowedTypes =
+        { ".jpg", ".jpeg", ".png", ".gif", ".webp",
+          ".mp4", ".mov", ".avi", ".mkv", ".webm",
+          ".pdf", ".doc", ".docx" };
 
-    public CircularController(DatabaseContext dbContext, FileStorageService fileStorageService)
+    public CircularController(ICircularRepository circularRepository, FileStorageService fileStorageService)
     {
-        _dbContext          = dbContext;
+        _circularRepository = circularRepository;
         _fileStorageService = fileStorageService;
     }
 
+    private string BuildFileUrl(string? relativePath)
+    {
+        if (string.IsNullOrEmpty(relativePath)) return string.Empty;
+        return $"{Request.Scheme}://{Request.Host}/uploads/{relativePath.Replace('\\', '/')}";
+    }
+
+    private int GetUserId() =>
+        int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+    // ── GET /api/circular ─────────────────────────────────────
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<CircularDTO>>>> GetAll()
     {
         try
         {
-            var circulars = new List<CircularDTO>();
-
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command    = _dbContext.CreateStoredProcCommand("sp_GetAllCirculars", connection);
-            using var reader     = await command.ExecuteReaderAsync();
-
-            while (await reader.ReadAsync())
-            {
-                circulars.Add(new CircularDTO
-                {
-                    CircularId      = reader.GetInt32(reader.GetOrdinal("CircularId")),
-                    Title           = reader.GetString(reader.GetOrdinal("Title")),
-                    Description     = reader.IsDBNull(reader.GetOrdinal("Description"))     ? null : reader.GetString(reader.GetOrdinal("Description")),
-                    CircularNumber  = reader.IsDBNull(reader.GetOrdinal("CircularNumber"))  ? null : reader.GetString(reader.GetOrdinal("CircularNumber")),
-                    PublishDate     = reader.GetDateTime(reader.GetOrdinal("PublishDate")),
-                    AttachmentCount = reader.GetInt32(reader.GetOrdinal("AttachmentCount"))
-                });
-            }
-
+            var circulars = await _circularRepository.GetAllCircularsAsync();
             return Ok(new ApiResponse<List<CircularDTO>> { Success = true, Data = circulars });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<List<CircularDTO>> { Success = false, Message = $"Error: {ex.Message}" });
+            return StatusCode(500, new ApiResponse<List<CircularDTO>>
+            { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
+    // ── GET /api/circular/{id} ────────────────────────────────
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<CircularDetailDTO>>> GetById(int id)
     {
         try
         {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command    = _dbContext.CreateCommand(
-                "SELECT * FROM tbl_GOCircular WHERE CircularId = @CircularId", connection);
-            command.Parameters.AddWithValue("@CircularId", id);
+            var circular = await _circularRepository.GetCircularByIdAsync(id);
+            if (circular == null)
+                return NotFound(new ApiResponse<CircularDetailDTO>
+                { Success = false, Message = "Circular not found" });
 
-            using var reader = await command.ExecuteReaderAsync();
+            foreach (var att in circular.Attachments)
+                att.FilePath = BuildFileUrl(att.FilePath);
 
-            if (await reader.ReadAsync())
-            {
-                var circular = new CircularDetailDTO
-                {
-                    CircularId     = reader.GetInt32(reader.GetOrdinal("CircularId")),
-                    Title          = reader.GetString(reader.GetOrdinal("Title")),
-                    Description    = reader.IsDBNull(reader.GetOrdinal("Description"))    ? null : reader.GetString(reader.GetOrdinal("Description")),
-                    CircularNumber = reader.IsDBNull(reader.GetOrdinal("CircularNumber")) ? null : reader.GetString(reader.GetOrdinal("CircularNumber")),
-                    PublishDate    = reader.GetDateTime(reader.GetOrdinal("PublishDate")),
-                    CreatedDate    = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-                    Attachments    = new List<AttachmentDTO>()
-                };
-                reader.Close();
-
-                using var attachCmd = _dbContext.CreateCommand(
-                    "SELECT * FROM tbl_GOCircularAttachments WHERE CircularId = @CircularId", connection);
-                attachCmd.Parameters.AddWithValue("@CircularId", id);
-
-                using var attachReader = await attachCmd.ExecuteReaderAsync();
-                while (await attachReader.ReadAsync())
-                {
-                    circular.Attachments.Add(new AttachmentDTO
-                    {
-                        AttachmentId = attachReader.GetInt32(attachReader.GetOrdinal("AttachmentId")),
-                        FileName     = attachReader.IsDBNull(attachReader.GetOrdinal("FileName"))   ? null : attachReader.GetString(attachReader.GetOrdinal("FileName")),
-                        FilePath     = attachReader.IsDBNull(attachReader.GetOrdinal("FilePath"))   ? null : attachReader.GetString(attachReader.GetOrdinal("FilePath")),
-                        UploadedDate = attachReader.GetDateTime(attachReader.GetOrdinal("UploadedDate"))
-                    });
-                }
-
-                return Ok(new ApiResponse<CircularDetailDTO> { Success = true, Data = circular });
-            }
-
-            return NotFound(new ApiResponse<CircularDetailDTO> { Success = false, Message = "Circular not found" });
+            return Ok(new ApiResponse<CircularDetailDTO> { Success = true, Data = circular });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<CircularDetailDTO> { Success = false, Message = $"Error: {ex.Message}" });
+            return StatusCode(500, new ApiResponse<CircularDetailDTO>
+            { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
-    // GET attachment file
-    [HttpGet("attachment/{attachmentId}")]
-    public async Task<IActionResult> GetAttachment(int attachmentId)
-    {
-        try
-        {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command    = _dbContext.CreateCommand(
-                "SELECT FileName, FilePath FROM tbl_GOCircularAttachments WHERE AttachmentId = @AttachmentId",
-                connection);
-            command.Parameters.AddWithValue("@AttachmentId", attachmentId);
-
-            using var reader = await command.ExecuteReaderAsync();
-            if (!await reader.ReadAsync()) return NotFound();
-
-            var fileName = reader.IsDBNull(0) ? "file" : reader.GetString(0);
-            var filePath = reader.IsDBNull(1) ? null   : reader.GetString(1);
-            reader.Close();
-
-            if (string.IsNullOrEmpty(filePath) || !_fileStorageService.FileExists(filePath))
-                return NotFound("File not found on disk.");
-
-            var fullPath    = _fileStorageService.GetFullPath(filePath);
-            var ext         = Path.GetExtension(fileName).ToLowerInvariant();
-            var contentType = GetContentType(ext);
-            return PhysicalFile(fullPath, contentType, fileName);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Error: {ex.Message}");
-        }
-    }
-
-    // DELETE attachment
-    [HttpDelete("attachment/{attachmentId}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteAttachment(int attachmentId)
-    {
-        try
-        {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var selectCmd  = _dbContext.CreateCommand(
-                "SELECT FilePath FROM tbl_GOCircularAttachments WHERE AttachmentId = @AttachmentId", connection);
-            selectCmd.Parameters.AddWithValue("@AttachmentId", attachmentId);
-
-            var filePath = (await selectCmd.ExecuteScalarAsync())?.ToString();
-            if (filePath != null) _fileStorageService.DeleteFile(filePath);
-
-            using var deleteCmd = _dbContext.CreateCommand(
-                "DELETE FROM tbl_GOCircularAttachments WHERE AttachmentId = @AttachmentId", connection);
-            deleteCmd.Parameters.AddWithValue("@AttachmentId", attachmentId);
-            await deleteCmd.ExecuteNonQueryAsync();
-
-            return Ok(new ApiResponse<object> { Success = true, Message = "Attachment deleted" });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
-        }
-    }
-
+    // ── POST /api/circular ────────────────────────────────────
     [HttpPost]
     [Authorize(Roles = "Admin")]
     [DisableRequestSizeLimit]
@@ -184,37 +87,32 @@ public class CircularController : ControllerBase
     {
         try
         {
-            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userId = GetUserId();
+            var circularId = await _circularRepository.CreateCircularAsync(
+                title, description, circularNumber,
+                DateTime.Parse(publishDate), userId);
 
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command    = _dbContext.CreateStoredProcCommand("sp_CreateCircular", connection);
-
-            command.Parameters.AddWithValue("@Title",          title);
-            command.Parameters.AddWithValue("@Description",    description    ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@CircularNumber", circularNumber ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@PublishDate",    DateTime.Parse(publishDate));
-            command.Parameters.AddWithValue("@CreatedBy",      userId);
-
-            var circularId = Convert.ToInt32(await command.ExecuteScalarAsync());
-
-            await SaveAttachments(circularId, files, connection);
+            await SaveAttachments(circularId, files);
 
             await NotificationController.CreateContentNotificationAsync(
-                _dbContext, "Circular", circularId, "New GO & Circular", $"New circular: {title}");
+                HttpContext.RequestServices.GetRequiredService<IME.Infrastructure.Data.DatabaseContext>(),
+                "Circular", circularId, "New GO & Circular", $"New circular: {title}");
 
             return Ok(new ApiResponse<object>
             {
                 Success = true,
                 Message = "Circular created successfully",
-                Data    = new { CircularId = circularId }
+                Data = new { CircularId = circularId }
             });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+            return StatusCode(500, new ApiResponse<object>
+            { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
+    // ── PUT /api/circular/{id} ────────────────────────────────
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     [DisableRequestSizeLimit]
@@ -229,91 +127,124 @@ public class CircularController : ControllerBase
     {
         try
         {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command    = _dbContext.CreateStoredProcCommand("sp_UpdateCircular", connection);
+            await _circularRepository.UpdateCircularAsync(
+                id, title, description, circularNumber, DateTime.Parse(publishDate));
 
-            command.Parameters.AddWithValue("@CircularId",     id);
-            command.Parameters.AddWithValue("@Title",          title);
-            command.Parameters.AddWithValue("@Description",    description    ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@CircularNumber", circularNumber ?? (object)DBNull.Value);
-            command.Parameters.AddWithValue("@PublishDate",    DateTime.Parse(publishDate));
-
-            await command.ExecuteNonQueryAsync();
-
-            await SaveAttachments(id, files, connection);
+            await SaveAttachments(id, files);
 
             return Ok(new ApiResponse<object> { Success = true, Message = "Circular updated successfully" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message });
+            return StatusCode(500, new ApiResponse<object>
+            { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
+    // ── DELETE /api/circular/{id} ─────────────────────────────
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
         try
         {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
-            using var command    = _dbContext.CreateStoredProcCommand("sp_DeleteCircular", connection);
-            command.Parameters.AddWithValue("@CircularId", id);
-            await command.ExecuteNonQueryAsync();
-
+            await _circularRepository.DeleteCircularAsync(id);
             return Ok(new ApiResponse<object> { Success = true, Message = "Circular deleted successfully" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message });
+            return StatusCode(500, new ApiResponse<object>
+            { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────────
+    // ── DELETE /api/circular/attachment/{attachmentId} ────────
+    [HttpDelete("attachment/{attachmentId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<object>>> DeleteAttachment(int attachmentId)
+    {
+        try
+        {
+            await _circularRepository.DeleteCircularAttachmentAsync(attachmentId);
+            return Ok(new ApiResponse<object> { Success = true, Message = "Attachment deleted" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
 
-    private async Task SaveAttachments(int circularId, List<IFormFile>? files, SqlConnection connection)
+    // ── GET /api/circular/attachment/{attachmentId} ───────────
+    [HttpGet("attachment/{attachmentId}")]
+    public async Task<IActionResult> GetAttachment(int attachmentId)
+    {
+        try
+        {
+            var attachments = await _circularRepository.GetCircularAttachmentsAsync(0);
+            // fallback: direct query since we only have circularId-based fetch in repo
+            using var connection = await HttpContext.RequestServices
+                .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
+                .CreateOpenConnectionAsync();
+            using var cmd = HttpContext.RequestServices
+                .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
+                .CreateCommand(
+                    "SELECT FileName, FilePath FROM tbl_GOCircularAttachments WHERE AttachmentId = @AttachmentId",
+                    connection);
+            cmd.Parameters.AddWithValue("@AttachmentId", attachmentId);
+            using var reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync()) return NotFound();
+
+            var fileName = reader.IsDBNull(0) ? "file" : reader.GetString(0);
+            var filePath = reader.IsDBNull(1) ? null : reader.GetString(1);
+            reader.Close();
+
+            if (string.IsNullOrEmpty(filePath) || !_fileStorageService.FileExists(filePath))
+                return NotFound("File not found on disk.");
+
+            var ext = Path.GetExtension(fileName).ToLowerInvariant();
+            var contentType = GetContentType(ext);
+            return PhysicalFile(_fileStorageService.GetFullPath(filePath), contentType, fileName);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error: {ex.Message}");
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────
+    private async Task SaveAttachments(int circularId, List<IFormFile>? files)
     {
         if (files == null || files.Count == 0) return;
-
         foreach (var file in files)
         {
             if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
-
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!AllowedImageTypes.Contains(ext) && !AllowedVideoTypes.Contains(ext) && !AllowedDocTypes.Contains(ext))
-                continue;
+            if (!AllowedTypes.Contains(ext)) continue;
 
             using var ms = new MemoryStream();
             await file.CopyToAsync(ms);
             ms.Position = 0;
 
             var filePath = await _fileStorageService.SaveFileAsync(ms, "Circular", circularId, file.FileName);
-
-            using var insertCmd = _dbContext.CreateCommand(
-                @"INSERT INTO tbl_GOCircularAttachments (CircularId, FileName, FilePath, UploadedDate)
-                  VALUES (@CircularId, @FileName, @FilePath, GETDATE())",
-                connection);
-            insertCmd.Parameters.AddWithValue("@CircularId", circularId);
-            insertCmd.Parameters.AddWithValue("@FileName",   file.FileName);
-            insertCmd.Parameters.AddWithValue("@FilePath",   filePath);
-            await insertCmd.ExecuteNonQueryAsync();
+            await _circularRepository.AddCircularAttachmentAsync(circularId, file.FileName, filePath);
         }
     }
 
     private static string GetContentType(string ext) => ext switch
     {
         ".jpg" or ".jpeg" => "image/jpeg",
-        ".png"            => "image/png",
-        ".gif"            => "image/gif",
-        ".webp"           => "image/webp",
-        ".pdf"            => "application/pdf",
-        ".mp4"            => "video/mp4",
-        ".mov"            => "video/quicktime",
-        ".avi"            => "video/x-msvideo",
-        ".mkv"            => "video/x-matroska",
-        ".webm"           => "video/webm",
-        ".doc"            => "application/msword",
-        ".docx"           => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        _                 => "application/octet-stream"
+        ".png" => "image/png",
+        ".gif" => "image/gif",
+        ".webp" => "image/webp",
+        ".pdf" => "application/pdf",
+        ".mp4" => "video/mp4",
+        ".mov" => "video/quicktime",
+        ".avi" => "video/x-msvideo",
+        ".mkv" => "video/x-matroska",
+        ".webm" => "video/webm",
+        ".doc" => "application/msword",
+        ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        _ => "application/octet-stream"
     };
 }
