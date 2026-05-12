@@ -2,7 +2,7 @@ namespace IME.API.Requests;
 
 public class AchievementUpdateRequest
 {
-    public string MemberName { get; set; } = string.Empty;
+    public int MemberId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? AchievementDate { get; set; }
