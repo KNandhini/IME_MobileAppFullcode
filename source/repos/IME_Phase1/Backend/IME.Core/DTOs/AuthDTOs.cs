@@ -19,6 +19,7 @@ public class LoginResponseDTO
     public string? MembershipStatus { get; set; }
     public DateTime? GraceExpiryDate { get; set; }
     public string? LoginStatus { get; set; }   // OK | PENDING_PAYMENT | GRACE_EXPIRED
+    public int? ClubId { get; set; }
 }
 
 public class SignupRequestDTO

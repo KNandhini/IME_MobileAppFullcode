@@ -19,6 +19,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [title,          setTitle]          = useState(editData?.title          || '');
   const [description,    setDescription]    = useState(editData?.description    || '');
   const [circularNumber, setCircularNumber] = useState(editData?.circularNumber || '');
+  const [visibility,     setVisibility]     = useState(editData?.visibility     || 'All');
   const [publishDate,    setPublishDate]    = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );
@@ -135,6 +136,7 @@ const loadExisting = async () => {
       const payload = {
         title, description, circularNumber,
         publishDate: formatDate(publishDate),
+        visibility,
       };
       const response = editData
         ? await circularService.update(editData.circularId, payload, attachments)
@@ -213,6 +215,26 @@ const loadExisting = async () => {
               }}
             />
           )}
+
+          {/* Visibility */}
+          <Text style={styles.label}>Visibility</Text>
+          <View style={styles.visRow}>
+            {[
+              { value: 'All',  label: 'All Members' },
+              { value: 'Club', label: 'My Club Only' },
+            ].map((opt) => (
+              <TouchableOpacity
+                key={opt.value}
+                style={[styles.visOption, visibility === opt.value && styles.visOptionSelected]}
+                onPress={() => setVisibility(opt.value)}
+                activeOpacity={0.8}>
+                <View style={[styles.visRadio, visibility === opt.value && styles.visRadioSelected]} />
+                <Text style={[styles.visLabel, visibility === opt.value && styles.visLabelSelected]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           {/* Attachments */}
           <Text style={styles.label}>Attachments</Text>
@@ -324,6 +346,13 @@ const styles = StyleSheet.create({
   thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
   thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
   attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
+  visRow         : { flexDirection: 'row', gap: 12, marginTop: 4 },
+  visOption      : { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F8FAFC', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: '#E2E8F0' },
+  visOptionSelected: { borderColor: NAVY, backgroundColor: '#EEF2FF' },
+  visRadio       : { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: '#CBD5E1' },
+  visRadioSelected: { borderColor: NAVY, backgroundColor: NAVY },
+  visLabel       : { fontSize: 13, color: '#64748B', fontWeight: '500' },
+  visLabelSelected: { color: NAVY, fontWeight: '700' },
   viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
   viewerImage    : { width: '100%', height: '80%' },
   viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },

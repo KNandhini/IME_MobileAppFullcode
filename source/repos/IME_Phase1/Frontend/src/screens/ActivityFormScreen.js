@@ -54,9 +54,10 @@ const ActivityFormScreen = ({ route, navigation }) => {
   const [attachments, setAttachments] = useState([]);
   const [formData, setFormData] = useState({
     activityName: '', description: '', venue: '', coordinator: '',
-    chiefGuest: '',       
-    time:"",  
+    chiefGuest: '',
+    time: '',
     status: 'Upcoming',
+    visibility: 'All',
   });
   const [activityDate, setActivityDate] = useState(null);
   const [registrationDeadline, setRegistrationDeadline] = useState(null);
@@ -72,12 +73,13 @@ const ActivityFormScreen = ({ route, navigation }) => {
         const d = res.data;
         setFormData({
           activityName: d.activityName || '',
-          description: d.description || '',
-          venue: d.venue || '',
-          coordinator: d.coordinator || '',
-            chiefGuest: d.chiefGuest || '',   // ← ADD THIS
-            time:d.time||"",
-          status: d.status || 'Upcoming',
+          description:  d.description  || '',
+          venue:        d.venue        || '',
+          coordinator:  d.coordinator  || '',
+          chiefGuest:   d.chiefGuest   || '',
+          time:         d.time         || '',
+          status:       d.status       || 'Upcoming',
+          visibility:   d.visibility   || 'All',
         });
         if (d.activityDate) setActivityDate(new Date(d.activityDate));
         if (d.registrationDeadline) setRegistrationDeadline(new Date(d.registrationDeadline));
@@ -140,7 +142,6 @@ const ActivityFormScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-    debugger;
   if (!formData.activityName.trim() || !formData.description.trim() || !formData.venue.trim()) {
     Alert.alert('Error', 'Activity name, description and venue are required.');
     return;
@@ -159,6 +160,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
       chiefGuest:            formData.chiefGuest,
       coordinator:           formData.coordinator,
       status:                formData.status,
+      visibility:            formData.visibility || 'All',
       activityDate:          activityDate.toISOString(),
       registrationDeadline:  registrationDeadline ? registrationDeadline.toISOString() : null,
     };
@@ -174,7 +176,6 @@ const ActivityFormScreen = ({ route, navigation }) => {
       Alert.alert('Error', res.message || 'Operation failed.');
     }
   } catch (e) {
-    debugger;
     Alert.alert('Error', 'An error occurred.');
   } finally {
     setSaving(false);
@@ -239,6 +240,27 @@ const ActivityFormScreen = ({ route, navigation }) => {
                   <TouchableOpacity key={s} onPress={() => update('status', s)}>
                     <Chip selected={formData.status === s} style={[styles.chip, formData.status === s && styles.chipSelected]}
                       textStyle={formData.status === s ? { color: '#fff' } : {}}>{s}</Chip>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </Card.Content>
+          </Card>
+
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Visibility</Text>
+              <View style={styles.statusRow}>
+                {[
+                  { value: 'All',  label: 'All Members' },
+                  { value: 'Club', label: 'My Club Only' },
+                ].map((opt) => (
+                  <TouchableOpacity key={opt.value} onPress={() => update('visibility', opt.value)}>
+                    <Chip
+                      selected={formData.visibility === opt.value}
+                      style={[styles.chip, formData.visibility === opt.value && styles.chipSelected]}
+                      textStyle={formData.visibility === opt.value ? { color: '#fff' } : {}}>
+                      {opt.label}
+                    </Chip>
                   </TouchableOpacity>
                 ))}
               </View>

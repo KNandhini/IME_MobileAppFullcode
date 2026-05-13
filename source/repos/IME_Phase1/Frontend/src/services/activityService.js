@@ -13,14 +13,17 @@ export const activityService = {
     return response.data;
   },
 
+  getByClub: async () => {
+    const response = await api.get('/activity/my-club');
+    return response.data;
+  },
+
   create: async (activityData) => {
-    debugger;
     const response = await api.post('/activity', activityData);
     return response.data;
   },
 
   update: async (activityId, activityData) => {
-    debugger;
     const response = await api.put(`/activity/${activityId}`, activityData);
     return response.data;
   },
