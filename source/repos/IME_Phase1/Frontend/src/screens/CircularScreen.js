@@ -2,16 +2,21 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { circularService } from '../services/circularService';
 import { useFocusEffect } from '@react-navigation/native';
+import { useAuth } from '../context/AuthContext';
 
 const CircularScreen = ({ navigation }) => {
   const [circulars, setCirculars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
+  const isAdmin = user?.roleName === 'Admin';
 
   const loadCirculars = async () => {
     setLoading(true);
     try {
-      const response = await circularService.getAll();
+      const response = isAdmin
+        ? await circularService.getByClub()
+        : await circularService.getAll();
       if (response.success) setCirculars(response.data);
     } catch (error) {
       console.log(error);
@@ -42,19 +47,26 @@ const CircularScreen = ({ navigation }) => {
       style={styles.card}
       onPress={() => navigation.navigate('CircularDetail', { item })}
       activeOpacity={0.85}>
-      {/* Top row: chip + Edit/Delete buttons */}
+      {/* Top row: chip + visibility badge + Edit/Delete buttons */}
       <View style={styles.cardHeader}>
-        {item.circularNumber
-          ? <View style={styles.chip}><Text style={styles.chipText}>{item.circularNumber}</Text></View>
-          : <View />}
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.editBtn} onPress={(e) => { e.stopPropagation(); navigation.navigate('AddCircular', { item }); }}>
-            <Text style={styles.editText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.deleteBtn} onPress={(e) => { e.stopPropagation(); deleteCircular(item.circularId); }}>
-            <Text style={styles.deleteText}>Delete</Text>
-          </TouchableOpacity>
+        <View style={styles.leftBadges}>
+          {item.circularNumber
+            ? <View style={styles.chip}><Text style={styles.chipText}>{item.circularNumber}</Text></View>
+            : null}
+          <View style={[styles.visBadge, item.visibility === 'Club' ? styles.visBadgeClub : styles.visBadgeAll]}>
+            <Text style={styles.visText}>{item.visibility === 'Club' ? 'My Club' : 'All Members'}</Text>
+          </View>
         </View>
+        {isAdmin && (
+          <View style={styles.actionRow}>
+            <TouchableOpacity style={styles.editBtn} onPress={(e) => { e.stopPropagation(); navigation.navigate('AddCircular', { item }); }}>
+              <Text style={styles.editText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteBtn} onPress={(e) => { e.stopPropagation(); deleteCircular(item.circularId); }}>
+              <Text style={styles.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <Text style={styles.title}>{item.title}</Text>
@@ -86,9 +98,11 @@ const CircularScreen = ({ navigation }) => {
         />
       )}
 
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddCircular')} activeOpacity={0.85}>
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
+      {isAdmin && (
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('AddCircular')} activeOpacity={0.85}>
+          <Text style={styles.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -102,8 +116,13 @@ const styles = StyleSheet.create({
   card:           { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 12, elevation: 2, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
 
   cardHeader:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  leftBadges:     { flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 },
   chip:           { backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
   chipText:       { fontSize: 11, fontWeight: '700', color: '#3B82F6', letterSpacing: 0.3 },
+  visBadge:       { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  visBadgeAll:    { backgroundColor: '#DBEAFE' },
+  visBadgeClub:   { backgroundColor: '#FEF3C7' },
+  visText:        { fontSize: 10, fontWeight: '700', color: '#475569' },
 
   actionRow:      { flexDirection: 'row', gap: 6 },
   editBtn:        { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 6, borderWidth: 1, borderColor: '#CBD5E1' },

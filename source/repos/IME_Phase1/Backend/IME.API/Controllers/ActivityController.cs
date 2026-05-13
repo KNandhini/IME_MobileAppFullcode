@@ -83,6 +83,25 @@ public class ActivityController : ControllerBase
         }
     }
 
+    [HttpGet("my-club")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<List<Activity>>>> GetMyClub()
+    {
+        try
+        {
+            var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var clubId = await GetAdminClubIdAsync(userId);
+            if (clubId == null)
+                return Ok(new ApiResponse<List<Activity>> { Success = true, Data = new List<Activity>() });
+            var activities = await _activityRepository.GetActivitiesByClubAsync(clubId.Value);
+            return Ok(new ApiResponse<List<Activity>> { Success = true, Data = activities });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<Activity>> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
     [HttpPost]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Create([FromBody] CreateActivityDTO request)
@@ -90,20 +109,23 @@ public class ActivityController : ControllerBase
         try
         {
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var clubId = await GetAdminClubIdAsync(userId);
 
             var activity = new Activity
             {
-                ActivityName = request.ActivityName,
-                Description  = request.Description,
-                ActivityDate = request.ActivityDate,
-                Venue        = request.Venue,
-                Time         = request.Time,
-                ChiefGuest   = request.ChiefGuest,
-                Coordinator = request.Coordinator,           // ← ADD
-                Status = request.Status ?? "Upcoming",  // ← ADD
-                RegistrationDeadline = request.RegistrationDeadline,  // ← ADD
-                CreatedBy    = userId,
-                CreatedDate  = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
+                ActivityName         = request.ActivityName,
+                Description          = request.Description,
+                ActivityDate         = request.ActivityDate,
+                Venue                = request.Venue,
+                Time                 = request.Time,
+                ChiefGuest           = request.ChiefGuest,
+                Coordinator          = request.Coordinator,
+                Status               = request.Status ?? "Upcoming",
+                RegistrationDeadline = request.RegistrationDeadline,
+                Visibility           = request.Visibility ?? "All",
+                ClubId               = clubId,
+                CreatedBy            = userId,
+                CreatedDate          = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var activityId = await _activityRepository.CreateActivityAsync(activity);
@@ -143,17 +165,18 @@ public class ActivityController : ControllerBase
         {
             var activity = new Activity
             {
-                ActivityId   = id,
-                ActivityName = request.ActivityName,
-                Description  = request.Description,
-                ActivityDate = request.ActivityDate,
-                Venue        = request.Venue,
-                Time         = request.Time,
-                ChiefGuest   = request.ChiefGuest,
-                Coordinator = request.Coordinator,           // ← ADD
-                Status = request.Status,                // ← ADD
-                RegistrationDeadline = request.RegistrationDeadline,  // ← ADD
-                UpdatedDate  = request.UpdatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
+                ActivityId           = id,
+                ActivityName         = request.ActivityName,
+                Description          = request.Description,
+                ActivityDate         = request.ActivityDate,
+                Venue                = request.Venue,
+                Time                 = request.Time,
+                ChiefGuest           = request.ChiefGuest,
+                Coordinator          = request.Coordinator,
+                Status               = request.Status,
+                RegistrationDeadline = request.RegistrationDeadline,
+                Visibility           = request.Visibility,
+                UpdatedDate          = request.UpdatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var success = await _activityRepository.UpdateActivityAsync(activity);
@@ -338,4 +361,14 @@ public class ActivityController : ControllerBase
 
     private IME.Infrastructure.Data.DatabaseContext GetDbContext() =>
         HttpContext.RequestServices.GetRequiredService<IME.Infrastructure.Data.DatabaseContext>();
+
+    private async Task<int?> GetAdminClubIdAsync(int userId)
+    {
+        using var connection = await GetDbContext().CreateOpenConnectionAsync();
+        using var cmd = GetDbContext().CreateCommand(
+            "SELECT ClubId FROM Members WHERE UserId = @UserId", connection);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        var result = await cmd.ExecuteScalarAsync();
+        return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);
+    }
 }
