@@ -12,6 +12,8 @@ public class Activity
     public string? Coordinator { get; set; }           // ? ADD
     public string? Status { get; set; }                // ? ADD
     public DateTime? RegistrationDeadline { get; set; } // ? ADD
+    public int? ClubId { get; set; }
+    public string Visibility { get; set; } = "All";
     public int? CreatedBy { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
