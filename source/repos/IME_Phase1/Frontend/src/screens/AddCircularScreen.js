@@ -10,8 +10,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../utils/api';
+
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+const VISIBILITY_OPTIONS = [
+  { value: 'public',  label: 'Public',  sub: 'All Clubs' },
+  { value: 'private', label: 'Private', sub: 'This Club Only' },
+];
 
 const AddCircularScreen = ({ route, navigation }) => {
   const editData = route.params?.item;
@@ -23,6 +29,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [publishDate,    setPublishDate]    = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );
+  const [visibility,          setVisibility]          = useState(editData?.visibility || 'public');
   const [showPicker,          setShowPicker]          = useState(false);
   const [saving,              setSaving]              = useState(false);
   const [attachments,         setAttachments]         = useState([]);
@@ -37,26 +44,27 @@ const AddCircularScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (editData) loadExisting();
   }, [editData]);
-const loadExisting = async () => {
-  try {
-    const res = await circularService.getById(editData.circularId);
-    if (res?.success) {
-      const raw = res.data?.attachments || [];
-      // Build full URL for each attachment — same pattern as AchievementFormScreen
-      const mapped = raw.map((a) => ({
-        ...a,
-        filePath: a.filePath
-          ? a.filePath.startsWith('http')
-            ? a.filePath
-            : `${BASE_URL}/uploads/${a.filePath.replace(/\\/g, '/')}`
-          : circularService.getAttachmentUrl(a.attachmentId), // fallback
-      }));
-      setExistingAttachments(mapped);
+
+  const loadExisting = async () => {
+    try {
+      const res = await circularService.getById(editData.circularId);
+      if (res?.success) {
+        const raw = res.data?.attachments || [];
+        const mapped = raw.map((a) => ({
+          ...a,
+          filePath: a.filePath
+            ? a.filePath.startsWith('http')
+              ? a.filePath
+              : `${BASE_URL}/uploads/${a.filePath.replace(/\\/g, '/')}`
+            : circularService.getAttachmentUrl(a.attachmentId),
+        }));
+        setExistingAttachments(mapped);
+        if (res.data?.visibility) setVisibility(res.data.visibility);
+      }
+    } catch (e) {
+      console.error('Load attachments error:', e);
     }
-  } catch (e) {
-    console.error('Load attachments error:', e);
-  }
-};
+  };
 
   const handlePickAttachment = async () => {
     const total = existingAttachments.length + attachments.length;
@@ -216,53 +224,32 @@ const loadExisting = async () => {
             />
           )}
 
-          {/* Visibility */}
-          <Text style={styles.label}>Visibility</Text>
-          <View style={styles.visRow}>
-            {[
-              { value: 'All',  label: 'All Members' },
-              { value: 'Club', label: 'My Club Only' },
-            ].map((opt) => (
-              <TouchableOpacity
-                key={opt.value}
-                style={[styles.visOption, visibility === opt.value && styles.visOptionSelected]}
-                onPress={() => setVisibility(opt.value)}
-                activeOpacity={0.8}>
-                <View style={[styles.visRadio, visibility === opt.value && styles.visRadioSelected]} />
-                <Text style={[styles.visLabel, visibility === opt.value && styles.visLabelSelected]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
           {/* Attachments */}
           <Text style={styles.label}>Attachments</Text>
           <View style={styles.attachGrid}>
 
             {existingAttachments.map((a) => {
-  // filePath is now pre-built in loadExisting
-  const uri = a.filePath; // ← use pre-built URL
-  const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                  a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i); // ← also check filePath
-  return (
-    <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
-      <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(uri, isImage ? 'image' : 'file')}>
-        {isImage ? (
-          <Image source={{ uri }} style={styles.thumbImg} resizeMode="cover" />
-        ) : (
-          <View style={styles.thumbDoc}>
-            <Text style={styles.thumbIcon}>📄</Text>
-            <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.thumbRemove} onPress={() => deleteExisting(a.attachmentId, a.fileName)}>
-        <Text style={styles.thumbRemoveText}>✕</Text>
-      </TouchableOpacity>
-    </View>
-  );
-})}
+              const uri = a.filePath;
+              const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              return (
+                <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
+                  <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(uri, isImage ? 'image' : 'file')}>
+                    {isImage ? (
+                      <Image source={{ uri }} style={styles.thumbImg} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.thumbDoc}>
+                        <Text style={styles.thumbIcon}>📄</Text>
+                        <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.thumbRemove} onPress={() => deleteExisting(a.attachmentId, a.fileName)}>
+                    <Text style={styles.thumbRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
 
             {attachments.map((a, i) => (
               <View key={`new-${i}`} style={styles.thumb}>
@@ -334,6 +321,48 @@ const styles = StyleSheet.create({
   scrollContent : { padding: 20, paddingBottom: 52 },
   label : { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 16 },
   input : { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
+
+  // ── Visibility Radio Buttons ──
+  radioGroup: { gap: 10 },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: '#F8FAFC',
+  },
+  radioOptionSelected: {
+    borderColor: NAVY,
+    backgroundColor: '#EFF6FF',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioCircleSelected: {
+    borderColor: NAVY,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: NAVY,
+  },
+  radioTextWrap       : { flex: 1 },
+  radioLabel          : { fontSize: 15, fontWeight: '600', color: '#374151' },
+  radioLabelSelected  : { color: NAVY },
+  radioSub            : { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  radioSubSelected    : { color: '#6B9CC7' },
+  radioIcon           : { fontSize: 20, marginLeft: 8 },
+
   attachGrid     : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
   thumb          : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
   thumbImg       : { width: '100%', height: '100%' },
