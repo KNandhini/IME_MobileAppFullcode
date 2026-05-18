@@ -166,6 +166,6 @@ if (!Directory.Exists(uploadsPath))
 {
     Directory.CreateDirectory(uploadsPath);
 }
-app.UseStaticFiles();
+
 
 app.Run();

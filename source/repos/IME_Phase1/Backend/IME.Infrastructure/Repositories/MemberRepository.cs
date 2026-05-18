@@ -128,74 +128,81 @@ public class MemberRepository : IMemberRepository
     public async Task<List<Member>> GetAllMembersAsync(int pageNumber, int pageSize)
     {
         var members = new List<Member>();
-
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_GetAllMembers", connection);
 
         command.Parameters.AddWithValue("@PageNumber", pageNumber);
         command.Parameters.AddWithValue("@PageSize", pageSize);
+      //  command.Parameters.AddWithValue("@ClubId", (object?)clubId ?? DBNull.Value); // NEW
 
         using var reader = await command.ExecuteReaderAsync();
-
         while (await reader.ReadAsync())
         {
             members.Add(new Member
             {
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
-
                 Email = reader.GetString(reader.GetOrdinal("Email")),
                 FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber")) ? null : reader.GetString(reader.GetOrdinal("ContactNumber")),
+                Address = reader.IsDBNull(reader.GetOrdinal("Address")) ? null : reader.GetString(reader.GetOrdinal("Address")),
+                Place = reader.IsDBNull(reader.GetOrdinal("Place")) ? null : reader.GetString(reader.GetOrdinal("Place")),
+                DateOfBirth = reader.IsDBNull(reader.GetOrdinal("DateOfBirth")) ? null : reader.GetDateTime(reader.GetOrdinal("DateOfBirth")), // NEW
 
-                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("ContactNumber")),
-
-                Gender = reader.IsDBNull(reader.GetOrdinal("Gender"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("Gender")),
-
-                MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")),
-
-                // ? NEW FIELDS
-                CountryId = reader.IsDBNull(reader.GetOrdinal("CountryId"))
-                    ? null
-                    : reader.GetInt32(reader.GetOrdinal("CountryId")),
-
-                CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("CountryName")),
-
-                StateId = reader.IsDBNull(reader.GetOrdinal("StateId"))
-                    ? null
-                    : reader.GetInt32(reader.GetOrdinal("StateId")),
-
-                StateName = reader.IsDBNull(reader.GetOrdinal("StateName"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("StateName")),
-
-                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId"))
-                    ? null
-                    : reader.GetInt32(reader.GetOrdinal("ClubId")),
-
-                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("ClubName")),
-
-                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath"))
-                    ? null
-                    : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
-
-                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
-                    ? null
-                    : (byte[])reader["ProfilePhoto"],
-
+                Age = reader.IsDBNull(reader.GetOrdinal("Age")) ? null : reader.GetInt32(reader.GetOrdinal("Age")),
+                Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
+                MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")), // already computed by SP
+                CountryId = reader.IsDBNull(reader.GetOrdinal("CountryId")) ? null : reader.GetInt32(reader.GetOrdinal("CountryId")),
+                CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName")) ? null : reader.GetString(reader.GetOrdinal("CountryName")),
+                StateId = reader.IsDBNull(reader.GetOrdinal("StateId")) ? null : reader.GetInt32(reader.GetOrdinal("StateId")),
+                StateName = reader.IsDBNull(reader.GetOrdinal("StateName")) ? null : reader.GetString(reader.GetOrdinal("StateName")),
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),
+                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
+                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
+                GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")), // NEW
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
             });
         }
-
         return members;
     }
-
+    // NEW method — club filtered
+    public async Task<List<Member>> GetMembersByClubAsync(int pageNumber, int pageSize, int clubId)
+    {
+        var members = new List<Member>();
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetMembersByClub", connection);
+        command.Parameters.AddWithValue("@PageNumber", pageNumber);
+        command.Parameters.AddWithValue("@PageSize", pageSize);
+        command.Parameters.AddWithValue("@ClubId", clubId);  // ? only difference
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            members.Add(new Member
+            {
+                MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
+                Email = reader.GetString(reader.GetOrdinal("Email")),
+                FullName = reader.GetString(reader.GetOrdinal("FullName")),
+                ContactNumber = reader.IsDBNull(reader.GetOrdinal("ContactNumber")) ? null : reader.GetString(reader.GetOrdinal("ContactNumber")),
+                Address = reader.IsDBNull(reader.GetOrdinal("Address")) ? null : reader.GetString(reader.GetOrdinal("Address")),
+                Place = reader.IsDBNull(reader.GetOrdinal("Place")) ? null : reader.GetString(reader.GetOrdinal("Place")),
+                DateOfBirth = reader.IsDBNull(reader.GetOrdinal("DateOfBirth")) ? null : reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
+                Age = reader.IsDBNull(reader.GetOrdinal("Age")) ? null : reader.GetInt32(reader.GetOrdinal("Age")),
+                Gender = reader.IsDBNull(reader.GetOrdinal("Gender")) ? null : reader.GetString(reader.GetOrdinal("Gender")),
+                MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")),
+                CountryId = reader.IsDBNull(reader.GetOrdinal("CountryId")) ? null : reader.GetInt32(reader.GetOrdinal("CountryId")),
+                CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName")) ? null : reader.GetString(reader.GetOrdinal("CountryName")),
+                StateId = reader.IsDBNull(reader.GetOrdinal("StateId")) ? null : reader.GetInt32(reader.GetOrdinal("StateId")),
+                StateName = reader.IsDBNull(reader.GetOrdinal("StateName")) ? null : reader.GetString(reader.GetOrdinal("StateName")),
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),
+                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
+                ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
+                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
+                GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")),
+                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+            });
+        }
+        return members;
+    }
     public async Task<bool> UpdateMemberStatusAsync(int memberId, string status, string? reason)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
