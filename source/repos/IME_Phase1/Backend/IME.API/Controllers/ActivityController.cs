@@ -122,7 +122,7 @@ public class ActivityController : ControllerBase
                 Coordinator          = request.Coordinator,
                 Status               = request.Status ?? "Upcoming",
                 RegistrationDeadline = request.RegistrationDeadline,
-                Visibility           = request.Visibility ?? "All",
+                Visibility           = request.Visibility ?? "Public(All Clubs)",
                 ClubId               = clubId,
                 CreatedBy            = userId,
                 CreatedDate          = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
@@ -366,7 +366,7 @@ public class ActivityController : ControllerBase
     {
         using var connection = await GetDbContext().CreateOpenConnectionAsync();
         using var cmd = GetDbContext().CreateCommand(
-            "SELECT ClubId FROM tbl_Members WHERE UserId = @UserId", connection);
+     "SELECT ClubId FROM dbo.tbl_members WHERE UserId = @UserId", connection);
         cmd.Parameters.AddWithValue("@UserId", userId);
         var result = await cmd.ExecuteScalarAsync();
         return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);
