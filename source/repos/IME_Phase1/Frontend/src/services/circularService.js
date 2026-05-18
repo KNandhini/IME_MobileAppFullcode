@@ -32,6 +32,11 @@ export const circularService = {
     return response.data;
   },
 
+  getByClub: async () => {
+    const response = await api.get('/circular/my-club');
+    return response.data;
+  },
+
   getById: async (circularId) => {
     const response = await api.get(`/circular/${circularId}`);
     return response.data;
@@ -43,6 +48,7 @@ export const circularService = {
     form.append('publishDate', data.publishDate);
     if (data.description)    form.append('description',    data.description);
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
+    form.append('visibility',  data.visibility || 'All');
 
     attachments.forEach((file) => {
       form.append('files', {
@@ -61,6 +67,7 @@ export const circularService = {
     form.append('publishDate', data.publishDate);
     if (data.description)    form.append('description',    data.description);
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
+    form.append('visibility',  data.visibility || 'All');
 
     attachments.forEach((file) => {
       form.append('files', {

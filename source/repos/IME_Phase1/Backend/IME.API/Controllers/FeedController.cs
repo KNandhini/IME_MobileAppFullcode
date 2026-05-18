@@ -9,7 +9,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class FeedController : ControllerBase
 {
     private readonly IFeedRepository     _feedRepository;
@@ -32,7 +32,10 @@ public class FeedController : ControllerBase
     {
         try
         {
-            var feed = await _feedRepository.GetFeedAsync(pageNumber, pageSize);
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? viewerUserId = int.TryParse(userIdClaim, out var uid) && uid > 0 ? uid : null;
+            var feed = await _feedRepository.GetFeedAsync(pageNumber, pageSize, viewerUserId);
             return Ok(new ApiResponse<FeedResponseDTO> { Success = true, Data = feed });
         }
         catch (Exception ex)

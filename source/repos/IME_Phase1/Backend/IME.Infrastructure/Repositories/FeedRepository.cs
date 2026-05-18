@@ -13,7 +13,7 @@ public class FeedRepository : IFeedRepository
         _dbContext = dbContext;
     }
 
-    public async Task<FeedResponseDTO> GetFeedAsync(int pageNumber, int pageSize)
+    public async Task<FeedResponseDTO> GetFeedAsync(int pageNumber, int pageSize, int? viewerUserId = null)
     {
         var items = new List<FeedItemDTO>();
 
@@ -22,8 +22,9 @@ public class FeedRepository : IFeedRepository
         // ── Step 1: Get paged feed ────────────────────────────────
         using (var command = _dbContext.CreateStoredProcCommand("sp_GetFeed", connection))
         {
-            command.Parameters.AddWithValue("@PageNumber", pageNumber);
-            command.Parameters.AddWithValue("@PageSize",   pageSize);
+            command.Parameters.AddWithValue("@PageNumber",   pageNumber);
+            command.Parameters.AddWithValue("@PageSize",     pageSize);
+            command.Parameters.AddWithValue("@ViewerUserId", (object?)viewerUserId ?? DBNull.Value);
 
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())

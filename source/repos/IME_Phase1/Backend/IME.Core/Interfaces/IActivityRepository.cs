@@ -6,6 +6,7 @@ namespace IME.Core.Interfaces;
 public interface IActivityRepository
 {
     Task<List<Activity>> GetAllActivitiesAsync(int pageNumber, int pageSize);
+    Task<List<Activity>> GetActivitiesByClubAsync(int clubId);
     Task<Activity?> GetActivityByIdAsync(int activityId);
     Task<int> CreateActivityAsync(Activity activity);
     Task<bool> UpdateActivityAsync(Activity activity);

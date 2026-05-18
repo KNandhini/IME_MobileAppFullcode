@@ -41,6 +41,20 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         return null;
     }
 
+    public async Task<List<Activity>> GetActivitiesByClubAsync(int clubId)
+    {
+        var activities = new List<Activity>();
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetAllActivities", connection);
+        command.Parameters.AddWithValue("@PageNumber", 1);
+        command.Parameters.AddWithValue("@PageSize",   200);
+        command.Parameters.AddWithValue("@ClubId",     clubId);
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+            activities.Add(MapActivity(reader));
+        return activities;
+    }
+
     public async Task<int> CreateActivityAsync(Activity activity)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
@@ -53,9 +67,11 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@ChiefGuest",   (object?)activity.ChiefGuest    ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedBy",    (object?)activity.CreatedBy     ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedDate",  activity.CreatedDate);
-        command.Parameters.AddWithValue("@Coordinator", (object?)activity.Coordinator ?? DBNull.Value); // ← ADD
-        command.Parameters.AddWithValue("@Status", (object?)activity.Status ?? "Upcoming");   // ← ADD
-        command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value); // ← ADD
+        command.Parameters.AddWithValue("@Coordinator",  (object?)activity.Coordinator ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Status",       (object?)activity.Status ?? "Upcoming");
+        command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value);
+        command.Parameters.AddWithValue("@ClubId",       (object?)activity.ClubId      ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Visibility",   activity.Visibility ?? "All");
 
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);
@@ -73,9 +89,10 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@Time",         (object?)activity.Time          ?? DBNull.Value);
         command.Parameters.AddWithValue("@ChiefGuest",   (object?)activity.ChiefGuest    ?? DBNull.Value);
         command.Parameters.AddWithValue("@UpdatedDate",  (object?)activity.UpdatedDate   ?? DateTime.UtcNow);
-        command.Parameters.AddWithValue("@Coordinator", (object?)activity.Coordinator ?? DBNull.Value); // ← ADD
-        command.Parameters.AddWithValue("@Status", (object?)activity.Status ?? DBNull.Value); // ← ADD
-        command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value); // ← ADD
+        command.Parameters.AddWithValue("@Coordinator",          (object?)activity.Coordinator ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Status",               (object?)activity.Status ?? DBNull.Value);
+        command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Visibility",           (object?)activity.Visibility ?? DBNull.Value);
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
             return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
@@ -167,18 +184,32 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
 
     private static Activity MapActivity(SqlDataReader r, bool includeCreatedBy = false)
     {
+        string? coordinator = null, status = null, visibility = null;
+        DateTime? regDeadline = null;
+        int? clubId = null;
+        try { var o = r.GetOrdinal("Coordinator");          if (!r.IsDBNull(o)) coordinator  = r.GetString(o);   } catch { }
+        try { var o = r.GetOrdinal("Status");               if (!r.IsDBNull(o)) status        = r.GetString(o);   } catch { }
+        try { var o = r.GetOrdinal("Visibility");           if (!r.IsDBNull(o)) visibility    = r.GetString(o);   } catch { }
+        try { var o = r.GetOrdinal("RegistrationDeadline"); if (!r.IsDBNull(o)) regDeadline   = r.GetDateTime(o); } catch { }
+        try { var o = r.GetOrdinal("ClubId");               if (!r.IsDBNull(o)) clubId        = r.GetInt32(o);    } catch { }
+
         return new Activity
         {
-            ActivityId   = r.GetInt32(r.GetOrdinal("ActivityId")),
-            ActivityName = r.GetString(r.GetOrdinal("ActivityName")),
-            Description  = r.IsDBNull(r.GetOrdinal("Description"))  ? null : r.GetString(r.GetOrdinal("Description")),
-            ActivityDate = r.IsDBNull(r.GetOrdinal("ActivityDate"))  ? null : r.GetDateTime(r.GetOrdinal("ActivityDate")),
-            Venue        = r.IsDBNull(r.GetOrdinal("Venue"))         ? null : r.GetString(r.GetOrdinal("Venue")),
-            Time         = r.IsDBNull(r.GetOrdinal("Time"))          ? null : r.GetString(r.GetOrdinal("Time")),
-            ChiefGuest   = r.IsDBNull(r.GetOrdinal("ChiefGuest"))    ? null : r.GetString(r.GetOrdinal("ChiefGuest")),
-            CreatedBy    = includeCreatedBy && !r.IsDBNull(r.GetOrdinal("CreatedBy"))
-                               ? r.GetInt32(r.GetOrdinal("CreatedBy")) : null,
-            CreatedDate  = r.GetDateTime(r.GetOrdinal("CreatedDate")),
+            ActivityId           = r.GetInt32(r.GetOrdinal("ActivityId")),
+            ActivityName         = r.GetString(r.GetOrdinal("ActivityName")),
+            Description          = r.IsDBNull(r.GetOrdinal("Description"))  ? null : r.GetString(r.GetOrdinal("Description")),
+            ActivityDate         = r.IsDBNull(r.GetOrdinal("ActivityDate"))  ? null : r.GetDateTime(r.GetOrdinal("ActivityDate")),
+            Venue                = r.IsDBNull(r.GetOrdinal("Venue"))         ? null : r.GetString(r.GetOrdinal("Venue")),
+            Time                 = r.IsDBNull(r.GetOrdinal("Time"))          ? null : r.GetString(r.GetOrdinal("Time")),
+            ChiefGuest           = r.IsDBNull(r.GetOrdinal("ChiefGuest"))    ? null : r.GetString(r.GetOrdinal("ChiefGuest")),
+            Coordinator          = coordinator,
+            Status               = status,
+            RegistrationDeadline = regDeadline,
+            ClubId               = clubId,
+            Visibility           = visibility ?? "All",
+            CreatedBy            = includeCreatedBy && !r.IsDBNull(r.GetOrdinal("CreatedBy"))
+                                       ? r.GetInt32(r.GetOrdinal("CreatedBy")) : null,
+            CreatedDate          = r.GetDateTime(r.GetOrdinal("CreatedDate")),
         };
     }
 

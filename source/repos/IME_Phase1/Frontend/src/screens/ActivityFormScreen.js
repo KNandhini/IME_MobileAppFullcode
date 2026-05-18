@@ -61,6 +61,8 @@ const ActivityFormScreen = ({ route, navigation }) => {
     activityName: '', description: '', venue: '', coordinator: '',
     chiefGuest: '',
     time: '',
+    chiefGuest: '',
+    time: '',
     status: 'Upcoming',
     visibility: 'public',
   });

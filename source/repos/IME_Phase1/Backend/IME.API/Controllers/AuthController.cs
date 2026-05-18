@@ -87,7 +87,8 @@ public class AuthController : ControllerBase
                 Token            = token,
                 MembershipStatus = fullUser.MembershipStatus,
                 GraceExpiryDate  = fullUser.GraceExpiryDate,
-                LoginStatus      = fullUser.LoginStatus
+                LoginStatus      = fullUser.LoginStatus,
+                ClubId           = fullUser.ClubId,
             };
 
             return Ok(new ApiResponse<LoginResponseDTO>

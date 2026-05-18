@@ -10,21 +10,36 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
 
     // ── GET ALL ───────────────────────────────────────────────
     public async Task<List<CircularDTO>> GetAllCircularsAsync()
+        => await FetchCircularsAsync(null);
+
+    public async Task<List<CircularDTO>> GetCircularsByClubAsync(int clubId)
+        => await FetchCircularsAsync(clubId);
+
+    private async Task<List<CircularDTO>> FetchCircularsAsync(int? clubId)
     {
         var list = new List<CircularDTO>();
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_GetAllCirculars", connection);
+        if (clubId.HasValue)
+            command.Parameters.AddWithValue("@ClubId", clubId.Value);
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
+            int? rowClubId = null;
+            string rowVisibility = "All";
+            try { var o = reader.GetOrdinal("ClubId");     if (!reader.IsDBNull(o)) rowClubId    = reader.GetInt32(o);  } catch { }
+            try { var o = reader.GetOrdinal("Visibility"); if (!reader.IsDBNull(o)) rowVisibility = reader.GetString(o); } catch { }
+
             list.Add(new CircularDTO
             {
-                CircularId = reader.GetInt32(reader.GetOrdinal("CircularId")),
-                Title = reader.GetString(reader.GetOrdinal("Title")),
-                Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
-                CircularNumber = reader.IsDBNull(reader.GetOrdinal("CircularNumber")) ? null : reader.GetString(reader.GetOrdinal("CircularNumber")),
-                PublishDate = reader.GetDateTime(reader.GetOrdinal("PublishDate")),
+                CircularId      = reader.GetInt32(reader.GetOrdinal("CircularId")),
+                Title           = reader.GetString(reader.GetOrdinal("Title")),
+                Description     = reader.IsDBNull(reader.GetOrdinal("Description"))    ? null : reader.GetString(reader.GetOrdinal("Description")),
+                CircularNumber  = reader.IsDBNull(reader.GetOrdinal("CircularNumber")) ? null : reader.GetString(reader.GetOrdinal("CircularNumber")),
+                PublishDate     = reader.GetDateTime(reader.GetOrdinal("PublishDate")),
                 AttachmentCount = reader.GetInt32(reader.GetOrdinal("AttachmentCount")),
+                ClubId          = rowClubId,
+                Visibility      = rowVisibility,
             });
         }
         return list;
@@ -40,15 +55,22 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
         using var reader = await command.ExecuteReaderAsync();
         if (!await reader.ReadAsync()) return null;
 
+        int? detailClubId = null;
+        string detailVisibility = "All";
+        try { var o = reader.GetOrdinal("ClubId");     if (!reader.IsDBNull(o)) detailClubId    = reader.GetInt32(o);  } catch { }
+        try { var o = reader.GetOrdinal("Visibility"); if (!reader.IsDBNull(o)) detailVisibility = reader.GetString(o); } catch { }
+
         var circular = new CircularDetailDTO
         {
-            CircularId = reader.GetInt32(reader.GetOrdinal("CircularId")),
-            Title = reader.GetString(reader.GetOrdinal("Title")),
-            Description = reader.IsDBNull(reader.GetOrdinal("Description")) ? null : reader.GetString(reader.GetOrdinal("Description")),
+            CircularId     = reader.GetInt32(reader.GetOrdinal("CircularId")),
+            Title          = reader.GetString(reader.GetOrdinal("Title")),
+            Description    = reader.IsDBNull(reader.GetOrdinal("Description"))    ? null : reader.GetString(reader.GetOrdinal("Description")),
             CircularNumber = reader.IsDBNull(reader.GetOrdinal("CircularNumber")) ? null : reader.GetString(reader.GetOrdinal("CircularNumber")),
-            PublishDate = reader.GetDateTime(reader.GetOrdinal("PublishDate")),
-            CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
-            Attachments = new List<AttachmentDTO>(),
+            PublishDate    = reader.GetDateTime(reader.GetOrdinal("PublishDate")),
+            CreatedDate    = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+            ClubId         = detailClubId,
+            Visibility     = detailVisibility,
+            Attachments    = new List<AttachmentDTO>(),
         };
         reader.Close();
 
@@ -59,15 +81,17 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
     // ── CREATE ────────────────────────────────────────────────
     public async Task<int> CreateCircularAsync(
         string title, string? description, string? circularNumber,
-        DateTime publishDate, int createdBy)
+        DateTime publishDate, int createdBy, int? clubId = null, string visibility = "All")
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_CreateCircular", connection);
-        command.Parameters.AddWithValue("@Title", title);
-        command.Parameters.AddWithValue("@Description", (object?)description ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Title",          title);
+        command.Parameters.AddWithValue("@Description",    (object?)description    ?? DBNull.Value);
         command.Parameters.AddWithValue("@CircularNumber", (object?)circularNumber ?? DBNull.Value);
-        command.Parameters.AddWithValue("@PublishDate", publishDate);
-        command.Parameters.AddWithValue("@CreatedBy", createdBy);
+        command.Parameters.AddWithValue("@PublishDate",    publishDate);
+        command.Parameters.AddWithValue("@CreatedBy",      createdBy);
+        command.Parameters.AddWithValue("@ClubId",         (object?)clubId ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Visibility",     visibility ?? "All");
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);
     }
@@ -75,15 +99,16 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
     // ── UPDATE ────────────────────────────────────────────────
     public async Task UpdateCircularAsync(
         int circularId, string title, string? description,
-        string? circularNumber, DateTime publishDate)
+        string? circularNumber, DateTime publishDate, string? visibility = null)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_UpdateCircular", connection);
-        command.Parameters.AddWithValue("@CircularId", circularId);
-        command.Parameters.AddWithValue("@Title", title);
-        command.Parameters.AddWithValue("@Description", (object?)description ?? DBNull.Value);
+        command.Parameters.AddWithValue("@CircularId",     circularId);
+        command.Parameters.AddWithValue("@Title",          title);
+        command.Parameters.AddWithValue("@Description",    (object?)description    ?? DBNull.Value);
         command.Parameters.AddWithValue("@CircularNumber", (object?)circularNumber ?? DBNull.Value);
-        command.Parameters.AddWithValue("@PublishDate", publishDate);
+        command.Parameters.AddWithValue("@PublishDate",    publishDate);
+        command.Parameters.AddWithValue("@Visibility",     (object?)visibility ?? DBNull.Value);
         await command.ExecuteNonQueryAsync();
     }
 

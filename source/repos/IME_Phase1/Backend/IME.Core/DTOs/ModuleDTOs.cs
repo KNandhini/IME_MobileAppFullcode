@@ -101,6 +101,8 @@ public class CircularDTO
     public string? Description { get; set; }
     public string? CircularNumber { get; set; }
     public DateTime PublishDate { get; set; }
+    public int? ClubId { get; set; }
+    public string Visibility { get; set; } = "All";
     public int AttachmentCount { get; set; }
 }
 
@@ -111,6 +113,8 @@ public class CircularDetailDTO
     public string? Description { get; set; }
     public string? CircularNumber { get; set; }
     public DateTime PublishDate { get; set; }
+    public int? ClubId { get; set; }
+    public string Visibility { get; set; } = "All";
     public DateTime CreatedDate { get; set; }
     public List<AttachmentDTO> Attachments { get; set; } = new();
 }
@@ -121,6 +125,7 @@ public class CreateCircularDTO
     public string? Description { get; set; }
     public string? CircularNumber { get; set; }
     public DateTime PublishDate { get; set; }
+    public string Visibility { get; set; } = "All";
     public DateTime? CreatedDate { get; set; }
 }
 
@@ -130,6 +135,7 @@ public class UpdateCircularDTO
     public string? Description { get; set; }
     public string? CircularNumber { get; set; }
     public DateTime PublishDate { get; set; }
+    public string? Visibility { get; set; }
     public DateTime? CreatedDate { get; set; }
 }
 

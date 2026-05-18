@@ -50,6 +50,27 @@ public class CircularController : ControllerBase
         }
     }
 
+    // ── GET /api/circular/my-club ─────────────────────────────
+    [HttpGet("my-club")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<ApiResponse<List<CircularDTO>>>> GetMyClub()
+    {
+        try
+        {
+            var userId = GetUserId();
+            var clubId = await GetAdminClubIdAsync(userId);
+            if (clubId == null)
+                return Ok(new ApiResponse<List<CircularDTO>> { Success = true, Data = new List<CircularDTO>() });
+            var circulars = await _circularRepository.GetCircularsByClubAsync(clubId.Value);
+            return Ok(new ApiResponse<List<CircularDTO>> { Success = true, Data = circulars });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<CircularDTO>>
+            { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
     // ── GET /api/circular/{id} ────────────────────────────────
     [HttpGet("{id}")]
     public async Task<ActionResult<ApiResponse<CircularDetailDTO>>> GetById(int id)
@@ -83,14 +104,17 @@ public class CircularController : ControllerBase
         [FromForm] string? description,
         [FromForm] string? circularNumber,
         [FromForm] string publishDate,
+        [FromForm] string? visibility,
         [FromForm] List<IFormFile>? files)
     {
         try
         {
             var userId = GetUserId();
+            var clubId = await GetAdminClubIdAsync(userId);
             var circularId = await _circularRepository.CreateCircularAsync(
                 title, description, circularNumber,
-                DateTime.Parse(publishDate), userId);
+                DateTime.Parse(publishDate), userId,
+                clubId, visibility ?? "All");
 
             await SaveAttachments(circularId, files);
 
@@ -123,12 +147,13 @@ public class CircularController : ControllerBase
         [FromForm] string? description,
         [FromForm] string? circularNumber,
         [FromForm] string publishDate,
+        [FromForm] string? visibility,
         [FromForm] List<IFormFile>? files)
     {
         try
         {
             await _circularRepository.UpdateCircularAsync(
-                id, title, description, circularNumber, DateTime.Parse(publishDate));
+                id, title, description, circularNumber, DateTime.Parse(publishDate), visibility);
 
             await SaveAttachments(id, files);
 
@@ -213,6 +238,19 @@ public class CircularController : ControllerBase
     }
 
     // ── Helpers ───────────────────────────────────────────────
+    private async Task<int?> GetAdminClubIdAsync(int userId)
+    {
+        using var connection = await HttpContext.RequestServices
+            .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
+            .CreateOpenConnectionAsync();
+        using var cmd = HttpContext.RequestServices
+            .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
+            .CreateCommand("SELECT ClubId FROM Members WHERE UserId = @UserId", connection);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        var result = await cmd.ExecuteScalarAsync();
+        return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);
+    }
+
     private async Task SaveAttachments(int circularId, List<IFormFile>? files)
     {
         if (files == null || files.Count == 0) return;

@@ -10,6 +10,13 @@ import { BASE_URL } from '../utils/api';
 
 const GENDERS = ['Male', 'Female', 'Other'];
 
+// ── same helper used in AchievementsScreen ────────────────────────────────────
+const blobToDataUri = (blob) => {
+  if (!blob) return null;
+  if (typeof blob === 'string' && blob.startsWith('data:')) return blob;
+  return `data:image/jpeg;base64,${blob}`;
+};
+
 const MemberEditScreen = ({ route, navigation }) => {
   const { memberId } = route.params;
 
@@ -18,6 +25,9 @@ const MemberEditScreen = ({ route, navigation }) => {
   const [member,   setMember]   = useState(null);
   const [newPhoto, setNewPhoto] = useState(null); // { uri, fileName, mimeType }
   const [genderOpen, setGenderOpen] = useState(false);
+
+  // resolved photo URI (blob-based, same as AchievementsScreen)
+  const [resolvedPhotoUri, setResolvedPhotoUri] = useState(null);
 
   const [form, setForm] = useState({
     fullName:      '',
@@ -46,6 +56,20 @@ const MemberEditScreen = ({ route, navigation }) => {
             place:         d.place         || '',
             designationId: d.designationId ?? 1,
           });
+
+          // ── Resolve photo the same way AchievementsScreen does ──────────────
+          // Priority 1: profilePhoto blob (base64) field
+          const blob =
+            d.profilePhoto ?? d.ProfilePhoto ?? d.photo ?? d.Photo ?? null;
+          if (blob) {
+            setResolvedPhotoUri(blobToDataUri(blob));
+          } else if (d.profilePhotoPath) {
+            // Fallback: URL path
+            const uri = d.profilePhotoPath.startsWith('http')
+              ? d.profilePhotoPath
+              : `${BASE_URL}/${d.profilePhotoPath}`;
+            setResolvedPhotoUri(uri);
+          }
         } else {
           Alert.alert('Error', res.message || 'Failed to load member');
           navigation.goBack();
@@ -68,7 +92,7 @@ const MemberEditScreen = ({ route, navigation }) => {
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
+      allowsEditing: false,
       aspect: [1, 1],
       quality: 0.8,
     });
@@ -118,12 +142,10 @@ const MemberEditScreen = ({ route, navigation }) => {
 
     setSaving(true);
     try {
-      // Upload new photo first if selected
       if (newPhoto) {
         await uploadPhoto();
       }
 
-      // Update profile details
       const payload = {
         fullName:        form.fullName.trim(),
         contactNumber:   form.contactNumber.trim(),
@@ -150,13 +172,15 @@ const MemberEditScreen = ({ route, navigation }) => {
     }
   };
 
+  // ── Clear – go back without saving ───────────────────────
+  const handleClear = () => navigation.goBack();
+
   // ── Current photo source ──────────────────────────────────
+  // newPhoto (just picked) takes priority, then blob-resolved URI
   const photoSource = newPhoto
     ? { uri: newPhoto.uri }
-    : member?.profilePhotoPath
-      ? { uri: member.profilePhotoPath.startsWith('http')
-            ? member.profilePhotoPath
-            : `${BASE_URL}/${member.profilePhotoPath}` }
+    : resolvedPhotoUri
+      ? { uri: resolvedPhotoUri }
       : null;
 
   if (loading) {
@@ -289,18 +313,30 @@ const MemberEditScreen = ({ route, navigation }) => {
         />
       </Field>
 
-      {/* ── Save button ── */}
-      <TouchableOpacity
-        style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-        onPress={handleSave}
-        disabled={saving}
-        activeOpacity={0.8}
-      >
-        {saving
-          ? <ActivityIndicator color="#fff" size="small" />
-          : <Text style={styles.saveBtnText}>Save Changes</Text>
-        }
-      </TouchableOpacity>
+      {/* ── Action buttons ── */}
+      <View style={styles.buttonRow}>
+        {/* Clear / Cancel */}
+        <TouchableOpacity
+          style={styles.clearBtn}
+          onPress={handleClear}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.clearBtnText}>Clear</Text>
+        </TouchableOpacity>
+
+        {/* Save */}
+        <TouchableOpacity
+          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+          activeOpacity={0.8}
+        >
+          {saving
+            ? <ActivityIndicator color="#fff" size="small" />
+            : <Text style={styles.saveBtnText}>Save Changes</Text>
+          }
+        </TouchableOpacity>
+      </View>
 
     </ScrollView>
   );
@@ -361,13 +397,32 @@ const styles = StyleSheet.create({
   dropdownItemText:  { fontSize: 15, color: '#333' },
   dropdownItemActive:{ color: '#1E3A5F', fontWeight: '700' },
 
-  // Save
+  // Action buttons row
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 10,
+  },
+
+  // Clear button
+  clearBtn: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 15,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#1E3A5F',
+  },
+  clearBtnText: { color: '#1E3A5F', fontSize: 16, fontWeight: '700' },
+
+  // Save button
   saveBtn: {
+    flex: 1,
     backgroundColor: '#1E3A5F',
     borderRadius: 12,
     paddingVertical: 15,
     alignItems: 'center',
-    marginTop: 10,
   },
   saveBtnDisabled: { opacity: 0.6 },
   saveBtnText:     { color: '#fff', fontSize: 16, fontWeight: '700' },

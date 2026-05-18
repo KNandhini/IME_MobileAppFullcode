@@ -10,14 +10,14 @@ public class MemberProfileDTO
     public string? ContactNumber { get; set; }
     public string? Gender { get; set; }
     public int? Age { get; set; }
-    public DateTime DateOfBirth { get; set; }
+    public DateTime? DateOfBirth { get; set; }
     public string? Place { get; set; }
     public int? DesignationId { get; set; }
     public string? DesignationName { get; set; }
     public string? ProfilePhotoPath { get; set; }
     public string MembershipStatus { get; set; } = string.Empty;
     public string? Reason { get; set; }   // optional (only for Reject)
-    public DateTime CreatedDate { get; set; }
+    public DateTime? CreatedDate { get; set; }
     public byte[]? ProfilePhoto { get; set; }
     public int? CountryId { get; set; }
     public string? CountryName { get; set; }
@@ -25,6 +25,7 @@ public class MemberProfileDTO
     public string? StateName { get; set; }
     public int? ClubId { get; set; }
     public string? ClubName { get; set; }
+    public DateTime? GraceExpiryDate { get; set; }  // NEW
 }
 
 public class UpdateMemberProfileDTO

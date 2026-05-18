@@ -59,6 +59,9 @@ public class AuthRepository : IAuthRepository
                 profilePhotoBase64 = "data:image/jpeg;base64," + Convert.ToBase64String(photoBytes);
             }
 
+            int? authClubId = null;
+            try { var o = reader.GetOrdinal("ClubId"); if (!reader.IsDBNull(o)) authClubId = reader.GetInt32(o); } catch { }
+
             return new User
             {
                 UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
@@ -68,10 +71,11 @@ public class AuthRepository : IAuthRepository
                 MemberId = reader.IsDBNull(reader.GetOrdinal("MemberId")) ? null : reader.GetInt32(reader.GetOrdinal("MemberId")),
                 FullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? string.Empty : reader.GetString(reader.GetOrdinal("FullName")),
                 ProfilePhotoPath = profilePhotoBase64,
-                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive")),
+                IsActive         = reader.GetBoolean(reader.GetOrdinal("IsActive")),
                 MembershipStatus = reader.IsDBNull(reader.GetOrdinal("MembershipStatus")) ? null : reader.GetString(reader.GetOrdinal("MembershipStatus")),
                 GraceExpiryDate  = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate"))  ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")),
-                LoginStatus      = reader.IsDBNull(reader.GetOrdinal("LoginStatus"))       ? null : reader.GetString(reader.GetOrdinal("LoginStatus"))
+                LoginStatus      = reader.IsDBNull(reader.GetOrdinal("LoginStatus"))       ? null : reader.GetString(reader.GetOrdinal("LoginStatus")),
+                ClubId           = authClubId,
             };
         }
 

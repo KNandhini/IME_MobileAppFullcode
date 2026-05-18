@@ -54,6 +54,7 @@ import CircularDetailScreen from '../screens/CircularDetailScreen';
 import AchievementDetailScreen from '../screens/AchievementDetailScreen';
 import AchievementFormScreen from '../screens/AchievementFormScreen';
 import LawBotScreen from '../screens/LawBotScreen';
+import MemberEditScreen from '../screens/MemberEditScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -235,6 +236,8 @@ const MainStack = () => (
       component={AddCircularScreen}
      options={{ headerShown: false }} />
       <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
+            <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
+
   </Stack.Navigator>
   
   

@@ -4,7 +4,7 @@ import { Card, Title } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 
 const ADMIN_MENU = [
-  { title: 'Add Activity',      route: 'ActivityForm',     icon: '📅', params: {} },
+  { title: 'Activity',           route: 'Activities',        icon: '📅', params: {} },
   { title: 'Member Management', route: 'MemberManagement', icon: '👥', params: {} },
   { title: 'Payment Reports',   route: null,               icon: '📊', params: {} },
   { title: 'GO & Circulars',    route: 'Circular',         icon: '📋', params: {} },
