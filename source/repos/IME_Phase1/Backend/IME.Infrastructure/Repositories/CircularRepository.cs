@@ -81,7 +81,7 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
     // ── CREATE ────────────────────────────────────────────────
     public async Task<int> CreateCircularAsync(
         string title, string? description, string? circularNumber,
-        DateTime publishDate, int createdBy, int? clubId = null, string visibility = "All")
+        DateTime publishDate, int createdBy, int? clubId = null, string visibility = "Public(All Clubs)")
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_CreateCircular", connection);
@@ -91,7 +91,7 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
         command.Parameters.AddWithValue("@PublishDate",    publishDate);
         command.Parameters.AddWithValue("@CreatedBy",      createdBy);
         command.Parameters.AddWithValue("@ClubId",         (object?)clubId ?? DBNull.Value);
-        command.Parameters.AddWithValue("@Visibility",     visibility ?? "All");
+        command.Parameters.AddWithValue("@Visibility",     visibility ?? "Public(All Clubs)");
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);
     }
