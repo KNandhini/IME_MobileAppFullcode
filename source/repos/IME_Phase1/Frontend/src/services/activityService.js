@@ -2,6 +2,7 @@ import api from '../utils/api';
 
 export const activityService = {
   getAll: async (pageNumber = 1, pageSize = 20) => {
+    debugger;
     const response = await api.get('/activity', {
       params: { pageNumber, pageSize },
     });
@@ -14,6 +15,7 @@ export const activityService = {
   },
 
   getByClub: async () => {
+    debugger;
     const response = await api.get('/activity/my-club');
     return response.data;
   },

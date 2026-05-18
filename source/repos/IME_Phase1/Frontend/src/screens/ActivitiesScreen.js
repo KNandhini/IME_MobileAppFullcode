@@ -29,11 +29,12 @@ const ActivitiesScreen = ({ navigation }) => {
   const loadActivities = async () => {
     setLoading(true);
     try {
+      debugger;
       const res = isAdmin
         ? await activityService.getByClub()
         : await activityService.getAll();
       if (res.success) setActivities(res.data || []);
-    } catch (e) { console.error('Activities load error:', e); }
+    } catch (e) { debugger; console.log('Activities load error:', e); }
     finally { setLoading(false); setRefreshing(false); }
   };
 

@@ -158,6 +158,40 @@ public class MemberController : ControllerBase
         }
     }
 
+    // NEW — club filtered, same ApiResponse<T> structure
+    [HttpGet("by-club")]
+    [Authorize]
+    public async Task<ActionResult<ApiResponse<List<Member>>>> GetMembersByClub(
+     [FromQuery] int clubId,
+     [FromQuery] int pageNumber = 1,
+     [FromQuery] int pageSize = 50)
+    {
+        try
+        {
+            if (clubId <= 0)
+                return BadRequest(new ApiResponse<List<Member>>
+                {
+                    Success = false,
+                    Message = "Invalid ClubId"
+                });
+
+            var members = await _memberRepository.GetMembersByClubAsync(pageNumber, pageSize, clubId);
+            return Ok(new ApiResponse<List<Member>>
+            {
+                Success = true,
+                Data = members
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<Member>>
+            {
+                Success = false,
+                Message = $"Error: {ex.Message}"
+            });
+        }
+    }
+
     [HttpPut("{memberId}/status")]
     [Authorize(Roles = "Admin")]
     /*public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(int memberId, [FromBody] string status)

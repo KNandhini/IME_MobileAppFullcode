@@ -10,7 +10,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class ActivityController : ControllerBase
 {
     private readonly IActivityRepository _activityRepository;
@@ -366,7 +366,7 @@ public class ActivityController : ControllerBase
     {
         using var connection = await GetDbContext().CreateOpenConnectionAsync();
         using var cmd = GetDbContext().CreateCommand(
-            "SELECT ClubId FROM Members WHERE UserId = @UserId", connection);
+            "SELECT ClubId FROM tbl_Members WHERE UserId = @UserId", connection);
         cmd.Parameters.AddWithValue("@UserId", userId);
         var result = await cmd.ExecuteScalarAsync();
         return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);
