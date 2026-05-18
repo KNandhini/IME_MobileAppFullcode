@@ -11,6 +11,11 @@ import { activityService } from '../services/activityService';
 
 const STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
+const VISIBILITY_OPTIONS = [
+  { value: 'public',  label: 'Public',  sub: 'All Clubs' },
+  { value: 'private', label: 'Private', sub: 'This Club Only' },
+];
+
 const formatDate = (date) => {
   if (!date) return '';
   const y = date.getFullYear();
@@ -56,8 +61,10 @@ const ActivityFormScreen = ({ route, navigation }) => {
     activityName: '', description: '', venue: '', coordinator: '',
     chiefGuest: '',
     time: '',
+    chiefGuest: '',
+    time: '',
     status: 'Upcoming',
-    visibility: 'All',
+    visibility: 'public',
   });
   const [activityDate, setActivityDate] = useState(null);
   const [registrationDeadline, setRegistrationDeadline] = useState(null);
@@ -79,9 +86,9 @@ const ActivityFormScreen = ({ route, navigation }) => {
           chiefGuest:   d.chiefGuest   || '',
           time:         d.time         || '',
           status:       d.status       || 'Upcoming',
-          visibility:   d.visibility   || 'All',
+          visibility:   d.visibility   || 'public',
         });
-        if (d.activityDate) setActivityDate(new Date(d.activityDate));
+        if (d.activityDate)         setActivityDate(new Date(d.activityDate));
         if (d.registrationDeadline) setRegistrationDeadline(new Date(d.registrationDeadline));
       }
     } catch (e) { console.error('Load activity error:', e); }
@@ -142,45 +149,45 @@ const ActivityFormScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-  if (!formData.activityName.trim() || !formData.description.trim() || !formData.venue.trim()) {
-    Alert.alert('Error', 'Activity name, description and venue are required.');
-    return;
-  }
-  if (!activityDate) {
-    Alert.alert('Error', 'Activity date is required.');
-    return;
-  }
-  setSaving(true);
-  try {
-    const payload = {
-      activityName:          formData.activityName,
-      description:           formData.description,
-      venue:                 formData.venue,
-      time:                  formData.time,
-      chiefGuest:            formData.chiefGuest,
-      coordinator:           formData.coordinator,
-      status:                formData.status,
-      visibility:            formData.visibility || 'All',
-      activityDate:          activityDate.toISOString(),
-      registrationDeadline:  registrationDeadline ? registrationDeadline.toISOString() : null,
-    };
-    const res = isEditMode
-      ? await activityService.update(activityId, payload)
-      : await activityService.create(payload);
-
-    if (res.success) {
-      Alert.alert('Success', isEditMode ? 'Activity updated.' : 'Activity created.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } else {
-      Alert.alert('Error', res.message || 'Operation failed.');
+    if (!formData.activityName.trim() || !formData.description.trim() || !formData.venue.trim()) {
+      Alert.alert('Error', 'Activity name, description and venue are required.');
+      return;
     }
-  } catch (e) {
-    Alert.alert('Error', 'An error occurred.');
-  } finally {
-    setSaving(false);
-  }
-};
+    if (!activityDate) {
+      Alert.alert('Error', 'Activity date is required.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = {
+        activityName:         formData.activityName,
+        description:          formData.description,
+        venue:                formData.venue,
+        time:                 formData.time,
+        chiefGuest:           formData.chiefGuest,
+        coordinator:          formData.coordinator,
+        status:               formData.status,
+        visibility:           formData.visibility,
+        activityDate:         activityDate.toISOString(),
+        registrationDeadline: registrationDeadline ? registrationDeadline.toISOString() : null,
+      };
+      const res = isEditMode
+        ? await activityService.update(activityId, payload)
+        : await activityService.create(payload);
+
+      if (res.success) {
+        Alert.alert('Success', isEditMode ? 'Activity updated.' : 'Activity created.', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert('Error', res.message || 'Operation failed.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'An error occurred.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
@@ -199,6 +206,8 @@ const ActivityFormScreen = ({ route, navigation }) => {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
+
+          {/* ── Activity Details ── */}
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Activity Details</Text>
@@ -206,24 +215,25 @@ const ActivityFormScreen = ({ route, navigation }) => {
               <TextInput label="Description *" value={formData.description} onChangeText={(v) => update('description', v)} mode="outlined" multiline numberOfLines={4} style={styles.input} />
               <TextInput label="Venue *" value={formData.venue} onChangeText={(v) => update('venue', v)} mode="outlined" style={styles.input} />
               <TextInput label="Coordinator" value={formData.coordinator} onChangeText={(v) => update('coordinator', v)} mode="outlined" style={styles.input} />
-           <TextInput
-  label="Chief Guest"
-  value={formData.chiefGuest}
-  onChangeText={(v) => update('chiefGuest', v)}
-  mode="outlined"
-  style={styles.input}
-/>
-<TextInput
-  label="Time (e.g. 10:00 AM)"
-  value={formData.time}
-  onChangeText={(v) => update('time', v)}
-  mode="outlined"
-  style={styles.input}
-  placeholder="e.g. 10:00 AM"
-/>
+              <TextInput
+                label="Chief Guest"
+                value={formData.chiefGuest}
+                onChangeText={(v) => update('chiefGuest', v)}
+                mode="outlined"
+                style={styles.input}
+              />
+              <TextInput
+                label="Time (e.g. 10:00 AM)"
+                value={formData.time}
+                onChangeText={(v) => update('time', v)}
+                mode="outlined"
+                style={styles.input}
+                placeholder="e.g. 10:00 AM"
+              />
             </Card.Content>
           </Card>
 
+          {/* ── Date & Time ── */}
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Date & Time</Text>
@@ -232,34 +242,19 @@ const ActivityFormScreen = ({ route, navigation }) => {
             </Card.Content>
           </Card>
 
+          {/* ── Status ── */}
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Status</Text>
               <View style={styles.statusRow}>
                 {STATUSES.map((s) => (
                   <TouchableOpacity key={s} onPress={() => update('status', s)}>
-                    <Chip selected={formData.status === s} style={[styles.chip, formData.status === s && styles.chipSelected]}
-                      textStyle={formData.status === s ? { color: '#fff' } : {}}>{s}</Chip>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Card.Content>
-          </Card>
-
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>Visibility</Text>
-              <View style={styles.statusRow}>
-                {[
-                  { value: 'All',  label: 'All Members' },
-                  { value: 'Club', label: 'My Club Only' },
-                ].map((opt) => (
-                  <TouchableOpacity key={opt.value} onPress={() => update('visibility', opt.value)}>
                     <Chip
-                      selected={formData.visibility === opt.value}
-                      style={[styles.chip, formData.visibility === opt.value && styles.chipSelected]}
-                      textStyle={formData.visibility === opt.value ? { color: '#fff' } : {}}>
-                      {opt.label}
+                      selected={formData.status === s}
+                      style={[styles.chip, formData.status === s && styles.chipSelected]}
+                      textStyle={formData.status === s ? { color: '#fff' } : {}}
+                    >
+                      {s}
                     </Chip>
                   </TouchableOpacity>
                 ))}
@@ -267,6 +262,47 @@ const ActivityFormScreen = ({ route, navigation }) => {
             </Card.Content>
           </Card>
 
+          {/* ── Visibility ── */}
+          <Card style={styles.card}>
+            <Card.Content>
+              <Text style={styles.sectionTitle}>Visibility</Text>
+              <View style={styles.radioGroup}>
+                {VISIBILITY_OPTIONS.map((opt) => {
+                  const selected = formData.visibility === opt.value;
+                  return (
+                    <TouchableOpacity
+                      key={opt.value}
+                      style={[styles.radioOption, selected && styles.radioOptionSelected]}
+                      onPress={() => update('visibility', opt.value)}
+                      activeOpacity={0.8}
+                    >
+                      {/* Radio circle */}
+                      <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+                        {selected && <View style={styles.radioInner} />}
+                      </View>
+
+                      {/* Text */}
+                      <View style={styles.radioTextWrap}>
+                        <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
+                          {opt.label}
+                        </Text>
+                        <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
+                          {opt.sub}
+                        </Text>
+                      </View>
+
+                      {/* Icon */}
+                      <Text style={styles.radioIcon}>
+                        {opt.value === 'public' ? '🌐' : '🔒'}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </Card.Content>
+          </Card>
+
+          {/* ── Attachments ── */}
           <Card style={styles.card}>
             <Card.Content>
               <Text style={styles.sectionTitle}>Attachments (Optional)</Text>
@@ -283,7 +319,10 @@ const ActivityFormScreen = ({ route, navigation }) => {
                         </View>
                       )}
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.thumbRemove} onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}>
+                    <TouchableOpacity
+                      style={styles.thumbRemove}
+                      onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
+                    >
                       <Text style={styles.thumbRemoveText}>✕</Text>
                     </TouchableOpacity>
                   </View>
@@ -299,6 +338,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
               <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4 · Max 50 MB each</Text>
             </Card.Content>
           </Card>
+
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -317,19 +357,65 @@ const styles = StyleSheet.create({
   navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
   navSave:   { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
-  container:       { flex: 1, backgroundColor: '#f5f5f5' },
-  card:            { margin: 12, elevation: 2 },
-  sectionTitle:    { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 8 },
-  input:           { marginBottom: 10, backgroundColor: '#fff' },
+  container:    { flex: 1, backgroundColor: '#f5f5f5' },
+  card:         { margin: 12, elevation: 2 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
+  input:        { marginBottom: 10, backgroundColor: '#fff' },
+
   dateInput:       { borderWidth: 1, borderColor: '#888', borderRadius: 4, padding: 12, marginBottom: 10, backgroundColor: '#fff' },
   dateLabel:       { fontSize: 12, color: '#555', marginBottom: 4 },
   dateValueRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   dateText:        { fontSize: 15, color: '#333' },
   datePlaceholder: { fontSize: 15, color: '#aaa' },
   calendarIcon:    { fontSize: 18 },
-  statusRow:       { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip:            { marginRight: 8, marginBottom: 8 },
-  chipSelected:    { backgroundColor: '#1E3A5F' },
+
+  statusRow:    { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  chip:         { marginRight: 8, marginBottom: 8 },
+  chipSelected: { backgroundColor: '#1E3A5F' },
+
+  // ── Visibility Radio Buttons ──
+  radioGroup: { gap: 10 },
+
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    padding: 14,
+    backgroundColor: '#fff',
+  },
+  radioOptionSelected: {
+    borderColor: '#1E3A5F',
+    backgroundColor: '#EFF6FF',
+  },
+
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioCircleSelected: {
+    borderColor: '#1E3A5F',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#1E3A5F',
+  },
+
+  radioTextWrap: { flex: 1 },
+  radioLabel: { fontSize: 15, fontWeight: '600', color: '#374151' },
+  radioLabelSelected: { color: '#1E3A5F' },
+  radioSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  radioSubSelected: { color: '#6B9CC7' },
+  radioIcon: { fontSize: 20, marginLeft: 8 },
 
   attachGrid:      { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
   thumb:           { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },

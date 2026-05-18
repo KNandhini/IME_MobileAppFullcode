@@ -71,6 +71,7 @@ const HomeScreen = ({ navigation }) => {
 
   const loadFeed = async (pageNumber, isRefresh = false) => {
     try {
+      debugger;
       if (isRefresh) setError(null);
       const res = await feedService.getFeed(pageNumber, PAGE_SIZE);
       if (res.success) {

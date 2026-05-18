@@ -10,6 +10,13 @@ export const memberService = {
       return { success: false, message: error.message };
     }
   },
+  getMembersByClub: async (clubId, pageNumber = 1, pageSize = 50) => {
+    debugger;
+    const response = await api.get(
+        `/member/by-club?clubId=${clubId}&pageNumber=${pageNumber}&pageSize=${pageSize}`
+    );
+    return response.data;
+},
 
   updateProfile: async (memberId, profileData) => {
     try {
@@ -95,9 +102,11 @@ export const memberService = {
 
   deleteMember: async (memberId) => {
     try {
+      debugger;
       const response = await api.delete(`/member/${memberId}`);
       return response.data;
     } catch (error) {
+      debugger;
       console.error('Delete member error:', error);
       return { success: false, message: error.message };
     }

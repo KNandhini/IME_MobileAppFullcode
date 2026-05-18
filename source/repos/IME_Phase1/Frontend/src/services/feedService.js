@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const feedService = {
   getFeed: async (pageNumber = 1, pageSize = 10) => {
+    debugger;
     const response = await api.get('/feed', {
       params: { pageNumber, pageSize },
     });
