@@ -15,14 +15,9 @@ const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
 const VISIBILITY_OPTIONS = [
-  { value: 'public',  label: 'Public',  sub: 'All Clubs' },
-  { value: 'private', label: 'Private', sub: 'This Club Only' },
+  { value: 'Public(All Clubs)',  label: 'Public',  sub: 'All Clubs' },
+  { value: 'Private(This Club Only)', label: 'Private', sub: 'This Club Only' },
 ];
-
-// Normalise API string → 'public' | 'private'
-const normaliseVisibility = (raw = '') => {
-  return String(raw).toLowerCase().includes('private') ? 'private' : 'public';
-};
 
 const AddCircularScreen = ({ route, navigation }) => {
   const editData = route.params?.item;
@@ -33,9 +28,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [publishDate,    setPublishDate]    = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );
-  const [visibility,          setVisibility]          = useState(
-    editData?.visibility ? normaliseVisibility(editData.visibility) : 'public'
-  );
+  const [visibility,          setVisibility]          = useState(editData?.visibility || 'public');
   const [showPicker,          setShowPicker]          = useState(false);
   const [saving,              setSaving]              = useState(false);
   const [attachments,         setAttachments]         = useState([]);
@@ -65,10 +58,10 @@ const AddCircularScreen = ({ route, navigation }) => {
             : circularService.getAttachmentUrl(a.attachmentId),
         }));
         setExistingAttachments(mapped);
-        if (res.data?.visibility) setVisibility(normaliseVisibility(res.data.visibility));
+        if (res.data?.visibility) setVisibility(res.data.visibility);
       }
     } catch (e) {
-      console.error('Load error:', e);
+      console.error('Load attachments error:', e);
     }
   };
 
@@ -84,11 +77,13 @@ const AddCircularScreen = ({ route, navigation }) => {
           const result = await DocumentPicker.getDocumentAsync({
             type: ['application/pdf', 'application/msword',
                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-            copyToCacheDirectory: true, multiple: true,
+            copyToCacheDirectory: true,
+            multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
             const picked = result.assets.slice(0, slots).map(a => ({
-              uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'application/pdf', type: 'document',
+              uri: a.uri, fileName: a.name,
+              mimeType: a.mimeType || 'application/pdf', type: 'document',
             }));
             setAttachments(p => [...p, ...picked]);
           }
@@ -100,12 +95,15 @@ const AddCircularScreen = ({ route, navigation }) => {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') { Alert.alert('Permission needed'); return; }
           const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images', 'videos'], allowsMultipleSelection: true,
-            selectionLimit: slots, quality: 0.85,
+            mediaTypes: ['images', 'videos'],
+            allowsMultipleSelection: true,
+            selectionLimit: slots,
+            quality: 0.85,
           });
           if (!result.canceled && result.assets?.length > 0) {
             const picked = result.assets.slice(0, slots).map(a => ({
-              uri: a.uri, fileName: a.fileName || `media_${Date.now()}`,
+              uri: a.uri,
+              fileName: a.fileName || `media_${Date.now()}`,
               mimeType: a.mimeType || (a.type === 'video' ? 'video/mp4' : 'image/jpeg'),
               type: a.type === 'video' ? 'video' : 'image',
             }));
@@ -142,7 +140,11 @@ const AddCircularScreen = ({ route, navigation }) => {
     if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
     try {
       setSaving(true);
-      const payload = { title, description, circularNumber, publishDate: formatDate(publishDate), visibility };
+      const payload = {
+        title, description, circularNumber,
+        publishDate: formatDate(publishDate),
+        visibility,
+      };
       const response = editData
         ? await circularService.update(editData.circularId, payload, attachments)
         : await circularService.create(payload, attachments);
@@ -165,6 +167,8 @@ const AddCircularScreen = ({ route, navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
+
+      {/* Navbar */}
       <View style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
           <Text style={styles.cancelText}>Cancel</Text>
@@ -181,32 +185,45 @@ const AddCircularScreen = ({ route, navigation }) => {
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
           <Text style={styles.label}>Title *</Text>
-          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter title" placeholderTextColor="#CBD5E1" />
+          <TextInput
+            style={styles.input} value={title} onChangeText={setTitle}
+            placeholder="Enter title" placeholderTextColor="#CBD5E1"
+          />
 
           <Text style={styles.label}>Description</Text>
           <TextInput
             style={[styles.input, { height: 100, textAlignVertical: 'top', paddingTop: 12 }]}
-            value={description} onChangeText={setDescription} multiline placeholder="Enter description" placeholderTextColor="#CBD5E1"
+            value={description} onChangeText={setDescription}
+            multiline placeholder="Enter description" placeholderTextColor="#CBD5E1"
           />
 
           <Text style={styles.label}>Circular Number</Text>
-          <TextInput style={styles.input} value={circularNumber} onChangeText={setCircularNumber} placeholder="e.g. GO-2024-001" placeholderTextColor="#CBD5E1" />
+          <TextInput
+            style={styles.input} value={circularNumber} onChangeText={setCircularNumber}
+            placeholder="e.g. GO-2024-001" placeholderTextColor="#CBD5E1"
+          />
 
           <Text style={styles.label}>Publish Date</Text>
           <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
             <Text style={{ color: '#1E293B', fontSize: 15 }}>
-              {publishDate ? new Date(publishDate).toLocaleDateString('en-IN') : 'Select Date'}
+              {publishDate
+                ? new Date(publishDate).toLocaleDateString('en-IN')
+                : 'Select Date'}
             </Text>
           </TouchableOpacity>
           {showPicker && (
             <DateTimePicker
               value={publishDate instanceof Date ? publishDate : new Date()}
-              mode="date" display="default"
-              onChange={(event, selected) => { setShowPicker(false); if (selected) setPublishDate(selected); }}
+              mode="date"
+              display="default"
+              onChange={(event, selected) => {
+                setShowPicker(false);
+                if (selected) setPublishDate(selected);
+              }}
             />
           )}
 
-          {/* ── Visibility Radio Buttons ── */}
+          {/* ── Visibility ── */}
           <Text style={styles.label}>Visibility</Text>
           <View style={styles.radioGroup}>
             {VISIBILITY_OPTIONS.map((opt) => {
@@ -218,14 +235,25 @@ const AddCircularScreen = ({ route, navigation }) => {
                   onPress={() => setVisibility(opt.value)}
                   activeOpacity={0.8}
                 >
+                  {/* Radio circle */}
                   <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
                     {selected && <View style={styles.radioInner} />}
                   </View>
+
+                  {/* Text */}
                   <View style={styles.radioTextWrap}>
-                    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>{opt.label}</Text>
-                    <Text style={[styles.radioSub,   selected && styles.radioSubSelected]}>{opt.sub}</Text>
+                    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
+                      {opt.label}
+                    </Text>
+                    <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
+                      {opt.sub}
+                    </Text>
                   </View>
-                  <Text style={styles.radioIcon}>{opt.value === 'public' ? '🌐' : '🔒'}</Text>
+
+                  {/* Icon */}
+                  <Text style={styles.radioIcon}>
+                    {opt.value === 'public' ? '🌐' : '🔒'}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -234,16 +262,22 @@ const AddCircularScreen = ({ route, navigation }) => {
           {/* Attachments */}
           <Text style={styles.label}>Attachments</Text>
           <View style={styles.attachGrid}>
+
             {existingAttachments.map((a) => {
               const uri = a.filePath;
-              const isImg = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                            a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
               return (
                 <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
-                  <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(uri, isImg ? 'image' : 'file')}>
-                    {isImg
-                      ? <Image source={{ uri }} style={styles.thumbImg} resizeMode="cover" />
-                      : <View style={styles.thumbDoc}><Text style={styles.thumbIcon}>📄</Text><Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text></View>}
+                  <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(uri, isImage ? 'image' : 'file')}>
+                    {isImage ? (
+                      <Image source={{ uri }} style={styles.thumbImg} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.thumbDoc}>
+                        <Text style={styles.thumbIcon}>📄</Text>
+                        <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                   <TouchableOpacity style={styles.thumbRemove} onPress={() => deleteExisting(a.attachmentId, a.fileName)}>
                     <Text style={styles.thumbRemoveText}>✕</Text>
@@ -255,11 +289,19 @@ const AddCircularScreen = ({ route, navigation }) => {
             {attachments.map((a, i) => (
               <View key={`new-${i}`} style={styles.thumb}>
                 <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(a.uri, a.type)}>
-                  {a.type === 'image'
-                    ? <Image source={{ uri: a.uri }} style={styles.thumbImg} resizeMode="cover" />
-                    : <View style={styles.thumbDoc}><Text style={styles.thumbIcon}>{a.type === 'video' ? '🎬' : '📄'}</Text><Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text></View>}
+                  {a.type === 'image' ? (
+                    <Image source={{ uri: a.uri }} style={styles.thumbImg} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.thumbDoc}>
+                      <Text style={styles.thumbIcon}>{a.type === 'video' ? '🎬' : '📄'}</Text>
+                      <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.thumbRemove} onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}>
+                <TouchableOpacity
+                  style={styles.thumbRemove}
+                  onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
+                >
                   <Text style={styles.thumbRemoveText}>✕</Text>
                 </TouchableOpacity>
               </View>
@@ -277,14 +319,26 @@ const AddCircularScreen = ({ route, navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <Modal visible={fileViewer.visible} transparent animationType="fade" onRequestClose={() => setFileViewer({ visible: false, uri: null })}>
+      {/* Image viewer */}
+      <Modal
+        visible={fileViewer.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFileViewer({ visible: false, uri: null })}
+      >
         <View style={styles.viewerOverlay}>
-          <TouchableOpacity style={styles.viewerClose} onPress={() => setFileViewer({ visible: false, uri: null })}>
+          <TouchableOpacity
+            style={styles.viewerClose}
+            onPress={() => setFileViewer({ visible: false, uri: null })}
+          >
             <Text style={styles.viewerCloseText}>✕</Text>
           </TouchableOpacity>
-          {fileViewer.uri && <Image source={{ uri: fileViewer.uri }} style={styles.viewerImage} resizeMode="contain" />}
+          {fileViewer.uri && (
+            <Image source={{ uri: fileViewer.uri }} style={styles.viewerImage} resizeMode="contain" />
+          )}
         </View>
       </Modal>
+
     </SafeAreaView>
   );
 };
@@ -292,45 +346,72 @@ const AddCircularScreen = ({ route, navigation }) => {
 export default AddCircularScreen;
 
 const styles = StyleSheet.create({
-  safe:         { flex: 1, backgroundColor: NAVY },
-  navbar:       { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, backgroundColor: NAVY },
-  navSide:      { minWidth: 64, paddingHorizontal: 4 },
-  navTitle:     { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
-  cancelText:   { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  saveText:     { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
-  scroll:        { flex: 1, backgroundColor: '#FAFBFC' },
-  scrollContent: { padding: 20, paddingBottom: 52 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 16 },
-  input: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
+  safe        : { flex: 1, backgroundColor: NAVY },
+  navbar      : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, backgroundColor: NAVY },
+  navSide     : { minWidth: 64, paddingHorizontal: 4 },
+  navTitle    : { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  cancelText  : { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText    : { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+  scroll        : { flex: 1, backgroundColor: '#FAFBFC' },
+  scrollContent : { padding: 20, paddingBottom: 52 },
+  label : { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 16 },
+  input : { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
 
-  // ── Visibility ──
-  radioGroup:          { gap: 10 },
-  radioOption:         { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, padding: 14, backgroundColor: '#F8FAFC' },
-  radioOptionSelected: { borderColor: NAVY, backgroundColor: '#EFF6FF' },
-  radioCircle:         { width: 20, height: 20, borderRadius: 10, borderWidth: 2, borderColor: '#9CA3AF', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  radioCircleSelected: { borderColor: NAVY },
-  radioInner:          { width: 10, height: 10, borderRadius: 5, backgroundColor: NAVY },
-  radioTextWrap:       { flex: 1 },
-  radioLabel:          { fontSize: 15, fontWeight: '600', color: '#374151' },
-  radioLabelSelected:  { color: NAVY },
-  radioSub:            { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  radioSubSelected:    { color: '#6B9CC7' },
-  radioIcon:           { fontSize: 20, marginLeft: 8 },
+  // ── Visibility Radio Buttons ──
+  radioGroup: { gap: 10 },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: '#F8FAFC',
+  },
+  radioOptionSelected: {
+    borderColor: NAVY,
+    backgroundColor: '#EFF6FF',
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#9CA3AF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioCircleSelected: {
+    borderColor: NAVY,
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: NAVY,
+  },
+  radioTextWrap       : { flex: 1 },
+  radioLabel          : { fontSize: 15, fontWeight: '600', color: '#374151' },
+  radioLabelSelected  : { color: NAVY },
+  radioSub            : { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
+  radioSubSelected    : { color: '#6B9CC7' },
+  radioIcon           : { fontSize: 20, marginLeft: 8 },
 
-  attachGrid:      { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
-  thumb:           { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  thumbImg:        { width: '100%', height: '100%' },
-  thumbDoc:        { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  thumbIcon:       { fontSize: 24 },
-  thumbName:       { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  thumbRemove:     { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+  attachGrid     : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
+  thumb          : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  thumbImg       : { width: '100%', height: '100%' },
+  thumbDoc       : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  thumbIcon      : { fontSize: 24 },
+  thumbName      : { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  thumbRemove    : { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
   thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  thumbAdd:        { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-  thumbAddIcon:    { fontSize: 22, marginBottom: 2 },
-  thumbAddText:    { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint:      { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-  viewerOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage:     { width: '100%', height: '80%' },
-  viewerClose:     { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  thumbAdd       : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
+  thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
+  viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage    : { width: '100%', height: '80%' },
+  viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
