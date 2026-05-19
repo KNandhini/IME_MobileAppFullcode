@@ -264,6 +264,10 @@ const LEAFLET_HTML = `<!DOCTYPE html>
       transform:translate(-50%,-50%); position:relative; pointer-events:none;
       box-shadow:0 1px 4px rgba(0,0,0,0.28);
     }
+    .poly-lbl-nav {
+      pointer-events:auto; cursor:pointer;
+    }
+    .poly-lbl-nav:active { opacity:0.7; }
   </style>
 </head>
 <body>
@@ -295,6 +299,13 @@ function addLabel(latlng,text){
   var icon=L.divIcon({className:'',html:'<span class="poly-lbl">'+esc(text)+'<\/span>',iconSize:[0,0],iconAnchor:[0,0]});
   return L.marker(latlng,{icon:icon,interactive:false,zIndexOffset:1000}).addTo(lblLayer);
 }
+function addNavLabel(latlng,text,level,id){
+  var icon=L.divIcon({className:'',html:'<span class="poly-lbl poly-lbl-nav">'+esc(text)+'<\/span>',iconSize:[0,0],iconAnchor:[0,0]});
+  var m=L.marker(latlng,{icon:icon,interactive:true,zIndexOffset:1000});
+  (function(lv,nid){ m.on('click',function(){ post({type:'NAVIGATE',level:lv,id:nid}); }); })(level,id);
+  m.addTo(lblLayer);
+  return m;
+}
 function matchItem(items,name){
   var n=norm(name);
   for(var i=0;i<items.length;i++){
@@ -306,7 +317,7 @@ function matchItem(items,name){
 window.showStateLevel = async function(items){
   polyLayer.clearLayers(); lblLayer.clearLayers();
   var ci=0;
-  items.forEach(function(it){ if(it.lat!=null&&it.lng!=null) addLabel([it.lat,it.lng],it.label); });
+  items.forEach(function(it){ if(it.lat!=null&&it.lng!=null) addNavLabel([it.lat,it.lng],it.label,'STATE',it.id); });
   var gj=null;
   var CDNS=[
     'https://raw.githubusercontent.com/geohacker/india/master/state/india_state.geojson',
@@ -324,7 +335,7 @@ window.showStateLevel = async function(items){
       var layer=L.geoJSON(f,{style:{color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.65,interactive:!!item}});
       if(item){ (function(id){ layer.on('click',function(){ post({type:'NAVIGATE',level:'STATE',id:id}); }); })(item.id); }
       layer.addTo(polyLayer);
-      addLabel(layer.getBounds().getCenter(),nm||(item&&item.label)||'');
+      if(item){ addNavLabel(layer.getBounds().getCenter(),(item&&item.label)||nm,'STATE',item.id); }else{ addLabel(layer.getBounds().getCenter(),nm); }
     });
   } else {
     // Both CDNs failed — fetch each state polygon from Nominatim
@@ -339,7 +350,7 @@ window.showStateLevel = async function(items){
           if(d.length>0&&d[0].geojson){
             var layer=L.geoJSON(d[0].geojson,{style:{color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.65,interactive:true}});
             var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'STATE',id:id}); });
-            layer.addTo(polyLayer); addLabel(layer.getBounds().getCenter(),item.label);
+            layer.addTo(polyLayer); addNavLabel(layer.getBounds().getCenter(),item.label,'STATE',item.id);
           }
         }catch(e){}
       },idx*300);
@@ -349,71 +360,69 @@ window.showStateLevel = async function(items){
 window.showDistrictLevel = async function(items,stateName,camLat,camLng){
   polyLayer.clearLayers(); lblLayer.clearLayers();
   if(camLat!=null&&camLng!=null) map.setView([camLat,camLng],7,{animate:true});
-  // Show hardcoded centroid labels immediately while polygons load
-  items.forEach(function(it){ if(it.lat!=null&&it.lng!=null) addLabel([it.lat,it.lng],it.label); });
-  var gotPolygons=false;
+  // Clickable centroid labels shown immediately; replaced when polygon loads
+  var lblMarkers={};
+  var ci=0;
+  items.forEach(function(it){
+    if(it.lat!=null&&it.lng!=null) lblMarkers[it.id]=addNavLabel([it.lat,it.lng],it.label,'DISTRICT',it.id);
+  });
   function districtStyle(color){
     return {color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
   }
-  function isPolygonFeature(f){
-    var t=f&&f.geometry&&f.geometry.type||'';
-    return t==='Polygon'||t==='MultiPolygon';
+  function isPolyGeo(g){
+    return g&&(g.type==='Polygon'||g.type==='MultiPolygon');
   }
-  // ── Try Overpass (one bulk request) ──────────────────────────────────────
+  function placePoly(geojson,item,color){
+    if(lblMarkers[item.id]){ lblLayer.removeLayer(lblMarkers[item.id]); delete lblMarkers[item.id]; }
+    var layer=L.geoJSON(geojson,{style:function(){ return districtStyle(color); },interactive:true});
+    (function(id){ layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); }); })(item.id);
+    layer.addTo(polyLayer);
+    try{ var c=layer.getBounds().getCenter(); addNavLabel([c.lat,c.lng],item.label,'DISTRICT',item.id); }catch(e){}
+  }
+  var gotPolygons=false;
+  // ── Attempt 1: Overpass with 10 s AbortController ─────────────────────────
   try{
-    var q='[out:geojson][timeout:60][maxsize:67108864];'+
+    var ctrl=new AbortController();
+    var tid=setTimeout(function(){ ctrl.abort(); },10000);
+    var q='[out:geojson][timeout:9][maxsize:16777216];'+
       'rel["name"="'+stateName+'"]["admin_level"="4"]["boundary"="administrative"]->.state;'+
       'map_to_area.state->.sa;'+
-      '(rel(area.sa)["admin_level"="5"]["boundary"="administrative"]["name"];'+
-      'rel(area.sa)["admin_level"="6"]["boundary"="administrative"]["name"];);'+
+      '(rel(area.sa)["admin_level"="6"]["boundary"="administrative"]["name"];'+
+      'rel(area.sa)["admin_level"="5"]["boundary"="administrative"]["name"];);'+
       'out geom;';
-    var r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q));
+    var r=await fetch('https://overpass-api.de/api/interpreter?data='+encodeURIComponent(q),{signal:ctrl.signal});
+    clearTimeout(tid);
     var gj=await r.json();
-    var polyFeatures=(gj&&gj.features||[]).filter(isPolygonFeature);
+    var polyFeatures=(gj&&gj.features||[]).filter(function(f){
+      var t=f&&f.geometry&&f.geometry.type||'';
+      return t==='Polygon'||t==='MultiPolygon';
+    });
     if(polyFeatures.length>=3){
       gotPolygons=true;
-      lblLayer.clearLayers();
-      var ci=0;
       polyFeatures.forEach(function(f){
         var nm=f.properties.name||f.properties['name:en']||'';
         var item=matchItem(items,nm);
         var color=COLORS[ci++%COLORS.length];
-        var layer=L.geoJSON(f,{
-          style:function(){ return districtStyle(color); },
-          interactive:!!item
-        });
-        if(item){ (function(id){ layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); }); })(item.id); }
-        layer.addTo(polyLayer);
-        try{ addLabel(layer.getBounds().getCenter(),nm||(item&&item.label)||''); }catch(e){}
+        if(item){ placePoly(f.geometry,item,color); }
       });
     }
-  }catch(e){ console.error('Overpass error:',e); }
-  // ── Fallback: reverse-geocode each district centroid at county zoom ──
-  // Reverse geocoding at the known lat/lng is far more reliable than
-  // forward search — it returns exactly the admin boundary that contains
-  // the hardcoded centroid point (no name-matching or class-filtering needed).
+  }catch(e){ console.error('Overpass district error:',e.message); }
+  // ── Attempt 2: Nominatim forward search per district ─────────────────────
+  // Labels already visible; polygons load progressively and swap in
   if(!gotPolygons){
     items.forEach(function(item,idx){
       var color=COLORS[idx%COLORS.length];
       setTimeout(async function(){
         try{
-          var url='https://nominatim.openstreetmap.org/reverse?format=json'+
-            '&lat='+item.lat+'&lon='+item.lng+
-            '&polygon_geojson=1&zoom=8';
-          var r=await fetch(url,{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
-          var d=await r.json();
-          var geo=d.geojson;
-          if(geo&&(geo.type==='Polygon'||geo.type==='MultiPolygon')){
-            var layer=L.geoJSON(geo,{
-              style:function(){ return districtStyle(color); },
-              interactive:true
-            });
-            var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'DISTRICT',id:id}); });
-            layer.addTo(polyLayer);
-            try{ var c=layer.getBounds().getCenter(); addLabel([c.lat,c.lng],item.label); }catch(e){}
-          }
+          var q=encodeURIComponent(item.label+' district, '+stateName+', India');
+          var resp=await fetch(
+            'https://nominatim.openstreetmap.org/search?format=json&q='+q+'&polygon_geojson=1&polygon_threshold=0.02&limit=1&addressdetails=0',
+            {headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}}
+          );
+          var d=await resp.json();
+          if(d.length>0&&isPolyGeo(d[0].geojson)) placePoly(d[0].geojson,item,color);
         }catch(e){}
-      },idx*200);
+      },idx*250);
     });
   }
 };
@@ -623,7 +632,8 @@ const MunicipalMapScreen = ({ navigation }) => {
             const corps = await fetchCorpsFromAI(name, getStateName(selectedState));
             setAiCorps(Array.isArray(corps) ? corps : []);
           } catch (err) {
-            Alert.alert('AI Error', err.message || 'Could not fetch corporations.');
+            console.warn('Corp fetch failed:', err.message);
+            setAiCorps([]);
           } finally {
             setAiLoading(false);
           }
@@ -681,9 +691,22 @@ const MunicipalMapScreen = ({ navigation }) => {
 
   const renderCorpCard = ({ item: corp }) => {
     const typeColor = CORP_TYPE_COLORS[corp.type] || NAVY;
+    const districtName = selectedDistrict ? getDistrictName(selectedDistrict) : '';
+    const stateName    = selectedState    ? getStateName(selectedState)        : '';
+
+    const openDetails = () => navigation.navigate('CorpDetails', {
+      corp: {
+        corpName:  corp.name,
+        wardCount: corp.ward_count,
+        population: corp.population != null ? Number(corp.population).toLocaleString('en-IN') : null,
+      },
+      districtName,
+      stateName,
+    });
+
     return (
       <View style={[styles.corpCard, { width: CARD_WIDTH }]}>
-        <View style={styles.corpCardInner}>
+        <TouchableOpacity style={styles.corpCardInner} onPress={openDetails} activeOpacity={0.85}>
           <View style={[styles.corpTypePill, { backgroundColor: typeColor + '22' }]}>
             <MaterialCommunityIcons name="office-building" size={14} color={typeColor} />
             <Text style={[styles.corpTypePillText, { color: typeColor }]}>{corp.type}</Text>
@@ -703,14 +726,23 @@ const MunicipalMapScreen = ({ navigation }) => {
               </View>
             )}
           </View>
-          <TouchableOpacity
-            style={[styles.corpNavBtn, { backgroundColor: typeColor }]}
-            onPress={() => openGoogleMapsForCorp(corp)}
-          >
-            <MaterialCommunityIcons name="directions" size={15} color="#fff" />
-            <Text style={styles.corpNavBtnText}>Open in Maps</Text>
-          </TouchableOpacity>
-        </View>
+          <View style={styles.corpBtnRow}>
+            <TouchableOpacity
+              style={[styles.corpNavBtn, { backgroundColor: typeColor, flex: 1 }]}
+              onPress={() => openGoogleMapsForCorp(corp)}
+            >
+              <MaterialCommunityIcons name="directions" size={15} color="#fff" />
+              <Text style={styles.corpNavBtnText}>Open in Maps</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.corpNavBtn, { backgroundColor: NAVY, flex: 1, marginLeft: 8 }]}
+              onPress={openDetails}
+            >
+              <MaterialCommunityIcons name="information-outline" size={15} color="#fff" />
+              <Text style={styles.corpNavBtnText}>View Details</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -736,7 +768,7 @@ const MunicipalMapScreen = ({ navigation }) => {
             <Text style={styles.carouselLoadingText}>Fetching corporations via AI…</Text>
           </View>
         ) : aiCorps.length === 0 ? (
-          <Text style={styles.carouselEmpty}>No corporations found for this district.</Text>
+          <Text style={styles.carouselEmpty}>No corporation details found for this district.</Text>
         ) : (
           <>
             <FlatList
@@ -943,6 +975,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E8EEF6', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
   },
   corpMetaChipText: { fontSize: 11, color: NAVY, fontWeight: '600' },
+  corpBtnRow: { flexDirection: 'row', marginTop: 0 },
   corpNavBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     borderRadius: 10, paddingVertical: 8, gap: 6,
