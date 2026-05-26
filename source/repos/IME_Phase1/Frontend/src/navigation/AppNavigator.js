@@ -55,6 +55,7 @@ import AchievementDetailScreen from '../screens/AchievementDetailScreen';
 import AchievementFormScreen from '../screens/AchievementFormScreen';
 import LawBotScreen from '../screens/LawBotScreen';
 import MemberEditScreen from '../screens/MemberEditScreen';
+import CorpDetailScreen from '../screens/CorpDetailsScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -73,6 +74,7 @@ const AuthStack = () => (
       options={{ headerShown: true, title: 'Complete Payment', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
     <Stack.Screen name="About" component={AboutScreen} options={{ headerShown: true, title: 'About IMC', headerStyle: { backgroundColor: '#1E3A5F' }, headerTintColor: '#fff' }} />
     <Stack.Screen name="MunicipalMap" component={MunicipalMapScreen} />
+    <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Demo" component={DemoScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
@@ -237,6 +239,7 @@ const MainStack = () => (
      options={{ headerShown: false }} />
       <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
 
   </Stack.Navigator>
   
