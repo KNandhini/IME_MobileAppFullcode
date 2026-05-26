@@ -71,7 +71,7 @@ public class ActivityRepository(DatabaseContext dbContext) : IActivityRepository
         command.Parameters.AddWithValue("@Status",       (object?)activity.Status ?? "Upcoming");
         command.Parameters.AddWithValue("@RegistrationDeadline", (object?)activity.RegistrationDeadline ?? DBNull.Value);
         command.Parameters.AddWithValue("@ClubId",       (object?)activity.ClubId      ?? DBNull.Value);
-        command.Parameters.AddWithValue("@Visibility",   activity.Visibility ?? "All");
+        command.Parameters.AddWithValue("@Visibility",   activity.Visibility ?? "Public(All Clubs)");
 
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);

@@ -114,7 +114,7 @@ public class CircularController : ControllerBase
             var circularId = await _circularRepository.CreateCircularAsync(
                 title, description, circularNumber,
                 DateTime.Parse(publishDate), userId,
-                clubId, visibility ?? "All");
+                clubId, visibility ?? "Public(All Clubs)");
 
             await SaveAttachments(circularId, files);
 
@@ -245,7 +245,7 @@ public class CircularController : ControllerBase
             .CreateOpenConnectionAsync();
         using var cmd = HttpContext.RequestServices
             .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
-            .CreateCommand("SELECT ClubId FROM Members WHERE UserId = @UserId", connection);
+            .CreateCommand("SELECT ClubId FROM dbo.tbl_members WHERE UserId = @UserId", connection);
         cmd.Parameters.AddWithValue("@UserId", userId);
         var result = await cmd.ExecuteScalarAsync();
         return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);

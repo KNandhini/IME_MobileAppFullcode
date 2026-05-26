@@ -12,8 +12,8 @@ import { activityService } from '../services/activityService';
 const STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
 const VISIBILITY_OPTIONS = [
-  { value: 'public',  label: 'Public',  sub: 'All Clubs' },
-  { value: 'private', label: 'Private', sub: 'This Club Only' },
+  { value: 'Public(All Clubs)',  label: 'Public',  sub: 'All Clubs' },
+  { value: 'Private(This Club Only)', label: 'Private', sub: 'This Club Only' },
 ];
 
 const formatDate = (date) => {
@@ -64,7 +64,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
     chiefGuest: '',
     time: '',
     status: 'Upcoming',
-    visibility: 'public',
+    visibility: 'Public(All Clubs)',
   });
   const [activityDate, setActivityDate] = useState(null);
   const [registrationDeadline, setRegistrationDeadline] = useState(null);
@@ -86,7 +86,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
           chiefGuest:   d.chiefGuest   || '',
           time:         d.time         || '',
           status:       d.status       || 'Upcoming',
-          visibility:   d.visibility   || 'public',
+          visibility:   d.visibility   || 'Public(All Clubs)',
         });
         if (d.activityDate)         setActivityDate(new Date(d.activityDate));
         if (d.registrationDeadline) setRegistrationDeadline(new Date(d.registrationDeadline));
