@@ -10,7 +10,7 @@ export const memberService = {
       return { success: false, message: error.message };
     }
   },
-  getMembersByClub: async (clubId, pageNumber = 1, pageSize = 50) => {
+  getMembersByClub: async (clubId, pageNumber = 1, pageSize = 200) => {
     debugger;
     const response = await api.get(
         `/member/by-club?clubId=${clubId}&pageNumber=${pageNumber}&pageSize=${pageSize}`
@@ -20,9 +20,11 @@ export const memberService = {
 
   updateProfile: async (memberId, profileData) => {
     try {
+      debugger;
       const response = await api.put(`/member/profile/${memberId}`, profileData);
       return response.data;
     } catch (error) {
+      debugger;
       console.error('Update profile error:', error);
       return { success: false, message: error.message };
     }
@@ -48,18 +50,33 @@ export const memberService = {
     }
   },
 
-  getAllMembers: async (pageNumber = 1, pageSize = 50) => {
+  getAllMembers: async (pageNumber = 1, pageSize = 200) => {
     try {
+      debugger;
       const response = await api.get('/member/all', {
         params: { pageNumber, pageSize },
+         timeout: 120000, // ← override per request
       });
       return response.data;
     } catch (error) {
+      debugger;
       console.error('Get all members error:', error);
       return { success: false, message: error.message };
     }
   },
-
+getMemberPhotosByIds: async (memberIds = []) => {
+  try {
+    if (!memberIds.length) return { success: true, data: [] };
+    const response = await api.get('/member/photos-by-ids', {
+      params: { memberIds: memberIds.join(',') }, // "1,2,3,5"
+      timeout: 120000,
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Get member photos by ids error:', error);
+    return { success: false, message: error.message };
+  }
+},
   approveMember: async (memberId) => {
   try {
     const response = await api.put(

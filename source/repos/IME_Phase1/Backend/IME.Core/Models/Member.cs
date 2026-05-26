@@ -14,7 +14,7 @@ public class Member
     public string? Place { get; set; }
     public int? DesignationId { get; set; }
     public string? ProfilePhotoPath { get; set; }
-    public byte[]? ProfilePhoto { get; set; }
+   public byte[]? ProfilePhoto { get; set; }
     public string MembershipStatus { get; set; } = "Pending";
     public string? Reason { get; set; }   // optional (only for Reject)
     public DateTime? CreatedDate { get; set; }
@@ -26,4 +26,12 @@ public class Member
     public int? ClubId { get; set; }
     public string? ClubName { get; set; }
     public DateTime? GraceExpiryDate { get; set; }  // NEW
+    public string? ProfilePhotoBase64 { get; set; }
+}
+
+public class MemberPhoto
+{
+    public int MemberId { get; set; }
+    public string? ProfilePhotoPath { get; set; }
+    public string? ProfilePhotoBase64 { get; set; }
 }
