@@ -98,44 +98,33 @@ public class MemberController : ControllerBase
             {
                 MemberId = memberId,
                 FullName = request.FullName,
+                Email = request.Email,         
                 Address = request.Address,
                 ContactNumber = request.ContactNumber,
                 Gender = request.Gender,
                 Age = request.Age,
-                Place = request.Place,
+                DateOfBirth = request.DateOfBirth,    
                 DesignationId = request.DesignationId,
-                ProfilePhotoPath = request.ProfilePhotoPath
+                CountryId = request.CountryId,       
+                StateId = request.StateId,        
+                ClubId = request.ClubId,          
+                ProfilePhotoPath = request.ProfilePhotoPath,
             };
 
             var success = await _memberRepository.UpdateMemberProfileAsync(member);
-
             if (success)
-            {
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Profile updated successfully"
-                });
-            }
+                return Ok(new ApiResponse<object> { Success = true, Message = "Profile updated successfully" });
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = false,
-                Message = "Failed to update profile"
-            });
+            return Ok(new ApiResponse<object> { Success = false, Message = "Failed to update profile" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object>
-            {
-                Success = false,
-                Message = $"Error: {ex.Message}"
-            });
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
     [HttpGet("all")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Member")]
     public async Task<ActionResult<ApiResponse<List<Member>>>> GetAllMembers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         try
@@ -157,10 +146,36 @@ public class MemberController : ControllerBase
             });
         }
     }
+   
+    [HttpGet("photos-by-ids")]
+    [Authorize(Roles = "Admin,Member")]
+    public async Task<ActionResult<ApiResponse<List<MemberPhoto>>>> GetMemberPhotosByIds(
+    [FromQuery] string memberIds)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(memberIds))
+                return BadRequest(new ApiResponse<List<MemberPhoto>>
+                {
+                    Success = false,
+                    Message = "memberIds is required"
+                });
 
+            var photos = await _memberRepository.GetAllMemberPhotosAsync(memberIds);
+            return Ok(new ApiResponse<List<MemberPhoto>> { Success = true, Data = photos });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<MemberPhoto>>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
     // NEW — club filtered, same ApiResponse<T> structure
     [HttpGet("by-club")]
-    [Authorize]
+  //  [Authorize]
     public async Task<ActionResult<ApiResponse<List<Member>>>> GetMembersByClub(
      [FromQuery] int clubId,
      [FromQuery] int pageNumber = 1,
@@ -193,7 +208,7 @@ public class MemberController : ControllerBase
     }
 
     [HttpPut("{memberId}/status")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     /*public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(int memberId, [FromBody] string status)
     {
         try

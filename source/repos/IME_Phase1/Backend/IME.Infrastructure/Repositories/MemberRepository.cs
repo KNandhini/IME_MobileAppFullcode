@@ -106,21 +106,26 @@ public class MemberRepository : IMemberRepository
         using var command = _dbContext.CreateStoredProcCommand("sp_UpdateMemberProfile", connection);
 
         command.Parameters.AddWithValue("@MemberId", member.MemberId);
-        command.Parameters.AddWithValue("@FullName", member.FullName);
+        command.Parameters.AddWithValue("@FullName", member.FullName ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Email", member.Email ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@Address", member.Address ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@ContactNumber", member.ContactNumber ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@Gender", member.Gender ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Age", member.Age ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Place", member.Place ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@DesignationId", member.DesignationId ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Age", (object?)member.Age ?? DBNull.Value);
+        command.Parameters.AddWithValue("@DateOfBirth", (object?)member.DateOfBirth ?? DBNull.Value);
+        command.Parameters.AddWithValue("@DesignationId", (object?)member.DesignationId ?? DBNull.Value);
+        command.Parameters.AddWithValue("@CountryId", (object?)member.CountryId ?? DBNull.Value);
+        command.Parameters.AddWithValue("@StateId", (object?)member.StateId ?? DBNull.Value);
+        command.Parameters.AddWithValue("@ClubId", (object?)member.ClubId ?? DBNull.Value);
         command.Parameters.AddWithValue("@ProfilePhotoPath", member.ProfilePhotoPath ?? (object)DBNull.Value);
 
-        using var reader = await command.ExecuteReaderAsync();
+        // ? Fix: specify SqlDbType explicitly so null doesn't get cast to nvarchar
+        var photoParam = command.Parameters.Add("@ProfilePhoto", System.Data.SqlDbType.VarBinary, -1);
+        photoParam.Value = (object?)member.ProfilePhoto ?? DBNull.Value;
 
+        using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
-        {
             return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
-        }
 
         return false;
     }
@@ -133,8 +138,8 @@ public class MemberRepository : IMemberRepository
 
         command.Parameters.AddWithValue("@PageNumber", pageNumber);
         command.Parameters.AddWithValue("@PageSize", pageSize);
-      //  command.Parameters.AddWithValue("@ClubId", (object?)clubId ?? DBNull.Value); // NEW
-
+        //  command.Parameters.AddWithValue("@ClubId", (object?)clubId ?? DBNull.Value); // NEW
+        command.CommandTimeout = 300;
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
@@ -158,12 +163,45 @@ public class MemberRepository : IMemberRepository
                 ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),
                 ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
                 ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
-                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
+               //  ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
+
+                // Do this — convert to base64 string:
+    //            ProfilePhotoBase64 = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
+    //? null
+    //: Convert.ToBase64String((byte[])reader["ProfilePhoto"]),
                 GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")), // NEW
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
             });
         }
         return members;
+    }
+    public async Task<List<MemberPhoto>> GetAllMemberPhotosAsync(string memberIds)
+    {
+        var photos = new List<MemberPhoto>();
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetMemberPhoto", connection);
+        command.CommandTimeout = 300;
+        command.Parameters.AddWithValue("@MemberIds", memberIds); // ? "1,2,3,5"
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            var photoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("ProfilePhotoPath"));
+
+            var photoBase64 = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
+                ? null
+                : Convert.ToBase64String((byte[])reader["ProfilePhoto"]);
+
+            photos.Add(new MemberPhoto
+            {
+                MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
+                ProfilePhotoPath = photoPath,
+                ProfilePhotoBase64 = photoBase64,
+            });
+        }
+        return photos;
     }
     // NEW method — club filtered
     public async Task<List<Member>> GetMembersByClubAsync(int pageNumber, int pageSize, int clubId)
@@ -196,7 +234,7 @@ public class MemberRepository : IMemberRepository
                 ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),
                 ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
                 ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
-                ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
+                //ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
                 GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")),
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
             });

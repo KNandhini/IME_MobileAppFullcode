@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supportService } from '../services/supportService';
+import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';
 
 const categoryColor = (id) => {
@@ -23,10 +24,12 @@ const formatAmount = (val) =>
 const SupportDetailScreen = ({ navigation, route }) => {
   const { supportId, item: preloadedItem } = route.params || {};
 
-  const [detail,   setDetail]   = useState(preloadedItem ?? null);
-  const [loading,  setLoading]  = useState(!preloadedItem);
-  const [imgError, setImgError] = useState(false);
-  const [viewer,   setViewer]   = useState({ visible: false, uri: null });
+  const [detail,       setDetail]       = useState(preloadedItem ?? null);
+  const [loading,      setLoading]      = useState(!preloadedItem);
+  const [imgError,     setImgError]     = useState(false);
+  const [viewer,       setViewer]       = useState({ visible: false, uri: null });
+  // ── Club logo: seed from the enriched image already passed by the list ──
+  const [clubLogoUri,  setClubLogoUri]  = useState(preloadedItem?.image ?? null);
 
   useEffect(() => {
     loadDetail();
@@ -36,9 +39,40 @@ const SupportDetailScreen = ({ navigation, route }) => {
     if (!supportId) return;
     try {
       setLoading(true);
-      const res = await supportService.getById(supportId);
+      const res  = await supportService.getById(supportId);
       const data = res?.data ?? res;
-      if (data) setDetail(data);
+
+      if (data) {
+        setDetail(data);
+
+        // ── Resolve club logo ──────────────────────────────────────────────
+        // Priority 1: logo URL already passed via navigation (no extra call)
+        if (preloadedItem?.image) {
+          setClubLogoUri(preloadedItem.image);
+
+        // Priority 2: API returned logoPath on the detail object itself
+        } else if (data.clubId && data.logoPath) {
+          setClubLogoUri(
+            `${BASE_URL}/Uploads/${data.logoPath.replace(/\\/g, '/')}`
+          );
+
+        // Priority 3: fetch clubs list to find the matching logo
+        } else if (data.clubId) {
+          try {
+            const clubRes = await clubService.getAll(1, 200, '', true);
+            if (clubRes?.success && clubRes?.data) {
+              const club = clubRes.data.find((c) => c.clubId === data.clubId);
+              if (club?.logoPath) {
+                setClubLogoUri(
+                  `${BASE_URL}/Uploads/${club.logoPath.replace(/\\/g, '/')}`
+                );
+              }
+            }
+          } catch (clubErr) {
+            console.error('Club logo fetch error:', clubErr);
+          }
+        }
+      }
     } catch (e) {
       console.error('SupportDetail load error:', e);
     } finally {
@@ -47,7 +81,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
   };
 
   const openAttachment = (a) => {
-    const uri = supportService.getAttachmentUrl(a.attachmentId);
+    const uri  = supportService.getAttachmentUrl(a.attachmentId);
     const type = a.mediaType?.trim();
     if (type === 'image') {
       setViewer({ visible: true, uri });
@@ -56,6 +90,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
     }
   };
 
+  // ── Loading state ──────────────────────────────────────────────────────────
   if (loading) {
     return (
       <View style={styles.fullCenter}>
@@ -65,6 +100,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
     );
   }
 
+  // ── Error state ────────────────────────────────────────────────────────────
   if (!detail) {
     return (
       <View style={styles.fullCenter}>
@@ -77,20 +113,21 @@ const SupportDetailScreen = ({ navigation, route }) => {
     );
   }
 
-  const avatarColor  = categoryColor(detail.categoryId);
-  const initial      = (detail.clubName || detail.title || '?').charAt(0).toUpperCase();
-  const logoUri      = detail.clubId && detail.logoPath
-    ? `${BASE_URL}/Uploads/${detail.logoPath.replace(/\\/g, '/')}`
-    : null;
-  const attachments  = detail.attachments ?? [];
+  const avatarColor = categoryColor(detail.categoryId);
+  const initial     = (detail.clubName || detail.title || '?').charAt(0).toUpperCase();
+  const attachments = detail.attachments ?? [];
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
-      {/* Header */}
+      {/* ── Header ── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.closeBtn}
+          activeOpacity={0.7}
+        >
           <Text style={styles.closeIcon}>✕</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Support Details</Text>
@@ -102,19 +139,20 @@ const SupportDetailScreen = ({ navigation, route }) => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Category badge */}
+        {/* ── Category badge ── */}
         <View style={styles.badgeRow}>
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{detail.categoryName?.toUpperCase()}</Text>
           </View>
         </View>
 
-        {/* Avatar + title block */}
+        {/* ── Avatar + title block ── */}
         <View style={styles.titleBlock}>
-          {logoUri && !imgError ? (
+          {clubLogoUri && !imgError ? (
             <Image
-              source={{ uri: logoUri }}
+              source={{ uri: clubLogoUri }}
               style={styles.avatar}
+              resizeMode="cover"
               onError={() => setImgError(true)}
             />
           ) : (
@@ -122,6 +160,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
               <Text style={styles.avatarLetter}>{initial}</Text>
             </View>
           )}
+
           <View style={styles.titleMeta}>
             <Text style={styles.title}>{detail.title}</Text>
             {!!detail.clubName && (
@@ -130,7 +169,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
           </View>
         </View>
 
-        {/* Key stats row */}
+        {/* ── Key stats row ── */}
         <View style={styles.statsRow}>
           {detail.amount != null && (
             <View style={styles.statBox}>
@@ -154,7 +193,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
           )}
         </View>
 
-        {/* Company name (if applicable) */}
+        {/* ── Company name ── */}
         {!!detail.companyName && detail.companyOrIndividual === 'Company' && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>COMPANY</Text>
@@ -162,7 +201,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* Description */}
+        {/* ── Description ── */}
         {!!detail.description && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>DESCRIPTION</Text>
@@ -170,7 +209,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* Attachments */}
+        {/* ── Attachments ── */}
         {attachments.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>ATTACHMENTS ({attachments.length})</Text>
@@ -206,10 +245,9 @@ const SupportDetailScreen = ({ navigation, route }) => {
             </View>
           </View>
         )}
-
       </ScrollView>
 
-      {/* Image viewer */}
+      {/* ── Full-screen image viewer ── */}
       <Modal
         visible={viewer.visible}
         transparent
@@ -224,7 +262,11 @@ const SupportDetailScreen = ({ navigation, route }) => {
             <Text style={styles.viewerCloseText}>✕</Text>
           </TouchableOpacity>
           {viewer.uri && (
-            <Image source={{ uri: viewer.uri }} style={styles.viewerImage} resizeMode="contain" />
+            <Image
+              source={{ uri: viewer.uri }}
+              style={styles.viewerImage}
+              resizeMode="contain"
+            />
           )}
         </View>
       </Modal>
@@ -288,9 +330,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     gap: 8,
   },
-  statBox:   { flex: 1, alignItems: 'center' },
-  statLabel: { fontSize: 10, color: '#A0AEC0', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  statValue: { fontSize: 14, fontWeight: '700', color: '#2D3748', textAlign: 'center' },
+  statBox:     { flex: 1, alignItems: 'center' },
+  statLabel:   { fontSize: 10, color: '#A0AEC0', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  statValue:   { fontSize: 14, fontWeight: '700', color: '#2D3748', textAlign: 'center' },
   amountValue: { color: '#276749', fontSize: 16 },
 
   section: {
@@ -321,9 +363,9 @@ const styles = StyleSheet.create({
   thumbDocIcon: { fontSize: 28 },
   thumbDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 4 },
 
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage:   { width: '100%', height: '80%' },
-  viewerClose:   { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage:     { width: '100%', height: '80%' },
+  viewerClose:     { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
 

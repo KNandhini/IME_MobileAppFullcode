@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { achievementService } from '../services/achievementService';
 import { memberService } from '../services/memberService';
 import { useAuth } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';  // ← ADD
+import { BASE_URL } from '../utils/api';                                // ← ADD
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -28,7 +30,7 @@ const blobToDataUri = (blob) => {
 };
 
 // ── Achievement Card ──────────────────────────────────────────────────────────
-const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap }) => {
+const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, userRole }) => {  // ← ADD userRole
   const [imgError, setImgError] = useState(false);
   const bg = AVATAR_COLORS[index % AVATAR_COLORS.length];
   const initials = (item.memberName || 'M')
@@ -57,22 +59,26 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap }) =
         <View style={s.badge}>
           <Text style={s.badgeText}>🏆 Achievement</Text>
         </View>
-        <View style={s.cardActions}>
-          <TouchableOpacity
-            onPress={() => onEdit(item)}
-            style={s.editBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={s.editText}>Edit</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => onDelete(item.achievementId)}
-            style={s.deleteBtn}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Text style={s.deleteText}>Delete</Text>
-          </TouchableOpacity>
-        </View>
+
+        {/* ── HIDE Edit/Delete for Member role ── */}
+        {userRole === 'Admin' && (
+          <View style={s.cardActions}>
+            <TouchableOpacity
+              onPress={() => onEdit(item)}
+              style={s.editBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={s.editText}>Edit</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => onDelete(item.achievementId)}
+              style={s.deleteBtn}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Text style={s.deleteText}>Delete</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* ── CONTENT ROW ── */}
@@ -114,9 +120,22 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap }) =
 // ── Main Screen ───────────────────────────────────────────────────────────────
 const AchievementsScreen = ({ navigation }) => {
   const [achievements, setAchievements] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
-  const [photoMap, setPhotoMap] = useState({});
+  const [refreshing,   setRefreshing]   = useState(false);
+  const [photoMap,     setPhotoMap]     = useState({});
+  const [userRole,     setUserRole]     = useState(null);  // ← ADD
   const { user } = useAuth();
+
+  // ── Load role once on mount ───────────────────────────────────────────────
+  useEffect(() => {                                                     // ← ADD
+    const loadRole = async () => {
+      const raw = await AsyncStorage.getItem('userData');
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      const role = (parsed.roleName || parsed.role || '').trim().toLowerCase();
+      setUserRole(role === 'admin' ? 'Admin' : 'Member');
+    };
+    loadRole();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -126,30 +145,39 @@ const AchievementsScreen = ({ navigation }) => {
 
   const load = async () => {
     try {
-      // ── Step 1: load achievements ───────────────────────────────────────────
+      // Step 1: load achievements
       const achRes = await achievementService.getAll();
       const achList = achRes?.success ? (achRes.data ?? []) : [];
       if (achRes?.success) setAchievements(achList);
 
-      // ── Step 2: fetch ALL members once (not per-member) ─────────────────────
-      const membersRes = await memberService.getAllMembers(1, 200);
-      const members = membersRes?.success ? (membersRes.data ?? []) : [];
-      if (members.length === 0) return;
+      // Step 2: extract unique memberIds from achievements
+      const uniqueMemberIds = [
+        ...new Set(
+          achList
+            .map(a => a.memberId ?? a.MemberId)
+            .filter(Boolean)
+        )
+      ];
 
-      // ── Step 3: build memberId → data-URI map from profilePhoto blob ─────────
-      const map = {};
-      members.forEach((m) => {
-        const id = m.memberId ?? m.MemberId;
-        const blob =
-          m.profilePhoto ?? m.ProfilePhoto ?? m.photo ?? m.Photo ?? null;
-        if (id && blob) {
-          const uri = blobToDataUri(blob);
-          if (uri) map[id] = uri;
-        }
-      });
+      if (uniqueMemberIds.length === 0) return;
 
-      console.log('[AchievementsScreen] photoMap keys:', Object.keys(map));
-      setPhotoMap(map);
+      // Step 3: fetch ONLY those member photos
+      const photoRes = await memberService.getMemberPhotosByIds(uniqueMemberIds);
+      if (photoRes?.success && photoRes?.data?.length > 0) {
+        const map = {};
+        photoRes.data.forEach((p) => {
+          const id = p.memberId ?? p.MemberId;
+          if (!id) return;
+          if (p.profilePhotoPath) {
+            map[id] = p.profilePhotoPath.startsWith('http')
+              ? p.profilePhotoPath
+              : `${BASE_URL}/Uploads/${p.profilePhotoPath.replace(/\\/g, '/').replace(/^Uploads\/?/i, '')}`;
+          } else if (p.profilePhotoBase64) {
+            map[id] = `data:image/jpeg;base64,${p.profilePhotoBase64}`;
+          }
+        });
+        setPhotoMap(map);
+      }
     } catch (e) {
       console.error('Achievements load error:', e);
     } finally {
@@ -206,16 +234,16 @@ const AchievementsScreen = ({ navigation }) => {
               item={item}
               index={index}
               photoMap={photoMap}
-           //   onPress={() => navigation.navigate('AchievementDetail', { item })}
-             onPress={() =>
-  navigation.navigate('AchievementDetail', {
-    item,
-    memberPhoto: item.memberId
-      ? (photoMap[item.memberId] ?? null)
-      : null,
-  })
-}
-           onDelete={handleDelete}
+              userRole={userRole}   // ← ADD
+              onPress={() =>
+                navigation.navigate('AchievementDetail', {
+                  item,
+                  memberPhoto: item.memberId
+                    ? (photoMap[item.memberId] ?? null)
+                    : null,
+                })
+              }
+              onDelete={handleDelete}
               onEdit={handleEdit}
             />
           )}
@@ -231,14 +259,16 @@ const AchievementsScreen = ({ navigation }) => {
         />
       )}
 
-      {/* FAB */}
-      <TouchableOpacity
-        style={s.fab}
-        onPress={() => navigation.navigate('AchievementForm')}
-        activeOpacity={0.85}
-      >
-        <Text style={s.fabText}>+</Text>
-      </TouchableOpacity>
+      {/* FAB — Admin only */}
+      {userRole === 'Admin' && (                        // ← ADD
+        <TouchableOpacity
+          style={s.fab}
+          onPress={() => navigation.navigate('AchievementForm')}
+          activeOpacity={0.85}
+        >
+          <Text style={s.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -291,54 +321,36 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#FECACA',
   },
-  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+  editText:   { fontSize: 12, color: '#2563EB', fontWeight: '600' },
   deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
   photo: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginRight: 14,
-    borderWidth: 2,
-    borderColor: GOLD,
+    width: 52, height: 52, borderRadius: 26,
+    marginRight: 14, borderWidth: 2, borderColor: GOLD,
   },
   photoPlaceholder: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    marginRight: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: GOLD,
+    width: 52, height: 52, borderRadius: 26,
+    marginRight: 14, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: GOLD,
   },
   photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
   textContainer: { flex: 1 },
-  memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-  achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
+  memberName:  { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
+  achTitle:    { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
   description: { fontSize: 13, color: '#718096', lineHeight: 18 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-  date: { fontSize: 11, color: '#A0AEC0' },
+  metaRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
+  date:        { fontSize: 11, color: '#A0AEC0' },
   centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
+    flex: 1, justifyContent: 'center',
+    alignItems: 'center', paddingVertical: 60,
   },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#A0AEC0' },
+  emptyText:  { fontSize: 14, color: '#A0AEC0' },
   fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: NAVY,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 4,
-    zIndex: 100,
+    position: 'absolute', right: 20, bottom: 24,
+    width: 36, height: 36, borderRadius: 18,
+    backgroundColor: NAVY, alignItems: 'center',
+    justifyContent: 'center', elevation: 4, zIndex: 100,
   },
   fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });
