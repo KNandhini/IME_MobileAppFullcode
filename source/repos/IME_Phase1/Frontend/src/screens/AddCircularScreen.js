@@ -25,6 +25,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [title,          setTitle]          = useState(editData?.title          || '');
   const [description,    setDescription]    = useState(editData?.description    || '');
   const [circularNumber, setCircularNumber] = useState(editData?.circularNumber || '');
+ // const [visibility,     setVisibility]     = useState(editData?.visibility     || 'All');
   const [publishDate,    setPublishDate]    = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );

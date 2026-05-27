@@ -98,44 +98,33 @@ public class MemberController : ControllerBase
             {
                 MemberId = memberId,
                 FullName = request.FullName,
+                Email = request.Email,         
                 Address = request.Address,
                 ContactNumber = request.ContactNumber,
                 Gender = request.Gender,
                 Age = request.Age,
-                Place = request.Place,
+                DateOfBirth = request.DateOfBirth,    
                 DesignationId = request.DesignationId,
-                ProfilePhotoPath = request.ProfilePhotoPath
+                CountryId = request.CountryId,       
+                StateId = request.StateId,        
+                ClubId = request.ClubId,          
+                ProfilePhotoPath = request.ProfilePhotoPath,
             };
 
             var success = await _memberRepository.UpdateMemberProfileAsync(member);
-
             if (success)
-            {
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Profile updated successfully"
-                });
-            }
+                return Ok(new ApiResponse<object> { Success = true, Message = "Profile updated successfully" });
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = false,
-                Message = "Failed to update profile"
-            });
+            return Ok(new ApiResponse<object> { Success = false, Message = "Failed to update profile" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object>
-            {
-                Success = false,
-                Message = $"Error: {ex.Message}"
-            });
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
 
     [HttpGet("all")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Member")]
     public async Task<ActionResult<ApiResponse<List<Member>>>> GetAllMembers([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 50)
     {
         try
@@ -157,10 +146,36 @@ public class MemberController : ControllerBase
             });
         }
     }
+   
+    [HttpGet("photos-by-ids")]
+    [Authorize(Roles = "Admin,Member")]
+    public async Task<ActionResult<ApiResponse<List<MemberPhoto>>>> GetMemberPhotosByIds(
+    [FromQuery] string memberIds)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(memberIds))
+                return BadRequest(new ApiResponse<List<MemberPhoto>>
+                {
+                    Success = false,
+                    Message = "memberIds is required"
+                });
 
+            var photos = await _memberRepository.GetAllMemberPhotosAsync(memberIds);
+            return Ok(new ApiResponse<List<MemberPhoto>> { Success = true, Data = photos });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<MemberPhoto>>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
     // NEW — club filtered, same ApiResponse<T> structure
     [HttpGet("by-club")]
-    [Authorize]
+  //  [Authorize]
     public async Task<ActionResult<ApiResponse<List<Member>>>> GetMembersByClub(
      [FromQuery] int clubId,
      [FromQuery] int pageNumber = 1,
@@ -193,7 +208,7 @@ public class MemberController : ControllerBase
     }
 
     [HttpPut("{memberId}/status")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     /*public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(int memberId, [FromBody] string status)
     {
         try
@@ -317,40 +332,59 @@ public class MemberController : ControllerBase
     }
 
     [HttpPost("{memberId}/change-password")]
-    [Authorize]
     public async Task<ActionResult<ApiResponse<object>>> ChangePassword(
-        int memberId, [FromBody] ChangePasswordRequest request)
+     int memberId,
+     [FromBody] ChangePasswordRequest request)
     {
         try
         {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
+            // Get current hash from repository
+            var hash = await _memberRepository
+                .GetPasswordHashAsync(memberId);
 
-            // Get current password hash
-            using var selectCmd = _dbContext.CreateCommand(
-                "SELECT u.PasswordHash FROM tbl_Users u " +
-                "INNER JOIN tbl_Members m ON m.UserId = u.UserId " +
-                "WHERE m.MemberId = @MemberId", connection);
-            selectCmd.Parameters.AddWithValue("@MemberId", memberId);
-            var hash = (await selectCmd.ExecuteScalarAsync())?.ToString();
+            if (string.IsNullOrEmpty(hash) ||
+                !_passwordService.VerifyPassword(
+                    request.CurrentPassword,
+                    hash))
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Current password is incorrect."
+                });
+            }
 
-            if (string.IsNullOrEmpty(hash) || !_passwordService.VerifyPassword(request.CurrentPassword, hash))
-                return Ok(new ApiResponse<object> { Success = false, Message = "Current password is incorrect." });
+            // Hash new password
+            var newHash = _passwordService
+                .HashPassword(request.NewPassword);
 
-            var newHash = _passwordService.HashPassword(request.NewPassword);
+            // Update using repository
+            var result = await _memberRepository
+                .ChangePasswordAsync(memberId, newHash);
 
-            using var updateCmd = _dbContext.CreateCommand(
-                "UPDATE u SET u.PasswordHash = @NewHash " +
-                "FROM tbl_Users u INNER JOIN tbl_Members m ON m.UserId = u.UserId " +
-                "WHERE m.MemberId = @MemberId", connection);
-            updateCmd.Parameters.AddWithValue("@NewHash", newHash);
-            updateCmd.Parameters.AddWithValue("@MemberId", memberId);
-            await updateCmd.ExecuteNonQueryAsync();
+            if (!result)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Password change failed."
+                });
+            }
 
-            return Ok(new ApiResponse<object> { Success = true, Message = "Password changed successfully." });
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Password changed successfully."
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+            return StatusCode(500,
+                new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
         }
     }
 }
