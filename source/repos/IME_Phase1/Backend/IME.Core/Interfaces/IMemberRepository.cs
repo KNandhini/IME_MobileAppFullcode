@@ -10,4 +10,8 @@ public interface IMemberRepository
     Task<List<Member>> GetMembersByClubAsync(int pageNumber, int pageSize, int clubId);
     Task<bool> UpdateMemberStatusAsync(int memberId, string status, string? reason);
      Task<bool> DeleteMemberAsync(int memberId);
+    Task<string?> GetPasswordHashAsync(int memberId);
+
+    Task<bool> ChangePasswordAsync(int memberId, string newPasswordHash);
+
 }

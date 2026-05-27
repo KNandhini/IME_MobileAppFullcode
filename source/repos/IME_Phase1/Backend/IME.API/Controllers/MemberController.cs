@@ -317,40 +317,59 @@ public class MemberController : ControllerBase
     }
 
     [HttpPost("{memberId}/change-password")]
-    [Authorize]
     public async Task<ActionResult<ApiResponse<object>>> ChangePassword(
-        int memberId, [FromBody] ChangePasswordRequest request)
+     int memberId,
+     [FromBody] ChangePasswordRequest request)
     {
         try
         {
-            using var connection = await _dbContext.CreateOpenConnectionAsync();
+            // Get current hash from repository
+            var hash = await _memberRepository
+                .GetPasswordHashAsync(memberId);
 
-            // Get current password hash
-            using var selectCmd = _dbContext.CreateCommand(
-                "SELECT u.PasswordHash FROM tbl_Users u " +
-                "INNER JOIN tbl_Members m ON m.UserId = u.UserId " +
-                "WHERE m.MemberId = @MemberId", connection);
-            selectCmd.Parameters.AddWithValue("@MemberId", memberId);
-            var hash = (await selectCmd.ExecuteScalarAsync())?.ToString();
+            if (string.IsNullOrEmpty(hash) ||
+                !_passwordService.VerifyPassword(
+                    request.CurrentPassword,
+                    hash))
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Current password is incorrect."
+                });
+            }
 
-            if (string.IsNullOrEmpty(hash) || !_passwordService.VerifyPassword(request.CurrentPassword, hash))
-                return Ok(new ApiResponse<object> { Success = false, Message = "Current password is incorrect." });
+            // Hash new password
+            var newHash = _passwordService
+                .HashPassword(request.NewPassword);
 
-            var newHash = _passwordService.HashPassword(request.NewPassword);
+            // Update using repository
+            var result = await _memberRepository
+                .ChangePasswordAsync(memberId, newHash);
 
-            using var updateCmd = _dbContext.CreateCommand(
-                "UPDATE u SET u.PasswordHash = @NewHash " +
-                "FROM tbl_Users u INNER JOIN tbl_Members m ON m.UserId = u.UserId " +
-                "WHERE m.MemberId = @MemberId", connection);
-            updateCmd.Parameters.AddWithValue("@NewHash", newHash);
-            updateCmd.Parameters.AddWithValue("@MemberId", memberId);
-            await updateCmd.ExecuteNonQueryAsync();
+            if (!result)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Password change failed."
+                });
+            }
 
-            return Ok(new ApiResponse<object> { Success = true, Message = "Password changed successfully." });
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Password changed successfully."
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+            return StatusCode(500,
+                new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
         }
     }
 }

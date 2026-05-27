@@ -221,6 +221,44 @@ public class MemberRepository : IMemberRepository
 
         return false;
     }
+    public async Task<string?> GetPasswordHashAsync(int memberId)
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+
+        using var command = _dbContext.CreateStoredProcCommand(
+            "sp_GetPasswordHashByMemberId",
+            connection);
+
+        command.Parameters.AddWithValue("@MemberId", memberId);
+
+        var result = await command.ExecuteScalarAsync();
+
+        return result?.ToString();
+    }
+
+    public async Task<bool> ChangePasswordAsync(
+    int memberId,
+    string newPasswordHash)
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+
+        using var command = _dbContext.CreateStoredProcCommand(
+            "sp_ChangePassword",
+            connection);
+
+        command.Parameters.AddWithValue("@MemberId", memberId);
+        command.Parameters.AddWithValue("@NewPasswordHash", newPasswordHash);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        if (await reader.ReadAsync())
+        {
+            return reader.GetInt32(
+                reader.GetOrdinal("RowsAffected")) > 0;
+        }
+
+        return false;
+    }
     public async Task<bool> DeleteMemberAsync(int memberId)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
