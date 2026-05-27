@@ -13,13 +13,11 @@ import api from '../utils/api';
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
 // ─── Razorpay HTML ────────────────────────────────────────────────────────────
-// FIX: handler now also sends method (payment mode) back to RN
 function getRazorpayHTML({ amount, userData, post }) {
-    console.log(userData,"UserData");
+  console.log(userData, "UserData");
   const name  = (userData?.fullName      || '').replace(/'/g, "\\'");
   const email = (userData?.email         || '').replace(/'/g, "\\'");
-  //const phone = (userData?.contactNumber || '').replace(/'/g, "\\'");
- const phone = (
+  const phone = (
     userData?.contactNumber ||
     userData?.phoneNumber   ||
     userData?.mobile        ||
@@ -111,16 +109,12 @@ function openRazorpay(){
     prefill:{name:'${name}',email:'${email}',contact:'${phone}'},
     handler:function(r){
       document.getElementById('statusText').innerText='Payment successful!';
-
-      // ── FIX: send method along with payment details ──────────────
-      // r.razorpay_payment_id is always present on success
-      // method is available on the Razorpay instance after payment
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type      : 'PAYMENT_SUCCESS',
         paymentId : r.razorpay_payment_id,
         orderId   : r.razorpay_order_id   || '',
         signature : r.razorpay_signature  || '',
-        method    : r.method              || 'Razorpay', // upi/card/netbanking/wallet
+        method    : r.method              || 'Razorpay',
       }));
     },
     modal:{
@@ -152,7 +146,6 @@ window.onload=function(){loadRazorpay();};
 }
 
 // ─── Map Razorpay method string → readable label ──────────────────────────────
-// Razorpay sends: 'upi' | 'card' | 'netbanking' | 'wallet' | 'emi'
 function mapPaymentMode(method) {
   const map = {
     upi        : 'UPI',
@@ -170,11 +163,8 @@ const fetchMemberDetails = async () => {
   if (!userStr) throw new Error('No user session');
   const user = JSON.parse(userStr);
 
-  // Handle both camelCase and PascalCase keys (backend may vary)
-  const memberId =
-    user?.memberId || user?.MemberId || user?.id;
-  const userId =
-    user?.userId || user?.UserId;
+  const memberId = user?.memberId || user?.MemberId || user?.id;
+  const userId   = user?.userId   || user?.UserId;
 
   if (memberId) {
     try {
@@ -184,11 +174,10 @@ const fetchMemberDetails = async () => {
         return body?.data || body?.Data;
       }
     } catch (_) {
-      // API unreachable or returned error — fall through to stored data
+      // fall through to stored data
     }
   }
 
-  // Always return stored login data as fallback so memberData is never null
   return {
     id: memberId || userId,
     memberId: memberId || userId,
@@ -199,19 +188,17 @@ const fetchMemberDetails = async () => {
 };
 
 // ─── API: store payment ───────────────────────────────────────────────────────
-// FIX: correct params — fundId, paymentMode, transactionId all properly passed
 async function storePayment({ memberId, fundId, amount, transactionId, paymentMode }) {
-    debugger;
   const res = await api.post('/RaiseFundPayment/donate', {
     memberId,
     fundId,
     amount,
-    paymentMode,        // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
-    transactionId,      // razorpay_payment_id
+    paymentMode,
+    transactionId,
     paymentStatus: 'Success',
   });
   if (!res.data.success) throw new Error(res.data.message);
-  return res.data.data; // { id, balanceAmount, collectedAmount, targetAmount }
+  return res.data.data;
 }
 
 // ─── ProgressBar ──────────────────────────────────────────────────────────────
@@ -234,42 +221,25 @@ function ProgressBar({ raised, goal }) {
 // ─── Amount Modal ─────────────────────────────────────────────────────────────
 function AmountModal({ visible, post, onClose, onProceed }) {
   const minAmount = post.minimumAmount ?? 1;
-  
-  // FIX: autofill minimum amount when modal opens
-  const [amount, setAmount] = useState(String(minAmount));
+  const [amount, setAmount] = useState('');
   const quickAmounts = [100, 500, 1000, 5000];
 
-  // FIX: reset to minimum (not empty) when modal opens
   useEffect(() => {
-    if (visible) setAmount(String(minAmount));
+    if (visible) setAmount('');
   }, [visible]);
 
   const handleProceed = () => {
     const num = parseInt(amount, 10);
-    
-    // FIX: validate against minimum amount
-    if (!num || num < minAmount) {
-      Alert.alert(
-        'Amount too low',
-        `Minimum donation for this fund is ₹${minAmount.toLocaleString('en-IN')}`
-      );
+    if (!num || num < 1) {
+      Alert.alert('Invalid Amount', 'Please enter a valid amount.');
       return;
     }
     onProceed(num);
   };
 
-  // FIX: validate on change — prevent going below minimum
   const handleAmountChange = (text) => {
     const cleaned = text.replace(/[^0-9]/g, '');
     setAmount(cleaned);
-  };
-
-  // FIX: on blur, if below minimum, reset to minimum
-  const handleBlur = () => {
-    const num = parseInt(amount, 10);
-    if (!num || num < minAmount) {
-      setAmount(String(minAmount));
-    }
   };
 
   return (
@@ -305,7 +275,7 @@ function AmountModal({ visible, post, onClose, onProceed }) {
             </View>
           </View>
 
-          {/* FIX: show minimum amount notice */}
+          {/* Display minimum amount as info only — no validation */}
           {minAmount > 1 && (
             <View style={s.minAmountBanner}>
               <Ionicons name="information-circle-outline" size={15} color="#e8623a" />
@@ -317,47 +287,31 @@ function AmountModal({ visible, post, onClose, onProceed }) {
 
           <Text style={s.modalSectionLabel}>Quick select</Text>
           <View style={s.quickRow}>
-            {quickAmounts.map((q) => {
-              // FIX: only show quick amounts >= minimum
-              if (q < minAmount) return null;
-              return (
-                <TouchableOpacity
-                  key={q}
-                  style={[s.quickChip, amount === String(q) && s.quickChipActive]}
-                  onPress={() => setAmount(String(q))}
-                >
-                  <Text style={[s.quickChipText, amount === String(q) && s.quickChipTextActive]}>
-                    ₹{q.toLocaleString('en-IN')}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {quickAmounts.map((q) => (
+              <TouchableOpacity
+                key={q}
+                style={[s.quickChip, amount === String(q) && s.quickChipActive]}
+                onPress={() => setAmount(String(q))}
+              >
+                <Text style={[s.quickChipText, amount === String(q) && s.quickChipTextActive]}>
+                  ₹{q.toLocaleString('en-IN')}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
 
           <Text style={s.modalSectionLabel}>Or enter amount</Text>
-          <View style={[
-            s.amountInputRow,
-            // FIX: red border if below minimum
-            parseInt(amount) < minAmount && amount !== '' && s.amountInputRowError
-          ]}>
+          <View style={s.amountInputRow}>
             <Text style={s.rupeeSign}>₹</Text>
             <TextInput
               style={s.amountInput}
               value={amount}
               onChangeText={handleAmountChange}
-              onBlur={handleBlur}          // ← reset to min on blur if too low
               keyboardType="number-pad"
-              placeholder={`Min ₹${minAmount}`}
+              placeholder={minAmount > 1 ? `Min ₹${minAmount.toLocaleString('en-IN')}` : 'Enter amount'}
               placeholderTextColor="#bbb"
             />
           </View>
-
-          {/* FIX: show inline error if below minimum */}
-          {parseInt(amount) < minAmount && amount !== '' && (
-            <Text style={s.minAmountError}>
-              ⚠️ Minimum amount is ₹{minAmount.toLocaleString('en-IN')}
-            </Text>
-          )}
 
           <TouchableOpacity style={s.proceedBtn} onPress={handleProceed} activeOpacity={0.85}>
             <Ionicons name="heart" size={16} color="#fff" />
@@ -392,12 +346,12 @@ export default function RaiseFundScreen({ route, navigation }) {
   const [livePost, setLivePost] = useState(buildSafePost(post));
   const safePost = livePost;
 
-  const [memberData,        setMemberData]        = useState(null);
-  const [loadingMember,     setLoadingMember]     = useState(true);
-  const [amountModalVisible,setAmountModalVisible] = useState(false);
-  const [paymentAmount,     setPaymentAmount]     = useState(0);
-  const [showWebView,       setShowWebView]       = useState(false);
-  const [processingPayment, setProcessingPayment] = useState(false);
+  const [memberData,         setMemberData]         = useState(null);
+  const [loadingMember,      setLoadingMember]      = useState(true);
+  const [amountModalVisible, setAmountModalVisible] = useState(false);
+  const [paymentAmount,      setPaymentAmount]      = useState(0);
+  const [showWebView,        setShowWebView]        = useState(false);
+  const [processingPayment,  setProcessingPayment]  = useState(false);
 
   useEffect(() => {
     fetchMemberDetails()
@@ -410,18 +364,15 @@ export default function RaiseFundScreen({ route, navigation }) {
   }, []);
 
   const handleAmountProceed = (amount) => {
-    // FIX: don't open WebView if member data not loaded yet
-  if (!memberData) {
-    Alert.alert('Please wait', 'Loading your profile, please try again.');
-    return;
-  }
-
-  // FIX: log to confirm correct number
-  console.log('Phone going to Razorpay:', 
-    memberData?.contactNumber || 
-    memberData?.phoneNumber   || 
-    'EMPTY - check field name!'
-  );
+    if (!memberData) {
+      Alert.alert('Please wait', 'Loading your profile, please try again.');
+      return;
+    }
+    console.log('Phone going to Razorpay:',
+      memberData?.contactNumber ||
+      memberData?.phoneNumber   ||
+      'EMPTY - check field name!'
+    );
     setPaymentAmount(amount);
     setAmountModalVisible(false);
     setShowWebView(true);
@@ -437,20 +388,18 @@ export default function RaiseFundScreen({ route, navigation }) {
         setShowWebView(false);
         setProcessingPayment(true);
 
-        // FIX: map Razorpay method → readable PaymentMode
         const paymentMode = mapPaymentMode(data.method);
-        console.log('Payment mode:', paymentMode); // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
+        console.log('Payment mode:', paymentMode);
 
         try {
           const result = await storePayment({
             memberId     : memberData?.id || memberData?.memberId,
-            fundId       : safePost.id,       // tbl_Fundraise.Id
+            fundId       : safePost.id,
             amount       : paymentAmount,
-            transactionId: data.paymentId,    // razorpay_payment_id → TransactionId
-            paymentMode,                      // 'UPI' | 'Card' | 'NetBanking' | 'Wallet'
+            transactionId: data.paymentId,
+            paymentMode,
           });
 
-          // Update progress in-place so user sees new amounts immediately
           setLivePost(prev => buildSafePost({
             ...prev,
             collectedAmount: (prev.raised ?? 0) + paymentAmount,
@@ -467,7 +416,6 @@ export default function RaiseFundScreen({ route, navigation }) {
           );
 
         } catch (err) {
-          // Razorpay succeeded but DB failed — still stay on screen
           Alert.alert(
             'Payment Done',
             `Payment received via ${paymentMode}\nTransaction ID: ${data.paymentId}\n(Record will sync shortly)`,
@@ -479,7 +427,7 @@ export default function RaiseFundScreen({ route, navigation }) {
 
       } else if (data.type === 'PAYMENT_CANCELLED') {
         setShowWebView(false);
-        setAmountModalVisible(true); // re-open amount modal
+        setAmountModalVisible(true);
 
       } else if (data.type === 'PAYMENT_FAILED') {
         setShowWebView(false);
@@ -607,11 +555,11 @@ export default function RaiseFundScreen({ route, navigation }) {
           safePost.bankName || safePost.accountNumber) && (
           <View style={s.beneficiaryCard}>
             <Text style={s.cardSectionLabel}>Beneficiary Details</Text>
-            {safePost.beneficiaryName  ? <Text style={s.beneficiaryText}>👤 {safePost.beneficiaryName}</Text>  : null}
-            {safePost.contactNumber    ? <Text style={s.beneficiaryText}>📞 {safePost.contactNumber}</Text>    : null}
-            {safePost.upiId            ? <Text style={s.beneficiaryText}>💳 UPI: {safePost.upiId}</Text>       : null}
-            {safePost.bankName         ? <Text style={s.beneficiaryText}>🏦 {safePost.bankName}</Text>         : null}
-            {safePost.accountNumber    ? <Text style={s.beneficiaryText}>🔢 A/C: {safePost.accountNumber}</Text>: null}
+            {safePost.beneficiaryName ? <Text style={s.beneficiaryText}>👤 {safePost.beneficiaryName}</Text> : null}
+            {safePost.contactNumber   ? <Text style={s.beneficiaryText}>📞 {safePost.contactNumber}</Text>   : null}
+            {safePost.upiId           ? <Text style={s.beneficiaryText}>💳 UPI: {safePost.upiId}</Text>      : null}
+            {safePost.bankName        ? <Text style={s.beneficiaryText}>🏦 {safePost.bankName}</Text>        : null}
+            {safePost.accountNumber   ? <Text style={s.beneficiaryText}>🔢 A/C: {safePost.accountNumber}</Text> : null}
           </View>
         )}
 
@@ -643,9 +591,6 @@ const s = StyleSheet.create({
   safe      : { flex: 1, backgroundColor: '#f5f4f0' },
   centered  : { flex: 1, justifyContent: 'center', alignItems: 'center' },
   scroll    : { padding: 16, paddingBottom: 60 },
-
-  backBtn   : { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
-  backText  : { fontSize: 15, color: '#333' },
 
   postCard  : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
   badge     : { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 10 },
@@ -713,9 +658,7 @@ const s = StyleSheet.create({
   amountInput   : { flex: 1, fontSize: 22, fontWeight: '600', color: '#111', paddingVertical: 14 },
   proceedBtn    : { backgroundColor: '#e8623a', borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-// inside StyleSheet.create({...}) — add these 3:
-minAmountBanner  : { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fef3ed', borderRadius: 8, padding: 10, marginBottom: 14 },
-minAmountText    : { fontSize: 13, color: '#e8623a', fontWeight: '600' },
-minAmountError   : { fontSize: 12, color: '#e8623a', marginTop: -14, marginBottom: 10, marginLeft: 4 },
-amountInputRowError: { borderColor: '#e8623a', borderWidth: 1.5 },
+
+  minAmountBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fef3ed', borderRadius: 8, padding: 10, marginBottom: 14 },
+  minAmountText  : { fontSize: 13, color: '#e8623a', fontWeight: '600' },
 });
