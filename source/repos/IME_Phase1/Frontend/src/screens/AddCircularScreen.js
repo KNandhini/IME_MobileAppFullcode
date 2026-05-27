@@ -15,8 +15,8 @@ const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
 const VISIBILITY_OPTIONS = [
-  { value: 'public',  label: 'Public',  sub: 'All Clubs' },
-  { value: 'private', label: 'Private', sub: 'This Club Only' },
+  { value: 'Public(All Clubs)',  label: 'Public',  sub: 'All Clubs' },
+  { value: 'Private(This Club Only)', label: 'Private', sub: 'This Club Only' },
 ];
 
 const AddCircularScreen = ({ route, navigation }) => {
@@ -25,7 +25,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [title,          setTitle]          = useState(editData?.title          || '');
   const [description,    setDescription]    = useState(editData?.description    || '');
   const [circularNumber, setCircularNumber] = useState(editData?.circularNumber || '');
-  const [visibility,     setVisibility]     = useState(editData?.visibility     || 'All');
+ // const [visibility,     setVisibility]     = useState(editData?.visibility     || 'All');
   const [publishDate,    setPublishDate]    = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );
@@ -224,6 +224,42 @@ const AddCircularScreen = ({ route, navigation }) => {
             />
           )}
 
+          {/* ── Visibility ── */}
+          <Text style={styles.label}>Visibility</Text>
+          <View style={styles.radioGroup}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const selected = visibility === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.radioOption, selected && styles.radioOptionSelected]}
+                  onPress={() => setVisibility(opt.value)}
+                  activeOpacity={0.8}
+                >
+                  {/* Radio circle */}
+                  <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+                    {selected && <View style={styles.radioInner} />}
+                  </View>
+
+                  {/* Text */}
+                  <View style={styles.radioTextWrap}>
+                    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
+                      {opt.label}
+                    </Text>
+                    <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
+                      {opt.sub}
+                    </Text>
+                  </View>
+
+                  {/* Icon */}
+                  <Text style={styles.radioIcon}>
+                    {opt.value === 'public' ? '🌐' : '🔒'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
           {/* Attachments */}
           <Text style={styles.label}>Attachments</Text>
           <View style={styles.attachGrid}>
@@ -375,13 +411,6 @@ const styles = StyleSheet.create({
   thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
   thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
   attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-  visRow         : { flexDirection: 'row', gap: 12, marginTop: 4 },
-  visOption      : { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#F8FAFC', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1.5, borderColor: '#E2E8F0' },
-  visOptionSelected: { borderColor: NAVY, backgroundColor: '#EEF2FF' },
-  visRadio       : { width: 16, height: 16, borderRadius: 8, borderWidth: 2, borderColor: '#CBD5E1' },
-  visRadioSelected: { borderColor: NAVY, backgroundColor: NAVY },
-  visLabel       : { fontSize: 13, color: '#64748B', fontWeight: '500' },
-  visLabelSelected: { color: NAVY, fontWeight: '700' },
   viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
   viewerImage    : { width: '100%', height: '80%' },
   viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },

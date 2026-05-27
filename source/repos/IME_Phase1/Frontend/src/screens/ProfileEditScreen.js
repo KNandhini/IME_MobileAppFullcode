@@ -12,12 +12,15 @@ import { clubService } from '../services/clubService';
 import { Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
+
 const ProfileEditScreen = ({ navigation }) => {
-const [profilePhoto, setProfilePhoto] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+
   // ── Loading / saving ──────────────────────────────────────────────────────
   const [pageLoading, setPageLoading] = useState(true);
   const [saving,      setSaving]      = useState(false);
   const [memberId,    setMemberId]    = useState(null);
+  const [clubId,      setClubId]      = useState(null); // ✅ added
 
   // ── Form data ─────────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
@@ -69,6 +72,11 @@ const [profilePhoto, setProfilePhoto] = useState(null);
 
       if (res.success && res.data) {
         const d = res.data;
+
+        // ✅ Store clubId from profile
+        const cid = d.clubId ?? d.ClubId ?? null;
+        setClubId(cid);
+
         setFormData({
           fullName:      d.fullName      || '',
           email:         d.email         || '',
@@ -76,13 +84,13 @@ const [profilePhoto, setProfilePhoto] = useState(null);
           address:       d.address       || '',
           gender:        d.gender        || '',
           age:           d.age != null   ? String(d.age) : '',
-       dateOfBirth: d.dateOfBirth ? d.dateOfBirth.split('T')[0] : '',
+          dateOfBirth:   d.dateOfBirth   ? d.dateOfBirth.split('T')[0] : '',
           designationId: d.designationId || 1,
         });
 
         if (d.profilePhoto) {
-  setProfilePhoto(`data:image/jpeg;base64,${d.profilePhoto}`);
-}
+          setProfilePhoto(`data:image/jpeg;base64,${d.profilePhoto}`);
+        }
         if (d.countryId) {
           setSelectedCountry({ countryId: d.countryId, countryName: d.countryName || '' });
           loadStates(d.countryId, d.stateId, d.stateName);
@@ -96,52 +104,92 @@ const [profilePhoto, setProfilePhoto] = useState(null);
       setPageLoading(false);
     }
   };
-const pickProfilePhoto = async () => {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-  if (status !== 'granted') {
-    Alert.alert('Permission needed', 'Please allow gallery access.');
-    return;
-  }
+  const pickProfilePhoto = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow gallery access.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+    if (!result.canceled && result.assets?.length > 0) {
+      setProfilePhoto(result.assets[0].uri);
+    }
+  };
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: false,
-    aspect: [1, 1],
-    quality: 0.7,
-  });
+ /* const uploadProfilePhoto = async (photoUri) => {
+    try {
+      debugger;
+      // ✅ Skip if still the server-loaded base64 (not a newly picked file)
+      if (photoUri.startsWith('data:')) {
+        console.log('Photo unchanged, skipping upload.');
+        return true;
+      }
 
-  if (!result.canceled && result.assets?.length > 0) {
-    setProfilePhoto(result.assets[0].uri);
-  }
-};
-const uploadProfilePhoto = async (photoUri) => {
+      const formData = new FormData();
+      formData.append('file', {
+        uri:  photoUri,
+        name: 'profile_photo.jpg',
+        type: 'image/jpeg',
+      });
+      formData.append('memberId', memberId.toString());
+
+      const baseUrl  = api.defaults.baseURL;
+      const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await response.json();
+      return json.success;
+    } catch (e) {
+      console.warn('Profile photo upload failed:', e.message);
+      return false;
+    }
+  };*/
+  const uploadProfilePhoto = async (photoUri) => {
   try {
-    debugger;
-    const formData = new FormData();
+    // Skip if still the server-loaded base64 (not a newly picked file)
+    if (photoUri.startsWith('data:')) {
+      console.log('Photo unchanged, skipping upload.');
+      return true;
+    }
 
+    const formData = new FormData();
     formData.append('file', {
-      uri: photoUri,
+      uri:  photoUri,
       name: 'profile_photo.jpg',
       type: 'image/jpeg',
     });
-
     formData.append('memberId', memberId.toString());
 
-    const baseUrl = api.defaults.baseURL;
-
+    const baseUrl  = api.defaults.baseURL;
     const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
       method: 'POST',
       body: formData,
     });
 
     const json = await response.json();
-    return json.success;
+
+    // ── Show API error message if upload failed ──
+    if (!json.success) {
+      Alert.alert('Photo Upload Failed', json.message || 'Failed to upload profile photo.');
+      return false;
+    }
+
+    return true;
   } catch (e) {
     console.warn('Profile photo upload failed:', e.message);
+    Alert.alert('Upload Error', 'Failed to upload profile photo. Please try again.');
     return false;
   }
 };
+
   const loadCountries = async () => {
     try {
       const res = await clubService.getCountries();
@@ -170,7 +218,7 @@ const uploadProfilePhoto = async (photoUri) => {
     }
   };
 
-  // ── Field updater (same rules as SignupScreen) ────────────────────────────
+  // ── Field updater ─────────────────────────────────────────────────────────
   const updateField = (field, value) => {
     let v = value;
     if      (field === 'fullName')      v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
@@ -213,11 +261,12 @@ const uploadProfilePhoto = async (photoUri) => {
   };
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  const handleSave = async () => {
+ /* const handleSave = async () => {
     if (!validate()) return;
     setSaving(true);
     try {
       const payload = {
+        memberId:      memberId,                          // ✅ added
         fullName:      formData.fullName,
         email:         formData.email,
         contactNumber: formData.contactNumber,
@@ -228,30 +277,75 @@ const uploadProfilePhoto = async (photoUri) => {
         designationId: formData.designationId,
         countryId:     selectedCountry?.countryId ?? null,
         stateId:       selectedState?.stateId     ?? null,
+        clubId:        clubId,                            // ✅ added
       };
 
+      console.log('Update payload:', JSON.stringify(payload)); // ✅ helpful for debugging
+
       const res = await memberService.updateProfile(memberId, payload);
-     
-if (res.success) {
-  // Upload image AFTER profile update
- if (profilePhoto) {
-  await uploadProfilePhoto(profilePhoto);
-}
 
-  Alert.alert('Success', 'Profile updated successfully!', [
-    { text: 'OK', onPress: () => navigation.goBack() },
-  ]);
-
-} else {
-  Alert.alert('Failed', res.message || 'Update failed.');
-}
+      if (res.success) {
+        // Upload image AFTER profile update
+        if (profilePhoto) {
+          await uploadProfilePhoto(profilePhoto);
+        }
+        Alert.alert('Success', 'Profile updated successfully!', [
+          { text: 'OK', onPress: () => navigation.goBack() },
+        ]);
+      } else {
+        Alert.alert('Failed', res.message || 'Update failed.');
+      }
     } catch (e) {
       Alert.alert('Error', e?.message || 'An error occurred.');
     } finally {
       setSaving(false);
     }
   };
+*/
+const handleSave = async () => {
+  if (!validate()) return;
+  setSaving(true);
+  try {
+    const payload = {
+      memberId:      memberId,
+      fullName:      formData.fullName,
+      email:         formData.email,
+      contactNumber: formData.contactNumber,
+      address:       formData.address,
+      gender:        formData.gender,
+      age:           parseInt(formData.age),
+      dateOfBirth:   formData.dateOfBirth,
+      designationId: formData.designationId,
+      countryId:     selectedCountry?.countryId ?? null,
+      stateId:       selectedState?.stateId     ?? null,
+      clubId:        clubId,
+    };
 
+    const res = await memberService.updateProfile(memberId, payload);
+
+    if (res.success) {
+      // Upload photo and check result
+      if (profilePhoto) {
+        const photoUploaded = await uploadProfilePhoto(profilePhoto);
+        if (!photoUploaded) {
+          // Profile saved but photo failed — stay on screen
+          // Alert already shown inside uploadProfilePhoto
+          return;
+        }
+      }
+      // Both profile + photo saved successfully
+      Alert.alert('Success', 'Profile updated successfully!', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } else {
+      Alert.alert('Failed', res.message || 'Update failed.');
+    }
+  } catch (e) {
+    Alert.alert('Error', e?.message || 'An error occurred.');
+  } finally {
+    setSaving(false);
+  }
+};
   // ── Loading screen ────────────────────────────────────────────────────────
   if (pageLoading) {
     return (
@@ -281,25 +375,22 @@ if (res.success) {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.content}>
-{/* ── Profile Image ── */}
-<View style={styles.profileContainer}>
-  <TouchableOpacity onPress={pickProfilePhoto}>
-    {profilePhoto ? (
-      <Image
-        source={{ uri: profilePhoto }}
-        style={styles.profileImage}
-      />
-    ) : (
-      <View style={styles.profilePlaceholder}>
-        <Text style={styles.profileInitial}>
-          {formData.fullName
-            ? formData.fullName.charAt(0).toUpperCase()
-            : 'U'}
-        </Text>
-      </View>
-    )}
-  </TouchableOpacity>
-</View>
+
+          {/* ── Profile Image ── */}
+          <View style={styles.profileContainer}>
+            <TouchableOpacity onPress={pickProfilePhoto}>
+              {profilePhoto ? (
+                <Image source={{ uri: profilePhoto }} style={styles.profileImage} />
+              ) : (
+                <View style={styles.profilePlaceholder}>
+                  <Text style={styles.profileInitial}>
+                    {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : 'U'}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+
           {/* ── Personal Information ── */}
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
@@ -598,33 +689,11 @@ const styles = StyleSheet.create({
   pickerEmpty:          { textAlign: 'center', color: '#888', paddingVertical: 24 },
   pickerCancel:         { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   pickerCancelText:     { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-  profileContainer: {
-  alignItems: 'center',
-  marginBottom: 20,
-},
 
-profileImage: {
-  width: 110,
-  height: 110,
-  borderRadius: 55,
-  borderWidth: 3,
-  borderColor: '#fff',
-},
-
-profilePlaceholder: {
-  width: 110,
-  height: 110,
-  borderRadius: 55,
-  backgroundColor: '#6A5ACD',
-  justifyContent: 'center',
-  alignItems: 'center',
-},
-
-profileInitial: {
-  fontSize: 40,
-  color: '#fff',
-  fontWeight: 'bold',
-},
+  profileContainer:    { alignItems: 'center', marginBottom: 20 },
+  profileImage:        { width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#fff' },
+  profilePlaceholder:  { width: 110, height: 110, borderRadius: 55, backgroundColor: '#6A5ACD', justifyContent: 'center', alignItems: 'center' },
+  profileInitial:      { fontSize: 40, color: '#fff', fontWeight: 'bold' },
 });
 
 export default ProfileEditScreen;
