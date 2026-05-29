@@ -86,6 +86,13 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<LawBotService>();
 builder.Services.AddScoped<IMunicipalCorpRepository, MunicipalCorpRepository>();
+builder.Services.AddScoped<IWebScraperService, WebScraperService>();
+builder.Services.AddHttpClient("scraper", client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) IMEApp/1.0");
+    client.Timeout = TimeSpan.FromSeconds(15);
+});
 // Register Services
 builder.Services.AddSingleton(new JwtService(
     jwtSettings["SecretKey"]!,

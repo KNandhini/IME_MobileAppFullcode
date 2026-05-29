@@ -4,6 +4,7 @@ import {
   ActivityIndicator, StatusBar, Linking, RefreshControl,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import api from '../utils/api';
 
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
@@ -12,7 +13,7 @@ const GOLD = '#D4A017';
 const BG = '#F0F4F8';
 const GREEN = '#2D9B6F';
 const CRIMSON = '#C0392B';
- 
+
 const TABS = [
   { key: 'about', label: 'About', icon: 'information-outline' },
   { key: 'org', label: 'Organisation', icon: 'sitemap' },
@@ -20,14 +21,32 @@ const TABS = [
   { key: 'pop', label: 'Population', icon: 'account-group-outline' },
   { key: 'places', label: 'Places', icon: 'map-marker-star-outline' },
 ];
- 
-function officialSite(corpName) {
-  const n = (corpName || '').toLowerCase();
-  if (n.includes('chennai')) return 'https://chennaicorporation.gov.in';
-  if (n.includes('coimbatore')) return 'https://ccmc.gov.in';
-  if (n.includes('madurai')) return 'https://maduraicorporation.gov.in';
-  if (n.includes('trichy') || n.includes('tiruchirappalli')) return 'https://www.tmc.tn.gov.in';
-  return 'https://www.tnurbantree.tn.gov.in';
+
+// Module-level cache: corpKey → { pageText, sourceUrl }
+const _scrapeCache = {};
+
+async function scrapeCorpPage(corpName, stateName) {
+  const key = `${corpName}__${stateName}`.toLowerCase();
+  if (_scrapeCache[key] !== undefined) return _scrapeCache[key];
+
+  try {
+    const res = await api.get(
+      `/MunicipalCorp/scrape/${encodeURIComponent(corpName)}`,
+      { params: { state: stateName }, timeout: 25000 }
+    );
+    const data = res.data?.data;
+    console.log('[Scrape] success:', data?.success, 'url:', data?.sourceUrl,
+      'textLen:', data?.pageText?.length ?? 0, 'error:', data?.error);
+    const result = data?.success && data?.pageText
+      ? { pageText: data.pageText, sourceUrl: data.sourceUrl }
+      : null;
+    _scrapeCache[key] = result;
+    return result;
+  } catch (err) {
+    console.warn('[Scrape] request failed:', err.message);
+    _scrapeCache[key] = null;
+    return null;
+  }
 }
  
 async function fetchAI(systemPrompt, userPrompt) {
@@ -44,7 +63,7 @@ async function fetchAI(systemPrompt, userPrompt) {
         { role: 'user', content: userPrompt },
       ],
       temperature: 0,
-      max_tokens: 2000,
+      max_tokens: 3000,
     }),
   });
   if (!response.ok) {
@@ -54,6 +73,7 @@ async function fetchAI(systemPrompt, userPrompt) {
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
   if (!content) throw new Error('Empty response from OpenAI');
+  console.log('[AI raw]', content.slice(0, 300));
   return cleanJSON(content);
 }
  
@@ -68,110 +88,45 @@ function cleanJSON(raw) {
     .replace(/,\s*([}\]])/g, '$1');
 }
  
-function sysPrompt(corpName, districtName) {
-  const site = officialSite(corpName);
-  return `You are a civic data assistant for Tamil Nadu, India.
- 
-SEARCH these official government sources for "${corpName}, ${districtName}, Tamil Nadu":
-- ${site}
-- https://www.tnurbantree.tn.gov.in
-- https://tnmaws.gov.in
-- https://www.tn.gov.in
-- https://censusindia.gov.in
-- Wikipedia: "${corpName} Tamil Nadu"
- 
+function sysPrompt(corpName, districtName, stateName, sourceUrl, pageText) {
+  let prompt = `You are a civic data extractor for Indian municipal bodies.
+Extract structured data for "${corpName}, ${districtName}, ${stateName}".
+
 Rules:
-1. Use ONLY real data found on these websites. Do NOT invent data.
-2. If a field is not found write: "Not available on official website".
-3. Return ONLY a raw JSON object — start with { end with }.
-4. No markdown, no explanation, no code fences.
-5. Plain numbers only — no underscores (8653949 not 8_653_949).`;
+1. PREFER data from the official website content provided below.
+2. For fields not found in the website content, use your training knowledge about this specific corporation.
+3. Only write "Not available" if you genuinely have no data at all for a field.
+4. Return ONLY a raw JSON object — start with { end with }.
+5. No markdown, no explanation, no code fences.
+6. Plain numbers only — no underscores (8653949 not 8_653_949).
+7. Official website: ${sourceUrl ?? 'unknown'}`;
+
+  if (pageText) {
+    prompt += `\n\n=== OFFICIAL WEBSITE CONTENT (use this first) ===\n${pageText}\n=== END ===`;
+  } else {
+    prompt += `\n\n(Website could not be fetched — use your training knowledge for this corporation.)`;
+  }
+  return prompt;
 }
  
-function userPrompt(tab, corpName, districtName) {
-  const name = `${corpName}, ${districtName}, Tamil Nadu`;
- 
-  if (tab === 'about') return `Search official website and Wikipedia for "${name}". Return:
-{
-  "type": "Corporation or Municipality or Town Panchayat",
-  "established": "year",
-  "mayor_or_chairman": "current name",
-  "commissioner": "current name",
-  "headquarters": "full address",
-  "wards": number,
-  "area_sqkm": number,
-  "overview": "2-3 sentences from official site",
-  "key_facts": ["fact1","fact2","fact3","fact4"],
-  "source": "URL used"
-}`;
- 
-  if (tab === 'org') return `Search official website and tnmaws.gov.in for "${name}". Return:
-{
-  "elected_body": [
-    { "role": "Mayor / Chairman", "description": "current name and role" },
-    { "role": "Deputy Mayor", "description": "current name" },
-    { "role": "Ward Councillors", "description": "count and election year" }
-  ],
-  "administrative": [
-    { "role": "Commissioner", "description": "current name and responsibilities" },
-    { "role": "Additional Commissioner", "description": "responsibilities" },
-    { "role": "Revenue Officer", "description": "responsibilities" },
-    { "role": "Health Officer", "description": "responsibilities" },
-    { "role": "City Engineer", "description": "responsibilities" },
-    { "role": "Town Planning Officer", "description": "responsibilities" }
-  ],
-  "departments": ["dept1","dept2","dept3"],
-  "source": "URL used"
-}`;
- 
-  if (tab === 'schemes') return `Search tnurbantree.tn.gov.in, tn.gov.in for ACTIVE schemes in "${name}". Include PMAY, AMRUT, SBM, Smart Cities, TNSCB. Return:
-{
-  "central_schemes": [
-    { "name": "scheme", "ministry": "ministry", "benefit": "benefit", "eligibility": "who", "how_to_apply": "where" }
-  ],
-  "state_schemes": [
-    { "name": "scheme", "department": "dept", "benefit": "benefit", "eligibility": "who", "how_to_apply": "where" }
-  ],
-  "corporation_schemes": [
-    { "name": "local scheme", "benefit": "benefit", "eligibility": "who" }
-  ],
-  "source": "URLs used"
-}`;
- 
-  if (tab === 'pop') return `Search censusindia.gov.in for 2011 Census data for "${name}". Return:
-{
-  "total_population": number,
-  "population_year": "Census 2011 (Official)",
-  "male": number,
-  "female": number,
-  "sex_ratio": number,
-  "literacy_rate": "percentage",
-  "population_density": "per sq km",
-  "sc_population": number or "Not available",
-  "st_population": number or "Not available",
-  "household_count": number or "Not available",
-  "growth_rate": "2001 to 2011 %",
-  "languages": ["Tamil","others"],
-  "source": "census URL"
-}`;
- 
-  if (tab === 'places') return `Search tamilnadutourism.tn.gov.in and Wikipedia for real places in "${name}". Return:
-{
-  "tourist_spots": [
-    { "name": "place", "type": "Temple|Fort|Lake|Park|Museum|Monument|Beach|Dam", "description": "2 sentences", "distance_from_center": "X km", "entry_fee": "free or Rs amount" }
-  ],
-  "religious_places": [
-    { "name": "place", "deity_or_faith": "deity/faith", "significance": "why important", "location": "area" }
-  ],
-  "nature_spots": [
-    { "name": "place", "description": "what it is", "best_time": "season" }
-  ],
-  "local_attractions": [
-    { "name": "place", "why_visit": "reason", "location": "area" }
-  ],
-  "source": "URLs used"
-}`;
- 
+function userPrompt(tab, corpName, districtName, stateName) {
+  const name = `${corpName}, ${districtName}, ${stateName}`;
+
+  if (tab === 'about') return `Extract general information for "${name}" and return ONLY this JSON:
+{"type":"string","established":"year or unknown","mayor_or_chairman":"name or unknown","commissioner":"name or unknown","headquarters":"address or unknown","wards":0,"area_sqkm":0,"overview":"2-3 sentences","key_facts":["fact1","fact2","fact3"],"source":"url"}`;
+
+  if (tab === 'org') return `Extract organisation/staff information for "${name}" and return ONLY this JSON:
+{"elected_body":[{"role":"Mayor / Chairman","description":"name"},{"role":"Deputy Mayor","description":"name"},{"role":"Ward Councillors","description":"count"}],"administrative":[{"role":"Commissioner","description":"name"},{"role":"Additional Commissioner","description":"name or not available"},{"role":"Revenue Officer","description":"name or not available"},{"role":"Health Officer","description":"name or not available"},{"role":"City Engineer","description":"name or not available"},{"role":"Town Planning Officer","description":"name or not available"}],"departments":["dept1","dept2","dept3"],"source":"url"}`;
+
+  if (tab === 'schemes') return `List active government schemes for "${name}" and return ONLY this JSON:
+{"central_schemes":[{"name":"scheme","ministry":"ministry","benefit":"benefit","eligibility":"who","how_to_apply":"where"}],"state_schemes":[{"name":"scheme","department":"dept","benefit":"benefit","eligibility":"who","how_to_apply":"where"}],"corporation_schemes":[{"name":"local scheme","benefit":"benefit","eligibility":"who"}],"source":"url"}`;
+
+  if (tab === 'pop') return `Provide 2011 Census population data for "${name}" and return ONLY this JSON:
+{"total_population":0,"population_year":"Census 2011","male":0,"female":0,"sex_ratio":0,"literacy_rate":"percent","population_density":"per sq km","sc_population":0,"st_population":0,"household_count":0,"growth_rate":"percent","languages":["Tamil"],"source":"url"}`;
+
+  if (tab === 'places') return `List tourist and religious places in "${name}" and return ONLY this JSON:
+{"tourist_spots":[{"name":"place","type":"Temple|Fort|Lake|Park|Museum|Dam","description":"2 sentences","distance_from_center":"X km","entry_fee":"free or amount"}],"religious_places":[{"name":"place","deity_or_faith":"deity","significance":"why important","location":"area"}],"nature_spots":[{"name":"place","description":"what it is","best_time":"season"}],"local_attractions":[{"name":"place","why_visit":"reason","location":"area"}],"source":"url"}`;
+
   return '{}';
 }
  
@@ -207,10 +162,13 @@ const CorpDetailScreen = ({ route, navigation }) => {
     setTabLoading(p => ({ ...p, [tab]: true }));
     setTabError(p => ({ ...p, [tab]: null }));
     try {
-      const sys = sysPrompt(corp.corpName, districtName);
-      const user = userPrompt(tab, corp.corpName, districtName);
-      const raw = await fetchAI(sys, user);
-      const obj = JSON.parse(raw);
+      // Backend fetches + parses the official website (no CORS issues)
+      const scraped = await scrapeCorpPage(corp.corpName, stateName || 'Tamil Nadu');
+      console.log(`[FetchTab:${tab}] scraped=`, scraped ? `✓ ${scraped.sourceUrl}` : '✗ null');
+      const sys  = sysPrompt(corp.corpName, districtName, stateName, scraped?.sourceUrl, scraped?.pageText);
+      const user = userPrompt(tab, corp.corpName, districtName, stateName || 'Tamil Nadu');
+      const raw  = await fetchAI(sys, user);
+      const obj  = JSON.parse(raw);
       setTabData(p => ({ ...p, [tab]: obj }));
     } catch (err) {
       console.error(`[Detail] ${tab}:`, err.message);
@@ -218,7 +176,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
     } finally {
       setTabLoading(p => ({ ...p, [tab]: false }));
     }
-  }, [tabData, corp.corpName, districtName]);
+  }, [tabData, corp.corpName, districtName, stateName]);
  
   useEffect(() => { fetchTab(activeTab); }, [activeTab]);
  
@@ -226,11 +184,16 @@ const CorpDetailScreen = ({ route, navigation }) => {
     setRefreshing(true);
     setTabData({});
     setTabError({});
+    // Clear cached scrape so it re-fetches on refresh
+    const cacheKey = `${corp.corpName}__${stateName || 'Tamil Nadu'}`.toLowerCase();
+    delete _scrapeCache[cacheKey];
     await fetchTab(activeTab, true);
     setRefreshing(false);
-  }, [activeTab, fetchTab]);
+  }, [activeTab, fetchTab, corp.corpName, stateName]);
  
   const retryTab = () => {
+    const cacheKey = `${corp.corpName}__${stateName || 'Tamil Nadu'}`.toLowerCase();
+    delete _scrapeCache[cacheKey];
     setTabData(p => { const n = { ...p }; delete n[activeTab]; return n; });
     setTabError(p => { const n = { ...p }; delete n[activeTab]; return n; });
   };
@@ -240,7 +203,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
   }, [tabData, activeTab]);
  
   const openMap = () => Linking.openURL(
-    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${corp.corpName}, ${districtName}, Tamil Nadu`)}`
+    `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${corp.corpName}, ${districtName}, ${stateName}`)}`
   );
  
   const d = tabData[activeTab];
@@ -317,7 +280,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
           <View style={{ alignItems: 'center', paddingTop: 80 }}>
             <ActivityIndicator size="large" color={GOLD} />
             <Text style={styles.loadTitle}>Searching official website…</Text>
-            <Text style={styles.loadSub}>{officialSite(corp.corpName).replace('https://', '')}</Text>
+            <Text style={styles.loadSub}>Fetching from official website…</Text>
           </View>
         )}
  

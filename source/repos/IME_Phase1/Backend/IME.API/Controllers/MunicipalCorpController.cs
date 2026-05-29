@@ -12,10 +12,39 @@ namespace IME.API.Controllers;
 public class MunicipalCorpController : ControllerBase
 {
     private readonly IMunicipalCorpRepository _repo;
+    private readonly IWebScraperService _scraper;
 
-    public MunicipalCorpController(IMunicipalCorpRepository repo)
+    public MunicipalCorpController(IMunicipalCorpRepository repo, IWebScraperService scraper)
     {
-        _repo = repo;
+        _repo    = repo;
+        _scraper = scraper;
+    }
+
+    // GET /api/MunicipalCorp/scrape/Erode?state=Tamil%20Nadu
+    [HttpGet("scrape/{corpName}")]
+    public async Task<ActionResult<ApiResponse<CorpScrapeDTO>>> ScrapeCorpPage(
+        string corpName, [FromQuery] string state = "Tamil Nadu")
+    {
+        try
+        {
+            var result = await _scraper.ScrapeCorpPageAsync(
+                Uri.UnescapeDataString(corpName), state);
+
+            return Ok(new ApiResponse<CorpScrapeDTO>
+            {
+                Success = result.Success,
+                Message = result.Success ? "Scraped successfully" : result.Error,
+                Data    = result
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<CorpScrapeDTO>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
     }
 
     [HttpGet("districts/{stateId:int}")]

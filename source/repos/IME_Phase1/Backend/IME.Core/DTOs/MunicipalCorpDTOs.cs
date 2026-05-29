@@ -1,5 +1,15 @@
 namespace IME.Core.DTOs;
 
+public class CorpScrapeDTO
+{
+    public string CorpName { get; set; } = string.Empty;
+    public string StateName { get; set; } = string.Empty;
+    public string SourceUrl { get; set; } = string.Empty;
+    public string? PageText { get; set; }
+    public bool Success { get; set; }
+    public string? Error { get; set; }
+}
+
 public class DistrictDTO
 {
     public int DistrictId { get; set; }
