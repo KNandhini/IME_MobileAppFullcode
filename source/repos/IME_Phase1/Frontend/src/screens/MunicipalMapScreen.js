@@ -19,6 +19,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { clubService } from '../services/clubService';
+import api from '../utils/api';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -967,40 +968,11 @@ const safeParseAI = content => {
 };
 
 const fetchCorpsFromAI = async (districtName, stateName) => {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      response_format: { type: 'json_object' },
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert on Indian municipal governance. Always respond with valid JSON only.',
-        },
-        {
-          role: 'user',
-          content:
-            `List all municipal bodies in ${districtName} district, ${stateName}, India. ` +
-            `Return JSON exactly: {"corporations":[{"name":string,"type":string,"ward_count":number|null,"population":number|null}]} ` +
-            `where type is one of: Municipal Corporation, Municipality, Town Panchayat, Nagar Panchayat.`,
-        },
-      ],
-      temperature: 0,
-      max_tokens: 4000,
-    }),
+  const res = await api.get('/MunicipalCorp/ai-corps', {
+    params:  { district: districtName, state: stateName },
+    timeout: 35000,
   });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`OpenAI ${response.status}: ${body.slice(0, 120)}`);
-  }
-  const data   = await response.json();
-  const parsed = safeParseAI(data.choices?.[0]?.message?.content);
-  return parsed.corporations || parsed.municipalities || parsed.data || parsed.results || [];
+  return res.data?.data || [];
 };
 
 const fetchDistrictsFromAI = async stateName => {

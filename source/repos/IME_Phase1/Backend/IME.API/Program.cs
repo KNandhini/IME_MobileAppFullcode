@@ -1,6 +1,7 @@
 using IME.Core.Interfaces;
 using IME.Infrastructure.Data;
 using IME.Infrastructure.Repositories;
+using IME.Infrastructure.Repositories;
 using IME.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -86,12 +87,40 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<LawBotService>();
 builder.Services.AddScoped<IMunicipalCorpRepository, MunicipalCorpRepository>();
+builder.Services.AddScoped<ILocalBodyRepository, LocalBodyRepository>();
+
+// Reads LocalBodies_URLs.csv once at startup — path in appsettings "LocalBodiesUrlFile"
+builder.Services.AddSingleton<CsvUrlRegistryService>();
+builder.Services.AddScoped<IAIUrlResolverService, AIUrlResolverService>();
 builder.Services.AddScoped<IWebScraperService, WebScraperService>();
 builder.Services.AddHttpClient("scraper", client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) IMEApp/1.0");
-    client.Timeout = TimeSpan.FromSeconds(15);
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+    client.DefaultRequestHeaders.Add("Accept",
+        "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    client.DefaultRequestHeaders.Add("Accept-Language", "en-US,en;q=0.9,ta;q=0.8");
+    // NOTE: Do NOT add Accept-Encoding manually — AutomaticDecompression below handles
+    // gzip/deflate and adds the header itself. Adding it manually causes binary data
+    // to be returned without being decompressed (garbled Wikipedia response).
+    client.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
+    client.Timeout = TimeSpan.FromSeconds(55); // must be > all CTSs (20 s main, 10 s tnurbantree)
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+    // Auto-decompress gzip/deflate/brotli so content is always readable text
+    AutomaticDecompression = System.Net.DecompressionMethods.GZip
+                           | System.Net.DecompressionMethods.Deflate
+                           | System.Net.DecompressionMethods.Brotli,
+    // Allow cookies — some government sites (tnurbantree) need a session cookie to respond
+    UseCookies            = true,
+    CookieContainer       = new System.Net.CookieContainer(),
+    // Follow redirects automatically (gov sites often redirect http → https)
+    AllowAutoRedirect     = true,
+    MaxAutomaticRedirections = 5,
+    // Don't fail on invalid SSL certificates (some .tn.gov.in sites have cert issues)
+    ServerCertificateCustomValidationCallback =
+        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
 });
 // Register Services
 builder.Services.AddSingleton(new JwtService(

@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../utils/api';
+import { localBodyService } from '../services/localBodyService';
 
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
@@ -16,10 +17,6 @@ const CRIMSON = '#C0392B';
 
 const TABS = [
   { key: 'about', label: 'About', icon: 'information-outline' },
-  { key: 'org', label: 'Organisation', icon: 'sitemap' },
-  { key: 'schemes', label: 'Schemes', icon: 'clipboard-list-outline' },
-  { key: 'pop', label: 'Population', icon: 'account-group-outline' },
-  { key: 'places', label: 'Places', icon: 'map-marker-star-outline' },
 ];
 
 // Module-level cache: corpKey → { pageText, sourceUrl }
@@ -32,14 +29,22 @@ async function scrapeCorpPage(corpName, stateName) {
   try {
     const res = await api.get(
       `/MunicipalCorp/scrape/${encodeURIComponent(corpName)}`,
-      { params: { state: stateName }, timeout: 25000 }
+      { params: { state: stateName }, timeout: 80000 }
     );
     const data = res.data?.data;
-    console.log('[Scrape] success:', data?.success, 'url:', data?.sourceUrl,
-      'textLen:', data?.pageText?.length ?? 0, 'error:', data?.error);
-    const result = data?.success && data?.pageText
-      ? { pageText: data.pageText, sourceUrl: data.sourceUrl }
+
+    // Log every URL result
+    (data?.urlResults || []).forEach((r, i) => {
+      console.log(`[Scrape URL ${i}] ${r.success ? '✓' : '✗'} ${r.url}`,
+        r.success ? `(${r.pageText?.length ?? 0} chars)` : '');
+    });
+
+    // Use the backend's combined pageText — it already merges ALL successful URLs
+    // (Wikipedia + tnurbantree) and is capped at 14 000 chars for optimal AI use.
+    const result = data?.pageText
+      ? { pageText: data.pageText, sourceUrl: data?.sourceUrl, urlResults: data?.urlResults, officers: data?.officers || [] }
       : null;
+
     _scrapeCache[key] = result;
     return result;
   } catch (err) {
@@ -50,29 +55,14 @@ async function scrapeCorpPage(corpName, stateName) {
 }
  
 async function fetchAI(systemPrompt, userPrompt) {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
-      temperature: 0,
-      max_tokens: 3000,
-    }),
-  });
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`OpenAI ${response.status}: ${body.slice(0, 120)}`);
-  }
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content;
-  if (!content) throw new Error('Empty response from OpenAI');
+  const res = await api.post(
+    '/MunicipalCorp/ai-detail',
+    { systemPrompt, userPrompt },
+    { timeout: 60000 }
+  );
+  if (!res.data?.success) throw new Error(res.data?.message || 'AI request failed');
+  const content = res.data.data;
+  if (!content) throw new Error('Empty response from AI');
   console.log('[AI raw]', content.slice(0, 300));
   return cleanJSON(content);
 }
@@ -92,14 +82,25 @@ function sysPrompt(corpName, districtName, stateName, sourceUrl, pageText) {
   let prompt = `You are a civic data extractor for Indian municipal bodies.
 Extract structured data for "${corpName}, ${districtName}, ${stateName}".
 
+The content below has TWO blocks — they have DIFFERENT priorities:
+
+BLOCK 1 — "KEY OFFICERS" (from the official government website tnurbantree):
+  - Format: "ROLE: Name"  e.g. "COMMISSIONER: Thiru.ARPIT JAIN, I.A.S"
+  - This is the OFFICIAL and MOST CURRENT data. Always prefer this for person names.
+
+BLOCK 2 — "KEY INFORMATION" (from Wikipedia infobox):
+  - Format: "Role: Name"  e.g. "Commissioner: V. Sivakrishnamoorthy IAS"
+  - Wikipedia is often OUTDATED for officer appointments. Use it only as fallback when KEY OFFICERS does not have the name.
+
 Rules:
-1. PREFER data from the official website content provided below.
-2. For fields not found in the website content, use your training knowledge about this specific corporation.
-3. Only write "Not available" if you genuinely have no data at all for a field.
-4. Return ONLY a raw JSON object — start with { end with }.
-5. No markdown, no explanation, no code fences.
-6. Plain numbers only — no underscores (8653949 not 8_653_949).
-7. Official website: ${sourceUrl ?? 'unknown'}`;
+1. For ALL person names (Commissioner, Mayor, officers): use KEY OFFICERS block first. If not found there, use KEY INFORMATION as fallback.
+2. NEVER prefer Wikipedia name over KEY OFFICERS name for the same role — government website is more current.
+3. For static facts (area, year, wards, population, schemes, places): use KEY INFORMATION or training knowledge.
+4. If a name is not found in either block, use training knowledge — do NOT write "Not available".
+5. Return ONLY a raw JSON object — start with { end with }.
+6. No markdown, no explanation, no code fences.
+7. Plain numbers only — no underscores.
+8. Official website: ${sourceUrl ?? 'unknown'}`;
 
   if (pageText) {
     prompt += `\n\n=== OFFICIAL WEBSITE CONTENT (use this first) ===\n${pageText}\n=== END ===`;
@@ -112,20 +113,14 @@ Rules:
 function userPrompt(tab, corpName, districtName, stateName) {
   const name = `${corpName}, ${districtName}, ${stateName}`;
 
-  if (tab === 'about') return `Extract general information for "${name}" and return ONLY this JSON:
-{"type":"string","established":"year or unknown","mayor_or_chairman":"name or unknown","commissioner":"name or unknown","headquarters":"address or unknown","wards":0,"area_sqkm":0,"overview":"2-3 sentences","key_facts":["fact1","fact2","fact3"],"source":"url"}`;
-
-  if (tab === 'org') return `Extract organisation/staff information for "${name}" and return ONLY this JSON:
-{"elected_body":[{"role":"Mayor / Chairman","description":"name"},{"role":"Deputy Mayor","description":"name"},{"role":"Ward Councillors","description":"count"}],"administrative":[{"role":"Commissioner","description":"name"},{"role":"Additional Commissioner","description":"name or not available"},{"role":"Revenue Officer","description":"name or not available"},{"role":"Health Officer","description":"name or not available"},{"role":"City Engineer","description":"name or not available"},{"role":"Town Planning Officer","description":"name or not available"}],"departments":["dept1","dept2","dept3"],"source":"url"}`;
-
-  if (tab === 'schemes') return `List active government schemes for "${name}" and return ONLY this JSON:
-{"central_schemes":[{"name":"scheme","ministry":"ministry","benefit":"benefit","eligibility":"who","how_to_apply":"where"}],"state_schemes":[{"name":"scheme","department":"dept","benefit":"benefit","eligibility":"who","how_to_apply":"where"}],"corporation_schemes":[{"name":"local scheme","benefit":"benefit","eligibility":"who"}],"source":"url"}`;
-
-  if (tab === 'pop') return `Provide 2011 Census population data for "${name}" and return ONLY this JSON:
-{"total_population":0,"population_year":"Census 2011","male":0,"female":0,"sex_ratio":0,"literacy_rate":"percent","population_density":"per sq km","sc_population":0,"st_population":0,"household_count":0,"growth_rate":"percent","languages":["Tamil"],"source":"url"}`;
-
-  if (tab === 'places') return `List tourist and religious places in "${name}" and return ONLY this JSON:
-{"tourist_spots":[{"name":"place","type":"Temple|Fort|Lake|Park|Museum|Dam","description":"2 sentences","distance_from_center":"X km","entry_fee":"free or amount"}],"religious_places":[{"name":"place","deity_or_faith":"deity","significance":"why important","location":"area"}],"nature_spots":[{"name":"place","description":"what it is","best_time":"season"}],"local_attractions":[{"name":"place","why_visit":"reason","location":"area"}],"source":"url"}`;
+  if (tab === 'about') return `Extract general information for "${name}". Return ONLY valid JSON with real values — never return template placeholders:
+{"type":"Municipality","established":"1985","mayor_or_chairman":"Full Name","commissioner":"Full Name","headquarters":"Municipal Office, City - 636001","wards":24,"area_sqkm":15.5,"overview":"2-3 sentence description of the place.","key_facts":["Fact about history","Fact about economy","Fact about features"],"source":"https://official-url"}
+Rules:
+- "type" must be exactly one of: Municipal Corporation, Municipality, Town Panchayat, Village Panchayat
+- Use null (not the word "unknown") for person names you do not know
+- "established" must be a 4-digit year number or null — never the word "unknown"
+- All values must be real data, never the words "string", "unknown", "name", "url", "fact"
+- Return ONLY the JSON object, no markdown`;
 
   return '{}';
 }
@@ -141,6 +136,9 @@ const CorpDetailScreen = ({ route, navigation }) => {
   const [tabLoading, setTabLoading] = useState({});
   const [tabError, setTabError] = useState({});
   const [refreshing, setRefreshing] = useState(false);
+  // Master data from the LocalBodies DB — loaded once on mount, shown instantly
+  const [masterData, setMasterData] = useState(null);
+  const [masterLoading, setMasterLoading] = useState(true);
  
   if (!corp?.corpName) {
     return (
@@ -169,6 +167,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
       const user = userPrompt(tab, corp.corpName, districtName, stateName || 'Tamil Nadu');
       const raw  = await fetchAI(sys, user);
       const obj  = JSON.parse(raw);
+      if (scraped?.sourceUrl) obj._sourceUrl = scraped.sourceUrl;
       setTabData(p => ({ ...p, [tab]: obj }));
     } catch (err) {
       console.error(`[Detail] ${tab}:`, err.message);
@@ -179,17 +178,31 @@ const CorpDetailScreen = ({ route, navigation }) => {
   }, [tabData, corp.corpName, districtName, stateName]);
  
   useEffect(() => { fetchTab(activeTab); }, [activeTab]);
+
+  // Load master data once on mount — instant display, no AI needed for basic info
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      setMasterLoading(true);
+      const data = await localBodyService.searchLocalBody(corp.corpName, districtName || null);
+      if (active) { setMasterData(data); setMasterLoading(false); }
+    })();
+    return () => { active = false; };
+  }, [corp.corpName, districtName]);
  
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     setTabData({});
     setTabError({});
-    // Clear cached scrape so it re-fetches on refresh
+    setMasterData(null);
     const cacheKey = `${corp.corpName}__${stateName || 'Tamil Nadu'}`.toLowerCase();
     delete _scrapeCache[cacheKey];
+    localBodyService.clearCache();
+    const fresh = await localBodyService.searchLocalBody(corp.corpName, districtName || null);
+    setMasterData(fresh);
     await fetchTab(activeTab, true);
     setRefreshing(false);
-  }, [activeTab, fetchTab, corp.corpName, stateName]);
+  }, [activeTab, fetchTab, corp.corpName, stateName, districtName]);
  
   const retryTab = () => {
     const cacheKey = `${corp.corpName}__${stateName || 'Tamil Nadu'}`.toLowerCase();
@@ -242,10 +255,19 @@ const CorpDetailScreen = ({ route, navigation }) => {
             <Text style={styles.stripText}>{corp.population}</Text>
           </View>
         )}
-        <View style={styles.stripItem}>
-          <MaterialCommunityIcons name="web" size={13} color={GOLD} />
-          <Text style={styles.stripText}>Live • Official sites</Text>
-        </View>
+        {corp.website ? (
+          <TouchableOpacity style={styles.stripItem} onPress={() => Linking.openURL(corp.website)}>
+            <MaterialCommunityIcons name="web" size={13} color={GOLD} />
+            <Text style={[styles.stripText, { textDecorationLine: 'underline' }]} numberOfLines={1}>
+              {corp.website.replace(/^https?:\/\/(www\.)?/, '')}
+            </Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.stripItem}>
+            <MaterialCommunityIcons name="web" size={13} color={GOLD} />
+            <Text style={styles.stripText}>Live • Official sites</Text>
+          </View>
+        )}
       </View>
  
       <View style={styles.tabBar}>
@@ -299,16 +321,13 @@ const CorpDetailScreen = ({ route, navigation }) => {
         {d && !L && (
           <>
             {d.source && (
-              <View style={styles.srcBadge}>
+              <TouchableOpacity style={styles.srcBadge} onPress={() => Linking.openURL(d.source)}>
                 <MaterialCommunityIcons name="check-circle" size={12} color={GREEN} />
-                <Text style={styles.srcText} numberOfLines={1}> Source: {d.source}</Text>
-              </View>
+                <Text style={styles.srcText} numberOfLines={1}> {d.source}</Text>
+                <MaterialCommunityIcons name="open-in-new" size={12} color={GREEN} />
+              </TouchableOpacity>
             )}
-            {activeTab === 'about' && <AboutTab data={d} />}
-            {activeTab === 'org' && <OrgTab data={d} />}
-            {activeTab === 'schemes' && <SchemesTab data={d} />}
-            {activeTab === 'pop' && <PopTab data={d} />}
-            {activeTab === 'places' && <PlacesTab data={d} />}
+            {activeTab === 'about' && <AboutTab data={d} corpWebsite={corp.website} masterData={masterData} masterLoading={masterLoading} />}
           </>
         )}
       </ScrollView>
@@ -317,8 +336,19 @@ const CorpDetailScreen = ({ route, navigation }) => {
 };
  
 // ── Shared primitives ──────────────────────────────────────────────────────────
+
+// AI sometimes returns objects instead of strings (e.g. {name:"..."} instead of "...").
+// safeStr converts any value to a display string safely.
+const safeStr = v => {
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number') return String(v);
+  if (typeof v === 'object') return v.name || v.value || v.text || v.description || JSON.stringify(v);
+  return String(v);
+};
+
 const Card = ({ children }) => <View style={styles.card}>{children}</View>;
- 
+
 const SecTitle = ({ icon, title, color = NAVY }) => (
   <View style={styles.secRow}>
     <View style={[styles.secIcon, { backgroundColor: `${color}18` }]}>
@@ -327,219 +357,132 @@ const SecTitle = ({ icon, title, color = NAVY }) => (
     <Text style={styles.secTitle}>{title}</Text>
   </View>
 );
- 
+
 const Field = ({ icon, label, value }) => {
-  if (!value || value === 'Not available on official website') return null;
+  const display = safeStr(value);
+  if (!display || display === 'Not available on official website') return null;
   return (
     <View style={styles.field}>
       <MaterialCommunityIcons name={icon} size={14} color={NAVY} style={{ marginRight: 6, marginTop: 1 }} />
       <Text style={styles.fieldLabel}>{label}</Text>
-      <Text style={styles.fieldValue}>{value}</Text>
+      <Text style={styles.fieldValue}>{display}</Text>
     </View>
   );
 };
- 
+
 const Chip = ({ label, color = NAVY }) => (
   <View style={[styles.chip, { backgroundColor: `${color}14` }]}>
-    <Text style={[styles.chipText, { color }]}>{label}</Text>
+    <Text style={[styles.chipText, { color }]}>{safeStr(label)}</Text>
   </View>
 );
  
 const Bullet = ({ text }) => (
   <View style={styles.bullet}>
     <Text style={styles.bulletDot}>•</Text>
-    <Text style={styles.bulletText}>{text}</Text>
+    <Text style={styles.bulletText}>{safeStr(text)}</Text>
   </View>
 );
- 
-const HItem = ({ item, color }) => (
-  <View style={[styles.hItem, { borderLeftColor: `${color}60` }]}>
-    <Text style={styles.hRole}>{item.role}</Text>
-    <Text style={styles.hDesc}>{item.description}</Text>
-  </View>
-);
- 
+
 // ── Tab components ────────────────────────────────────────────────────────────
-const AboutTab = ({ data }) => (
-  <>
-    <Card>
-      <SecTitle icon="information" title="Overview" />
-      <View style={styles.chipRow}>
-        {data.type && <Chip label={data.type} color={GREEN} />}
-        {data.established && data.established !== 'Not available on official website' &&
-          <Chip label={`Est. ${data.established}`} color={GOLD} />}
-        {data.wards > 0 && <Chip label={`${data.wards} Wards`} />}
-        {data.area_sqkm > 0 && <Chip label={`${data.area_sqkm} km²`} />}
-      </View>
-      <Text style={styles.overview}>{data.overview}</Text>
-    </Card>
-    <Card>
-      <SecTitle icon="account-tie" title="Current Leadership" />
-      <Field icon="crown" label="Mayor/Chair" value={data.mayor_or_chairman} />
-      <Field icon="briefcase" label="Commissioner" value={data.commissioner} />
-      <Field icon="map-marker" label="Headquarters" value={data.headquarters} />
-    </Card>
-    {data.key_facts?.length > 0 && (
+// ── Master Data Card ─────────────────────────────────────────────────────────
+// Shows official address / contact / officials from the LocalBodies database.
+// Appears instantly (no AI wait). Nil when corp is not yet in master data.
+const MasterDataCard = ({ m }) => {
+  if (!m) return null;
+  const website = m.officialWebsiteUrl || m.tnurbantreeUrl;
+  return (
+    <>
+      {/* Type + quick chips */}
       <Card>
-        <SecTitle icon="lightbulb-outline" title="Key Facts" color={GOLD} />
-        {data.key_facts.map((f, i) => <Bullet key={i} text={f} />)}
-      </Card>
-    )}
-  </>
-);
- 
-const OrgTab = ({ data }) => (
-  <>
-    <Card>
-      <SecTitle icon="account-multiple" title="Elected Body" color={GREEN} />
-      {(data.elected_body || []).map((r, i) => <HItem key={i} item={r} color={GREEN} />)}
-    </Card>
-    <Card>
-      <SecTitle icon="sitemap" title="Administrative Officers" color={NAVY} />
-      {(data.administrative || []).map((r, i) => <HItem key={i} item={r} color={NAVY} />)}
-    </Card>
-    {data.departments?.length > 0 && (
-      <Card>
-        <SecTitle icon="office-building-cog" title="Departments" color={GOLD} />
+        <SecTitle icon="office-building" title="Local Body Information" color={NAVY} />
         <View style={styles.chipRow}>
-          {data.departments.map((d, i) => <Chip key={i} label={d} color={NAVY} />)}
+          {m.localBodyType && <Chip label={m.localBodyType} color={GREEN} />}
+          {m.districtName  && <Chip label={`${m.districtName} Dist.`} color={NAVY} />}
+          {m.wardCount     && <Chip label={`${m.wardCount} Wards`} />}
+          {m.population    && <Chip label={`Pop. ${Number(m.population).toLocaleString('en-IN')}`} color={GOLD} />}
+          {m.establishedYear && <Chip label={`Est. ${m.establishedYear}`} color={GOLD} />}
         </View>
+        {m.aboutDescription ? (
+          <Text style={styles.overview}>{m.aboutDescription}</Text>
+        ) : null}
       </Card>
-    )}
-  </>
-);
- 
-const SchemeCard = ({ scheme, color }) => (
-  <View style={[styles.schemeCard, { borderLeftColor: color, backgroundColor: `${color}08` }]}>
-    <Text style={styles.schemeName}>{scheme.name}</Text>
-    <Text style={[styles.schemeDept, { color }]}>{scheme.ministry || scheme.department}</Text>
-    <Text style={styles.schemeBenefit}>{scheme.benefit}</Text>
-    {scheme.eligibility && (
-      <View style={styles.schemeRow}>
-        <MaterialCommunityIcons name="account-check" size={11} color={GREEN} />
-        <Text style={[styles.schemeRowText, { color: GREEN }]}> {scheme.eligibility}</Text>
-      </View>
-    )}
-    {scheme.how_to_apply && (
-      <View style={styles.schemeRow}>
-        <MaterialCommunityIcons name="information" size={11} color={NAVY} />
-        <Text style={[styles.schemeRowText, { color: NAVY }]}> {scheme.how_to_apply}</Text>
-      </View>
-    )}
-  </View>
-);
- 
-const SchemesTab = ({ data }) => (
-  <>
-    {data.central_schemes?.length > 0 && (
+
+      {/* Contact & Address */}
       <Card>
-        <SecTitle icon="flag-outline" title="Central Government Schemes" color={GREEN} />
-        {data.central_schemes.map((s, i) => <SchemeCard key={i} scheme={s} color={GREEN} />)}
+        <SecTitle icon="card-account-details-outline" title="Contact & Address" color={GREEN} />
+        {m.address       && <Field icon="map-marker"      label="Address"  value={m.address} />}
+        {m.contactNumber && <Field icon="phone"           label="Phone"    value={m.contactNumber} />}
+        {m.email         && <Field icon="email-outline"   label="Email"    value={m.email} />}
+        {m.pincode       && <Field icon="mailbox-outline" label="Pincode"  value={m.pincode} />}
       </Card>
-    )}
-    {data.state_schemes?.length > 0 && (
-      <Card>
-        <SecTitle icon="domain" title="Tamil Nadu State Schemes" color={NAVY} />
-        {data.state_schemes.map((s, i) => <SchemeCard key={i} scheme={s} color={NAVY} />)}
-      </Card>
-    )}
-    {data.corporation_schemes?.length > 0 && (
-      <Card>
-        <SecTitle icon="office-building" title="Corporation / Local Schemes" color={GOLD} />
-        {data.corporation_schemes.map((s, i) => <SchemeCard key={i} scheme={s} color={GOLD} />)}
-      </Card>
-    )}
-  </>
-);
- 
-const StatBox = ({ label, value, color }) => (
-  <View style={[styles.statBox, { backgroundColor: `${color}0E` }]}>
-    <Text style={[styles.statVal, { color }]}>
-      {typeof value === 'number' ? value.toLocaleString('en-IN') : (value || 'N/A')}
-    </Text>
-    <Text style={styles.statLabel}>{label}</Text>
-  </View>
-);
- 
-const PopTab = ({ data }) => (
-  <>
-    <Card>
-      <SecTitle icon="account-group" title="Population — 2011 Census (Official)" />
-      <View style={styles.statGrid}>
-        <StatBox label="Total" value={data.total_population} color={NAVY} />
-        <StatBox label="Male" value={data.male} color={GREEN} />
-        <StatBox label="Female" value={data.female} color={CRIMSON} />
-        <StatBox label="Sex Ratio" value={data.sex_ratio != null ? String(data.sex_ratio) : null} color={GOLD} />
-      </View>
-      <Text style={styles.cenNote}>{data.population_year}</Text>
-    </Card>
-    <Card>
-      <SecTitle icon="chart-bar" title="Demographics" color={GREEN} />
-      <Field icon="book-open-outline" label="Literacy" value={data.literacy_rate} />
-      <Field icon="ruler-square" label="Density" value={data.population_density} />
-      <Field icon="trending-up" label="Growth" value={data.growth_rate} />
-      <Field icon="home-outline" label="Households" value={data.household_count != null ? String(data.household_count) : null} />
-    </Card>
-    {data.languages?.length > 0 && (
-      <Card>
-        <SecTitle icon="translate" title="Languages" color={GOLD} />
-        <View style={styles.chipRow}>
-          {data.languages.map((l, i) => <Chip key={i} label={l} color={NAVY} />)}
-        </View>
-      </Card>
-    )}
-  </>
-);
- 
-const PlaceItem = ({ place, icon, color }) => (
-  <View style={[styles.placeItem, { borderLeftColor: `${color}60` }]}>
-    <View style={styles.placeRow}>
-      <MaterialCommunityIcons name={icon} size={13} color={color} />
-      <Text style={styles.placeName} numberOfLines={1}> {place.name}</Text>
-      {(place.type || place.deity_or_faith) && (
-        <View style={[styles.typeTag, { backgroundColor: `${color}16` }]}>
-          <Text style={[styles.typeTagText, { color }]}>{place.type || place.deity_or_faith}</Text>
+
+      {/* Official website deep link */}
+      {website && (
+        <Card>
+          <SecTitle icon="web" title="Official Website" color={NAVY} />
+          <TouchableOpacity style={styles.websiteRow} onPress={() => Linking.openURL(website)}>
+            <MaterialCommunityIcons name="link-variant" size={14} color={NAVY} style={{ marginRight: 6 }} />
+            <Text style={styles.websiteLink} numberOfLines={2}>{website}</Text>
+            <MaterialCommunityIcons name="open-in-new" size={16} color={GREEN} />
+          </TouchableOpacity>
+        </Card>
+      )}
+    </>
+  );
+};
+
+const AboutTab = ({ data, corpWebsite, masterData, masterLoading }) => {
+  const websiteUrl = corpWebsite || data?._sourceUrl || data?.source;
+  return (
+    <>
+      {/* ── Master data section (instant, from DB) ── */}
+      {masterLoading && (
+        <View style={styles.masterLoadRow}>
+          <ActivityIndicator size={12} color={GOLD} />
+          <Text style={styles.masterLoadText}> Loading official records…</Text>
         </View>
       )}
-    </View>
-    <Text style={styles.placeDesc}>{place.description || place.significance || place.why_visit}</Text>
-    <View style={styles.placeMeta}>
-      {place.distance_from_center && <Text style={styles.placeDist}>{place.distance_from_center}</Text>}
-      {place.best_time && <Text style={styles.placeBest}>Best: {place.best_time}</Text>}
-      {place.entry_fee && <Text style={styles.placeFee}>{place.entry_fee}</Text>}
-    </View>
-    {place.location && <Text style={styles.placeLoc}>{place.location}</Text>}
-  </View>
-);
- 
-const PlacesTab = ({ data }) => (
-  <>
-    {data.tourist_spots?.length > 0 && (
-      <Card>
-        <SecTitle icon="camera-outline" title="Tourist Spots" color={GREEN} />
-        {data.tourist_spots.map((p, i) => <PlaceItem key={i} place={p} icon="camera" color={GREEN} />)}
-      </Card>
-    )}
-    {data.religious_places?.length > 0 && (
-      <Card>
-        <SecTitle icon="church" title="Religious Places" color={GOLD} />
-        {data.religious_places.map((p, i) => <PlaceItem key={i} place={p} icon="star-david" color={GOLD} />)}
-      </Card>
-    )}
-    {data.nature_spots?.length > 0 && (
-      <Card>
-        <SecTitle icon="tree-outline" title="Nature & Parks" color={GREEN} />
-        {data.nature_spots.map((p, i) => <PlaceItem key={i} place={p} icon="tree" color={GREEN} />)}
-      </Card>
-    )}
-    {data.local_attractions?.length > 0 && (
-      <Card>
-        <SecTitle icon="map-marker-star" title="Local Attractions" color={NAVY} />
-        {data.local_attractions.map((p, i) => <PlaceItem key={i} place={p} icon="storefront-outline" color={NAVY} />)}
-      </Card>
-    )}
-  </>
-);
+      {masterData && <MasterDataCard m={masterData} />}
+
+      {/* ── AI-enriched section (loaded after scraping) ── */}
+      {data && (
+        <>
+          {!masterData && (
+            // Only show AI overview card when master data is absent
+            <Card>
+              <SecTitle icon="information" title="Overview" />
+              <View style={styles.chipRow}>
+                {data.type && !['string','unknown','null','type'].includes(String(data.type).toLowerCase().trim()) &&
+                  <Chip label={data.type} color={GREEN} />}
+                {data.established && !isNaN(Number(data.established)) && Number(data.established) > 1800 &&
+                  <Chip label={`Est. ${data.established}`} color={GOLD} />}
+                {data.wards > 0 && <Chip label={`${data.wards} Wards`} />}
+                {data.area_sqkm > 0 && <Chip label={`${data.area_sqkm} km²`} />}
+              </View>
+              <Text style={styles.overview}>{data.overview}</Text>
+            </Card>
+          )}
+          {data.key_facts?.length > 0 && (
+            <Card>
+              <SecTitle icon="lightbulb-outline" title="Key Facts" color={GOLD} />
+              {data.key_facts.map((f, i) => <Bullet key={i} text={f} />)}
+            </Card>
+          )}
+          {!masterData && websiteUrl && (
+            <Card>
+              <SecTitle icon="web" title="Official Website" color={NAVY} />
+              <TouchableOpacity style={styles.websiteRow} onPress={() => Linking.openURL(websiteUrl)}>
+                <MaterialCommunityIcons name="link-variant" size={14} color={NAVY} style={{ marginRight: 6 }} />
+                <Text style={styles.websiteLink} numberOfLines={2}>{websiteUrl}</Text>
+                <MaterialCommunityIcons name="open-in-new" size={16} color={GREEN} />
+              </TouchableOpacity>
+            </Card>
+          )}
+        </>
+      )}
+    </>
+  );
+};
  
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
@@ -614,35 +557,19 @@ const styles = StyleSheet.create({
  
   overview: { fontSize: 13, color: '#4A5568', lineHeight: 20 },
  
-  hItem: { marginBottom: 10, paddingLeft: 10, borderLeftWidth: 3 },
-  hRole: { fontSize: 13, fontWeight: '700', color: NAVY },
-  hDesc: { fontSize: 12, color: '#6B7A8D', marginTop: 2, lineHeight: 18 },
- 
-  schemeCard: { marginBottom: 12, padding: 11, borderRadius: 10, borderLeftWidth: 3 },
-  schemeName: { fontSize: 13, fontWeight: '700', color: NAVY },
-  schemeDept: { fontSize: 11, fontWeight: '600', marginTop: 2 },
-  schemeBenefit: { fontSize: 12, color: '#4A5568', marginTop: 4, lineHeight: 18 },
-  schemeRow: { flexDirection: 'row', alignItems: 'flex-start', marginTop: 5 },
-  schemeRowText: { fontSize: 11, fontWeight: '500', flex: 1, lineHeight: 16 },
- 
-  statGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, marginBottom: 8 },
-  statBox: { width: '48%', borderRadius: 10, padding: 12, alignItems: 'center' },
-  statVal: { fontSize: 16, fontWeight: '800' },
-  statLabel: { fontSize: 11, color: '#6B7A8D', marginTop: 3, textAlign: 'center' },
-  cenNote: { fontSize: 11, color: '#8090A0', textAlign: 'center' },
- 
-  placeItem: { marginBottom: 12, paddingLeft: 10, borderLeftWidth: 3 },
-  placeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
-  placeName: { fontSize: 13, fontWeight: '700', color: NAVY, flex: 1 },
-  typeTag: { borderRadius: 8, paddingVertical: 2, paddingHorizontal: 7 },
-  typeTagText: { fontSize: 10, fontWeight: '600' },
-  placeDesc: { fontSize: 12, color: '#6B7A8D', lineHeight: 17 },
-  placeMeta: { flexDirection: 'row', gap: 10, marginTop: 4, flexWrap: 'wrap' },
-  placeDist: { fontSize: 11, color: GOLD, fontWeight: '600' },
-  placeBest: { fontSize: 11, color: GREEN, fontWeight: '500' },
-  placeFee: { fontSize: 11, color: NAVY, fontWeight: '500' },
-  placeLoc: { fontSize: 11, color: '#8090A0', marginTop: 2 },
- 
+  masterLoadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 4, marginBottom: 4 },
+  masterLoadText: { fontSize: 11, color: '#8090A0', fontStyle: 'italic' },
+
+  websiteRow: {
+    flexDirection: 'row', alignItems: 'center',
+    padding: 10, backgroundColor: `${GREEN}10`,
+    borderRadius: 10, borderWidth: 1, borderColor: `${GREEN}30`,
+  },
+  websiteLink: {
+    fontSize: 12, color: NAVY, flex: 1, lineHeight: 17,
+    textDecorationLine: 'underline', fontWeight: '500', marginRight: 6,
+  },
+
   loadTitle: { color: '#2D3748', marginTop: 14, fontSize: 15, fontWeight: '600' },
   loadSub: { color: '#6B7A8D', marginTop: 4, fontSize: 12, textAlign: 'center' },
  

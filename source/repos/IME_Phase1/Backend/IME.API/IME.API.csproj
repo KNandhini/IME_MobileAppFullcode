@@ -21,4 +21,11 @@
     <ProjectReference Include="..\IME.Infrastructure\IME.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Copy the URL master CSV to the build output so it is available at runtime -->
+  <ItemGroup>
+    <Content Include="Data\LocalBodies_URLs.csv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

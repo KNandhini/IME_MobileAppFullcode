@@ -1,0 +1,80 @@
+Name,District,State,OfficialWebsite,TnurbantreeUrl,WikipediaUrl
+# ──────────────────────────────────────────────────────────────────────────────
+# HOW TO USE THIS FILE
+#  1. Add / edit rows below.  Lines starting with # are comments — ignored.
+#  2. Name   → must match the local body name exactly as used in the app.
+#  3. OfficialWebsite → the .gov.in website (leave blank if unknown).
+#  4. TnurbantreeUrl  → http://www.tnurbantree.tn.gov.in/<slug>/
+#                       The /general-administration/ sub-page is added automatically.
+#  5. WikipediaUrl    → https://en.wikipedia.org/wiki/<Article_Name>
+#  6. Restart the API server after saving changes for them to take effect.
+# ──────────────────────────────────────────────────────────────────────────────
+#
+# ── TAMIL NADU — MUNICIPAL CORPORATIONS ──────────────────────────────────────
+Chennai Municipal Corporation,Chennai,Tamil Nadu,https://www.chennaicorporation.gov.in/,http://www.tnurbantree.tn.gov.in/chennai/,https://en.wikipedia.org/wiki/Greater_Chennai_Corporation
+Coimbatore Municipal Corporation,Coimbatore,Tamil Nadu,https://www.coimbatorecorporation.gov.in/,http://www.tnurbantree.tn.gov.in/coimbatore/,https://en.wikipedia.org/wiki/Coimbatore_City_Municipal_Corporation
+Madurai Municipal Corporation,Madurai,Tamil Nadu,https://www.maduraicorporation.gov.in/,http://www.tnurbantree.tn.gov.in/madurai/,https://en.wikipedia.org/wiki/Madurai_City_Municipal_Corporation
+Tiruchirappalli Municipal Corporation,Tiruchirappalli,Tamil Nadu,https://www.corporationoftrichy.in/,http://www.tnurbantree.tn.gov.in/trichy/,https://en.wikipedia.org/wiki/Tiruchirappalli_City_Municipal_Corporation
+Salem Municipal Corporation,Salem,Tamil Nadu,https://www.salemcorporation.gov.in/,http://www.tnurbantree.tn.gov.in/salem/,https://en.wikipedia.org/wiki/Salem_City_Municipal_Corporation
+Tirunelveli Municipal Corporation,Tirunelveli,Tamil Nadu,https://www.tirunelvelicorporation.gov.in/,http://www.tnurbantree.tn.gov.in/tirunelveli/,https://en.wikipedia.org/wiki/Tirunelveli_City_Municipal_Corporation
+Tiruppur Municipal Corporation,Tiruppur,Tamil Nadu,https://www.tirupurcorporation.gov.in/,http://www.tnurbantree.tn.gov.in/tirupur/,https://en.wikipedia.org/wiki/Tirupur
+Erode Municipal Corporation,Erode,Tamil Nadu,https://www.erodecorporation.tn.gov.in/,http://www.tnurbantree.tn.gov.in/erode/,https://en.wikipedia.org/wiki/Erode_Municipal_Corporation
+Vellore Municipal Corporation,Vellore,Tamil Nadu,https://www.velloresmartcity.in/,http://www.tnurbantree.tn.gov.in/vellore/,https://en.wikipedia.org/wiki/Vellore
+Thoothukudi Municipal Corporation,Thoothukudi,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/thoothukudi/,https://en.wikipedia.org/wiki/Thoothukudi
+Dindigul Municipal Corporation,Dindigul,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/dindigul/,https://en.wikipedia.org/wiki/Dindigul
+Thanjavur Municipal Corporation,Thanjavur,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/thanjavur/,https://en.wikipedia.org/wiki/Thanjavur
+Ranipet Municipal Corporation,Ranipet,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/ranipet/,https://en.wikipedia.org/wiki/Ranipet
+Nagercoil Municipal Corporation,Kanyakumari,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/nagercoil/,https://en.wikipedia.org/wiki/Nagercoil
+Hosur Municipal Corporation,Krishnagiri,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/hosur/,https://en.wikipedia.org/wiki/Hosur
+Avadi Municipal Corporation,Tiruvallur,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/avadi/,https://en.wikipedia.org/wiki/Avadi
+Tambaram Municipal Corporation,Chengalpattu,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/tambaram/,https://en.wikipedia.org/wiki/Tambaram
+#
+# ── ERODE DISTRICT — MUNICIPALITIES ──────────────────────────────────────────
+Bhavani Municipality,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/bhavani/,https://en.wikipedia.org/wiki/Bhavani
+Gobichettipalayam Municipality,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/gobichettipalayam/,https://en.wikipedia.org/wiki/Gobichettipalayam
+Sathyamangalam Municipality,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/sathyamangalam/,https://en.wikipedia.org/wiki/Sathyamangalam
+Perundurai Municipality,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/perundurai/,https://en.wikipedia.org/wiki/Perundurai
+#
+# ── ERODE DISTRICT — TOWN PANCHAYATS ─────────────────────────────────────────
+Anthiyur Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/anthiyur/,https://en.wikipedia.org/wiki/Anthiyur
+Nambiyur Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/nambiyur/,
+Kodumudi Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/kodumudi/,https://en.wikipedia.org/wiki/Kodumudi
+Kavindapadi Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/kavindapadi/,
+Thindal Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/thindal/,
+Veerappanchatram Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/veerappanchatram/,
+Sivagiri Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/sivagiri/,
+Modakkurichi Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/modakkurichi/,https://en.wikipedia.org/wiki/Modakkurichi
+Vellakoil Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/vellakoil/,
+Thalavadi Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/thalavadi/,
+Bhavani Sagar Town Panchayat,Erode,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/bhavanisagar/,
+#
+# ── SALEM DISTRICT — MUNICIPALITIES ──────────────────────────────────────────
+Attur Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/attur/,https://en.wikipedia.org/wiki/Attur
+Mettur Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/mettur/,https://en.wikipedia.org/wiki/Mettur
+Omalur Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/omalur/,https://en.wikipedia.org/wiki/Omalur
+Sankari Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/sankari/,https://en.wikipedia.org/wiki/Sankari
+Sankagiri Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/sankagiri/,https://en.wikipedia.org/wiki/Sankagiri
+Edappadi Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/idappadi/,https://en.wikipedia.org/wiki/Edappadi
+Gangavalli Municipality,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/gangavalli/,
+#
+# ── NAMAKKAL DISTRICT ─────────────────────────────────────────────────────────
+Tiruchengode Municipality,Namakkal,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/tiruchengode/,https://en.wikipedia.org/wiki/Tiruchengode
+Rasipuram Municipality,Namakkal,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/rasipuram/,https://en.wikipedia.org/wiki/Rasipuram
+Namakkal Municipality,Namakkal,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/namakkal/,https://en.wikipedia.org/wiki/Namakkal
+#
+# ── SALEM DISTRICT — TOWN PANCHAYATS ─────────────────────────────────────────
+Yercaud Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/yercaud/,https://en.wikipedia.org/wiki/Yercaud
+Valapady Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/valapady/,
+Nangavalli Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/nangavalli/,
+Thalaivasal Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/thalaivasal/,
+Konganapuram Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/konganapuram/,
+Panamarathupatti Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/panamarathupatti/,
+Malliyakarai Town Panchayat,Salem,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/malliyakarai/,
+#
+# ── COIMBATORE DISTRICT ───────────────────────────────────────────────────────
+Pollachi Municipality,Coimbatore,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/pollachi/,https://en.wikipedia.org/wiki/Pollachi
+#
+# ── ADD MORE LOCAL BODIES BELOW ───────────────────────────────────────────────
+# Format: Name,District,State,OfficialWebsite,TnurbantreeUrl,WikipediaUrl
+
+Salem Taluk Town Panchayat,,Tamil Nadu,,http://www.tnurbantree.tn.gov.in/salem-taluk/,https://en.wikipedia.org/wiki/Salem_Taluk
