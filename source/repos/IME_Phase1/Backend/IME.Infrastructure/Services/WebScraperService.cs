@@ -93,7 +93,8 @@ public class WebScraperService : IWebScraperService
         string? firstSuccessUrl = null;
         string? primaryError    = null;
 
-        for (int i = 0; i < results.Length; i++)
+        for (
+            int i = 0; i < results.Length; i++)
         {
             var (text, error) = results[i];
             if (text != null)

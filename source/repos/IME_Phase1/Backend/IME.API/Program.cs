@@ -1,7 +1,6 @@
 using IME.Core.Interfaces;
 using IME.Infrastructure.Data;
 using IME.Infrastructure.Repositories;
-using IME.Infrastructure.Repositories;
 using IME.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -104,7 +103,7 @@ builder.Services.AddHttpClient("scraper", client =>
     // gzip/deflate and adds the header itself. Adding it manually causes binary data
     // to be returned without being decompressed (garbled Wikipedia response).
     client.DefaultRequestHeaders.Add("Upgrade-Insecure-Requests", "1");
-    client.Timeout = TimeSpan.FromSeconds(55); // must be > all CTSs (20 s main, 10 s tnurbantree)
+    client.Timeout = TimeSpan.FromSeconds(55); // must be > all CTSs (15 s main, 50 s tnurbantree)
 })
 .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
 {
@@ -113,10 +112,10 @@ builder.Services.AddHttpClient("scraper", client =>
                            | System.Net.DecompressionMethods.Deflate
                            | System.Net.DecompressionMethods.Brotli,
     // Allow cookies — some government sites (tnurbantree) need a session cookie to respond
-    UseCookies            = true,
-    CookieContainer       = new System.Net.CookieContainer(),
+    UseCookies = true,
+    CookieContainer = new System.Net.CookieContainer(),
     // Follow redirects automatically (gov sites often redirect http → https)
-    AllowAutoRedirect     = true,
+    AllowAutoRedirect = true,
     MaxAutomaticRedirections = 5,
     // Don't fail on invalid SSL certificates (some .tn.gov.in sites have cert issues)
     ServerCertificateCustomValidationCallback =

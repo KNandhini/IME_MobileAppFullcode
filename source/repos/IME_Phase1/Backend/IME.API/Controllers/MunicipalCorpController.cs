@@ -165,6 +165,7 @@ public class MunicipalCorpController : ControllerBase
         var payload = System.Text.Json.JsonSerializer.Serialize(new
         {
             model       = "gpt-4o-mini",
+            response_format = new { type = "json_object" },
             messages    = new[]
             {
                 new { role = "system", content = request.SystemPrompt },

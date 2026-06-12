@@ -69,15 +69,26 @@ async function fetchAI(systemPrompt, userPrompt) {
  
 function cleanJSON(raw) {
   if (!raw) throw new Error('Empty AI response');
+
   let s = raw
-    .replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/g, '').trim();
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/g, '')
+    .trim();
+
   const a = s.indexOf('{'), b = s.lastIndexOf('}');
   if (a === -1 || b === -1) throw new Error('No JSON in AI response');
-  return s.slice(a, b + 1)
-    .replace(/(\d)_(\d)/g, '$1$2')
-    .replace(/,\s*([}\]])/g, '$1');
+  s = s.slice(a, b + 1);
+
+  // ❌ REMOVE THIS LINE — it destroys https:// URLs inside JSON strings:
+  // s = s.replace(/\/\/[^\n\r"]*/g, '');
+
+  s = s.replace(/(\d)_(\d)/g, '$1$2');
+  s = s.replace(/,+\s*([}\]])/g, '$1');
+  s = s.replace(/,(\s*,)+/g, ',');
+
+  return s;
 }
- 
 function sysPrompt(corpName, districtName, stateName, sourceUrl, pageText) {
   let prompt = `You are a civic data extractor for Indian municipal bodies.
 Extract structured data for "${corpName}, ${districtName}, ${stateName}".
@@ -160,13 +171,18 @@ const CorpDetailScreen = ({ route, navigation }) => {
     setTabLoading(p => ({ ...p, [tab]: true }));
     setTabError(p => ({ ...p, [tab]: null }));
     try {
-      // Backend fetches + parses the official website (no CORS issues)
       const scraped = await scrapeCorpPage(corp.corpName, stateName || 'Tamil Nadu');
       console.log(`[FetchTab:${tab}] scraped=`, scraped ? `✓ ${scraped.sourceUrl}` : '✗ null');
       const sys  = sysPrompt(corp.corpName, districtName, stateName, scraped?.sourceUrl, scraped?.pageText);
       const user = userPrompt(tab, corp.corpName, districtName, stateName || 'Tamil Nadu');
       const raw  = await fetchAI(sys, user);
-      const obj  = JSON.parse(raw);
+      let obj;
+      try {
+        obj = JSON.parse(raw);
+      } catch (e) {
+        debugger;
+        throw new Error('Could not load data for this local body. Please retry.');
+      }
       if (scraped?.sourceUrl) obj._sourceUrl = scraped.sourceUrl;
       setTabData(p => ({ ...p, [tab]: obj }));
     } catch (err) {

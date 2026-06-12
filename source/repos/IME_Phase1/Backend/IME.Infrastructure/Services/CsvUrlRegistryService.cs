@@ -45,6 +45,9 @@ public class CsvUrlRegistryService
     /// Called after AI resolves URLs for a corp that was NOT in the CSV.
     /// Classifies the AI URLs, updates the in-memory map, and appends a new row
     /// to the CSV file so the next request is served from the file — no AI needed.
+    /// NOTE: Appends to the runtime CSV path (Data/LocalBodies_URLs.csv relative to
+    /// working directory). Copy new rows back to the source CSV before rebuilding,
+    /// otherwise they will be lost when CopyToOutputDirectory re-copies the source file.
     /// </summary>
     public void SaveUrls(string corpName, string districtName, string[] aiUrls)
     {
@@ -57,7 +60,7 @@ public class CsvUrlRegistryService
         // Official site: not tnurbantree, not wikipedia
         var official = aiUrls.FirstOrDefault(u =>
             IsUrl(u) &&
-            !u.Contains("tnurbantree",  StringComparison.OrdinalIgnoreCase) &&
+            !u.Contains("tnurbantree", StringComparison.OrdinalIgnoreCase) &&
             !u.Contains("wikipedia.org", StringComparison.OrdinalIgnoreCase)) ?? "";
 
         // TN Urban Tree base URL (strip /general-administration/ if present)
@@ -131,10 +134,10 @@ public class CsvUrlRegistryService
 
         // ── Parse header row ─────────────────────────────────────────────────
         var headers = SplitLine(lines[0]);
-        int nameIdx     = IndexOf(headers, "Name");
+        int nameIdx = IndexOf(headers, "Name");
         int officialIdx = IndexOf(headers, "OfficialWebsite");
-        int tnIdx       = IndexOf(headers, "TnurbantreeUrl");
-        int wikiIdx     = IndexOf(headers, "WikipediaUrl");
+        int tnIdx = IndexOf(headers, "TnurbantreeUrl");
+        int wikiIdx = IndexOf(headers, "WikipediaUrl");
 
         if (nameIdx < 0)
         {
@@ -211,7 +214,7 @@ public class CsvUrlRegistryService
     /// </summary>
     private static string[] SplitLine(string line)
     {
-        var result  = new List<string>();
+        var result = new List<string>();
         var current = new StringBuilder();
         bool inQuote = false;
 
