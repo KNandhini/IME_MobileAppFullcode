@@ -9,6 +9,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
 import { BASE_URL } from '../utils/api';
+//import AdminSignupScreen from '../screens/AddAdminScreen';
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
@@ -31,6 +32,9 @@ export default function ClubFormScreen({ route, navigation }) {
   const [typeModal, setTypeModal] = useState(false);
   const [memberModal, setMemberModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
+
+  // ── Admin Members: radio toggle between "existing" and "add new" ──────────
+  const [adminMode, setAdminMode] = useState('existing'); // 'existing' | 'new'
 
   // ── Date picker state ─────────────────────────────────────────────────────
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -75,7 +79,57 @@ export default function ClubFormScreen({ route, navigation }) {
       fetchNextCode();
     }
   }, []);
+/*useEffect(() => {
+  if (route.params?.newAdminMember) {
+    const member = route.params.newAdminMember;
 
+    setForm(prev => {
+      const exists = prev.adminMembers.some(
+        m => m.memberId === member.memberId
+      );
+
+      if (exists) return prev;
+
+      return {
+        ...prev,
+        adminMembers: [
+          ...prev.adminMembers,
+          {
+            memberId: member.memberId,
+            fullName: member.fullName,
+          },
+        ],
+      };
+    });
+
+    // clear param so it doesn't re-add on rerender
+    navigation.setParams({
+      newAdminMember: undefined,
+    });
+  }
+}, [route.params?.newAdminMember]);*/
+useEffect(() => {
+  if (route.params?.newAdminMember) {
+    const member = route.params.newAdminMember;
+
+    setForm(prev => ({
+      ...prev,
+      adminMembers: [
+        {
+          memberId: member.memberId,
+          fullName: member.fullName,
+        },
+      ],
+    }));
+
+    setAdminMode('new');
+
+    // clear param so it doesn't re-add on rerender
+    navigation.setParams({
+      newAdminMember: undefined,
+    });
+  }
+}, [route.params?.newAdminMember]);
   const fetchNextCode = async () => {
     const res = await clubService.getNextCode();
     if (res.success && res.data?.code) set('clubCode', res.data.code);
@@ -197,6 +251,27 @@ export default function ClubFormScreen({ route, navigation }) {
     }));
   };
 
+  // Called by the embedded AdminSignupScreen once a brand-new member has
+  // been created — adds them straight into the Admin Members chip list and
+  // flips the toggle back to "Select Existing" so the mini-form collapses.
+  const handleNewAdminCreated = (member) => {
+  setForm(prev => ({
+    ...prev,
+    adminMembers: [
+      ...prev.adminMembers,
+      {
+        memberId: member.memberId,
+        fullName: member.fullName,
+      },
+    ],
+  }));
+
+  Alert.alert(
+    'Admin Added',
+    `${member.fullName} added successfully.`
+  );
+};
+
   const filteredMembers = members.filter(m =>
     m.fullName?.toLowerCase().includes(memberSearch.toLowerCase())
   );
@@ -217,9 +292,6 @@ export default function ClubFormScreen({ route, navigation }) {
   const validate = () => {
     const e = {};
 
-    // Club Name — mandatory, max 200
-    
-
     // Club Code — mandatory
     if (!form.clubCode.trim()) {
       e.clubCode = 'Club Code is required.';
@@ -234,31 +306,32 @@ export default function ClubFormScreen({ route, navigation }) {
     if (!form.stateId) {
       e.stateId = 'State is required.';
     }
+
     // Club Name — alphabets only (letters + spaces)
-if (!form.clubName.trim()) {
-  e.clubName = 'Club Name is required.';
-} else if (!/^[A-Za-z\s]+$/.test(form.clubName.trim())) {
-  e.clubName = 'Club Name must contain alphabets only.';
-}
+    if (!form.clubName.trim()) {
+      e.clubName = 'Club Name is required.';
+    } else if (!/^[A-Za-z\s]+$/.test(form.clubName.trim())) {
+      e.clubName = 'Club Name must contain alphabets only.';
+    }
 
-// Description — no special chars except - . , /
-if (form.description && /[^A-Za-z0-9\s\-.,/]/.test(form.description)) {
-  e.description = 'Description allows only letters, numbers, spaces and - . , /';
-}
+    // Description — no special chars except - . , /
+    if (form.description && /[^A-Za-z0-9\s\-.,/]/.test(form.description)) {
+      e.description = 'Description allows only letters, numbers, spaces and - . , /';
+    }
 
-// City — alphabets only
-if (!form.city.trim()) {
-  e.city = 'City is required.';
-} else if (!/^[A-Za-z\s]+$/.test(form.city.trim())) {
-  e.city = 'City must contain alphabets only.';
-}
+    // City — alphabets only
+    if (!form.city.trim()) {
+      e.city = 'City is required.';
+    } else if (!/^[A-Za-z\s]+$/.test(form.city.trim())) {
+      e.city = 'City must contain alphabets only.';
+    }
 
-// District — alphabets only
-if (!form.district.trim()) {
-  e.district = 'District is required.';
-} else if (!/^[A-Za-z\s]+$/.test(form.district.trim())) {
-  e.district = 'District must contain alphabets only.';
-}
+    // District — alphabets only
+    if (!form.district.trim()) {
+      e.district = 'District is required.';
+    } else if (!/^[A-Za-z\s]+$/.test(form.district.trim())) {
+      e.district = 'District must contain alphabets only.';
+    }
 
     // Pincode — numbers only, max 10
     if (form.pincode && !/^\d+$/.test(form.pincode)) {
@@ -283,14 +356,15 @@ if (!form.district.trim()) {
       }
     }
 
-   // In validate()
-if (!form.contactPersonName.trim()) {
-  e.contactPersonName = 'Contact Person is required.';
-} else if (!/^[A-Za-z\s]+$/.test(form.contactPersonName.trim())) {
-  e.contactPersonName = 'Contact Person must contain alphabets only.';
-} else if (form.contactPersonName.length > 150) {
-  e.contactPersonName = 'Contact Person must be at most 150 characters.';
-}
+    // Contact Person — alphabets only
+    if (!form.contactPersonName.trim()) {
+      e.contactPersonName = 'Contact Person is required.';
+    } else if (!/^[A-Za-z\s]+$/.test(form.contactPersonName.trim())) {
+      e.contactPersonName = 'Contact Person must contain alphabets only.';
+    } else if (form.contactPersonName.length > 150) {
+      e.contactPersonName = 'Contact Person must be at most 150 characters.';
+    }
+
     // Contact Number — mandatory, numbers only
     if (!form.contactNumber.trim()) {
       e.contactNumber = 'Contact Number is required.';
@@ -324,19 +398,21 @@ if (!form.contactPersonName.trim()) {
     if (!form.establishedDate) {
       e.establishedDate = 'Established Date is required.';
     }
-// Total Members — max 4 digits
-if (form.totalMembers && form.totalMembers.length > 4) {
-  e.totalMembers = 'Total Members must be at most 4 digits.';
-}
 
-// Registration Number — alphanumeric, max 15
-if (form.registrationNumber) {
-  if (!/^[A-Za-z0-9]+$/.test(form.registrationNumber)) {
-    e.registrationNumber = 'Registration Number must be alphanumeric.';
-  } else if (form.registrationNumber.length > 15) {
-    e.registrationNumber = 'Registration Number must be max 15 characters.';
-  }
-}
+    // Total Members — max 4 digits
+    if (form.totalMembers && form.totalMembers.length > 4) {
+      e.totalMembers = 'Total Members must be at most 4 digits.';
+    }
+
+    // Registration Number — alphanumeric, max 15
+    if (form.registrationNumber) {
+      if (!/^[A-Za-z0-9]+$/.test(form.registrationNumber)) {
+        e.registrationNumber = 'Registration Number must be alphanumeric.';
+      } else if (form.registrationNumber.length > 15) {
+        e.registrationNumber = 'Registration Number must be max 15 characters.';
+      }
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -344,7 +420,7 @@ if (form.registrationNumber) {
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!validate()) return;
-debugger;
+
     setSaving(true);
 
     const payload = {
@@ -381,13 +457,23 @@ debugger;
       Alert.alert('Error', res.message || 'Something went wrong.');
       return;
     }
-debugger;
+
     const savedId = isEditMode ? clubId : res.data?.clubId;
 
     if (logoUri && savedId) {
       const fileName = logoUri.split('/').pop();
       await clubService.uploadLogo(savedId, logoUri, fileName);
     }
+if (savedId && form.adminMembers.length > 0) {
+  const memberIds = form.adminMembers
+    .map(m => m.memberId)
+    .join(',');
+
+  await clubService.updateClubByMemberId(
+    memberIds,
+    savedId
+  );
+}
 
     setSaving(false);
     Alert.alert('Success', isEditMode ? 'Club updated.' : 'Club created.', [
@@ -448,7 +534,8 @@ debugger;
           <TextInput
             style={[styles.input, errors.clubName && styles.inputError]}
             value={form.clubName}
-onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}            placeholder="Enter club name"
+            onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
+            placeholder="Enter club name"
             placeholderTextColor="#bbb"
             maxLength={200}
           />
@@ -472,19 +559,19 @@ onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
         </Field>
         {errors.clubCode && <Text style={styles.error}>{errors.clubCode}</Text>}
 
-       <Field label="Description">
-  <TextInput
-    style={[styles.input, styles.textarea, errors.description && styles.inputError]}
-    value={form.description}
-    onChangeText={v => set('description', v.replace(/[^A-Za-z0-9\s\-.,/]/g, ''))}
-    placeholder="Brief description"
-    placeholderTextColor="#bbb"
-    multiline
-    numberOfLines={3}
-    textAlignVertical="top"
-  />
-</Field>
-{errors.description && <Text style={styles.error}>{errors.description}</Text>}
+        <Field label="Description">
+          <TextInput
+            style={[styles.input, styles.textarea, errors.description && styles.inputError]}
+            value={form.description}
+            onChangeText={v => set('description', v.replace(/[^A-Za-z0-9\s\-.,/]/g, ''))}
+            placeholder="Brief description"
+            placeholderTextColor="#bbb"
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
+        </Field>
+        {errors.description && <Text style={styles.error}>{errors.description}</Text>}
 
         {/* ── Location Details ── */}
         <SectionHeader title="Location Details" />
@@ -515,57 +602,57 @@ onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
         </Field>
         {errors.stateId && <Text style={styles.error}>{errors.stateId}</Text>}
 
-        
-          <Row>
-  <Field label="City *" flex>
-    <TextInput
-      style={[styles.input, errors.city && styles.inputError]}
-      value={form.city}
-     onChangeText={v => set('city', v.replace(/[^A-Za-z\s]/g, ''))}
-      placeholder="Enter city"
-      placeholderTextColor="#bbb"
-    />
-    {errors.city && <Text style={styles.error}>{errors.city}</Text>}
-  </Field>
+        <Row>
+          <Field label="City *" flex>
+            <TextInput
+              style={[styles.input, errors.city && styles.inputError]}
+              value={form.city}
+              onChangeText={v => set('city', v.replace(/[^A-Za-z\s]/g, ''))}
+              placeholder="Enter city"
+              placeholderTextColor="#bbb"
+            />
+            {errors.city && <Text style={styles.error}>{errors.city}</Text>}
+          </Field>
 
-  <Field label="District *" flex>
-    <TextInput
-      style={[styles.input, errors.district && styles.inputError]}
-      value={form.district}
-     onChangeText={v => set('district', v.replace(/[^A-Za-z\s]/g, ''))}
-      placeholder="Enter district"
-      placeholderTextColor="#bbb"
-    />
-    {errors.district && <Text style={styles.error}>{errors.district}</Text>}
-  </Field>
-</Row>
+          <Field label="District *" flex>
+            <TextInput
+              style={[styles.input, errors.district && styles.inputError]}
+              value={form.district}
+              onChangeText={v => set('district', v.replace(/[^A-Za-z\s]/g, ''))}
+              placeholder="Enter district"
+              placeholderTextColor="#bbb"
+            />
+            {errors.district && <Text style={styles.error}>{errors.district}</Text>}
+          </Field>
+        </Row>
+
         <Field label="Address Line 1 *">
-         <TextInput
-  style={[styles.input, styles.textarea, errors.addressLine1 && styles.inputError]}
-  value={form.addressLine1}
-  onChangeText={v => set('addressLine1', v.slice(0, 250))}
-  placeholder="Street / Building"
-  placeholderTextColor="#bbb"
-  maxLength={250}
-  multiline
-  numberOfLines={3}
-  textAlignVertical="top"
-/>
+          <TextInput
+            style={[styles.input, styles.textarea, errors.addressLine1 && styles.inputError]}
+            value={form.addressLine1}
+            onChangeText={v => set('addressLine1', v.slice(0, 250))}
+            placeholder="Street / Building"
+            placeholderTextColor="#bbb"
+            maxLength={250}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
         </Field>
         {errors.addressLine1 && <Text style={styles.error}>{errors.addressLine1}</Text>}
 
         <Field label="Address Line 2">
-         <TextInput
-  style={[styles.input, styles.textarea, errors.addressLine2 && styles.inputError]}
-  value={form.addressLine2}
-  onChangeText={v => set('addressLine2', v.slice(0, 250))}
-  placeholder="Area / Landmark"
-  placeholderTextColor="#bbb"
-  maxLength={250}
-  multiline
-  numberOfLines={3}
-  textAlignVertical="top"
-/>
+          <TextInput
+            style={[styles.input, styles.textarea, errors.addressLine2 && styles.inputError]}
+            value={form.addressLine2}
+            onChangeText={v => set('addressLine2', v.slice(0, 250))}
+            placeholder="Area / Landmark"
+            placeholderTextColor="#bbb"
+            maxLength={250}
+            multiline
+            numberOfLines={3}
+            textAlignVertical="top"
+          />
         </Field>
         {errors.addressLine2 && <Text style={styles.error}>{errors.addressLine2}</Text>}
 
@@ -606,7 +693,7 @@ onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
               placeholder="+91 XXXXXXXXXX"
               placeholderTextColor="#bbb"
               keyboardType="phone-pad"
-                maxLength={10}
+              maxLength={10}
             />
           </Field>
           <Field label="Alternate" flex>
@@ -617,7 +704,7 @@ onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
               placeholder="Alternate no."
               placeholderTextColor="#bbb"
               keyboardType="phone-pad"
-                maxLength={10}
+              maxLength={10}
             />
           </Field>
         </Row>
@@ -697,59 +784,184 @@ onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
         <Row>
           <Field label="Total Members" flex>
             <TextInput
-  style={styles.input}
-  value={form.totalMembers}
-  onChangeText={v => set('totalMembers', v.replace(/[^0-9]/g, '').slice(0, 4))}
-  placeholder="0"
-  placeholderTextColor="#bbb"
-  keyboardType="number-pad"
-  maxLength={4}
-/>
-{errors.totalMembers && (
-  <Text style={[styles.error, { paddingHorizontal: 16 }]}>
-    {errors.totalMembers}
-  </Text>
-)}
+              style={styles.input}
+              value={form.totalMembers}
+              onChangeText={v => set('totalMembers', v.replace(/[^0-9]/g, '').slice(0, 4))}
+              placeholder="0"
+              placeholderTextColor="#bbb"
+              keyboardType="number-pad"
+              maxLength={4}
+            />
+            {errors.totalMembers && (
+              <Text style={[styles.error, { paddingHorizontal: 16 }]}>
+                {errors.totalMembers}
+              </Text>
+            )}
           </Field>
           <Field label="Reg. Number" flex>
             <TextInput
-  style={[styles.input, errors.registrationNumber && styles.inputError]}
-  value={form.registrationNumber}
-  onChangeText={v =>
-    set('registrationNumber', v.replace(/[^A-Za-z0-9]/g, '').slice(0, 15))
-  }
-  placeholder="Registration no."
-  placeholderTextColor="#bbb"
-  maxLength={15}
-/>
-{errors.registrationNumber && <Text style={styles.error}>{errors.registrationNumber}</Text>}
+              style={[styles.input, errors.registrationNumber && styles.inputError]}
+              value={form.registrationNumber}
+              onChangeText={v =>
+                set('registrationNumber', v.replace(/[^A-Za-z0-9]/g, '').slice(0, 15))
+              }
+              placeholder="Registration no."
+              placeholderTextColor="#bbb"
+              maxLength={15}
+            />
+            {errors.registrationNumber && <Text style={styles.error}>{errors.registrationNumber}</Text>}
           </Field>
         </Row>
+<Field label="Admin Members *">
 
-        {/* ── Admin Members (multi-select) ── */}
-        <Field label="Admin Members">
-          {form.adminMembers.length > 0 && (
-            <View style={styles.chipWrap}>
-              {form.adminMembers.map(m => (
-                <View key={m.memberId} style={styles.adminChip}>
-                  <Text style={styles.adminChipText}>{m.fullName}</Text>
-                  <TouchableOpacity onPress={() => removeAdmin(m.memberId)} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-                    <Ionicons name="close-circle" size={16} color="#1E3A5F" style={{ marginLeft: 4 }} />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
+  <View style={styles.radioRow}>
+
+    <TouchableOpacity
+      style={styles.radioOption}
+      onPress={() => setAdminMode('existing')}
+    >
+      <View
+        style={[
+          styles.radioOuter,
+          adminMode === 'existing' && styles.radioOuterActive,
+        ]}
+      >
+        {adminMode === 'existing' && (
+          <View style={styles.radioInner} />
+        )}
+      </View>
+
+      <Text style={styles.radioLabel}>
+        Existing Member
+      </Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity
+      style={styles.radioOption}
+      onPress={() => {
+        setAdminMode('new');
+setForm(prev => ({
+    ...prev,
+    adminMembers: [],
+  }));
+        navigation.navigate('AdminSignup', {
+          hideClubSelection: true,
+          presetClub: {
+            clubId: clubId || null,
+            clubName: form.clubName,
+          },
+        });
+      }}
+    >
+      <View
+        style={[
+          styles.radioOuter,
+          adminMode === 'new' && styles.radioOuterActive,
+        ]}
+      >
+        {adminMode === 'new' && (
+          <View style={styles.radioInner} />
+        )}
+      </View>
+
+      <Text style={styles.radioLabel}>
+        Add New Admin
+      </Text>
+    </TouchableOpacity>
+
+  </View>
+
+  {adminMode === 'existing' && (
+    <>
+      <TouchableOpacity
+        style={styles.selector}
+        onPress={() => setMemberModal(true)}
+      >
+        <Text
+          style={
+            form.adminMembers.length
+              ? styles.selectorValue
+              : styles.selectorPlaceholder
+          }
+          numberOfLines={1}
+        >
+          {form.adminMembers.length
+            ? form.adminMembers.map(m => m.fullName).join(', ')
+            : 'Select Admin Members'}
+        </Text>
+
+        <Ionicons
+          name="people"
+          size={18}
+          color="#888"
+        />
+      </TouchableOpacity>
+    </>
+  )}
+
+  {adminMode === 'new' && (
+    <View style={{ marginTop: 8 }}>
+      <Text style={styles.fieldLabel}>
+        Newly Added Admin Member
+      </Text>
+
+      <View
+        style={[
+          styles.selector,
+          {
+            marginTop: 4,
+            minHeight: 48,
+          },
+        ]}
+      >
+        <Text
+          style={
+            form.adminMembers.length
+              ? styles.selectorValue
+              : styles.selectorPlaceholder
+          }
+          numberOfLines={2}
+        >
+          {form.adminMembers.length
+            ? form.adminMembers.map(m => m.fullName).join(', ')
+            : 'No admin member added yet'}
+        </Text>
+
+        <Ionicons
+          name="person-circle-outline"
+          size={20}
+          color="#888"
+        />
+      </View>
+    </View>
+  )}
+
+  {form.adminMembers.length > 0 && (
+    <View style={styles.chipWrap}>
+      {form.adminMembers.map(member => (
+        <View
+          key={member.memberId}
+          style={styles.adminChip}
+        >
+          <Text style={styles.adminChipText}>
+            {member.fullName}
+          </Text>
+
           <TouchableOpacity
-            style={[styles.selector, { marginTop: form.adminMembers.length ? 8 : 0 }]}
-            onPress={() => setMemberModal(true)}
+            onPress={() => removeAdmin(member.memberId)}
           >
-            <Text style={styles.selectorPlaceholder}>
-              {form.adminMembers.length ? '+ Add more admins' : 'Select admin members'}
-            </Text>
-            <Ionicons name="people" size={16} color="#888" />
+            <Ionicons
+              name="close-circle"
+              size={18}
+              color="#D32F2F"
+            />
           </TouchableOpacity>
-        </Field>
+        </View>
+      ))}
+    </View>
+  )}
+
+</Field>
 
         {/* ── Status ── */}
         <SectionHeader title="Status" />
@@ -799,7 +1011,7 @@ onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
         onClose={() => setTypeModal(false)}
       />
 
-      {/* ── Multi-Admin Member Modal ── */}
+      {/* ── Multi-Admin Member Modal (existing members) ── */}
       <Modal visible={memberModal} animationType="slide" transparent onRequestClose={() => setMemberModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalSheet}>
@@ -937,9 +1149,18 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row' },
 
   // Admin chips
-  chipWrap:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 4 },
+  chipWrap:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
   adminChip:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EBF0FA', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
   adminChipText: { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
+
+  // Admin radio toggle
+  radioRow:         { flexDirection: 'row', gap: 20, marginTop: 4, marginBottom: 4 },
+  radioOption:      { flexDirection: 'row', alignItems: 'center' },
+  radioOuter:       { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: '#bbb', alignItems: 'center', justifyContent: 'center', marginRight: 6 },
+  radioOuterActive: { borderColor: '#1E3A5F' },
+  radioInner:       { width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#1E3A5F' },
+  radioLabel:       { fontSize: 13, color: '#333' },
+  embeddedAdminBox: { marginTop: 8, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 10, backgroundColor: '#fff', padding: 4 },
 
   switchRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#fff', marginTop: 2 },
   switchLabel: { fontSize: 15, color: '#333', fontWeight: '600' },

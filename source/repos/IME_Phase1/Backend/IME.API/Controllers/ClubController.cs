@@ -250,7 +250,41 @@ public class ClubController : ControllerBase
         ModifiedBy         = c.ModifiedBy,
         ModifiedDate       = c.ModifiedDate,
     };
+    [HttpPut("updateclubbymemberid")]
+    public async Task<ActionResult<ApiResponse<object>>> UpdateClubByMemberId(
+     [FromQuery] string memberIds,
+     [FromQuery] int clubId)
+    {
+        try
+        {
+            var updated = await _clubRepository.UpdateAdminMemberClubAsync(
+                clubId,
+                memberIds);
 
+            if (!updated)
+            {
+                return NotFound(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Members not found"
+                });
+            }
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Club updated successfully for members"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
+    }
     private static Club MapFromDTO(CreateClubDTO d) => new()
     {
         ClubName           = d.ClubName,

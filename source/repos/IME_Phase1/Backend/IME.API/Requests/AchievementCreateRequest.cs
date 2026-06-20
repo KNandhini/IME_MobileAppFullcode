@@ -8,5 +8,5 @@ public class AchievementCreateRequest
     public string? AchievementDate { get; set; }
     public IFormFile? Photo { get; set; }
     public IFormFile? Attachment { get; set; }
-    public int MemberId { get; internal set; }
+    public int MemberId { get;  set; }
 }

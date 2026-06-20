@@ -23,7 +23,7 @@ public class MemberProfileDTO
     public string? CountryName { get; set; }
     public int? StateId { get; set; }
     public string? StateName { get; set; }
-    public int? ClubId { get; set; }
+    public string? ClubId { get; set; }
     public string? ClubName { get; set; }
     public DateTime? GraceExpiryDate { get; set; }  // NEW
 }
@@ -40,7 +40,7 @@ public class UpdateMemberProfileDTO
     public int? DesignationId { get; set; }
     public int? CountryId { get; set; }  // ?
     public int? StateId { get; set; }  // ?
-    public int? ClubId { get; set; }  // ?
+    public string? ClubId { get; set; }  // ?
     public string? Place { get; set; }
     public string? ProfilePhotoPath { get; set; }
 }

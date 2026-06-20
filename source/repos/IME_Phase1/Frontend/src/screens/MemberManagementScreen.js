@@ -4,7 +4,7 @@ import {
   View, Text, StyleSheet, FlatList, RefreshControl,
   Alert, Image,
 } from 'react-native';
-import { Card, IconButton, Searchbar, Chip } from 'react-native-paper';
+import { Card, IconButton, Searchbar, Chip, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 
@@ -26,19 +26,24 @@ const MemberManagementScreen = ({ navigation }) => {
   // ── photoMap: memberId → data-URI (same pattern as AchievementsScreen) ──────
   const [photoMap, setPhotoMap] = useState({});
 
-  useFocusEffect(useCallback(() => { loadMembers(); }, []));
+ useFocusEffect(
+  useCallback(() => {
+    loadMembers();
+  }, [navigation])
+);
   useEffect(() => { filterMembers(); }, [searchQuery, filterStatus, members]);
 
   const loadMembers = async () => {
     setLoading(true);
     try {
+      debugger;
       // Step 1: Get userData from AsyncStorage
       const userDataStr = await AsyncStorage.getItem('userData');
       if (!userDataStr) {
         Alert.alert('Error', 'User session not found. Please login again.');
         return;
       }
-
+debugger;
       // Step 2: Parse and extract memberId
       const userData = JSON.parse(userDataStr);
       const memberId = userData?.memberId ?? userData?.MemberId;
@@ -53,7 +58,7 @@ const MemberManagementScreen = ({ navigation }) => {
         Alert.alert('Error', profileResponse.message || 'Failed to get member profile');
         return;
       }
-
+debugger;
       const clubId = profileResponse.data?.clubId ?? profileResponse.data?.ClubId;
       if (!clubId) {
         Alert.alert('Error', 'Club not assigned to this member.');
@@ -61,29 +66,48 @@ const MemberManagementScreen = ({ navigation }) => {
       }
 
       // Step 4: Load members by clubId
-      const response = await memberService.getMembersByClub(clubId);
-      if (response.success) {
-        const memberList = response.data ?? [];
-        setMembers(memberList);
-
-        // ── Step 5: Build memberId → data-URI map from profilePhoto blob ──────
-        // Mirrors exactly what AchievementsScreen does with getAllMembers()
-        const map = {};
-        memberList.forEach((m) => {
-          const id = m.memberId ?? m.MemberId;
-          const blob =
-            m.profilePhoto ?? m.ProfilePhoto ?? m.photo ?? m.Photo ?? null;
-          if (id && blob) {
-            const uri = blobToDataUri(blob);
-            if (uri) map[id] = uri;
-          }
+const response = await memberService.getMembersByClub(clubId);
+if (response.success) {
+  const memberList = response.data ?? [];
+ debugger;
+  // ── Step 5: Fetch photos via /api/Member/photos-by-ids ──────────────────
+  const map = {};
+  try {
+   const memberIds = [
+        ...new Set(
+          memberList
+            .map(a => a.memberId ?? a.MemberId)
+            .filter(Boolean)
+        )
+      ];
+       if (memberIds.length === 0) return;
+    if (memberIds) {
+      const photosResponse = await memberService.
+getMemberPhotosByIds
+(memberIds);
+      if (photosResponse.success && Array.isArray(photosResponse.data)) {
+        photosResponse.data.forEach((p) => {
+          const id = p.memberId ?? p.MemberId;
+          // Prefer base64 blob, fall back to URL path
+          const uri = p.profilePhotoBase64
+            ? blobToDataUri(p.profilePhotoBase64)
+            : p.profilePhotoPath
+            ? p.profilePhotoPath
+            : null;
+          if (id && uri) map[id] = uri;
         });
-        console.log('[MemberManagementScreen] photoMap keys:', Object.keys(map));
-        setPhotoMap(map);
-      } else {
-        Alert.alert('Error', response.message || 'Failed to load members');
       }
-
+    }
+  } catch (photoErr) {
+    console.warn('[MemberManagementScreen] Failed to load photos:', photoErr?.message);
+  }
+ 
+  console.log('[MemberManagementScreen] photoMap keys:', Object.keys(map));
+  setPhotoMap(map);
+  setMembers(memberList);
+} else {
+  Alert.alert('Error', response.message || 'Failed to load members');
+}
     } catch (error) {
       Alert.alert('Error', 'Failed to load members: ' + (error?.message || ''));
     } finally {
@@ -260,6 +284,15 @@ const MemberManagementScreen = ({ navigation }) => {
           </View>
         }
       />
+
+      {/* ── Add Admin ── opens AdminSignupScreen (register this route in your navigator) */}
+      <FAB
+        icon="account-plus"
+        label="Add Admin"
+        style={styles.fab}
+        color="#fff"
+        onPress={() => navigation.navigate('AdminSignup')}
+      />
     </View>
   );
 };
@@ -269,7 +302,7 @@ const styles = StyleSheet.create({
   searchBar:            { margin: 15, elevation: 2 },
   filters:              { flexDirection: 'row', paddingHorizontal: 15, marginBottom: 10 },
   filterChip:           { marginRight: 8 },
-  list:                 { padding: 15, paddingTop: 0 },
+  list:                 { padding: 15, paddingTop: 0, paddingBottom: 90 },
   card:                 { marginBottom: 15, borderRadius: 16, backgroundColor: '#fff', elevation: 4 },
   memberHeader:         { flexDirection: 'row', alignItems: 'center' },
   photo:                { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
@@ -285,6 +318,7 @@ const styles = StyleSheet.create({
   actions:              { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
   emptyContainer:       { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
   emptyText:            { fontSize: 16, color: '#999' },
+  fab:                  { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#1E3A5F' },
 });
 
 export default MemberManagementScreen;

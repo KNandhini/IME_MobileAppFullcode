@@ -19,7 +19,9 @@ public class LoginResponseDTO
     public string? MembershipStatus { get; set; }
     public DateTime? GraceExpiryDate { get; set; }
     public string? LoginStatus { get; set; }   // OK | PENDING_PAYMENT | GRACE_EXPIRED
-    public int? ClubId { get; set; }
+    public string? ClubId { get; set; }
+  
+
 }
 
 public class SignupRequestDTO
@@ -39,8 +41,15 @@ public class SignupRequestDTO
   
     public int? StateId { get; set; }
   
-    public int? ClubId { get; set; }
-  
+    public string? ClubId { get; set; }
+    // NEW — comma-separated club ids, used when RoleId = 1 (Admin) and the
+    // admin manages more than one club, e.g. "3,7,12".
+ 
+
+    // NEW — 1 = Admin, 2 = Member. Defaults to 2 so the existing member
+    // signup flow keeps working without sending this field at all.
+    public int RoleId { get; set; } = 2;
+
 }
 
 public class ForgotPasswordRequestDTO

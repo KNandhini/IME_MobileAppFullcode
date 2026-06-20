@@ -23,10 +23,15 @@ public class Member
     public string? CountryName { get; set; }
     public int? StateId { get; set; }
     public string? StateName { get; set; }
-    public int? ClubId { get; set; }
+    public string? ClubId { get; set; }
     public string? ClubName { get; set; }
     public DateTime? GraceExpiryDate { get; set; }  // NEW
     public string? ProfilePhotoBase64 { get; set; }
+  
+
+    // NEW — 1 = Admin, 2 = Member. Defaults to 2 so the existing member
+    // signup flow keeps working without sending this field at all.
+    public int RoleId { get; set; } = 2;
 }
 
 public class MemberPhoto

@@ -1,20 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal, Image,FlatList
+  TouchableOpacity, Modal, Image, FlatList,
 } from 'react-native';
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
-//import { Modal, FlatList } from 'react-native'; // Modal already imported, just ensure FlatList is there
-const SignupScreen = ({ navigation }) => {
+
+// ─────────────────────────────────────────────────────────────────────────
+// AdminSignupScreen
+// Same form shape as SignupScreen, but:
+//   • No "welcome / grace-period / fee" modal
+//   • No RegistrationPayment navigation
+//   • Sends roleId = 1 (Admin) instead of the default member roleId
+//   • Lets you pick MULTIPLE clubs (an admin can manage more than one club)
+//     and sends them as a single comma-separated string in `clubId`
+//     (e.g. "3,7,12")
+//   • Uploads the picked profile photo directly to /File/upload-profile-photo
+//     right after signup succeeds, using the new memberId
+// ─────────────────────────────────────────────────────────────────────────
+const AdminSignupScreen = ({
+  navigation,
+  route
+}) => {
+    const hideClubSelection =
+  route?.params?.hideClubSelection || false;
+
+const presetClub =
+  route?.params?.presetClub || null;
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', confirmPassword: '',
     contactNumber: '', address: '', gender: '', age: '',
-    dateOfBirth: '', place: '', designationId: 1,
+    dateOfBirth: '', designationId: 1, // TODO: point at your actual "Admin" designation id if you have one
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -24,80 +43,85 @@ const SignupScreen = ({ navigation }) => {
   const [menuWidth, setMenuWidth] = useState(0);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
-
-  const [welcomeVisible, setWelcomeVisible] = useState(true);
-  const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-// ── Location state ─────────────────────────────────────────────────────────
-const [countries,       setCountries]       = useState([]);
-const [states,          setStates]          = useState([]);
-const [clubs,           setClubs]           = useState([]);
 
-const [countryModal,    setCountryModal]    = useState(false);
-const [stateModal,      setStateModal]      = useState(false);
-const [clubModal,       setClubModal]       = useState(false);
+  // ── Location state ─────────────────────────────────────────────────────
+  const [countries, setCountries] = useState([]);
+  const [states, setStates]       = useState([]);
+  const [clubs, setClubs]         = useState([]);
 
-const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
-const [selectedState,   setSelectedState]   = useState(null); // { stateId, stateName }
-const [selectedClub,    setSelectedClub]    = useState(null); // { clubId, clubName }
+  const [countryModal, setCountryModal] = useState(false);
+  const [stateModal, setStateModal]     = useState(false);
+  const [clubModal, setClubModal]       = useState(false);
 
-const [statesLoading,   setStatesLoading]   = useState(false);
-const [clubsLoading,    setClubsLoading]    = useState(false);
+  const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
+  const [selectedState, setSelectedState]     = useState(null); // { stateId, stateName }
+  const [selectedClubs, setSelectedClubs]     = useState([]);   // [{ clubId, clubName }, ...] — MULTIPLE
 
-  useEffect(() => {
-    fetchFee();
-     loadCountries(); // ✅ ADD THIS
-  }, []);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [clubsLoading, setClubsLoading]   = useState(false);
+useEffect(() => {
+  if (hideClubSelection && presetClub) {
+    setSelectedClubs([
+      {
+        clubId: presetClub.clubId,
+        clubName: presetClub.clubName,
+      },
+    ]);
+  }
+}, [hideClubSelection, presetClub]);
+  useEffect(() => { loadCountries(); }, []);
 
-  const fetchFee = async () => {
+  const loadCountries = async () => {
     try {
-      const res = await api.get('/payment/latest-fee');
-      if (res.data.success) setCurrentFee(res.data.data);
+      const res = await clubService.getCountries();
+      if (res.success) setCountries(res.data || []);
     } catch (e) {
-      console.warn('Fee fetch failed:', e.message);
+      console.warn('Countries fetch failed:', e.message);
     }
   };
-const loadCountries = async () => {
-  try {
-    const res = await clubService.getCountries();
-    if (res.success) setCountries(res.data || []);
-  } catch (e) {
-    console.warn('Countries fetch failed:', e.message);
-  }
-};
 
-const loadStates = async (countryId) => {
-  setStatesLoading(true);
-  setStates([]);
-  setSelectedState(null);
-  setSelectedClub(null);
-  setClubs([]);
-  try {
-    const res = await clubService.getStatesByCountry(countryId);
-    if (res.success) setStates(res.data || []);
-  } catch (e) {
-    console.warn('States fetch failed:', e.message);
-  } finally {
-    setStatesLoading(false);
-  }
-};
-
-const loadClubsByState = async (stateId) => {
-  setClubsLoading(true);
-  setClubs([]);
-  setSelectedClub(null);
-  try {
-    const res = await clubService.getAll(1, 200, '', true);
-    if (res.success && res.data) {
-      const filtered = res.data.filter(c => c.stateId === stateId);
-      setClubs(filtered);
+  const loadStates = async (countryId) => {
+    setStatesLoading(true);
+    setStates([]);
+    setSelectedState(null);
+    setSelectedClubs([]);
+    setClubs([]);
+    try {
+      const res = await clubService.getStatesByCountry(countryId);
+      if (res.success) setStates(res.data || []);
+    } catch (e) {
+      console.warn('States fetch failed:', e.message);
+    } finally {
+      setStatesLoading(false);
     }
-  } catch (e) {
-    console.warn('Clubs fetch failed:', e.message);
-  } finally {
-    setClubsLoading(false);
-  }
-};
+  };
+
+  const loadClubsByState = async (stateId) => {
+    setClubsLoading(true);
+    setClubs([]);
+    setSelectedClubs([]);
+    try {
+      const res = await clubService.getAll(1, 200, '', true);
+      if (res.success && res.data) {
+        const filtered = res.data.filter((c) => c.stateId === stateId);
+        setClubs(filtered);
+      }
+    } catch (e) {
+      console.warn('Clubs fetch failed:', e.message);
+    } finally {
+      setClubsLoading(false);
+    }
+  };
+
+  const toggleClubSelection = (club) => {
+    setSelectedClubs((prev) => {
+      const exists = prev.find((c) => c.clubId === club.clubId);
+      if (exists) return prev.filter((c) => c.clubId !== club.clubId);
+      return [...prev, club];
+    });
+  };
+
   const updateField = (field, value) => {
     let v = value;
     if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
@@ -105,7 +129,6 @@ const loadClubsByState = async (stateId) => {
     else if (field === 'contactNumber') v = value.replace(/[^0-9]/g, '').slice(0, 10);
     else if (field === 'age') v = value.replace(/[^0-9]/g, '').slice(0, 3);
     else if (field === 'address') v = value.replace(/[^A-Za-z0-9\s,./-]/g, '').slice(0, 250);
-    //else if (field === 'place') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
     setFormData((prev) => ({ ...prev, [field]: v }));
   };
 
@@ -134,10 +157,10 @@ const loadClubsByState = async (stateId) => {
     if (!formData.address) e.address = 'Required';
     if (!formData.gender) e.gender = 'Required';
     if (!formData.age) e.age = 'Required';
-    //if (!formData.place) e.place = 'Required';
     if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
-    if (!selectedCountry) e.country = 'Required';       // ✅ NEW
-  if (!selectedState)   e.state   = 'Required';       // ✅ NEW
+    if (!selectedCountry) e.country = 'Required';
+    if (!selectedState) e.state = 'Required';
+    if (!hideClubSelection && selectedClubs.length === 0) e.clubs = 'Select at least one club';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -159,154 +182,112 @@ const loadClubsByState = async (stateId) => {
     }
   };
 
-const handleSignup = async () => {
-  if (!validate()) return;
-  setLoading(true);
-  try {
-      debugger;
-    // ✅ Explicit payload — no spread, no extra fields
-    const payload = {
-    
-      fullName:      formData.fullName,
-      email:         formData.email,
-      password:      formData.password,
-      contactNumber: formData.contactNumber,
-      address:       formData.address,
-      gender:        formData.gender,
-      age:           parseInt(formData.age),
-      dateOfBirth:   formData.dateOfBirth,
-      designationId: formData.designationId,
-      countryId:     selectedCountry?.countryId ?? null,
-      stateId:       selectedState?.stateId     ?? null,
-   clubId: selectedClub?.clubId?.toString() ?? null,
-      roleId:        2,
-    };
+  // Uploads the picked photo for a specific member. Called after signup
+  // succeeds and we have a real memberId to attach the photo to.
+  const uploadProfilePhoto = async (memberId, photoUri) => {
+    try {
+        debugger;
+      const formData = new FormData();
+      formData.append('file', {
+        uri: photoUri,
+        name: 'profile_photo.jpg',
+        type: 'image/jpeg',
+      });
+      formData.append('memberId', memberId.toString());
 
-    const response = await api.post('/Auth/signup', payload);
-    const res = response.data;
-    if (res.success) {
-      const paymentParams = {
-        userId:          res.data.userId,
-        memberId:        res.data.memberId,
-        feeAmount:       currentFee ? parseFloat(currentFee.amount) : 0,
-        memberName:      formData.fullName,
-        memberEmail:     formData.email,
-        memberPassword:  formData.password,
-        profilePhotoUri: profilePhoto?.uri ?? null,
+      const baseUrl = api.defaults.baseURL;
+      const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
+        method: 'POST',
+        body: formData,
+      });
+      const json = await response.json();
+      return json.success;
+    } catch (e) {
+      console.warn('Profile photo upload failed:', e.message);
+      return false;
+    }
+  };
+
+  const handleSignup = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const payload = {
+        fullName:      formData.fullName,
+        email:         formData.email,
+        password:      formData.password,
+        contactNumber: formData.contactNumber,
+        address:       formData.address,
+        gender:        formData.gender,
+        age:           parseInt(formData.age),
+        dateOfBirth:   formData.dateOfBirth,
+        designationId: formData.designationId,
+        countryId:     selectedCountry?.countryId ?? null,
+        stateId:       selectedState?.stateId ?? null,
+        // Comma-separated list of every club this admin manages, e.g. "3,7,12"
+        // (a single club still works fine, it'll just be one id with no comma)
+        clubId:        selectedClubs.map((c) => c.clubId).join(',')??null,
+        // 1 = Admin (see backend SignupRequestDTO.RoleId)
+        roleId:        1,
       };
 
-      const isPendingPayment = res.message === 'PENDING_PAYMENT';
-      const isGraceExpired   = res.message === 'GRACE_EXPIRED';
+      const response = await api.post('/Auth/signup', payload);
+      const res = response.data;
 
-      // Always refresh the local grace flag (covers re-register after back-press)
-      await AsyncStorage.setItem('paymentGrace', JSON.stringify({
-        pending:      true,
-        registeredAt: Date.now(),
-        memberId:     res.data.memberId,
-        paymentParams,
-      }));
+      if (res.success) {
+        // No payment step to defer to here, so push the photo now.
+        if (profilePhoto && res.data?.memberId) {
+            debugger;
+          const uploaded = await uploadProfilePhoto(res.data.memberId, profilePhoto.uri);
+          if (!uploaded) {
+            console.warn('Profile photo upload did not succeed for member', res.data.memberId);
+          }
+        }
 
-      if (isGraceExpired) {
-        Alert.alert(
-          'Grace Period Expired',
-          'Your 3-day free period had ended, but we\'ve reset it.\n\nComplete your payment now to activate your account.',
-          [
-            {
-              text: 'Pay Now',
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+        const clubNames = selectedClubs?.map(c => c.clubName).join(', ');
+
+  const newMember = {
+    memberId: res.data.memberId,
+    fullName: formData.fullName,
+  };
+
+  Alert.alert(
+    'Admin Created',
+    clubNames
+      ? `${formData.fullName} has been registered as an admin for ${clubNames}.`
+      : `${formData.fullName} has been registered as an admin.`,
+    [
+      {
+        text: 'OK',
+        onPress: () => {
+          navigation.navigate({
+            name: 'ClubForm',
+            params: {
+              newAdminMember: newMember,
             },
-            {
-              text: 'Pay Later',
-              style: 'cancel',
-              onPress: () => navigation.navigate('Login'),
-            },
-          ],
-        );
-      } else if (isPendingPayment) {
-        // Account already exists, payment not completed — resume payment
-        Alert.alert(
-          'Payment Pending',
-          'Your account is already registered but payment is incomplete.\n\nComplete payment now to activate your account.',
-          [
-            {
-              text: 'Pay Now',
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-            },
-            {
-              text: 'Pay Later',
-              style: 'cancel',
-              onPress: () => navigation.navigate('Login'),
-            },
-          ],
-        );
-      } else {
-        Alert.alert(
-          'Registration Successful! 🎉',
-          'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
-          [
-            {
-              text: 'Pay Now',
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-            },
-            {
-              text: 'Pay Later (3 days)',
-              style: 'cancel',
-              onPress: () => {
-                Alert.alert(
-                  'Account Activated',
-                  'Your account is active for 3 days. Please complete payment before it expires.',
-                  [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
-                );
-              },
-            },
-          ],
-        );
+            merge: true,
+          });
+        },
+      },
+    ]
+  );
+} else {
+        Alert.alert('Registration Failed', res.message);
       }
-    } else {
-      Alert.alert('Registration Failed', res.message);
+    } catch (e) {
+      const status    = e?.response?.status;
+      const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
+      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
+    } finally {
+      setLoading(false);
     }
-  } catch (e) {
-    const status    = e?.response?.status;
-    const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
-    Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-
-      {/* Welcome Modal */}
-      <Modal visible={welcomeVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Welcome to IME</Text>
-            <Text style={styles.modalSubtitle}>Member Registration</Text>
-            <Text style={styles.modalBody}>
-              Complete the registration form to join the IMC community. You can pay the annual membership fee now or within 3 days of registration.
-            </Text>
-            {currentFee ? (
-              <View style={styles.feeBox}>
-                <Text style={styles.feeLabel}>Annual Membership Fee</Text>
-                <Text style={styles.feeAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
-                <Text style={styles.feeNote}>Complete payment within 3 days</Text>
-              </View>
-            ) : (
-              <Text style={styles.noFee}>No fee currently set. Contact admin.</Text>
-            )}
-            <TouchableOpacity style={styles.proceedBtn} onPress={() => setWelcomeVisible(false)}>
-              <Text style={styles.proceedBtnText}>Start Registration</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.backLink}>Already a member? Login</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
       <View style={styles.header}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join IME Membership</Text>
+        <Text style={styles.title}>Add Admin</Text>
+        <Text style={styles.subtitle}>Register a new club administrator</Text>
       </View>
 
       <View style={styles.card}>
@@ -342,7 +323,7 @@ const handleSignup = async () => {
           multiline mode="outlined" theme={{ roundness: 10 }}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.address && <Text style={styles.error}>{errors.address}</Text>}
-{/* ── Address Line (kept) ── */}
+
         {/* ── Country ── */}
         <TouchableOpacity onPress={() => setCountryModal(true)}>
           <View pointerEvents="none">
@@ -362,7 +343,7 @@ const handleSignup = async () => {
 
         {/* ── State ── */}
         <TouchableOpacity
-          onPress={() => selectedCountry ? setStateModal(true) : Alert.alert('Select country first')}
+          onPress={() => (selectedCountry ? setStateModal(true) : Alert.alert('Select country first'))}
           activeOpacity={0.8}
         >
           <View pointerEvents="none">
@@ -380,24 +361,44 @@ const handleSignup = async () => {
         </TouchableOpacity>
         {errors.state && <Text style={styles.error}>{errors.state}</Text>}
 
-        {/* ── Club (optional, filtered by state) ── */}
-        <TouchableOpacity
-          onPress={() => selectedState ? setClubModal(true) : Alert.alert('Select state first')}
-          activeOpacity={0.8}
-        >
-          <View pointerEvents="none">
-            <TextInput
-              label={clubsLoading ? 'Loading clubs…' : 'Club *'}
-              value={selectedClub?.clubName || ''}
-              mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
-              style={[styles.input, !selectedState && { opacity: 0.5 }]}
-              editable={false}
-            />
-          </View>
-        </TouchableOpacity>
+        {/* ── Clubs (MULTI-SELECT — an admin can manage more than one club) ── */}
+        {!hideClubSelection && (
+  <>
+    <TouchableOpacity
+      onPress={() =>
+        selectedState
+          ? setClubModal(true)
+          : Alert.alert('Select state first')
+      }
+      activeOpacity={0.8}
+    >
+      <View pointerEvents="none">
+        <TextInput
+          label={clubsLoading ? 'Loading clubs…' : 'Clubs *'}
+          value={selectedClubs.map(c => c.clubName).join(', ')}
+          mode="outlined"
+          theme={{ roundness: 10 }}
+          outlineColor="#BBDEFB"
+          activeOutlineColor="#1976D2"
+          style={[
+            styles.input,
+            !selectedState && { opacity: 0.5 },
+          ]}
+          editable={false}
+          multiline
+        />
+      </View>
+    </TouchableOpacity>
+
+    {errors.clubs && (
+      <Text style={styles.error}>
+        {errors.clubs}
+      </Text>
+    )}
+  </>
+)}
+        {errors.clubs && <Text style={styles.error}>{errors.clubs}</Text>}
+
         <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
           <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
             contentStyle={{ width: menuWidth }}
@@ -442,10 +443,6 @@ const handleSignup = async () => {
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
-       {/* <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
-          mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.place && <Text style={styles.error}>{errors.place}</Text>}*/}
-
         {/* Profile Photo */}
         <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
         <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
@@ -465,13 +462,14 @@ const handleSignup = async () => {
         </TouchableOpacity>
 
         <Button mode="contained" onPress={handleSignup} loading={loading} style={styles.button} labelStyle={{ fontSize: 16 }}>
-          Register
+          Create Admin
         </Button>
       </View>
 
-      <Button mode="text" onPress={() => navigation.navigate('Login')} style={styles.linkButton}>
-        Already have an account? Login
+      <Button mode="text" onPress={() => navigation.goBack()} style={styles.linkButton}>
+        Cancel
       </Button>
+
       {/* ── Country Modal ── */}
       <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
         <View style={styles.pickerOverlay}>
@@ -479,7 +477,7 @@ const handleSignup = async () => {
             <Text style={styles.pickerTitle}>Select Country</Text>
             <FlatList
               data={countries}
-              keyExtractor={item => String(item.countryId)}
+              keyExtractor={(item) => String(item.countryId)}
               style={{ maxHeight: 380 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -509,7 +507,7 @@ const handleSignup = async () => {
             <Text style={styles.pickerTitle}>Select State</Text>
             <FlatList
               data={states}
-              keyExtractor={item => String(item.stateId)}
+              keyExtractor={(item) => String(item.stateId)}
               style={{ maxHeight: 380 }}
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -532,32 +530,35 @@ const handleSignup = async () => {
         </View>
       </Modal>
 
-      {/* ── Club Modal ── */}
+      {/* ── Club Modal (MULTI-SELECT) ── */}
       <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
         <View style={styles.pickerOverlay}>
           <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select Club</Text>
+            <Text style={styles.pickerTitle}>Select Clubs (you can pick more than one)</Text>
             <FlatList
               data={clubs}
-              keyExtractor={item => String(item.clubId)}
+              keyExtractor={(item) => String(item.clubId)}
               style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.pickerItem, selectedClub?.clubId === item.clubId && styles.pickerItemActive]}
-                  onPress={() => {
-                    setSelectedClub(item);
-                    setClubModal(false);
-                  }}
-                >
-                  <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
-                    {item.clubName}
-                  </Text>
-                </TouchableOpacity>
-              )}
+              renderItem={({ item }) => {
+                const checked = selectedClubs.some((c) => c.clubId === item.clubId);
+                return (
+                  <TouchableOpacity
+                    style={[styles.pickerItem, styles.pickerItemRow, checked && styles.pickerItemActive]}
+                    onPress={() => toggleClubSelection(item)}
+                  >
+                    <Text style={[styles.pickerItemText, checked && styles.pickerItemTextActive]}>
+                      {item.clubName}
+                    </Text>
+                    <Text style={[styles.checkMark, checked && styles.checkMarkActive]}>
+                      {checked ? '✓' : ''}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              }}
               ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
             />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
+            <TouchableOpacity style={styles.pickerDone} onPress={() => setClubModal(false)}>
+              <Text style={styles.pickerDoneText}>Done ({selectedClubs.length} selected)</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -572,6 +573,7 @@ const styles = StyleSheet.create({
   header:         { alignItems: 'center', marginBottom: 25 },
   title:          { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
   subtitle:       { fontSize: 14, color: '#666', marginTop: 5 },
+  card:           { width: '100%' },
   input:          { marginBottom: 10, borderRadius: 10 },
   button:         { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
   linkButton:     { marginTop: 10 },
@@ -586,31 +588,22 @@ const styles = StyleSheet.create({
   photoPickerText:    { marginLeft: 14, flex: 1 },
   photoPickerTitle:   { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
   photoPickerHint:    { fontSize: 12, color: '#888', marginTop: 2 },
-  // Welcome Modal
-  modalOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalBox:       { backgroundColor: '#fff', borderRadius: 16, padding: 28, width: '100%', alignItems: 'center' },
-  modalTitle:     { fontSize: 24, fontWeight: 'bold', color: '#1E3A5F', marginBottom: 4 },
-  modalSubtitle:  { fontSize: 14, color: '#666', marginBottom: 16 },
-  modalBody:      { fontSize: 14, color: '#444', textAlign: 'center', lineHeight: 22, marginBottom: 20 },
-  feeBox:         { backgroundColor: '#1E3A5F', borderRadius: 12, padding: 20, alignItems: 'center', width: '100%', marginBottom: 20 },
-  feeLabel:       { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
-  feeAmount:      { color: '#D4A017', fontSize: 32, fontWeight: 'bold', marginTop: 4 },
-  feeNote:        { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 6 },
-  noFee:          { color: '#999', fontSize: 13, marginBottom: 20 },
-  proceedBtn:     { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
-  proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  backLink:       { color: '#1976D2', fontSize: 14 },
   // Picker modals
   pickerOverlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   pickerSheet:         { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
   pickerTitle:         { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
   pickerItem:          { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  pickerItemRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
   pickerItemActive:    { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
   pickerItemText:      { fontSize: 15, color: '#111' },
   pickerItemTextActive:{ color: '#1E3A5F', fontWeight: '700' },
+  checkMark:           { fontSize: 16, color: 'transparent', width: 20, textAlign: 'right' },
+  checkMarkActive:      { color: '#1976D2', fontWeight: '700' },
   pickerEmpty:         { textAlign: 'center', color: '#888', paddingVertical: 24 },
   pickerCancel:        { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   pickerCancelText:    { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+  pickerDone:          { marginTop: 12, backgroundColor: '#1E3A5F', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  pickerDoneText:      { fontSize: 15, color: '#fff', fontWeight: '700' },
 });
 
-export default SignupScreen;
+export default AdminSignupScreen;

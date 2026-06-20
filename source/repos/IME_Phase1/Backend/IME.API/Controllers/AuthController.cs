@@ -88,7 +88,7 @@ public class AuthController : ControllerBase
                 MembershipStatus = fullUser.MembershipStatus,
                 GraceExpiryDate  = fullUser.GraceExpiryDate,
                 LoginStatus      = fullUser.LoginStatus,
-                ClubId           = fullUser.ClubId,
+                ClubId           = fullUser.ClubId.ToString(),
             };
 
             return Ok(new ApiResponse<LoginResponseDTO>
@@ -132,9 +132,11 @@ public class AuthController : ControllerBase
             {
                 Email = request.Email,
                 PasswordHash = passwordHash,
-                RoleId = 2,
+                RoleId = request.RoleId, // 1 = Admin, 2 = Member (was hardcoded to 2 before)
                 IsActive = true
             };
+
+            var isAdmin = request.RoleId == 1;
 
             var member = new Member
             {
@@ -147,10 +149,14 @@ public class AuthController : ControllerBase
                 Place = request.Place,
                 DesignationId = request.DesignationId,
                 ProfilePhotoPath = request.ProfilePhotoPath,
-                MembershipStatus = "Pending",
+                MembershipStatus = isAdmin ? "Active" : "Pending",
                 CountryId = request.CountryId,
                 StateId = request.StateId,
                 ClubId = request.ClubId,
+                RoleId = request.RoleId
+                // Admins can belong to several clubs ("3,7,12"); regular members
+                // just mirror their single ClubId here for consistency.
+
             };
 
             // ? FIXED: 6-value tuple to match updated repository
@@ -162,14 +168,16 @@ public class AuthController : ControllerBase
                 return Ok(new ApiResponse<object>
                 {
                     Success = true,
-                    Message = "Registration successful. Pending admin approval.",
+                    Message = isAdmin
+                        ? "Admin registered successfully."
+                        : "Registration successful. Pending admin approval.",
                     Data = new
                     {
                         UserId = userId,
                         MemberId = memberId,
-                        CountryName = countryName,  // ? from JOIN
-                        StateName = stateName,    // ? from JOIN
-                        ClubName = clubName,     // ? from JOIN
+                        CountryName = countryName,  // from JOIN
+                        StateName = stateName,      // from JOIN
+                        ClubName = clubName,        // from JOIN
                     }
                 });
             }
@@ -189,7 +197,6 @@ public class AuthController : ControllerBase
             });
         }
     }
-
     [HttpPost("forgot-password")]
     public async Task<ActionResult<ApiResponse<object>>> ForgotPassword([FromBody] ForgotPasswordRequestDTO request)
     {

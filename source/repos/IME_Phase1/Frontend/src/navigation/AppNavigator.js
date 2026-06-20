@@ -56,6 +56,7 @@ import AchievementFormScreen from '../screens/AchievementFormScreen';
 import LawBotScreen from '../screens/LawBotScreen';
 import MemberEditScreen from '../screens/MemberEditScreen';
 import CorpDetailScreen from '../screens/CorpDetailsScreen';
+import AdminSignupScreen from '../screens/AddAdminScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -240,7 +241,7 @@ const MainStack = () => (
       <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
             <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
       <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
-
+ <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
   
   
