@@ -3,6 +3,7 @@ import api from '../utils/api';
 export const memberService = {
   getProfile: async (memberId) => {
     try {
+      debugger;
       const response = await api.get(`/member/profile/${memberId}`);
       return response.data;
     } catch (error) {

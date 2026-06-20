@@ -13,4 +13,7 @@ public interface IClubRepository
     Task<string> GetNextClubCodeAsync();
     Task<List<Country>> GetCountriesAsync();
     Task<List<State>> GetStatesByCountryAsync(int countryId);
+    Task<bool> UpdateAdminMemberClubAsync(
+        int clubId,
+        string memberIds);
 }

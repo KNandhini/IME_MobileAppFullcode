@@ -59,8 +59,8 @@ public class AuthRepository : IAuthRepository
                 profilePhotoBase64 = "data:image/jpeg;base64," + Convert.ToBase64String(photoBytes);
             }
 
-            int? authClubId = null;
-            try { var o = reader.GetOrdinal("ClubId"); if (!reader.IsDBNull(o)) authClubId = reader.GetInt32(o); } catch { }
+            string? authClubId = null;
+            try { var o = reader.GetOrdinal("ClubId"); if (!reader.IsDBNull(o)) authClubId = reader.GetString(o); } catch { }
 
             return new User
             {
@@ -75,7 +75,7 @@ public class AuthRepository : IAuthRepository
                 MembershipStatus = reader.IsDBNull(reader.GetOrdinal("MembershipStatus")) ? null : reader.GetString(reader.GetOrdinal("MembershipStatus")),
                 GraceExpiryDate  = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate"))  ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")),
                 LoginStatus      = reader.IsDBNull(reader.GetOrdinal("LoginStatus"))       ? null : reader.GetString(reader.GetOrdinal("LoginStatus")),
-                ClubId           = authClubId,
+                ClubId           = authClubId.ToString(),
             };
         }
 

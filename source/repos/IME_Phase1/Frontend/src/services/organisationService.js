@@ -6,23 +6,28 @@ export const organisationService = {
     return response.data;
   },
 
-  getById: async (orgMemberId) => {
-    const response = await api.get(`/organisation/${orgMemberId}`);
-    return response.data;
-  },
+  // getById: async (orgMemberId) => {
+  //   const response = await api.get(`/organisation/${orgMemberId}`);
+  //   return response.data;
+  // },
 
-  create: async (memberData) => {
-    const response = await api.post('/organisation', memberData);
-    return response.data;
-  },
+  // create: async (memberData) => {
+  //   const response = await api.post('/organisation', memberData);
+  //   return response.data;
+  // },
 
-  update: async (orgMemberId, memberData) => {
-    const response = await api.put(`/organisation/${orgMemberId}`, memberData);
-    return response.data;
-  },
+  // update: async (orgMemberId, memberData) => {
+  //   const response = await api.put(`/organisation/${orgMemberId}`, memberData);
+  //   return response.data;
+  // },
 
-  delete: async (orgMemberId) => {
-    const response = await api.delete(`/organisation/${orgMemberId}`);
+  // delete: async (orgMemberId) => {
+  //   const response = await api.delete(`/organisation/${orgMemberId}`);
+  //   return response.data;
+  // },
+
+  getAdminsByClub: async (clubId) => {
+    const response = await api.get(`/organisation/club-admins/${clubId}`);
     return response.data;
   },
 };

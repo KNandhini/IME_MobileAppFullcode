@@ -130,4 +130,18 @@ debugger;
       return { success: false, message: error.message };
     }
   },
+ updateClubByMemberId: async (memberIds, clubId) => {
+  try {
+    const response = await api.put(
+      `/club/updateclubbymemberid?memberIds=${memberIds}&clubId=${clubId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Update club by member id error:', error);
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message,
+    };
+  }
+},
 };

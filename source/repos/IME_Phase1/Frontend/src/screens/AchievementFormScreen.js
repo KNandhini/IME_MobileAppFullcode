@@ -313,6 +313,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
 
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
+    debugger;
     if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
 
     const effectiveMemberId   = selectedMemberId   || currentUserId;
@@ -322,12 +323,13 @@ const AchievementFormScreen = ({ route, navigation }) => {
 
     setLoading(true);
     try {
+      debugger;
       const formData = new FormData();
       formData.append('title',           title.trim());
       formData.append('description',     description.trim());
       formData.append('achievementDate', formatDate(date));
       formData.append('memberName',      effectiveMemberName);
-      formData.append('memberId',        String(effectiveMemberId));
+      formData.append('memberId',        parseInt(effectiveMemberId));
 
       let res;
       let recordId;
@@ -336,6 +338,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
         res      = await achievementService.updateWithMedia(item.achievementId, formData);
         recordId = item.achievementId;
       } else {
+        debugger;
         res      = await achievementService.createWithMedia(formData);
         recordId = res?.data?.achievementId ?? res?.data?.AchievementId;
       }

@@ -79,7 +79,7 @@ public class MemberRepository : IMemberRepository
 
                 ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId"))
                     ? null
-                    : reader.GetInt32(reader.GetOrdinal("ClubId")),
+                    : reader.GetString(reader.GetOrdinal("ClubId")),
 
                 ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName"))
                     ? null
@@ -160,7 +160,7 @@ public class MemberRepository : IMemberRepository
                 CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName")) ? null : reader.GetString(reader.GetOrdinal("CountryName")),
                 StateId = reader.IsDBNull(reader.GetOrdinal("StateId")) ? null : reader.GetInt32(reader.GetOrdinal("StateId")),
                 StateName = reader.IsDBNull(reader.GetOrdinal("StateName")) ? null : reader.GetString(reader.GetOrdinal("StateName")),
-                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetString(reader.GetOrdinal("ClubId")),
                 ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
                 ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
                //  ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
@@ -231,7 +231,7 @@ public class MemberRepository : IMemberRepository
                 CountryName = reader.IsDBNull(reader.GetOrdinal("CountryName")) ? null : reader.GetString(reader.GetOrdinal("CountryName")),
                 StateId = reader.IsDBNull(reader.GetOrdinal("StateId")) ? null : reader.GetInt32(reader.GetOrdinal("StateId")),
                 StateName = reader.IsDBNull(reader.GetOrdinal("StateName")) ? null : reader.GetString(reader.GetOrdinal("StateName")),
-                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetInt32(reader.GetOrdinal("ClubId")),
+                ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetString(reader.GetOrdinal("ClubId")),
                 ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
                 ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
                 //ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],

@@ -156,7 +156,26 @@ public class ClubRepository : IClubRepository
         }
         return list;
     }
+    public async Task<bool> UpdateAdminMemberClubAsync(
+     int clubId,
+     string memberIds)
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
 
+        using var command = _dbContext.CreateStoredProcCommand(
+            "sp_UpdateAdminMemberClub",
+            connection);
+
+        command.Parameters.AddWithValue("@ClubId", clubId);
+        command.Parameters.AddWithValue("@MemberIds", memberIds);
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        if (await reader.ReadAsync())
+            return Convert.ToInt32(reader["RowsAffected"]) > 0;
+
+        return false;
+    }
     private static Club MapClub(SqlDataReader r) => new()
     {
         ClubId             = r.GetInt32(r.GetOrdinal("ClubId")),
