@@ -1,0 +1,40 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EAS_BUILD_PROJECT_ROOT": "source/repos/IME_Phase1/Frontend"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EAS_BUILD_PROJECT_ROOT": "source/repos/IME_Phase1/Frontend"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EAS_BUILD_PROJECT_ROOT": "source/repos/IME_Phase1/Frontend"
+      }
+    }
+  },
+
+  "submit": {
+    "production": {}
+  }
+}
