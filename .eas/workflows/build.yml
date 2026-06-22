@@ -1,0 +1,20 @@
+name: Build Android
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build Android APK
+    type: build
+    params:
+      platform: android
+      profile: preview
+    steps:
+      - name: Checkout
+        uses: eas/checkout
+      - name: Build
+        working_directory: source/repos/IME_Phase1/Frontend
+        uses: eas/build
