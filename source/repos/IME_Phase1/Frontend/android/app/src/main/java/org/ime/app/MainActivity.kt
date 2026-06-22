@@ -1,4 +1,4 @@
-package com.ime.mobileapp
+package org.ime.app
 
 import android.os.Build
 import android.os.Bundle
