@@ -44,7 +44,7 @@ uploadAttachments: async (id, formData) => {
     const token = await AsyncStorage.getItem('authToken');
 
     const response = await fetch(
-      `http://10.0.2.2:51150/api/Fundraise/${id}/attachments`,
+      `https://prasath-001-site1.ftempurl.com/api/Fundraise/${id}/attachments`,
       {
         method: 'POST',
         headers: {

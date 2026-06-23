@@ -1,34 +1,58 @@
 {
   "expo": {
-    "name": "IME App",
-    "slug": "ime-app",
+    "name": "IMEApp",
+    "slug": "imeapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "imeapp",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#1E3A5F"
     },
+
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.ime.app"
     },
+
     "android": {
+      "package": "org.ime.app",
+      "versionCode": 1,
+
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1E3A5F"
       },
-      "package": "org.ime.app"
+
+      "permissions": [
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "CAMERA"
+      ]
     },
+
     "web": {
       "favicon": "./assets/favicon.png"
     },
+
     "plugins": [
       "expo-font",
       "@react-native-community/datetimepicker"
-    ]
+    ],
+
+    "extra": {
+      "eas": {
+        "projectId": "768dcb77-eeec-4f04-b64e-3c21cbc2a79d"
+      }
+    }
   }
 }
