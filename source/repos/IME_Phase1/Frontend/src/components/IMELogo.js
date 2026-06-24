@@ -44,13 +44,13 @@ const IMELogo = ({ size = 'large', animated = true }) => {
       {/* IMC acronym with gold bars */}
       <View style={styles.textRow}>
         <View style={styles.goldBar} />
-        <Text style={[styles.acronym, { fontSize: isSmall ? 14 : 22 }]}>IMC</Text>
+        <Text style={[styles.acronym, { fontSize: isSmall ? 14 : 22 }]}>IME</Text>
         <View style={styles.goldBar} />
       </View>
 
       {/* Full name */}
       <Text style={[styles.fullName, { fontSize: isSmall ? 9 : 12 }]}>
-        Indian Municipal Corporation
+        Institution of Municipal Engineers
       </Text>
 
       {!isSmall && (

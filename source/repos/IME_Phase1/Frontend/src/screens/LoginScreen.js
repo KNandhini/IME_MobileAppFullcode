@@ -98,7 +98,7 @@ const LoginScreen = ({ navigation }) => {
           {/* Login card */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Sign In</Text>
-            <Text style={styles.cardSub}>Welcome back to IMC Portal</Text>
+            <Text style={styles.cardSub}>Welcome back to IME Portal</Text>
 
             <TextInput
               label="Email Address"
@@ -109,6 +109,7 @@ const LoginScreen = ({ navigation }) => {
               autoCapitalize="none"
               outlineColor="#BBDEFB"
               activeOutlineColor={NAVY}
+              textColor="#1E3A5F" 
               left={<TextInput.Icon icon="email-outline" />}
               style={styles.input}
             />
@@ -121,6 +122,7 @@ const LoginScreen = ({ navigation }) => {
               secureTextEntry={secureText}
               outlineColor="#BBDEFB"
               activeOutlineColor={NAVY}
+              textColor="#1E3A5F"
               left={<TextInput.Icon icon="lock-outline" />}
               right={
                 <TextInput.Icon
@@ -187,7 +189,7 @@ const LoginScreen = ({ navigation }) => {
           <View style={styles.statsBar}>
             <StatItem value="2,500+" label="Members" />
             <View style={styles.statsDivider} />
-            <StatItem value="150+" label="Corporations" />
+            <StatItem value="150+" label="Engineers" />
             <View style={styles.statsDivider} />
             <StatItem value="28+" label="States" />
             <View style={styles.statsDivider} />
@@ -195,7 +197,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <Text style={styles.footerText}>
-            © {new Date().getFullYear()} Indian Municipal Corporation · All rights reserved
+            © {new Date().getFullYear()} Indian Municipal Engineers · All rights reserved
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>

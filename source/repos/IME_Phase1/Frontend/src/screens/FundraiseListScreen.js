@@ -4,7 +4,9 @@ import {
   TouchableOpacity, Alert, Animated, Platform, Image
 } from 'react-native';
 import { fundraiseService } from '../services/fundraiseService';
-const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
+//const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
+const FILE_BASE_URL = "https://prasath-001-site1.ftempurl.com/Uploads/";
+//const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PRIMARY = '#1E3A5F';
 const ACCENT  = '#2E86DE';
