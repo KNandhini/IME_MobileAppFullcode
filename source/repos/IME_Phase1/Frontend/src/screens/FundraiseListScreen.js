@@ -3,27 +3,28 @@ import {
   View, Text, FlatList, StyleSheet,
   TouchableOpacity, Alert, Animated, Platform, Image
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { fundraiseService } from '../services/fundraiseService';
 //const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
 const FILE_BASE_URL = "https://prasath-001-site1.ftempurl.com/Uploads/";
 //const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PRIMARY = '#1E3A5F';
-const ACCENT  = '#2E86DE';
+const ACCENT = '#2E86DE';
 const SUCCESS = '#27AE60';
-const DANGER  = '#E74C3C';
-const BG      = '#F0F4FA';
+const DANGER = '#E74C3C';
+const BG = '#F0F4FA';
 const CARD_BG = '#FFFFFF';
 
 const URGENCY = {
   Critical: { bg: '#FDE8E8', text: '#C0392B', dot: '#E74C3C' },
-  Urgent:   { bg: '#FEF3E2', text: '#D35400', dot: '#F39C12' },
-  Normal:   { bg: '#E8F8F0', text: '#1E8449', dot: '#27AE60' },
+  Urgent: { bg: '#FEF3E2', text: '#D35400', dot: '#F39C12' },
+  Normal: { bg: '#E8F8F0', text: '#1E8449', dot: '#27AE60' },
 };
 
 // ─── Progress bar ─────────────────────────────────────────────────────────────
 function ProgressBar({ collected, target }) {
-  const pct  = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
+  const pct = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
   const anim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -74,13 +75,13 @@ function BeneficiaryAvatar({ uri, name }) {
 function FundCard({ item, onPress, onEdit, onDelete }) {
   const scale = React.useRef(new Animated.Value(1)).current;
 
-  const handlePressIn  = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
-  const handlePressOut = () => Animated.spring(scale, { toValue: 1,    useNativeDriver: true }).start();
+  const handlePressIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
+  const handlePressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
 
-  const target    = Number(item.targetAmount)    || 0;
+  const target = Number(item.targetAmount) || 0;
   const collected = Number(item.collectedAmount) || 0;
-  const pct       = target > 0 ? Math.min(Math.round((collected / target) * 100), 100) : 0;
-  const urgency   = URGENCY[item.urgencyLevel] || URGENCY.Normal;
+  const pct = target > 0 ? Math.min(Math.round((collected / target) * 100), 100) : 0;
+  const urgency = URGENCY[item.urgencyLevel] || URGENCY.Normal;
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
@@ -95,14 +96,14 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
           {/* ── Top row: photo + title block + urgency badge ── */}
           <View style={styles.cardTop}>
             {/* Beneficiary photo / avatar */}
-           <BeneficiaryAvatar
-  uri={
-    item.beneficiaryPhotoUrl
-      ? FILE_BASE_URL + item.beneficiaryPhotoUrl
-      : null
-  }
-  name={item.fullName}
-/>
+            <BeneficiaryAvatar
+              uri={
+                item.beneficiaryPhotoUrl
+                  ? FILE_BASE_URL + item.beneficiaryPhotoUrl
+                  : null
+              }
+              name={item.fullName}
+            />
 
             {/* Title + meta */}
             <View style={styles.cardTopInfo}>
@@ -164,17 +165,30 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
             <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
               <Text style={styles.actionView}>👁  View</Text>
             </TouchableOpacity>
-
-            <View style={styles.actionRight}>
-              <TouchableOpacity style={[styles.iconBtn, styles.editBtn]} onPress={onEdit}>
-                <Text style={styles.editIcon}>✏️</Text>
-                <Text style={styles.editText}>Edit</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TouchableOpacity
+                style={{ padding: 4, marginRight: 2 }}
+                onPress={onEdit}
+              >
+                <MaterialCommunityIcons
+                  name="pencil-outline"
+                  size={22}
+                  color="#1E3A5F"
+                />
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.iconBtn, styles.deleteBtn]} onPress={onDelete}>
-                <Text style={styles.deleteIcon}>🗑️</Text>
-                <Text style={styles.deleteText}>Delete</Text>
+
+              <TouchableOpacity
+                style={{ padding: 4 }}
+                onPress={onDelete}
+              >
+                <MaterialCommunityIcons
+                  name="delete-outline"
+                  size={22}
+                  color="#D9534F"
+                />
               </TouchableOpacity>
             </View>
+
           </View>
 
         </View>
@@ -201,7 +215,7 @@ function EmptyState({ onAdd }) {
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 const FundraiseListScreen = ({ navigation, route }) => {
-  const [data, setData]       = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = async () => {
@@ -221,7 +235,7 @@ const FundraiseListScreen = ({ navigation, route }) => {
   // Update list in-place when CreateFund passes back a changedItem param
   useEffect(() => {
     const changedItem = route.params?.changedItem;
-    const isEdit      = route.params?.isEdit;
+    const isEdit = route.params?.isEdit;
     if (!changedItem) return;
     if (isEdit) {
       setData(prev => prev.map(d => d.id === changedItem.id ? changedItem : d));
@@ -244,13 +258,13 @@ const FundraiseListScreen = ({ navigation, route }) => {
     ]);
   };
 
-  const totalTarget    = data.reduce((s, i) => s + (Number(i.targetAmount)    || 0), 0);
+  const totalTarget = data.reduce((s, i) => s + (Number(i.targetAmount) || 0), 0);
   const totalCollected = data.reduce((s, i) => s + (Number(i.collectedAmount) || 0), 0);
 
   return (
     <View style={styles.container}>
 
-    
+
 
       {/* ── Summary strip ── */}
       {data.length > 0 && (
@@ -316,7 +330,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
   },
   headerTitle: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: 0.3 },
-  headerSub:   { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 2 },
+  headerSub: { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 2 },
 
   summaryStrip: {
     flexDirection: 'row', backgroundColor: '#fff',
@@ -324,9 +338,9 @@ const styles = StyleSheet.create({
     elevation: 4, shadowColor: '#000', shadowOpacity: 0.08,
     shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, marginBottom: 6,
   },
-  summaryItem:    { flex: 1, alignItems: 'center' },
-  summaryVal:     { fontSize: 15, fontWeight: '800', color: PRIMARY },
-  summaryLabel:   { fontSize: 11, color: '#888', marginTop: 2 },
+  summaryItem: { flex: 1, alignItems: 'center' },
+  summaryVal: { fontSize: 15, fontWeight: '800', color: PRIMARY },
+  summaryLabel: { fontSize: 11, color: '#888', marginTop: 2 },
   summaryDivider: { width: 1, backgroundColor: '#E8ECF4' },
 
   listContent: { padding: 14, paddingBottom: 90 },
@@ -358,7 +372,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4,
   },
-  badgeDot:  { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  badgeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
   badgeText: { fontSize: 11, fontWeight: '700' },
 
   metaRow: {
@@ -389,26 +403,21 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  actionBtn:  { padding: 4 },
+  actionBtn: { padding: 4 },
   actionView: { fontSize: 13, color: '#888', fontWeight: '500' },
-  actionRight: { flexDirection: 'row', gap: 8 },
 
-  iconBtn: {
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 7,
-  },
-  editBtn:    { backgroundColor: '#EEF5FF' },
-  deleteBtn:  { backgroundColor: '#FEE8E8' },
-  editIcon:   { fontSize: 12, marginRight: 4 },
-  editText:   { fontSize: 13, color: ACCENT, fontWeight: '600' },
+  editBtn: { backgroundColor: '#EEF5FF' },
+  deleteBtn: { backgroundColor: '#FEE8E8' },
+  editIcon: { fontSize: 12, marginRight: 4 },
+  editText: { fontSize: 13, color: ACCENT, fontWeight: '600' },
   deleteIcon: { fontSize: 12, marginRight: 4 },
   deleteText: { fontSize: 13, color: DANGER, fontWeight: '600' },
 
   emptyWrap: {
     flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40,
   },
-  emptyIcon:     { fontSize: 52, marginBottom: 16 },
-  emptyTitle:    { fontSize: 20, fontWeight: '700', color: PRIMARY, marginBottom: 8 },
+  emptyIcon: { fontSize: 52, marginBottom: 16 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', color: PRIMARY, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 21 },
   emptyBtn: {
     marginTop: 24, backgroundColor: PRIMARY,
@@ -416,7 +425,7 @@ const styles = StyleSheet.create({
   },
   emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  fab:     { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });
 
@@ -435,6 +444,15 @@ const av = StyleSheet.create({
   },
   initials: {
     fontSize: 20, fontWeight: '800', color: PRIMARY,
+  },
+  actionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  iconBtn: {
+    padding: 4,   // reduce from 8 or 10 if larger
+    marginHorizontal: 1, // very small gap
   },
 });
 
