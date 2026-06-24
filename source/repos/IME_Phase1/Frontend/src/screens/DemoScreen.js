@@ -17,9 +17,9 @@ const AUTO_ADVANCE_MS = 5000;
 const SLIDES = [
   {
     id: 'welcome',
-    title: 'Indian Municipal Corporation',
+    title: 'Indian Municipal Engineers (IME)',
     subtitle: 'Member Portal',
-    desc: 'A unified platform for IMC members to connect, collaborate, and stay informed. Available on Android and iOS.',
+    desc: 'A unified platform for IME members to connect, collaborate, and stay informed. Available on Android and iOS.',
     icon: 'city-variant-outline',
     color: '#1E3A5F',
     accent: '#D4A017',
@@ -29,7 +29,7 @@ const SLIDES = [
     id: 'login',
     title: 'Step 1 — Open the App',
     subtitle: 'Sign In Screen',
-    desc: 'Launch the IMC app to reach the sign-in screen. Tap "Sign In" with your registered email and password.',
+    desc: 'Launch the IME app to reach the sign-in screen. Tap "Sign In" with your registered email and password.',
     icon: 'login',
     color: '#1E3A5F',
     accent: '#D4A017',

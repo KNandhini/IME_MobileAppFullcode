@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "IMEApp",
+    "name": "IME App",
     "slug": "imeapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/IME_icon.png",
     "scheme": "imeapp",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
