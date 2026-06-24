@@ -59,7 +59,10 @@ const AdminDashboardScreen = ({ navigation }) => {
               <Card style={styles.cardInner}>
                 <Card.Content style={styles.cardContent}>
                   <Text style={styles.icon}>{item.icon}</Text>
-                  <Title style={styles.cardTitle}>{item.title}</Title>
+                 {/* <Title style={styles.cardTitle}>{item.title}</Title>*/}
+                 <Title style={styles.cardTitle} numberOfLines={2} allowFontScaling={false}>
+  {item.title}
+</Title>
                 </Card.Content>
               </Card>
             </TouchableOpacity>
@@ -118,7 +121,7 @@ const styles = StyleSheet.create({
   // Grid
   grid:       { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, paddingTop: 4, justifyContent: 'space-between' },
   card:       { width: '48%', marginBottom: 14 },
-  cardInner:  { elevation: 2 },
+  cardInner:  { elevation: 2, backgroundColor: '#fff' },
   cardContent:{ alignItems: 'center', paddingVertical: 20 },
   icon:       { fontSize: 36, marginBottom: 8 },
   cardTitle:  { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
