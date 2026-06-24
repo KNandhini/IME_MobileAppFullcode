@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 import {
   View, Text, StyleSheet, FlatList, RefreshControl,
   Image, TouchableOpacity, ScrollView, ActivityIndicator,
@@ -20,11 +22,11 @@ import { BASE_URL } from '../utils/api';  // ✅ add this
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
-  { label: 'Technical',  value: 1 },
-  { label: 'Legal',      value: 2 },
-  { label: 'Health',     value: 3 },
-  { label: 'Financial',  value: 4 },
-  { label: 'Education',  value: 5 },
+  { label: 'Technical', value: 1 },
+  { label: 'Legal', value: 2 },
+  { label: 'Health', value: 3 },
+  { label: 'Financial', value: 4 },
+  { label: 'Education', value: 5 },
 ];
 const getUserId = async () => {
   const userData = await AsyncStorage.getItem('userData');
@@ -53,8 +55,8 @@ const formatDate = (date) => {
   if (!date) return '';
   const d = new Date(date);
   const yyyy = d.getFullYear();
-  const mm   = String(d.getMonth() + 1).padStart(2, '0');
-  const dd   = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 };
 
@@ -128,26 +130,26 @@ function Dropdown({ label, options, value, onChange, placeholder = 'Select…', 
 }
 
 const dd = StyleSheet.create({
-  wrapper         : { marginBottom: 20 },
-  label           : { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
-  trigger         : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: '#E2E8F0' },
-  triggerError    : { borderColor: '#EF4444' },
-  triggerText     : { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder     : { color: '#CBD5E1' },
-  chevron         : { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-  errorText       : { fontSize: 11, color: '#EF4444', marginTop: 4 },
+  wrapper: { marginBottom: 20 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
+  trigger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: '#E2E8F0' },
+  triggerError: { borderColor: '#EF4444' },
+  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
+  placeholder: { color: '#CBD5E1' },
+  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
+  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
 
   // Sheet modal
-  overlay         : { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet           : { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20,   height: '65%', paddingBottom: 30 },
-  sheetHeader     : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle      : { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetClose      : { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-  option          : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  optionActive    : { backgroundColor: '#EFF6FF' },
-  optionText      : { flex: 1, fontSize: 15, color: '#334155' },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '65%', paddingBottom: 30 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
+  option: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
+  optionActive: { backgroundColor: '#EFF6FF' },
+  optionText: { flex: 1, fontSize: 15, color: '#334155' },
   optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
-  tick            : { fontSize: 14, color: '#1D4ED8', fontWeight: '700' },
+  tick: { fontSize: 14, color: '#1D4ED8', fontWeight: '700' },
 });
 
 // ── Date Picker Field ─────────────────────────────────────────────────────────
@@ -209,30 +211,30 @@ function DatePickerField({ label, required, value, onChange, error }) {
 }
 
 const dp = StyleSheet.create({
-  wrapper      : { marginBottom: 20 },
-  label        : { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
-  req          : { color: '#EF4444' },
-  trigger      : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: '#E2E8F0' },
-  triggerError : { borderColor: '#EF4444' },
-  triggerText  : { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder  : { color: '#CBD5E1' },
-  icon         : { fontSize: 16 },
-  errorText    : { fontSize: 11, color: '#EF4444', marginTop: 4 },
-  overlay      : { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet        : { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 },
-  sheetHeader  : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle   : { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetDone    : { fontSize: 15, color: '#2563EB', fontWeight: '700' },
+  wrapper: { marginBottom: 20 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
+  req: { color: '#EF4444' },
+  trigger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: '#E2E8F0' },
+  triggerError: { borderColor: '#EF4444' },
+  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
+  placeholder: { color: '#CBD5E1' },
+  icon: { fontSize: 16 },
+  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  sheetDone: { fontSize: 15, color: '#2563EB', fontWeight: '700' },
   input: {
-  backgroundColor: '#F8FAFC',
-  borderRadius: 12,
-  paddingHorizontal: 16,
-  paddingVertical: 14,
-  fontSize: 15,
-  color: '#1E293B',
-  borderWidth: 1.5,
-  borderColor: '#E2E8F0',
-},
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    color: '#1E293B',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+  },
 });
 
 // ── Field wrapper ─────────────────────────────────────────────────────────────
@@ -251,20 +253,20 @@ function Field({ label, required, children, error, hint, charCount, maxChars }) 
         )}
       </View>
       {children}
-      {!!hint  && !error && <Text style={fld.hint}>{hint}</Text>}
+      {!!hint && !error && <Text style={fld.hint}>{hint}</Text>}
       {!!error && <Text style={fld.error}>{error}</Text>}
     </View>
   );
 }
 const fld = StyleSheet.create({
-  wrapper     : { marginBottom: 20 },
-  labelRow    : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
-  label       : { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6 },
-  req         : { color: '#EF4444' },
-  counter     : { fontSize: 11, color: '#94A3B8', fontWeight: '500' },
-  counterOver : { color: '#EF4444' },
-  hint        : { fontSize: 11, color: '#94A3B8', marginTop: 5 },
-  error       : { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
+  wrapper: { marginBottom: 20 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6 },
+  req: { color: '#EF4444' },
+  counter: { fontSize: 11, color: '#94A3B8', fontWeight: '500' },
+  counterOver: { color: '#EF4444' },
+  hint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
+  error: { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
 });
 
 // ── Styled TextInput ──────────────────────────────────────────────────────────
@@ -275,8 +277,8 @@ function StyledInput({ hasError, multiline, style, ...props }) {
       style={[
         inp.base,
         multiline && inp.multiline,
-        focused   && inp.focused,
-        hasError  && inp.errored,
+        focused && inp.focused,
+        hasError && inp.errored,
         style,
       ]}
       placeholderTextColor="#CBD5E1"
@@ -289,9 +291,9 @@ function StyledInput({ hasError, multiline, style, ...props }) {
   );
 }
 const inp = StyleSheet.create({
-  base     : { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
-  focused  : { borderColor: '#3B82F6', backgroundColor: '#fff' },
-  errored  : { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+  base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
+  focused: { borderColor: '#3B82F6', backgroundColor: '#fff' },
+  errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
   multiline: { height: 130, paddingTop: 14 },
 });
 
@@ -309,71 +311,71 @@ function AttachmentPill({ name, onRemove }) {
   );
 }
 const att = StyleSheet.create({
-  pill  : { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, marginRight: 8, marginBottom: 8, maxWidth: 170, borderWidth: 1, borderColor: '#BFDBFE' },
-  icon  : { fontSize: 14, marginRight: 5 },
-  name  : { flex: 1, fontSize: 12, color: '#1D4ED8', fontWeight: '500' },
+  pill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, marginRight: 8, marginBottom: 8, maxWidth: 170, borderWidth: 1, borderColor: '#BFDBFE' },
+  icon: { fontSize: 14, marginRight: 5 },
+  name: { flex: 1, fontSize: 12, color: '#1D4ED8', fontWeight: '500' },
   remove: { fontSize: 12, color: '#EF4444', marginLeft: 6, fontWeight: '800' },
 });
 
 // ── Full-screen Add Support Form ──────────────────────────────────────────────
 function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembers = [], preloadedMembersLoading = false }) {
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
-const [clubs,        setClubs]        = useState([]);
-const [clubsLoading, setClubsLoading] = useState(false);
-  const [members,           setMembers]           = useState(preloadedMembers);
-  const [membersLoading,    setMembersLoading]     = useState(preloadedMembersLoading);
-  const [categories,        setCategories]         = useState([]);
-  const [categoriesLoading, setCategoriesLoading]  = useState(false);
-  const [attachments,       setAttachments]        = useState([]);
-  const [errors,            setErrors]             = useState({});
+  const [clubs, setClubs] = useState([]);
+  const [clubsLoading, setClubsLoading] = useState(false);
+  const [members, setMembers] = useState(preloadedMembers);
+  const [membersLoading, setMembersLoading] = useState(preloadedMembersLoading);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [errors, setErrors] = useState({});
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null, type: null });
-//const [imgError, setImgError] = useState(false);
+  //const [imgError, setImgError] = useState(false);
   // Form state uses DB column names directly
   const [form, setForm] = useState({
-  //  personName            : null,   // FK → member
-    title               : '',     // Title  nvarchar(400)
-    amount              : '',     // Amount (extra column)
-    description         : '',     // Description nvarchar(max)
-    categoryId          : null,   // CategoryId int → tbl_SupportCategory
-    supportDate         : '',     // SupportDate date
-     clubId              : null,   // ✅ ADD
-    companyOrIndividual : null,   // CompanyOrIndividual nvarchar(400) — driven by category type
+    //  personName            : null,   // FK → member
+    title: '',     // Title  nvarchar(400)
+    amount: '',     // Amount (extra column)
+    description: '',     // Description nvarchar(max)
+    categoryId: null,   // CategoryId int → tbl_SupportCategory
+    supportDate: '',     // SupportDate date
+    clubId: null,   // ✅ ADD
+    companyOrIndividual: null,   // CompanyOrIndividual nvarchar(400) — driven by category type
     // companyName is only used when category type = Company; stored into companyOrIndividual
-    companyName         : '',
-    createdBy:0,
+    companyName: '',
+    createdBy: 0,
   });
 
-// 3. Load clubs function
-const loadClubs = async () => {
-  setClubsLoading(true);
-  try {
-    const res = await clubService.getAll(1, 50, '', true); // active clubs only
-    if (res?.success && res?.data) {
-      setClubs(
-        (res.data ?? []).map((c) => ({
-          label: c.clubName,
-          value: c.clubId,
-        }))
-      );
+  // 3. Load clubs function
+  const loadClubs = async () => {
+    setClubsLoading(true);
+    try {
+      const res = await clubService.getAll(1, 50, '', true); // active clubs only
+      if (res?.success && res?.data) {
+        setClubs(
+          (res.data ?? []).map((c) => ({
+            label: c.clubName,
+            value: c.clubId,
+          }))
+        );
+      }
+    } catch (e) {
+      console.error('Load clubs error:', e);
+    } finally {
+      setClubsLoading(false);
     }
-  } catch (e) {
-    console.error('Load clubs error:', e);
-  } finally {
-    setClubsLoading(false);
-  }
-};
+  };
 
-// 4. Call loadClubs inside the visible useEffect (alongside loadCategories)
-useEffect(() => {
-  if (visible) {
-    // ... existing animations ...
-    if (preloadedMembers.length === 0) loadMembers();
-    loadCategories();
-    loadClubs();   // ✅ ADD
-  }
-}, [visible]);
+  // 4. Call loadClubs inside the visible useEffect (alongside loadCategories)
+  useEffect(() => {
+    if (visible) {
+      // ... existing animations ...
+      if (preloadedMembers.length === 0) loadMembers();
+      loadCategories();
+      loadClubs();   // ✅ ADD
+    }
+  }, [visible]);
   const loadMembers = async () => {
     setMembersLoading(true);
     try {
@@ -402,8 +404,8 @@ useEffect(() => {
           (res ?? [])
             .filter((c) => c.isActive)
             .map((c) => ({
-              label    : c.categoryName,
-              value    : c.categoryId,
+              label: c.categoryName,
+              value: c.categoryId,
               isCompany: c.categoryType?.toLowerCase() === 'company',
             }))
         );
@@ -434,14 +436,14 @@ useEffect(() => {
   useEffect(() => {
     if (visible) {
       Animated.parallel([
-        Animated.timing(fadeAnim,  { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 220, useNativeDriver: true }),
         Animated.spring(slideAnim, { toValue: 0, tension: 70, friction: 12, useNativeDriver: true }),
       ]).start();
       if (preloadedMembers.length === 0) loadMembers();
       loadCategories();
     } else {
       Animated.parallel([
-        Animated.timing(fadeAnim,  { toValue: 0, duration: 180, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 0, duration: 180, useNativeDriver: true }),
         Animated.timing(slideAnim, { toValue: 40, duration: 180, useNativeDriver: true }),
       ]).start();
     }
@@ -454,12 +456,12 @@ useEffect(() => {
           const detail = await supportService.getById(editItem.supportId);
           const data = detail?.data ?? detail;
           setForm({
-          //  personName: data.personName || '',
+            //  personName: data.personName || '',
             title: data.title || '',
             amount: data.amount != null ? String(data.amount) : 0,
             description: data.description || '',
             categoryId: categories.find(c => c.label === data.categoryName)?.value || null,
-             clubId              : data.clubId ?? null,   // ✅ ADD
+            clubId: data.clubId ?? null,   // ✅ ADD
             supportDate: data.supportDate ? data.supportDate.substring(0, 10) : '',
             companyOrIndividual: data.companyOrIndividual === 'Individual' ? 'Individual' : 'Company',
             companyName: data.companyOrIndividual !== 'Individual' ? (data.companyName || '') : '',
@@ -492,19 +494,19 @@ useEffect(() => {
 
   // Derived: is selected category a "Company" type?
   const selectedCategory = categories.find((c) => c.value === form.categoryId);
-  const isCompanyType    = selectedCategory?.isCompany ?? false;
+  const isCompanyType = selectedCategory?.isCompany ?? false;
 
   const validate = () => {
     const e = {};
-   // if (!form.personName)                                       e.memberId    = 'Please select a person';
-    if (!form.title.trim())                                   e.title       = 'Title is required';
-    if (!form.categoryId)                                     e.categoryId  = 'Please select a category';
-    if (!form.supportDate)                                    e.supportDate = 'Date is required';
-  // ✅ ADD THIS
-  if (!form.companyOrIndividual)
-    e.companyOrIndividual = 'Please select type';
+    // if (!form.personName)                                       e.memberId    = 'Please select a person';
+    if (!form.title.trim()) e.title = 'Title is required';
+    if (!form.categoryId) e.categoryId = 'Please select a category';
+    if (!form.supportDate) e.supportDate = 'Date is required';
+    // ✅ ADD THIS
+    if (!form.companyOrIndividual)
+      e.companyOrIndividual = 'Please select type';
     if (form.companyOrIndividual === 'Company' && !form.companyName.trim())
-  e.companyName = 'Company name is required';
+      e.companyName = 'Company name is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -520,89 +522,89 @@ useEffect(() => {
   };
 
   const handleClose = () => {
-    setForm({ personName: null,clubId:null, title: '', amount: '', description: '', categoryId: null, clubId: null, supportDate: '', companyOrIndividual: null, companyName: '' });
+    setForm({ personName: null, clubId: null, title: '', amount: '', description: '', categoryId: null, clubId: null, supportDate: '', companyOrIndividual: null, companyName: '' });
     setAttachments([]);
     setErrors({});
-      setExistingAttachments([]);
+    setExistingAttachments([]);
     onClose();
   };
 
-const handlePickAttachment = async () => {
-  // ✅ Calculate how many more slots are available
-  const totalExisting = existingAttachments.length;
-  const totalNew      = attachments.length;
-  const totalUsed     = totalExisting + totalNew;
-  const slotsLeft     = 5 - totalUsed;
+  const handlePickAttachment = async () => {
+    // ✅ Calculate how many more slots are available
+    const totalExisting = existingAttachments.length;
+    const totalNew = attachments.length;
+    const totalUsed = totalExisting + totalNew;
+    const slotsLeft = 5 - totalUsed;
 
-  if (slotsLeft <= 0) {
-    Alert.alert('Limit reached', 'Max 5 attachments per support entry.');
-    return;
-  }
+    if (slotsLeft <= 0) {
+      Alert.alert('Limit reached', 'Max 5 attachments per support entry.');
+      return;
+    }
 
-  Alert.alert('Attach File', 'Choose file type', [
-    {
-      text: 'PDF / Document',
-      onPress: async () => {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          ],
-          copyToCacheDirectory: true,
-          multiple: true,   // ✅ allow multiple docs
-        });
+    Alert.alert('Attach File', 'Choose file type', [
+      {
+        text: 'PDF / Document',
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: [
+              'application/pdf',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
+            copyToCacheDirectory: true,
+            multiple: true,   // ✅ allow multiple docs
+          });
 
-        if (!result.canceled && result.assets?.length > 0) {
-          // ✅ Slice to only take as many as slots allow
-          const picked = result.assets.slice(0, slotsLeft).map(asset => ({
-            uri:      asset.uri,
-            fileName: asset.name,
-            mimeType: asset.mimeType || 'application/pdf',
-            type:     'document',
-          }));
-          setAttachments(prev => [...prev, ...picked]);
+          if (!result.canceled && result.assets?.length > 0) {
+            // ✅ Slice to only take as many as slots allow
+            const picked = result.assets.slice(0, slotsLeft).map(asset => ({
+              uri: asset.uri,
+              fileName: asset.name,
+              mimeType: asset.mimeType || 'application/pdf',
+              type: 'document',
+            }));
+            setAttachments(prev => [...prev, ...picked]);
 
-          if (result.assets.length > slotsLeft) {
-            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            if (result.assets.length > slotsLeft) {
+              Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            }
           }
-        }
+        },
       },
-    },
-    {
-      text: 'Photo / Video',
-      onPress: async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-          Alert.alert('Permission needed', 'Allow access to your photo library.');
-          return;
-        }
-
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images', 'videos'],
-          allowsMultipleSelection: true,   // ✅ allow multiple images/videos
-          selectionLimit: slotsLeft,        // ✅ cap at available slots
-          quality: 0.85,
-        });
-
-        if (!result.canceled && result.assets?.length > 0) {
-          const picked = result.assets.slice(0, slotsLeft).map(asset => ({
-            uri:      asset.uri,
-            fileName: asset.fileName || `media_${Date.now()}`,
-            mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-            type:     asset.type === 'video' ? 'video' : 'image',
-          }));
-          setAttachments(prev => [...prev, ...picked]);
-
-          if (result.assets.length > slotsLeft) {
-            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+      {
+        text: 'Photo / Video',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Allow access to your photo library.');
+            return;
           }
-        }
+
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images', 'videos'],
+            allowsMultipleSelection: true,   // ✅ allow multiple images/videos
+            selectionLimit: slotsLeft,        // ✅ cap at available slots
+            quality: 0.85,
+          });
+
+          if (!result.canceled && result.assets?.length > 0) {
+            const picked = result.assets.slice(0, slotsLeft).map(asset => ({
+              uri: asset.uri,
+              fileName: asset.fileName || `media_${Date.now()}`,
+              mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+              type: asset.type === 'video' ? 'video' : 'image',
+            }));
+            setAttachments(prev => [...prev, ...picked]);
+
+            if (result.assets.length > slotsLeft) {
+              Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            }
+          }
+        },
       },
-    },
-    { text: 'Cancel', style: 'cancel' },
-  ]);
-};
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
 
   if (!visible) return null;
 
@@ -639,7 +641,7 @@ const handlePickAttachment = async () => {
             >
 
               {/* MEMBER — scrollable dropdown */}
-           {/*   <Dropdown
+              {/*   <Dropdown
   label="Person Name *"
   options={members}
   value={form.personName}
@@ -653,14 +655,14 @@ const handlePickAttachment = async () => {
                 loading={membersLoading}
               />*/}
               <Dropdown
-  label="Club"
-  options={clubs}
-  value={form.clubId}
-  onChange={(v) => setField('clubId', v)}
-  placeholder="Select club…"
-  loading={clubsLoading}
-/>
-             {/* <Dropdown
+                label="Club"
+                options={clubs}
+                value={form.clubId}
+                onChange={(v) => setField('clubId', v)}
+                placeholder="Select club…"
+                loading={clubsLoading}
+              />
+              {/* <Dropdown
   label="Support Person *"
   options={members}
   value={
@@ -748,36 +750,36 @@ const handlePickAttachment = async () => {
                 onChange={(v) => setField('supportDate', v)}
                 error={errors.supportDate}
               />
-<Dropdown
-  label="Type *"
-  options={[
-    { label: 'Individual', value: 'Individual' },
-    { label: 'Company', value: 'Company' }
-  ]}
-  value={form.companyOrIndividual}
-  onChange={(v) => setField('companyOrIndividual', v)}
-  error={errors.companyOrIndividual}
-/>
+              <Dropdown
+                label="Type *"
+                options={[
+                  { label: 'Individual', value: 'Individual' },
+                  { label: 'Company', value: 'Company' }
+                ]}
+                value={form.companyOrIndividual}
+                onChange={(v) => setField('companyOrIndividual', v)}
+                error={errors.companyOrIndividual}
+              />
 
-{/* COMPANY NAME — shown only when user selects Company */}
-{form.companyOrIndividual === 'Company' && (
-  <Field
-    label="Company Name"
-    required
-    error={errors.companyName}
-    charCount={form.companyName.length}
-    maxChars={400}
-  >
-    <StyledInput
-      placeholder="Enter company name"
-      value={form.companyName}
-      onChangeText={handleCompanyNameChange}
-      hasError={!!errors.companyName}
-      maxLength={400}
-      returnKeyType="next"
-    />
-  </Field>
-)}
+              {/* COMPANY NAME — shown only when user selects Company */}
+              {form.companyOrIndividual === 'Company' && (
+                <Field
+                  label="Company Name"
+                  required
+                  error={errors.companyName}
+                  charCount={form.companyName.length}
+                  maxChars={400}
+                >
+                  <StyledInput
+                    placeholder="Enter company name"
+                    value={form.companyName}
+                    onChangeText={handleCompanyNameChange}
+                    hasError={!!errors.companyName}
+                    maxLength={400}
+                    returnKeyType="next"
+                  />
+                </Field>
+              )}
 
               {/* ATTACHMENTS */}
               <Field label="Attachments">
@@ -805,12 +807,14 @@ const handlePickAttachment = async () => {
                         <TouchableOpacity style={fs.gridRemove} onPress={() => {
                           Alert.alert('Delete', `Delete "${a.fileName}"?`, [
                             { text: 'Cancel', style: 'cancel' },
-                            { text: 'Delete', style: 'destructive', onPress: async () => {
-                              try {
-                                await supportService.deleteAttachment(a.attachmentId);
-                                setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
-                              } catch { Alert.alert('Error', 'Failed to delete'); }
-                            }},
+                            {
+                              text: 'Delete', style: 'destructive', onPress: async () => {
+                                try {
+                                  await supportService.deleteAttachment(a.attachmentId);
+                                  setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
+                                } catch { Alert.alert('Error', 'Failed to delete'); }
+                              }
+                            },
                           ]);
                         }}>
                           <Text style={fs.gridRemoveText}>✕</Text>
@@ -874,35 +878,35 @@ const handlePickAttachment = async () => {
 }
 
 const fs = StyleSheet.create({
-  safe          : { flex: 1, backgroundColor: '#1E3A5F' },
-  navbar        : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: (StatusBar.currentHeight ?? 0) + 12, backgroundColor: '#1E3A5F' },
-  navSideBtn    : { minWidth: 64, paddingHorizontal: 4, paddingVertical: 4 },
-  navCenter     : { flex: 1, alignItems: 'center' },
-  navTitle      : { fontSize: 16, fontWeight: '700', color: '#fff' },
-  navCancelText : { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  navSubmitText : { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
-  accentBar     : { height: 3, backgroundColor: '#D4A017', opacity: 0.3 },
-  scroll        : { flex: 1, backgroundColor: '#FAFBFC' },
-  scrollContent : { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 52 },
-  attachHint    : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
+  safe: { flex: 1, backgroundColor: '#1E3A5F' },
+  navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: (StatusBar.currentHeight ?? 0) + 12, backgroundColor: '#1E3A5F' },
+  navSideBtn: { minWidth: 64, paddingHorizontal: 4, paddingVertical: 4 },
+  navCenter: { flex: 1, alignItems: 'center' },
+  navTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  navCancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  navSubmitText: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+  accentBar: { height: 3, backgroundColor: '#D4A017', opacity: 0.3 },
+  scroll: { flex: 1, backgroundColor: '#FAFBFC' },
+  scrollContent: { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 52 },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6 },
 
   // Grid-style attachment area
-  attachGrid    : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center' },
-  gridThumb     : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  gridImg       : { width: '100%', height: '100%' },
-  gridDoc       : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon   : { fontSize: 24 },
-  gridDocName   : { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  gridRemove    : { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+  attachGrid: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center' },
+  gridThumb: { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon: { fontSize: 24 },
+  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridRemove: { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
   gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  gridAddBtn    : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-  gridAddIcon   : { fontSize: 22, marginBottom: 2 },
-  gridAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  gridAddBtn: { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  gridAddIcon: { fontSize: 22, marginBottom: 2 },
+  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
 
   // File viewer
-  viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage    : { width: '100%', height: '80%' },
-  viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage: { width: '100%', height: '80%' },
+  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
 
@@ -920,11 +924,20 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
 
         {userRole === 'Admin' && (
           <View style={s.cardActions}>
-            <TouchableOpacity onPress={() => onEdit(item)} style={s.editBtn}>
-              <Text style={s.editText}>Edit</Text>
+            <TouchableOpacity onPress={() => onEdit(item)} style={s.iconBotton}>
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={22}
+                color="#1E3A5F"
+              />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => onDelete(item)} style={s.deleteBtn}>
-              <Text style={s.deleteText}>Delete</Text>
+
+            <TouchableOpacity onPress={() => onDelete(item)} style={s.iconBotton}>
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={22}
+                color="#D9534F"
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -932,24 +945,24 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
 
       {/* ── CONTENT ROW: photo + text ── */}
       <View style={s.cardRow}>
-       {item.image && !imgError ? (
-  <Image
-    source={{ uri: item.image }}
-    style={s.photo}
-    onError={() => setImgError(true)}
-  />
-) : (
-  <View
-    style={[
-      s.photoPlaceholder,
-      { backgroundColor: categoryColor(item.categoryId) }
-    ]}
-  >
-    <Text style={s.photoPlaceholderText}>
-      {getInitial(item.clubName)}
-    </Text>
-  </View>
-)}
+        {item.image && !imgError ? (
+          <Image
+            source={{ uri: item.image }}
+            style={s.photo}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View
+            style={[
+              s.photoPlaceholder,
+              { backgroundColor: categoryColor(item.categoryId) }
+            ]}
+          >
+            <Text style={s.photoPlaceholderText}>
+              {getInitial(item.clubName)}
+            </Text>
+          </View>
+        )}
 
         <View style={s.textContainer}>
           <Text style={s.title} numberOfLines={1}>{item.title}</Text>
@@ -981,8 +994,8 @@ function categoryColor(id) {
 // ── Tab Content ───────────────────────────────────────────────────────────────
 function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation }) {
   const [supportList, setSupportList] = useState([]);
-  const [loading,     setLoading]     = useState(false);
-  const [refreshing,  setRefreshing]  = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     if (isActive) loadSupport();
@@ -992,13 +1005,98 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
     if (refresh > 0 && isActive) loadSupport();
   }, [refresh]);
 
- /* const loadSupport = async () => {
+  /* const loadSupport = async () => {
+     setLoading(true);
+     try {
+       const response = await supportService.getByCategory(categoryId);
+       if (Array.isArray(response))      setSupportList(response);
+       else if (response?.data)          setSupportList(response.data);
+       else                              setSupportList([]);
+     } catch (error) {
+       console.error('Failed to load support:', error);
+       setSupportList([]);
+     } finally {
+       setLoading(false);
+       setRefreshing(false);
+     }
+   };*/
+  /* const loadSupport = async () => {
+   setLoading(true);
+   try {
+    
+     // ✅ Fetch BOTH APIs in parallel
+     const [response, membersRes] = await Promise.all([
+       supportService.getByCategory(categoryId),
+       memberService.getAllMembers(1, 100),
+     ]);
+ 
+     // ✅ Build image map
+     const imageMap = {};
+ 
+     if (membersRes?.success) {
+       (membersRes.data ?? []).forEach((m) => {
+         if (m.profilePhoto) {
+           imageMap[m.fullName] = `data:image/jpeg;base64,${m.profilePhoto}`;
+         }
+       });
+     }
+ 
+     // ✅ Normalize support list
+     const list = Array.isArray(response)
+       ? response
+       : response?.data ?? [];
+ 
+     // ✅ Merge image into each item
+     const enrichedList = list.map((item) => ({
+       ...item,
+       image: imageMap[item.personName] ?? null,
+     }));
+ 
+     // ✅ SET FINAL DATA
+     setSupportList(enrichedList);
+ 
+   } catch (error) {
+     console.error('Failed to load support:', error);
+     setSupportList([]);
+   } finally {
+     setLoading(false);
+     setRefreshing(false);
+   }
+ };*/
+  const loadSupport = async () => {
     setLoading(true);
     try {
-      const response = await supportService.getByCategory(categoryId);
-      if (Array.isArray(response))      setSupportList(response);
-      else if (response?.data)          setSupportList(response.data);
-      else                              setSupportList([]);
+
+      // ✅ Fetch support + clubs in parallel (removed members fetch)
+      const [response, clubsRes] = await Promise.all([
+        supportService.getByCategory(categoryId),
+        clubService.getAll(1, 200, '', true),
+      ]);
+
+      // ✅ Build club logo map keyed by clubId
+      const clubLogoMap = {};
+      if (clubsRes?.success && clubsRes?.data) {
+        (clubsRes.data ?? []).forEach((c) => {
+          if (c.logoPath) {
+            // Same pattern as ClubFormScreen uses for existingLogo
+            clubLogoMap[c.clubId] = `${BASE_URL}/Uploads/${c.logoPath.replace(/\\/g, '/')}`;
+          }
+        });
+      }
+
+      // ✅ Normalize support list
+      const list = Array.isArray(response)
+        ? response
+        : response?.data ?? [];
+
+      // ✅ Merge club logo into each item using clubId
+      const enrichedList = list.map((item) => ({
+        ...item,
+        image: clubLogoMap[item.clubId] ?? null,  // 👈 clubId instead of personName
+      }));
+
+      setSupportList(enrichedList);
+
     } catch (error) {
       console.error('Failed to load support:', error);
       setSupportList([]);
@@ -1006,92 +1104,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
       setLoading(false);
       setRefreshing(false);
     }
-  };*/
- /* const loadSupport = async () => {
-  setLoading(true);
-  try {
-   
-    // ✅ Fetch BOTH APIs in parallel
-    const [response, membersRes] = await Promise.all([
-      supportService.getByCategory(categoryId),
-      memberService.getAllMembers(1, 100),
-    ]);
-
-    // ✅ Build image map
-    const imageMap = {};
-
-    if (membersRes?.success) {
-      (membersRes.data ?? []).forEach((m) => {
-        if (m.profilePhoto) {
-          imageMap[m.fullName] = `data:image/jpeg;base64,${m.profilePhoto}`;
-        }
-      });
-    }
-
-    // ✅ Normalize support list
-    const list = Array.isArray(response)
-      ? response
-      : response?.data ?? [];
-
-    // ✅ Merge image into each item
-    const enrichedList = list.map((item) => ({
-      ...item,
-      image: imageMap[item.personName] ?? null,
-    }));
-
-    // ✅ SET FINAL DATA
-    setSupportList(enrichedList);
-
-  } catch (error) {
-    console.error('Failed to load support:', error);
-    setSupportList([]);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};*/
-const loadSupport = async () => {
-  setLoading(true);
-  try {
-
-    // ✅ Fetch support + clubs in parallel (removed members fetch)
-    const [response, clubsRes] = await Promise.all([
-      supportService.getByCategory(categoryId),
-      clubService.getAll(1, 200, '', true),
-    ]);
-
-    // ✅ Build club logo map keyed by clubId
-    const clubLogoMap = {};
-    if (clubsRes?.success && clubsRes?.data) {
-      (clubsRes.data ?? []).forEach((c) => {
-        if (c.logoPath) {
-          // Same pattern as ClubFormScreen uses for existingLogo
-          clubLogoMap[c.clubId] = `${BASE_URL}/Uploads/${c.logoPath.replace(/\\/g, '/')}`;
-        }
-      });
-    }
-
-    // ✅ Normalize support list
-    const list = Array.isArray(response)
-      ? response
-      : response?.data ?? [];
-
-    // ✅ Merge club logo into each item using clubId
-    const enrichedList = list.map((item) => ({
-      ...item,
-      image: clubLogoMap[item.clubId] ?? null,  // 👈 clubId instead of personName
-    }));
-
-    setSupportList(enrichedList);
-
-  } catch (error) {
-    console.error('Failed to load support:', error);
-    setSupportList([]);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
+  };
 
   // ✅ Delete with confirmation + refresh
   const handleDelete = (item) => {
@@ -1160,15 +1173,15 @@ const loadSupport = async () => {
 
 // ── Main Screen ───────────────────────────────────────────────────────────────
 export default function SupportScreen({ navigation }) {
-  const [categories,    setCategories]    = useState([]);
-  const [tabsLoaded,    setTabsLoaded]    = useState(false);
-  const [activeIndex,   setActiveIndex]   = useState(0);
-  const [formVisible,    setFormVisible]   = useState(false);
-  const [refreshSignal,  setRefreshSignal] = useState(0);
-  const [editItem,       setEditItem]      = useState(null);
-  const [userRole,       setUserRole]      = useState(null);
-  const [submitting,     setSubmitting]    = useState(false);
-  const [memberList,     setMemberList]    = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [tabsLoaded, setTabsLoaded] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [formVisible, setFormVisible] = useState(false);
+  const [refreshSignal, setRefreshSignal] = useState(0);
+  const [editItem, setEditItem] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [memberList, setMemberList] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
   const loadUserRole = async () => {
     const role = await getUserRole();
@@ -1218,16 +1231,16 @@ export default function SupportScreen({ navigation }) {
       const userId = await getUserId();
       const payload = {
         //personName          : formData.personName,
-        title               : formData.title,
-        amount              : parseFloat(formData.amount) || 0,
-        description         : formData.description,
-        categoryId          : formData.categoryId,
-        supportDate         : formData.supportDate,
-        clubId              : formData.clubId ?? null,   // ✅ ADD
+        title: formData.title,
+        amount: parseFloat(formData.amount) || 0,
+        description: formData.description,
+        categoryId: formData.categoryId,
+        supportDate: formData.supportDate,
+        clubId: formData.clubId ?? null,   // ✅ ADD
 
-        companyOrIndividual : formData.companyOrIndividual,
-        companyName         : formData.companyOrIndividual === 'Company' ? formData.companyName : null,
-        createdBy           : userId,
+        companyOrIndividual: formData.companyOrIndividual,
+        companyName: formData.companyOrIndividual === 'Company' ? formData.companyName : null,
+        createdBy: userId,
       };
 
       let res;
@@ -1344,52 +1357,59 @@ export default function SupportScreen({ navigation }) {
 const s = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#F7F9FC' },
 
-  headerBar        : { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-  headerTitle      : { fontSize: 20, fontWeight: '700', color: '#1E3A5F' },
-  fab              : { position: 'absolute', bottom: 24, right: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100 },
-  fabText          : { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  loadingOverlay   : { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
+  headerBar: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
+  headerTitle: { fontSize: 20, fontWeight: '700', color: '#1E3A5F' },
+  fab: { position: 'absolute', bottom: 24, right: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100 },
+  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
   loadingOverlayText: { color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '600' },
 
-  tabBar        : { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-  tabBarContent : { paddingHorizontal: 10 },
-  tab           : { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2.5, borderBottomColor: 'transparent' },
-  tabActive     : { borderBottomColor: '#2563EB' },
-  tabLabel      : { fontSize: 13, fontWeight: '500', color: '#A0AEC0' },
+  tabBar: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
+  tabBarContent: { paddingHorizontal: 10 },
+  tab: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2.5, borderBottomColor: 'transparent' },
+  tabActive: { borderBottomColor: '#2563EB' },
+  tabLabel: { fontSize: 13, fontWeight: '500', color: '#A0AEC0' },
   tabLabelActive: { color: '#2563EB', fontWeight: '700' },
 
-  content : { flex: 1 },
+  content: { flex: 1 },
   tabPanel: { flex: 1 },
-  list    : { padding: 16, paddingBottom: 40 },
+  list: { padding: 16, paddingBottom: 40 },
 
-  card                : { backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16, shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  cardRow             : { flexDirection: 'row', alignItems: 'flex-start' },
-  photo               : { width: 52, height: 52, borderRadius: 26, marginRight: 14 },
-  photoPlaceholder    : { width: 52, height: 52, borderRadius: 26, marginRight: 14, alignItems: 'center', justifyContent: 'center' },
+  card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16, shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  photo: { width: 52, height: 52, borderRadius: 26, marginRight: 14 },
+  photoPlaceholder: { width: 52, height: 52, borderRadius: 26, marginRight: 14, alignItems: 'center', justifyContent: 'center' },
   photoPlaceholderText: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  textContainer       : { flex: 1 },
-  titleRow            : { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
-  title               : { fontSize: 15, fontWeight: '700', color: '#1A202C', flex: 1 },
-  badge               : { backgroundColor: '#EBF4FF', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 6 },
-  badgeText           : { fontSize: 10, color: '#2B6CB0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  personName          : { fontSize: 13, fontWeight: '500', color: '#4A5568', marginBottom: 4 },
-  description         : { fontSize: 13, color: '#718096', lineHeight: 18 },
-  metaRow             : { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-  amount              : { fontSize: 13, fontWeight: '700', color: '#276749' },
-  company             : { fontSize: 11, color: '#A0AEC0', backgroundColor: '#F7FAFC', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  date                : { fontSize: 11, color: '#A0AEC0' },
+  textContainer: { flex: 1 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  title: { fontSize: 15, fontWeight: '700', color: '#1A202C', flex: 1 },
+  badge: { backgroundColor: '#EBF4FF', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 6 },
+  badgeText: { fontSize: 10, color: '#2B6CB0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  personName: { fontSize: 13, fontWeight: '500', color: '#4A5568', marginBottom: 4 },
+  description: { fontSize: 13, color: '#718096', lineHeight: 18 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
+  amount: { fontSize: 13, fontWeight: '700', color: '#276749' },
+  company: { fontSize: 11, color: '#A0AEC0', backgroundColor: '#F7FAFC', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
+  date: { fontSize: 11, color: '#A0AEC0' },
 
-  centered    : { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyIcon   : { fontSize: 40, marginBottom: 12 },
-  emptyTitle  : { fontSize: 16, fontWeight: '700', color: '#2D3748', marginBottom: 4 },
-  emptyText   : { fontSize: 14, color: '#A0AEC0' },
-  loadingText : { color: '#718096', marginTop: 10, fontSize: 14 },
-  cardActions : { flexDirection: 'row', gap: 8 },
-editBtn     : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#BFDBFE' },
-deleteBtn   : { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#FECACA' },
-editText    : { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-deleteText  : { fontSize: 12, color: '#EF4444', fontWeight: '600' },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
+  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginBottom: 4 },
+  emptyText: { fontSize: 14, color: '#A0AEC0' },
+  loadingText: { color: '#718096', marginTop: 10, fontSize: 14 },
+  cardActions: { flexDirection: 'row', gap: 8 },
+  editBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#BFDBFE' },
+  deleteBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#FECACA' },
+  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
+  cardActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 
-// Add this new one:
-cardTopRow  : { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  iconBotton: {
+    marginLeft: 8,
+  },
+  // Add this new one:
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
 });

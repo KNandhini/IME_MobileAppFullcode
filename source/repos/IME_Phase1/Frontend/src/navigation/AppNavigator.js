@@ -58,6 +58,13 @@ import LawBotScreen from '../screens/LawBotScreen';
 import MemberEditScreen from '../screens/MemberEditScreen';
 import CorpDetailScreen from '../screens/CorpDetailsScreen';
 import AdminSignupScreen from '../screens/AddAdminScreen';
+
+
+import MembershipDetailsScreen from '../screens/MembershipDetails';
+import FeesDetailsScreen from '../screens/FeesDetails';
+import GovernanceDetailsScreen from '../screens/GovernanceDetails';
+import HistoryDetailsScreen from '../screens/HistoryDetails';
+import ObjectivesDetailsScreen from '../screens/Objectivesdetailsscreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -270,10 +277,15 @@ const MainStack = () => (
       name="AddCircular"
       component={AddCircularScreen}
       options={{ headerShown: false }} />
+    <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 
 

@@ -2,11 +2,12 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   View, Text, StyleSheet, FlatList, RefreshControl,
-  Alert, Image,
+  Alert, Image, TouchableOpacity,
 } from 'react-native';
 import { Card, IconButton, Searchbar, Chip, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // ── same helper used in AchievementsScreen ────────────────────────────────────
 const blobToDataUri = (blob) => {
@@ -16,21 +17,21 @@ const blobToDataUri = (blob) => {
 };
 
 const MemberManagementScreen = ({ navigation }) => {
-  const [members, setMembers]                 = useState([]);
+  const [members, setMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
-  const [loading, setLoading]                 = useState(false);
-  const [refreshing, setRefreshing]           = useState(false);
-  const [searchQuery, setSearchQuery]         = useState('');
-  const [filterStatus, setFilterStatus]       = useState('All');
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState('All');
 
   // ── photoMap: memberId → data-URI (same pattern as AchievementsScreen) ──────
   const [photoMap, setPhotoMap] = useState({});
 
- useFocusEffect(
-  useCallback(() => {
-    loadMembers();
-  }, [navigation])
-);
+  useFocusEffect(
+    useCallback(() => {
+      loadMembers();
+    }, [navigation])
+  );
   useEffect(() => { filterMembers(); }, [searchQuery, filterStatus, members]);
 
   const loadMembers = async () => {
@@ -43,7 +44,7 @@ const MemberManagementScreen = ({ navigation }) => {
         Alert.alert('Error', 'User session not found. Please login again.');
         return;
       }
-debugger;
+      debugger;
       // Step 2: Parse and extract memberId
       const userData = JSON.parse(userDataStr);
       const memberId = userData?.memberId ?? userData?.MemberId;
@@ -58,7 +59,7 @@ debugger;
         Alert.alert('Error', profileResponse.message || 'Failed to get member profile');
         return;
       }
-debugger;
+      debugger;
       const clubId = profileResponse.data?.clubId ?? profileResponse.data?.ClubId;
       if (!clubId) {
         Alert.alert('Error', 'Club not assigned to this member.');
@@ -66,48 +67,48 @@ debugger;
       }
 
       // Step 4: Load members by clubId
-const response = await memberService.getMembersByClub(clubId);
-if (response.success) {
-  const memberList = response.data ?? [];
- debugger;
-  // ── Step 5: Fetch photos via /api/Member/photos-by-ids ──────────────────
-  const map = {};
-  try {
-   const memberIds = [
-        ...new Set(
-          memberList
-            .map(a => a.memberId ?? a.MemberId)
-            .filter(Boolean)
-        )
-      ];
-       if (memberIds.length === 0) return;
-    if (memberIds) {
-      const photosResponse = await memberService.
-getMemberPhotosByIds
-(memberIds);
-      if (photosResponse.success && Array.isArray(photosResponse.data)) {
-        photosResponse.data.forEach((p) => {
-          const id = p.memberId ?? p.MemberId;
-          // Prefer base64 blob, fall back to URL path
-          const uri = p.profilePhotoBase64
-            ? blobToDataUri(p.profilePhotoBase64)
-            : p.profilePhotoPath
-            ? p.profilePhotoPath
-            : null;
-          if (id && uri) map[id] = uri;
-        });
+      const response = await memberService.getMembersByClub(clubId);
+      if (response.success) {
+        const memberList = response.data ?? [];
+        debugger;
+        // ── Step 5: Fetch photos via /api/Member/photos-by-ids ──────────────────
+        const map = {};
+        try {
+          const memberIds = [
+            ...new Set(
+              memberList
+                .map(a => a.memberId ?? a.MemberId)
+                .filter(Boolean)
+            )
+          ];
+          if (memberIds.length === 0) return;
+          if (memberIds) {
+            const photosResponse = await memberService.
+              getMemberPhotosByIds
+              (memberIds);
+            if (photosResponse.success && Array.isArray(photosResponse.data)) {
+              photosResponse.data.forEach((p) => {
+                const id = p.memberId ?? p.MemberId;
+                // Prefer base64 blob, fall back to URL path
+                const uri = p.profilePhotoBase64
+                  ? blobToDataUri(p.profilePhotoBase64)
+                  : p.profilePhotoPath
+                    ? p.profilePhotoPath
+                    : null;
+                if (id && uri) map[id] = uri;
+              });
+            }
+          }
+        } catch (photoErr) {
+          console.warn('[MemberManagementScreen] Failed to load photos:', photoErr?.message);
+        }
+
+        console.log('[MemberManagementScreen] photoMap keys:', Object.keys(map));
+        setPhotoMap(map);
+        setMembers(memberList);
+      } else {
+        Alert.alert('Error', response.message || 'Failed to load members');
       }
-    }
-  } catch (photoErr) {
-    console.warn('[MemberManagementScreen] Failed to load photos:', photoErr?.message);
-  }
- 
-  console.log('[MemberManagementScreen] photoMap keys:', Object.keys(map));
-  setPhotoMap(map);
-  setMembers(memberList);
-} else {
-  Alert.alert('Error', response.message || 'Failed to load members');
-}
     } catch (error) {
       Alert.alert('Error', 'Failed to load members: ' + (error?.message || ''));
     } finally {
@@ -178,19 +179,19 @@ getMemberPhotosByIds
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active':   return '#E8F5E9';
-      case 'Pending':  return '#FFF3E0';
+      case 'Active': return '#E8F5E9';
+      case 'Pending': return '#FFF3E0';
       case 'Inactive': return '#FFEBEE';
-      default:         return '#EEEEEE';
+      default: return '#EEEEEE';
     }
   };
 
   const getStatusTextColor = (status) => {
     switch (status) {
-      case 'Active':   return '#2E7D32';
-      case 'Pending':  return '#EF6C00';
+      case 'Active': return '#2E7D32';
+      case 'Pending': return '#EF6C00';
       case 'Inactive': return '#C62828';
-      default:         return '#424242';
+      default: return '#424242';
     }
   };
 
@@ -233,17 +234,34 @@ getMemberPhotosByIds
           {item.designationName && (
             <Text style={styles.designation}>{item.designationName}</Text>
           )}
-          <View style={styles.actions}>
-            <IconButton
-              icon="pencil"
-              iconColor="#1E3A5F"
-              onPress={() => navigation.navigate('MemberEdit', { memberId: item.memberId })}
-            />
-            <IconButton
-              icon="delete"
-              iconColor="#F44336"
-              onPress={() => handleDeleteMember(item.memberId, item.fullName)}
-            />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('MemberEdit', { memberId: item.memberId })
+              }
+              style={{ padding: 4, marginRight: 4 }}
+              hitSlop={{ top: 8, bottom: 6, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={22}
+                color="#1E3A5F"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() =>
+                handleDeleteMember(item.memberId, item.fullName)
+              }
+              style={{ padding: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={22}
+                color="#F44336"
+              />
+            </TouchableOpacity>
           </View>
         </Card.Content>
       </Card>
@@ -298,27 +316,27 @@ getMemberPhotosByIds
 };
 
 const styles = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: '#f5f5f5' },
-  searchBar:            { margin: 15, elevation: 2 },
-  filters:              { flexDirection: 'row', paddingHorizontal: 15, marginBottom: 10 },
-  filterChip:           { marginRight: 8 },
-  list:                 { padding: 15, paddingTop: 0, paddingBottom: 90 },
-  card:                 { marginBottom: 15, borderRadius: 16, backgroundColor: '#fff', elevation: 4 },
-  memberHeader:         { flexDirection: 'row', alignItems: 'center' },
-  photo:                { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
-  photoPlaceholder:     { width: 60, height: 60, borderRadius: 30, backgroundColor: '#1976D2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
+  searchBar: { margin: 15, elevation: 2 },
+  filters: { flexDirection: 'row', paddingHorizontal: 15, marginBottom: 10 },
+  filterChip: { marginRight: 8 },
+  list: { padding: 15, paddingTop: 0, paddingBottom: 90 },
+  card: { marginBottom: 15, borderRadius: 16, backgroundColor: '#fff', elevation: 4 },
+  memberHeader: { flexDirection: 'row', alignItems: 'center' },
+  photo: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
+  photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#1976D2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   photoPlaceholderText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
-  memberInfo:           { flex: 1 },
-  memberName:           { fontSize: 18, fontWeight: 'bold', color: '#222' },
-  memberEmail:          { fontSize: 13, color: '#777', marginTop: 2 },
-  memberPhone:          { fontSize: 13, color: '#777' },
-  statusBadge:          { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginTop: 6 },
-  statusBadgeText:      { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
-  designation:          { fontSize: 13, color: '#999', fontStyle: 'italic', marginTop: 8 },
-  actions:              { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
-  emptyContainer:       { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
-  emptyText:            { fontSize: 16, color: '#999' },
-  fab:                  { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#1E3A5F' },
+  memberInfo: { flex: 1 },
+  memberName: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  memberEmail: { fontSize: 13, color: '#777', marginTop: 2 },
+  memberPhone: { fontSize: 13, color: '#777' },
+  statusBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginTop: 6 },
+  statusBadgeText: { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
+  designation: { fontSize: 13, color: '#999', fontStyle: 'italic', marginTop: 8 },
+  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
+  emptyText: { fontSize: 16, color: '#999' },
+  fab: { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#1E3A5F' },
 });
 
 export default MemberManagementScreen;
