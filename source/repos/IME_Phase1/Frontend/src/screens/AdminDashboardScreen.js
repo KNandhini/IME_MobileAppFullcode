@@ -59,7 +59,10 @@ const AdminDashboardScreen = ({ navigation }) => {
               <Card style={styles.cardInner}>
                 <Card.Content style={styles.cardContent}>
                   <Text style={styles.icon}>{item.icon}</Text>
-                  <Title style={styles.cardTitle}>{item.title}</Title>
+                 {/* <Title style={styles.cardTitle}>{item.title}</Title>*/}
+                 <Title style={styles.cardTitle} numberOfLines={2} allowFontScaling={false}>
+  {item.title}
+</Title>
                 </Card.Content>
               </Card>
             </TouchableOpacity>
