@@ -42,10 +42,10 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
 
   const dateStr = item.achievementDate
     ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      })
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
     : '';
 
   const memberId = item.memberId ?? item.MemberId ?? null;
@@ -65,17 +65,26 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
           <View style={s.cardActions}>
             <TouchableOpacity
               onPress={() => onEdit(item)}
-              style={s.editBtn}
+              style={s.iconBotton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={s.editText}>Edit</Text>
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={22}
+                color="#1E3A5F"
+              />
             </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => onDelete(item.achievementId)}
-              style={s.deleteBtn}
+              style={s.iconBotton}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Text style={s.deleteText}>Delete</Text>
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={22}
+                color="#D9534F"
+              />
             </TouchableOpacity>
           </View>
         )}
@@ -120,9 +129,9 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
 // ── Main Screen ───────────────────────────────────────────────────────────────
 const AchievementsScreen = ({ navigation }) => {
   const [achievements, setAchievements] = useState([]);
-  const [refreshing,   setRefreshing]   = useState(false);
-  const [photoMap,     setPhotoMap]     = useState({});
-  const [userRole,     setUserRole]     = useState(null);  // ← ADD
+  const [refreshing, setRefreshing] = useState(false);
+  const [photoMap, setPhotoMap] = useState({});
+  const [userRole, setUserRole] = useState(null);  // ← ADD
   const { user } = useAuth();
 
   // ── Load role once on mount ───────────────────────────────────────────────
@@ -321,7 +330,7 @@ const s = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#FECACA',
   },
-  editText:   { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
   deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
   cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
   photo: {
@@ -335,17 +344,17 @@ const s = StyleSheet.create({
   },
   photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
   textContainer: { flex: 1 },
-  memberName:  { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-  achTitle:    { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
+  memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
+  achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
   description: { fontSize: 13, color: '#718096', lineHeight: 18 },
-  metaRow:     { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-  date:        { fontSize: 11, color: '#A0AEC0' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
+  date: { fontSize: 11, color: '#A0AEC0' },
   centered: {
     flex: 1, justifyContent: 'center',
     alignItems: 'center', paddingVertical: 60,
   },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-  emptyText:  { fontSize: 14, color: '#A0AEC0' },
+  emptyText: { fontSize: 14, color: '#A0AEC0' },
   fab: {
     position: 'absolute', right: 20, bottom: 24,
     width: 36, height: 36, borderRadius: 18,

@@ -57,6 +57,12 @@ import MemberEditScreen from '../screens/MemberEditScreen';
 import CorpDetailScreen from '../screens/CorpDetailsScreen';
 import AdminSignupScreen from '../screens/AddAdminScreen';
 
+
+import MembershipDetailsScreen from '../screens/MembershipDetails';
+import FeesDetailsScreen from '../screens/FeesDetails';
+import GovernanceDetailsScreen from '../screens/GovernanceDetails';
+import HistoryDetailsScreen from '../screens/HistoryDetails';
+import ObjectivesDetailsScreen from '../screens/Objectivesdetailsscreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -271,6 +277,13 @@ const MainStack = () => (
     <Stack.Screen name="AchievementDetail" component={AchievementDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AchievementForm" component={AchievementFormScreen} options={{ headerShown: false }} />
     <Stack.Screen
+      name="AddCircular"
+      component={AddCircularScreen}
+      options={{ headerShown: false }} />
+    <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
       name="RegistrationPayment"
       component={RegistrationPaymentScreen}
       options={{
@@ -285,6 +298,7 @@ const MainStack = () => (
     <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
