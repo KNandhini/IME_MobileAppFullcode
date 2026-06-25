@@ -12,6 +12,7 @@ public interface IActivityRepository
     Task<bool> UpdateActivityAsync(Activity activity);
     Task<bool> DeleteActivityAsync(int activityId);
     Task<List<ActivityAttachmentDTO>> GetActivityAttachmentsAsync(int activityId);
-    Task<ActivityAttachmentDTO> AddActivityAttachmentAsync(int activityId, string fileName, string filePath, long fileSize, string fileType, int uploadedBy);
+    //  Task<ActivityAttachmentDTO> AddActivityAttachmentAsync(int activityId, string fileName, string filePath, long fileSize, string fileType, int uploadedBy);
+    Task<ActivityAttachmentDTO> AddActivityAttachmentAsync(int activityId, string fileName, string filePath, long fileSize);
     Task<(string? FilePath, bool Deleted)> DeleteActivityAttachmentAsync(int attachmentId);
 }

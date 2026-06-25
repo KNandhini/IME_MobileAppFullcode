@@ -52,7 +52,20 @@ const multipartFileUpload = async (formData) => {
   }
   return res.json();
 };
-
+// Helper: logs every field/file in a FormData object
+const logFormData = (label, url, formData) => {
+  console.log(`📤 ${label}`);
+  console.log("URL:", url);
+  for (let pair of formData.entries()) {
+    const [key, value] = pair;
+    if (value && typeof value === 'object' && (value.uri || value.name)) {
+      // File-like entry: { uri, name, type }
+      console.log(`  ${key} → FILE:`, JSON.stringify(value));
+    } else {
+      console.log(`  ${key} →`, value);
+    }
+  }
+};
 export const achievementService = {
   getAll: async () => {
     const response = await api.get('/achievements');
@@ -65,11 +78,27 @@ export const achievementService = {
   },
 
   // ✅ Hits POST /api/achievements  (multipart)
-  createWithMedia: async (formData) => multipartPost('/achievements', formData),
+ //createWithMedia: async (formData) => multipartPost('/achievements', formData),
 
   // ✅ Hits PUT /api/achievements/:id  (multipart)
-  updateWithMedia: async (achievementId, formData) => multipartPut(`/achievements/${achievementId}`, formData),
+ // updateWithMedia: async (achievementId, formData) => multipartPut(`/achievements/${achievementId}`, formData),
+// ✅ Hits POST /api/achievements  (multipart)
+// Helper: logs every field/file in a FormData object
 
+createWithMedia: async (formData) => {
+  debugger
+  const url = '/achievements';
+  logFormData('createWithMedia (POST)', url, formData);
+  return multipartPost(url, formData);
+},
+
+// ✅ Hits PUT /api/achievements/:id  (multipart)
+updateWithMedia: async (achievementId, formData) => {
+  debugger;
+  const url = `/achievements/${achievementId}`;
+  logFormData('updateWithMedia (PUT)', url, formData);
+  return multipartPut(url, formData);
+},
   create: async (achievementData) => {
     const response = await api.post('/achievements', achievementData);
     return response.data;
@@ -86,9 +115,24 @@ export const achievementService = {
   },
 
   deleteAttachment: async (attachmentId) => {
-    const response = await api.delete(`/achievements/attachment/${attachmentId}`);
+  debugger;
+  console.log('[achievementService.deleteAttachment] request:', {
+    url: `/achievements/attachments/${attachmentId}`,
+    attachmentId,
+  });
+  try {
+    const response = await api.delete(`/achievements/attachments/${attachmentId}`);
+    console.log('[achievementService.deleteAttachment] response:', response.data);
     return response.data;
-  },
+  } catch (error) {
+    console.log('[achievementService.deleteAttachment] error:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+    throw error;
+  }
+},
 
   // ✅ Hits POST /api/file/upload  (separate file upload endpoint)
   uploadFile: async (formData) => multipartFileUpload(formData),
