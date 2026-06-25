@@ -6,49 +6,64 @@ import {
   ScrollView,
   Animated,
   TouchableOpacity,
-  Linking,
   StatusBar,
-  Dimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Video, ResizeMode } from 'expo-av';
-
-const { width } = Dimensions.get('window');
 
 // ── Palette ────────────────────────────────────────────────────
-const NAVY  = '#1E3A5F';
-const GOLD  = '#D4A017';
+const NAVY = '#1E3A5F';
+const GOLD = '#D4A017';
 const LIGHT = '#F0F4F8';
 const WHITE = '#FFFFFF';
-const GREY  = '#6B7A8D';
+const GREY = '#6B7A8D';
 
 // ── Data ───────────────────────────────────────────────────────
+// Real historical anchors, not a "founding year" — IME itself is a
+// proposed institution, so these stats trace the lineage it stands on.
 const STATS = [
-  { value: '1965',   label: 'Founded' },
-  { value: '2,500+', label: 'Members' },
-  { value: '58+',    label: 'Years of Service' },
-  { value: '12',     label: 'Regional Chapters' },
+  { value: '1688', label: 'First Municipal Institution (Madras)' },
+  { value: '1919', label: 'Parent Body IEI Founded' },
+  { value: '1993', label: '74th Amendment in Force' },
+  { value: '6', label: 'Membership Categories' },
 ];
 
-const VALUES = [
-  { icon: '🏛️', title: 'Integrity',  desc: 'Upholding the highest ethical standards in public service and professional conduct.' },
-  { icon: '⚙️', title: 'Excellence', desc: 'Driving innovation and best practices in municipal engineering across the nation.' },
-  { icon: '🤝', title: 'Community',  desc: 'Fostering a collaborative network of professionals committed to public welfare.' },
-  { icon: '📚', title: 'Knowledge',  desc: 'Continuous learning through research, seminars, publications, and mentorship.' },
-];
+const QUICK_LINKS = [
+  {
+    title: 'History',
+    subtitle: 'From 1688 to the 74th Amendment',
+    icon: 'book-clock-outline',
+    screen: 'HistoryDetails',
+  },
+  {
+    title: 'Membership',
+    subtitle: 'Eligibility across six categories',
+    icon: 'account-group',
+    screen: 'MembershipDetails',
+  },
+  {
+    title: 'Our Objectives',
+    subtitle: 'What the institution sets out to do',
+    icon: 'target',
+    screen: 'ObjectivesDetails',
+  },
+  {
+    title: 'Fee Structure',
+    subtitle: 'One-time fees by membership category',
+    icon: 'cash-multiple',
+    screen: 'FeesDetails',
+  },
+  {
+    title: 'Governance',
+    subtitle: 'Office bearers, roles & advisory body',
+    icon: 'gavel',
+    screen: 'GovernanceDetails',
+  },
 
-const OBJECTIVES = [
-  'Advance the science and practice of municipal engineering',
-  'Promote professional development and continuing education',
-  'Represent members in matters of policy and legislation',
-  'Establish and maintain professional standards of practice',
-  'Foster collaboration between members and government bodies',
-  'Publish technical journals and research in the field',
 ];
 
 // ── Animated Fade-In ───────────────────────────────────────────
 const FadeIn = ({ children, delay = 0, style }) => {
-  const opacity    = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(24)).current;
 
   useEffect(() => {
@@ -69,10 +84,32 @@ const FadeIn = ({ children, delay = 0, style }) => {
   );
 };
 
+// ── Quick Link Card ────────────────────────────────────────────
+const QuickLinkCard = ({ item, navigation, delay }) => (
+  <FadeIn delay={delay}>
+    <TouchableOpacity
+      style={styles.linkCard}
+      activeOpacity={0.7}
+      onPress={() => navigation.navigate(item.screen)}
+    >
+      <View style={styles.linkIconWrap}>
+        <MaterialCommunityIcons name={item.icon} size={22} color={GOLD} />
+      </View>
+      <View style={styles.linkTextWrap}>
+        <Text style={styles.linkTitle}>{item.title}</Text>
+        <Text style={styles.linkSubtitle}>{item.subtitle}</Text>
+      </View>
+      <View style={styles.linkMoreWrap}>
+        <Text style={styles.linkMore}>Click Here</Text>
+        <MaterialCommunityIcons name="chevron-right" size={18} color={NAVY} />
+      </View>
+    </TouchableOpacity>
+  </FadeIn>
+);
+
 // ── Main Screen ────────────────────────────────────────────────
 const AboutScreen = ({ navigation }) => {
   const goldLine = useRef(new Animated.Value(0)).current;
-  const videoRef = useRef(null);
 
   useEffect(() => {
     Animated.timing(goldLine, {
@@ -95,24 +132,25 @@ const AboutScreen = ({ navigation }) => {
         {/* ── Hero Banner ── */}
         <View style={styles.hero}>
           <FadeIn delay={0}>
-            <Text style={styles.heroEyebrow}>ESTABLISHED 1965</Text>
+            <Text style={styles.heroEyebrow}>PROPOSED INSTITUTION</Text>
           </FadeIn>
           <FadeIn delay={100}>
-            <Text style={styles.heroTitle}>Institution of{'\n'}Municipal Engineering</Text>
+            <Text style={styles.heroTitle}>Institution of{'\n'}Municipal Engineers</Text>
           </FadeIn>
           <FadeIn delay={200}>
             <Animated.View style={[styles.goldDivider, { width: goldWidth }]} />
           </FadeIn>
           <FadeIn delay={300}>
             <Text style={styles.heroSubtitle}>
-              Advancing the profession that builds and sustains the cities of tomorrow.
+              Carrying forward 338 years of municipal engineering, since the first
+              municipal institution was set up at Madras in 1688.
             </Text>
           </FadeIn>
           <View style={styles.decorCircle1} />
           <View style={styles.decorCircle2} />
         </View>
 
-        {/* ── Stats Row ── */}
+        {/* ── Quick Stats ── */}
         <FadeIn delay={400}>
           <View style={styles.statsRow}>
             {STATS.map((s, i) => (
@@ -124,87 +162,59 @@ const AboutScreen = ({ navigation }) => {
           </View>
         </FadeIn>
 
-        {/* ── Mission ── */}
+        {/* ── Short Intro: About IME ── */}
         <FadeIn delay={500}>
+          <View style={styles.section}>
+            <View style={styles.sectionHead}>
+              <View style={styles.goldAccent} />
+              <Text style={styles.sectionTitle}>About IME</Text>
+            </View>
+            <Text style={styles.bodyText}>
+              Local bodies meet the basic needs of rural and urban populations — water,
+              waste water, garbage, roads, street lighting, education, and health.
+              Creating and maintaining these amenities has been the responsibility of
+              local body engineers for more than 338 years, since the first municipal
+              institution was installed at Madras in 1688.
+            </Text>
+            <Text style={[styles.bodyText, { marginTop: 10 }]}>
+              The Institution of Engineers (India), founded in 1919, became the mother
+              body behind institutions like the Institution of Public Health Engineers
+              (Calcutta) and the Indian Water Works Association (Mumbai) — yet no
+              separate institution exists for municipal engineers. The Institution of
+              Municipal Engineers, India is proposed to fill that gap, on the same
+              lines as IEI Calcutta.
+            </Text>
+          </View>
+        </FadeIn>
+
+        {/* ── Short Summary: Mission ── */}
+        <FadeIn delay={600}>
           <View style={styles.section}>
             <View style={styles.sectionHead}>
               <View style={styles.goldAccent} />
               <Text style={styles.sectionTitle}>Our Mission</Text>
             </View>
             <Text style={styles.bodyText}>
-              The Institution of Municipal Engineering (IME) is a premier professional body dedicated
-              to advancing the practice of municipal engineering. We serve as the collective voice of
-              engineers who design, build, and maintain the infrastructure that underpins modern civic life —
-              from roads and water systems to public spaces and urban planning.
-            </Text>
-            <Text style={[styles.bodyText, { marginTop: 12 }]}>
-              Founded in 1965, IME has grown into a nationwide network of professionals united by a
-              common commitment to public service, technical excellence, and ethical practice.
+              To upskill municipal engineers and develop talent for local-body
+              challenges, create opportunities for higher studies in town planning and
+              infrastructure, and explore an all-India municipal service — supported by
+              conferences, technical publications, exchange visits abroad, and welfare
+              schemes for the municipal engineering community.
             </Text>
           </View>
         </FadeIn>
 
-        {/* ── Objectives ── */}
-        <FadeIn delay={600}>
-          <View style={[styles.section, styles.sectionAlt]}>
-            <View style={styles.sectionHead}>
-              <View style={styles.goldAccent} />
-              <Text style={[styles.sectionTitle, { color: WHITE }]}>Our Objectives</Text>
-            </View>
-            {OBJECTIVES.map((obj, i) => (
-              <View key={i} style={styles.objectiveRow}>
-                <View style={styles.objBullet}>
-                  <Text style={styles.objNumber}>{String(i + 1).padStart(2, '0')}</Text>
-                </View>
-                <Text style={styles.objText}>{obj}</Text>
-              </View>
-            ))}
-          </View>
-        </FadeIn>
-
-        {/* ── Core Values ── */}
-        <FadeIn delay={700}>
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <View style={styles.goldAccent} />
-              <Text style={styles.sectionTitle}>Core Values</Text>
-            </View>
-            <View style={styles.valuesGrid}>
-              {VALUES.map((v, i) => (
-                <View key={i} style={styles.valueCard}>
-                  <Text style={styles.valueIcon}>{v.icon}</Text>
-                  <Text style={styles.valueTitle}>{v.title}</Text>
-                  <Text style={styles.valueDesc}>{v.desc}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-        </FadeIn>
-
-        {/* ── App Overview Video ── */}
-        <FadeIn delay={750}>
-          <View style={styles.videoSection}>
-            <View style={styles.sectionHead}>
-              <View style={styles.goldAccent} />
-              <Text style={styles.sectionTitle}>Institute of municipal engineers</Text>
-            </View>
-            <Text style={styles.videoSubtitle}>
-              Watch a History institute of municipal engineers
-            </Text>
-            <View style={styles.videoWrapper}>
-              <Video
-                ref={videoRef}
-                source={require('../assets/Untitled design.mp4')}
-                style={styles.video}
-                resizeMode={ResizeMode.CONTAIN}
-                useNativeControls
-                shouldPlay={false}
-                isLooping={false}
-              />
-            </View>
-          </View>
-        </FadeIn>
-
+        {/* ── Featured Cards (Quick Links) ── */}
+        <View style={styles.linksWrap}>
+          {QUICK_LINKS.map((item, i) => (
+            <QuickLinkCard
+              key={item.screen}
+              item={item}
+              navigation={navigation}
+              delay={700 + i * 80}
+            />
+          ))}
+        </View>
         {/* ── Contact Banner ── */}
         <FadeIn delay={800}>
           <View style={styles.contactBanner}>
@@ -230,14 +240,15 @@ const AboutScreen = ({ navigation }) => {
             </View>
           </View>
         </FadeIn>
-
         {/* ── Footer ── */}
-        <FadeIn delay={900}>
+        <FadeIn delay={1300}>
           <View style={styles.footer}>
             <View style={styles.footerGoldLine} />
             <Text style={styles.footerText}>
-              © {new Date().getFullYear()} Institution of Municipal Engineering
+              © {new Date().getFullYear()} Institution of Municipal Engineers, India
             </Text>
+            <Text style={styles.footerSub}>Registered office — Chennai</Text>
+
             <Text style={styles.footerSub}>All rights reserved</Text>
           </View>
         </FadeIn>
@@ -288,7 +299,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.75)',
     fontSize: 15,
     lineHeight: 22,
-    maxWidth: '85%',
+    maxWidth: '90%',
   },
   decorCircle1: {
     position: 'absolute',
@@ -328,7 +339,8 @@ const styles = StyleSheet.create({
   statBox: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 18,
+    paddingVertical: 16,
+    paddingHorizontal: 4,
   },
   statBorder: {
     borderRightWidth: 1,
@@ -340,11 +352,11 @@ const styles = StyleSheet.create({
     color: NAVY,
   },
   statLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: GREY,
     marginTop: 3,
     textAlign: 'center',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
 
   // Section
@@ -360,13 +372,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
   },
-  sectionAlt: {
-    backgroundColor: NAVY,
-  },
   sectionHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   goldAccent: {
     width: 4,
@@ -386,92 +395,60 @@ const styles = StyleSheet.create({
     color: '#444',
   },
 
-  // Objectives
-  objectiveRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 14,
-  },
-  objBullet: {
-    width: 32,
-    height: 32,
-    borderRadius: 6,
-    backgroundColor: 'rgba(212,160,23,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-    marginTop: 1,
-  },
-  objNumber: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: GOLD,
-  },
-  objText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 21,
-    color: 'rgba(255,255,255,0.85)',
-  },
-
-  // Values
-  valuesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-  },
-  valueCard: {
-    width: '50%',
-    paddingHorizontal: 6,
-    marginBottom: 12,
-  },
-  valueIcon: {
-    fontSize: 26,
-    marginBottom: 6,
-  },
-  valueTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: NAVY,
-    marginBottom: 4,
-  },
-  valueDesc: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: GREY,
-  },
-
-  // Video Section
-  videoSection: {
-    backgroundColor: WHITE,
+  // Quick Link Cards
+  linksWrap: {
     marginHorizontal: 16,
     marginTop: 16,
+  },
+  linkCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: WHITE,
     borderRadius: 12,
-    padding: 20,
-    elevation: 3,
+    padding: 16,
+    marginBottom: 12,
+    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
     borderLeftWidth: 4,
     borderLeftColor: GOLD,
   },
-  videoSubtitle: {
-    fontSize: 13,
-    color: GREY,
-    marginTop: -8,
-    marginBottom: 14,
-  },
-  videoWrapper: {
+  linkIconWrap: {
+    width: 42,
+    height: 42,
     borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#000',
+    backgroundColor: 'rgba(212,160,23,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 14,
   },
-  video: {
-    width: '100%',
-    height: (width - 72) * (9 / 16), // 16:9 aspect ratio
+  linkTextWrap: {
+    flex: 1,
   },
-
+  linkTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: NAVY,
+    marginBottom: 2,
+  },
+  linkSubtitle: {
+    fontSize: 12,
+    color: GREY,
+    lineHeight: 16,
+  },
+  linkMoreWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  linkMore: {
+    fontSize: 11,
+    color: NAVY,
+    fontWeight: '600',
+    marginRight: 2,
+  },
   // Contact
   contactBanner: {
     backgroundColor: GOLD,
@@ -514,11 +491,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-
   // Footer
   footer: {
     alignItems: 'center',
-    marginTop: 28,
+    marginTop: 36,
     paddingBottom: 10,
   },
   footerGoldLine: {
@@ -532,12 +508,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: GREY,
     fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
-  footerSub: {
-    fontSize: 11,
-    color: '#AAB4BE',
-    marginTop: 2,
-  },
+  footerSub: { fontSize: 11, color: '#AAB4BE', marginTop: 2 },
+
 });
 
 export default AboutScreen;
