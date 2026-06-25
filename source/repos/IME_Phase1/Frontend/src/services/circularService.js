@@ -86,6 +86,7 @@ export const circularService = {
   },
 
   deleteAttachment: async (attachmentId) => {
+    debugger;
     const response = await api.delete(`/circular/attachment/${attachmentId}`);
     return response.data;
   },

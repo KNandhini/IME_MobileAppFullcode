@@ -57,6 +57,6 @@ public class ActivityAttachmentDTO
     public long?  FileSize        { get; set; }
     public string? FileType       { get; set; }
     public int?   UploadedBy      { get; set; }
-    public string UploadedByName  { get; set; } = string.Empty;
+    public string? UploadedByName  { get; set; } = string.Empty;
     public DateTime UploadedDate  { get; set; }
 }

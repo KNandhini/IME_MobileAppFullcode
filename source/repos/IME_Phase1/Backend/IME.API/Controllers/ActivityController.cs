@@ -242,6 +242,60 @@ public class ActivityController : ControllerBase
         }
     }
 
+    //// ── POST /api/activity/{id}/attachments  (multipart) ─────
+    //[HttpPost("{id}/attachments")]
+    //[Authorize(Roles = "Admin")]
+    //public async Task<ActionResult<ApiResponse<List<ActivityAttachmentDTO>>>> UploadAttachments(
+    //    int id, [FromForm] List<IFormFile> files)
+    //{
+    //    try
+    //    {
+    //        if (files == null || files.Count == 0)
+    //            return Ok(new ApiResponse<List<ActivityAttachmentDTO>> { Success = false, Message = "No files provided." });
+
+    //        var activity = await _activityRepository.GetActivityByIdAsync(id);
+    //        if (activity == null)
+    //            return NotFound(new ApiResponse<List<ActivityAttachmentDTO>> { Success = false, Message = "Activity not found." });
+
+    //        var memberIdClaim = User.FindFirst("MemberId")?.Value
+    //                         ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    //        int.TryParse(memberIdClaim, out var uploadedBy);
+
+    //        var saved = new List<ActivityAttachmentDTO>();
+
+    //        foreach (var file in files)
+    //        {
+    //            if (file.Length == 0) continue;
+    //            if (file.Length > 50 * 1024 * 1024) continue; // skip > 50 MB
+
+    //            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+    //            if (!AllowedTypes.Contains(ext)) continue;
+
+    //            var filePath = await _fileStorageService.SaveFileAsync(
+    //                file.OpenReadStream(), "Activities", id, file.FileName);
+
+    //            var attachment = await _activityRepository.AddActivityAttachmentAsync(
+    //                id, file.FileName, filePath, file.Length,
+    //                file.ContentType, uploadedBy);
+
+    //            saved.Add(attachment);
+    //        }
+
+    //        if (saved.Count == 0)
+    //            return Ok(new ApiResponse<List<ActivityAttachmentDTO>> { Success = false, Message = "No valid files were uploaded." });
+
+    //        return Ok(new ApiResponse<List<ActivityAttachmentDTO>>
+    //        {
+    //            Success = true,
+    //            Message = $"{saved.Count} file(s) uploaded successfully.",
+    //            Data    = saved
+    //        });
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        return StatusCode(500, new ApiResponse<List<ActivityAttachmentDTO>> { Success = false, Message = $"Error: {ex.Message}" });
+    //    }
+    //}
     // ── POST /api/activity/{id}/attachments  (multipart) ─────
     [HttpPost("{id}/attachments")]
     [Authorize(Roles = "Admin")]
@@ -257,17 +311,11 @@ public class ActivityController : ControllerBase
             if (activity == null)
                 return NotFound(new ApiResponse<List<ActivityAttachmentDTO>> { Success = false, Message = "Activity not found." });
 
-            var memberIdClaim = User.FindFirst("MemberId")?.Value
-                             ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int.TryParse(memberIdClaim, out var uploadedBy);
-
             var saved = new List<ActivityAttachmentDTO>();
-
             foreach (var file in files)
             {
                 if (file.Length == 0) continue;
                 if (file.Length > 50 * 1024 * 1024) continue; // skip > 50 MB
-
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!AllowedTypes.Contains(ext)) continue;
 
@@ -275,8 +323,7 @@ public class ActivityController : ControllerBase
                     file.OpenReadStream(), "Activities", id, file.FileName);
 
                 var attachment = await _activityRepository.AddActivityAttachmentAsync(
-                    id, file.FileName, filePath, file.Length,
-                    file.ContentType, uploadedBy);
+                    id, file.FileName, filePath, file.Length);
 
                 saved.Add(attachment);
             }
@@ -288,7 +335,7 @@ public class ActivityController : ControllerBase
             {
                 Success = true,
                 Message = $"{saved.Count} file(s) uploaded successfully.",
-                Data    = saved
+                Data = saved
             });
         }
         catch (Exception ex)
