@@ -15,20 +15,16 @@ namespace IME.Infrastructure.Repositories
         }
 
         // ✅ GET ALL
-        public async Task<List<Fundraise>> GetAllFundraiseAsync()
+        public async Task<List<Fundraise>> GetAllFundraiseAsync(int pageNumber = 1, int pageSize = 10)
         {
             var list = new List<Fundraise>();
-
             using var connection = await _dbContext.CreateOpenConnectionAsync();
             using var command = _dbContext.CreateStoredProcCommand("sp_GetAllFundraise", connection);
-
+            command.Parameters.AddWithValue("@PageNumber", pageNumber);
+            command.Parameters.AddWithValue("@PageSize", pageSize);
             using var reader = await command.ExecuteReaderAsync();
-
             while (await reader.ReadAsync())
-            {
                 list.Add(MapFundraise(reader));
-            }
-
             return list;
         }
 

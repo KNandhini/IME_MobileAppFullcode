@@ -136,27 +136,32 @@ public class CircularController : ControllerBase
         }
     }
 
-    // ── PUT /api/circular/{id} ────────────────────────────────
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
     [DisableRequestSizeLimit]
     [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
     public async Task<ActionResult<ApiResponse<object>>> Update(
-        int id,
-        [FromForm] string title,
-        [FromForm] string? description,
-        [FromForm] string? circularNumber,
-        [FromForm] string publishDate,
-        [FromForm] string? visibility,
-        [FromForm] List<IFormFile>? files)
+     int id,
+     [FromForm] string title,
+     [FromForm] string? description,
+     [FromForm] string? circularNumber,
+     [FromForm] string publishDate,
+     [FromForm] string? visibility,
+     [FromForm] int? clubId,
+     [FromForm] List<IFormFile>? files)
     {
         try
         {
+            var userId = GetUserId();
+            var resolvedClubId = clubId ?? await GetAdminClubIdAsync(userId); // ✅ fallback to admin's club
+
             await _circularRepository.UpdateCircularAsync(
-                id, title, description, circularNumber, DateTime.Parse(publishDate), visibility);
+                id, title, description, circularNumber,
+                DateTime.Parse(publishDate),
+                resolvedClubId,   // ✅ int? — matches parameter 6
+                visibility);      // ✅ string? — matches parameter 7
 
             await SaveAttachments(id, files);
-
             return Ok(new ApiResponse<object> { Success = true, Message = "Circular updated successfully" });
         }
         catch (Exception ex)

@@ -21,7 +21,7 @@ const VISIBILITY_OPTIONS = [
 
 const AddCircularScreen = ({ route, navigation }) => {
   const editData = route.params?.item;
-
+console.log(editData,"editData");
   const [title,          setTitle]          = useState(editData?.title          || '');
   const [description,    setDescription]    = useState(editData?.description    || '');
   const [circularNumber, setCircularNumber] = useState(editData?.circularNumber || '');
@@ -29,7 +29,7 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [publishDate,    setPublishDate]    = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );
-  const [visibility,          setVisibility]          = useState(editData?.visibility || 'public');
+  const [visibility,          setVisibility]          = useState(editData?.visibility || 'Public(All Clubs)');
   const [showPicker,          setShowPicker]          = useState(false);
   const [saving,              setSaving]              = useState(false);
   const [attachments,         setAttachments]         = useState([]);
