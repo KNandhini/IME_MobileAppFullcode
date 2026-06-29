@@ -181,6 +181,9 @@ public class FeedRepository : IFeedRepository
         Description = r.IsDBNull(r.GetOrdinal("Description")) ? null : r.GetString(r.GetOrdinal("Description")),
         HasImage    = r.GetBoolean(r.GetOrdinal("HasImage")),
         ImagePath   = r.IsDBNull(r.GetOrdinal("ImagePath"))   ? null : r.GetString(r.GetOrdinal("ImagePath")),
-        PostedDate  = r.GetDateTime(r.GetOrdinal("PostedDate")),
+        PostedDate = DateTime.SpecifyKind(
+    r.GetDateTime(r.GetOrdinal("PostedDate")),
+    DateTimeKind.Utc
+),
     };
 }

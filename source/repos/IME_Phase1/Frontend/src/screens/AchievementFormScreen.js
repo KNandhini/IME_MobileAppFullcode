@@ -93,59 +93,59 @@ function SimpleDropdown({ label, options, value, onChange, placeholder = 'Select
 }
 
 const drop = StyleSheet.create({
-  wrapper          : { marginBottom: 14 },
-  label            : { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
-  trigger          : { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
-  triggerError     : { borderColor: '#EF4444' },
-  triggerText      : { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder      : { color: '#CBD5E1' },
-  chevron          : { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-  errorText        : { fontSize: 11, color: '#EF4444', marginTop: 4 },
-  overlay          : { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet            : { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
-  sheetHeader      : { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle       : { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetClose       : { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-  option           : { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  optionActive     : { backgroundColor: '#EFF6FF' },
-  optionRow        : { flexDirection: 'row', alignItems: 'center' },
-  optionPhoto      : { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
+  wrapper: { marginBottom: 14 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
+  trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
+  triggerError: { borderColor: '#EF4444' },
+  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
+  placeholder: { color: '#CBD5E1' },
+  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
+  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
+  option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
+  optionActive: { backgroundColor: '#EFF6FF' },
+  optionRow: { flexDirection: 'row', alignItems: 'center' },
+  optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
   optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  optionInitials   : { color: '#fff', fontSize: 12, fontWeight: '700' },
-  optionText       : { fontSize: 15, color: '#334155', flex: 1 },
-  optionTextActive : { color: '#1D4ED8', fontWeight: '600' },
+  optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  optionText: { fontSize: 15, color: '#334155', flex: 1 },
+  optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
 });
 
 // ── AchievementFormScreen ─────────────────────────────────────────────────────
 const AchievementFormScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
-  const isEdit   = !!item;
+  const isEdit = !!item;
   const { user } = useAuth();
 
-  const [userRole,      setUserRole]      = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
   const [currentClubId, setCurrentClubId] = useState(null);
-  const [roleResolved,  setRoleResolved]  = useState(false);
+  const [roleResolved, setRoleResolved] = useState(false);
 
-  const [members,        setMembers]        = useState([]);
+  const [members, setMembers] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
 
   const [memberPhotoUri, setMemberPhotoUri] = useState(null);
   const [memberImgError, setMemberImgError] = useState(false);
 
   // Seed from item immediately so edit shows value on frame 1
-  const [selectedMemberId,   setSelectedMemberId]   = useState(item?.memberId   || null);
+  const [selectedMemberId, setSelectedMemberId] = useState(item?.memberId || null);
   const [selectedMemberName, setSelectedMemberName] = useState(item?.memberName || '');
 
-  const [title,       setTitle]       = useState(item?.title || '');
+  const [title, setTitle] = useState(item?.title || '');
   const [description, setDescription] = useState(item?.description || '');
-  const [date,        setDate]        = useState(item?.achievementDate ? new Date(item.achievementDate) : new Date());
-  const [showDate,    setShowDate]    = useState(false);
-  const [loading,     setLoading]     = useState(false);
+  const [date, setDate] = useState(item?.achievementDate ? new Date(item.achievementDate) : new Date());
+  const [showDate, setShowDate] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [attachments,         setAttachments]         = useState([]);
+  const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
-  const [fileViewer,          setFileViewer]          = useState({ visible: false, uri: null });
+  const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -155,9 +155,9 @@ const AchievementFormScreen = ({ route, navigation }) => {
         if (!raw) return;
         const parsed = JSON.parse(raw);
 
-        const role   = (parsed.roleName || parsed.role || '').trim();
-        const userId = parsed.userId   || parsed.memberId || null;
-        const clubId = parsed.clubId   || null;
+        const role = (parsed.roleName || parsed.role || '').trim();
+        const userId = parsed.userId || parsed.memberId || null;
+        const clubId = parsed.clubId || null;
 
         // Normalize role casing
         const normalizedRole = role.toLowerCase() === 'admin' ? 'Admin' : 'Member';
@@ -171,8 +171,8 @@ const AchievementFormScreen = ({ route, navigation }) => {
           await loadMembersForClub(clubId);
         } else {
           // ── Member: bind from item (edit) or own profile ──
-          const name     = item?.memberName || parsed.fullName || parsed.name || user?.fullName || 'Member';
-          const memberId = item?.memberId   || userId;
+          const name = item?.memberName || parsed.fullName || parsed.name || user?.fullName || 'Member';
+          const memberId = item?.memberId || userId;
 
           setSelectedMemberName(name);
           setSelectedMemberId(memberId);
@@ -234,8 +234,8 @@ const AchievementFormScreen = ({ route, navigation }) => {
       const res = await memberService.getMembersByClub(clubId, 1, 200);
       if (res?.success) {
         const list = (res.data ?? []).map((m) => ({
-          label   : m.fullName ?? '',
-          value   : m.memberId,
+          label: m.fullName ?? '',
+          value: m.memberId,
           // ProfilePhotoPath only — no blob
           photoUri: m.profilePhotoPath
             ? buildPhotoUrl(m.profilePhotoPath)
@@ -316,7 +316,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
     debugger;
     if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
 
-    const effectiveMemberId   = selectedMemberId   || currentUserId;
+    const effectiveMemberId = selectedMemberId || currentUserId;
     const effectiveMemberName = selectedMemberName || '';
 
     if (!effectiveMemberId) { Alert.alert('Validation', 'Member could not be determined.'); return; }
@@ -325,21 +325,21 @@ const AchievementFormScreen = ({ route, navigation }) => {
     try {
       debugger;
       const formData = new FormData();
-      formData.append('title',           title.trim());
-      formData.append('description',     description.trim());
+      formData.append('title', title.trim());
+      formData.append('description', description.trim());
       formData.append('achievementDate', formatDate(date));
-      formData.append('memberName',      effectiveMemberName);
-      formData.append('memberId',        parseInt(effectiveMemberId));
+      formData.append('memberName', effectiveMemberName);
+      formData.append('memberId', parseInt(effectiveMemberId));
 
       let res;
       let recordId;
 
       if (isEdit) {
-        res      = await achievementService.updateWithMedia(item.achievementId, formData);
+        res = await achievementService.updateWithMedia(item.achievementId, formData);
         recordId = item.achievementId;
       } else {
         debugger;
-        res      = await achievementService.createWithMedia(formData);
+        res = await achievementService.createWithMedia(formData);
         recordId = res?.data?.achievementId ?? res?.data?.AchievementId;
       }
 
@@ -348,9 +348,9 @@ const AchievementFormScreen = ({ route, navigation }) => {
       for (const file of attachments) {
         try {
           const fd = new FormData();
-          fd.append('file',       { uri: file.uri, name: file.fileName, type: file.mimeType });
+          fd.append('file', { uri: file.uri, name: file.fileName, type: file.mimeType });
           fd.append('moduleName', 'Achievements');
-          fd.append('recordId',   String(recordId));
+          fd.append('recordId', String(recordId));
           await achievementService.uploadFile(fd);
         } catch (e) {
           console.warn('Attachment upload failed:', e.message);
@@ -384,7 +384,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
         {/* ── Member avatar (shown for both roles) ── */}
-      
+
         {/* ── Member field ── */}
         {!roleResolved ? (
           <View style={styles.roleLoadingRow}>
@@ -408,8 +408,13 @@ const AchievementFormScreen = ({ route, navigation }) => {
             editable={false}
             outlineColor="#BBDEFB"
             activeOutlineColor={NAVY}
+            textColor="#1E3A5F"
             style={[styles.input, styles.inputReadOnly]}
-            theme={{ colors: { onSurfaceDisabled: '#1E293B' } }}
+            theme={{
+              colors: {
+                onSurfaceDisabled: '#1E3A5F',
+              },
+            }}
           />
         )}
 
@@ -421,6 +426,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          textColor="#1E3A5F"
           style={styles.input}
         />
 
@@ -434,6 +440,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
           numberOfLines={4}
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          textColor="#1E3A5F"
           style={styles.input}
         />
 
@@ -460,7 +467,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
         <View style={styles.attachGrid}>
           {existingAttachments.map((a) => {
             const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                            a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
             return (
               <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
                 <TouchableOpacity style={{ flex: 1 }} onPress={() => {
@@ -479,12 +486,14 @@ const AchievementFormScreen = ({ route, navigation }) => {
                 <TouchableOpacity style={styles.gridRemove} onPress={() => {
                   Alert.alert('Delete', `Delete "${a.fileName}"?`, [
                     { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: async () => {
-                      try {
-                        await achievementService.deleteAttachment(a.attachmentId);
-                        setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
-                      } catch { Alert.alert('Error', 'Failed to delete'); }
-                    }},
+                    {
+                      text: 'Delete', style: 'destructive', onPress: async () => {
+                        try {
+                          await achievementService.deleteAttachment(a.attachmentId);
+                          setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
+                        } catch { Alert.alert('Error', 'Failed to delete'); }
+                      }
+                    },
                   ]);
                 }}>
                   <Text style={styles.gridRemoveText}>✕</Text>
@@ -532,9 +541,9 @@ const AchievementFormScreen = ({ route, navigation }) => {
           {loading
             ? <ActivityIndicator color="#fff" />
             : <>
-                <MaterialCommunityIcons name="check" size={20} color="#fff" />
-                <Text style={styles.saveBtnText}>{isEdit ? 'Update Achievement' : 'Save Achievement'}</Text>
-              </>
+              <MaterialCommunityIcons name="check" size={20} color="#fff" />
+              <Text style={styles.saveBtnText}>{isEdit ? 'Update Achievement' : 'Save Achievement'}</Text>
+            </>
           }
         </TouchableOpacity>
 
@@ -564,11 +573,11 @@ const styles = StyleSheet.create({
     paddingTop: (StatusBar.currentHeight || 0) + 6,
     paddingBottom: 12, paddingHorizontal: 12,
   },
-  headerBtn:   { padding: 6, borderRadius: 20 },
+  headerBtn: { padding: 6, borderRadius: 20 },
   headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
   body: { padding: 18, paddingBottom: 40 },
 
-  roleLoadingRow:  { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingVertical: 14 },
+  roleLoadingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingVertical: 14 },
   roleLoadingText: { marginLeft: 8, fontSize: 14, color: '#94A3B8' },
 
   avatarBlock: { alignItems: 'center', marginBottom: 16 },
@@ -579,7 +588,7 @@ const styles = StyleSheet.create({
   },
   avatarInitials: { color: '#fff', fontSize: 26, fontWeight: '800' },
 
-  input:         { marginBottom: 14, backgroundColor: '#fff' },
+  input: { marginBottom: 14, backgroundColor: '#fff' },
   inputReadOnly: { marginBottom: 14, backgroundColor: '#F1F5F9' },
 
   dateField: {
@@ -587,9 +596,9 @@ const styles = StyleSheet.create({
     borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
     borderWidth: 1, borderColor: '#BBDEFB',
   },
-  dateText:      { flex: 1, marginLeft: 10 },
+  dateText: { flex: 1, marginLeft: 10 },
   dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-  dateValue:     { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
+  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
 
   attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
   attachGrid: {
@@ -601,10 +610,10 @@ const styles = StyleSheet.create({
     width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
     backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
   },
-  gridImg:        { width: '100%', height: '100%' },
-  gridDoc:        { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon:    { fontSize: 24 },
-  gridDocName:    { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon: { fontSize: 24 },
+  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
   gridRemove: {
     position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
     borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
@@ -617,7 +626,7 @@ const styles = StyleSheet.create({
   },
   gridAddIcon: { fontSize: 22, marginBottom: 2 },
   gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint:  { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
 
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -625,9 +634,9 @@ const styles = StyleSheet.create({
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
-  viewerOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage:     { width: '100%', height: '80%' },
-  viewerClose:     { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage: { width: '100%', height: '80%' },
+  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
 
