@@ -34,12 +34,7 @@ const QUICK_LINKS = [
     icon: 'book-clock-outline',
     screen: 'HistoryDetails',
   },
-  {
-    title: 'Membership',
-    subtitle: 'Eligibility across six categories',
-    icon: 'account-group',
-    screen: 'MembershipDetails',
-  },
+
   {
     title: 'Our Objectives',
     subtitle: 'What the institution sets out to do',
@@ -47,17 +42,24 @@ const QUICK_LINKS = [
     screen: 'ObjectivesDetails',
   },
   {
-    title: 'Fee Structure',
-    subtitle: 'One-time fees by membership category',
-    icon: 'cash-multiple',
-    screen: 'FeesDetails',
-  },
-  {
     title: 'Governance',
     subtitle: 'Office bearers, roles & advisory body',
     icon: 'gavel',
     screen: 'GovernanceDetails',
   },
+  {
+    title: 'Membership',
+    subtitle: 'Eligibility across six categories',
+    icon: 'account-group',
+    screen: 'MembershipDetails',
+  },
+  {
+    title: 'Fee Structure',
+    subtitle: 'One-time fees by membership category',
+    icon: 'cash-multiple',
+    screen: 'FeesDetails',
+  },
+
 
 ];
 
