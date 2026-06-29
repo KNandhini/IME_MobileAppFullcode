@@ -99,7 +99,7 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
     // ── UPDATE ────────────────────────────────────────────────
     public async Task UpdateCircularAsync(
         int circularId, string title, string? description,
-        string? circularNumber, DateTime publishDate, string? visibility = null)
+        string? circularNumber, DateTime publishDate, int? clubId = null, string? visibility = null )
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_UpdateCircular", connection);
@@ -107,8 +107,9 @@ public class CircularRepository(DatabaseContext dbContext) : ICircularRepository
         command.Parameters.AddWithValue("@Title",          title);
         command.Parameters.AddWithValue("@Description",    (object?)description    ?? DBNull.Value);
         command.Parameters.AddWithValue("@CircularNumber", (object?)circularNumber ?? DBNull.Value);
-        command.Parameters.AddWithValue("@PublishDate",    publishDate);
+        command.Parameters.AddWithValue("@PublishDate",    publishDate);     
         command.Parameters.AddWithValue("@Visibility",     (object?)visibility ?? DBNull.Value);
+        command.Parameters.AddWithValue("@ClubId", (object?)clubId ?? DBNull.Value); // ← add this
         await command.ExecuteNonQueryAsync();
     }
 

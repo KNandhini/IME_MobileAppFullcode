@@ -9,7 +9,7 @@ namespace IME.Core.Interfaces
 {
     public interface IFundraiseRepository
     {
-        Task<List<Fundraise>> GetAllFundraiseAsync();
+        Task<List<Fundraise>> GetAllFundraiseAsync(int pageNumber = 1, int pageSize = 10);
         Task<Fundraise?> GetFundraiseByIdAsync(int id);
         Task<int> CreateFundraiseAsync(Fundraise fundraise);
         Task<bool> UpdateFundraiseAsync(Fundraise fundraise);

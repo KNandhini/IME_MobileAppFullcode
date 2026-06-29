@@ -9,7 +9,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class FundraiseController : ControllerBase
 {
     private readonly IFundraiseRepository _repository;
@@ -28,10 +28,16 @@ public class FundraiseController : ControllerBase
 
     // ✅ GET ALL
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<Fundraise>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<List<Fundraise>>>> GetAll(
+     [FromQuery] int pageNumber = 1,
+     [FromQuery] int pageSize = 10)
     {
-        var data = await _repository.GetAllFundraiseAsync();
-        return Ok(new ApiResponse<List<Fundraise>> { Success = true, Data = data });
+        var data = await _repository.GetAllFundraiseAsync(pageNumber, pageSize);
+        return Ok(new ApiResponse<List<Fundraise>>
+        {
+            Success = true,
+            Data = data,
+        });
     }
 
     // ✅ GET BY ID

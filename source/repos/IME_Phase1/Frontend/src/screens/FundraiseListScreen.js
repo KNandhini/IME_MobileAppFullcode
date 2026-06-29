@@ -1,30 +1,105 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  View, Text, FlatList, StyleSheet,
-  TouchableOpacity, Alert, Animated, Platform, Image
+  View, Text, FlatList, StyleSheet, TouchableOpacity,
+  Alert, Animated, Image, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fundraiseService } from '../services/fundraiseService';
-//const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
-const FILE_BASE_URL = "https://prasath-001-site1.ftempurl.com/Uploads/";
-//const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
-// ─── Constants ────────────────────────────────────────────────────────────────
-const PRIMARY = '#1E3A5F';
-const ACCENT = '#2E86DE';
-const SUCCESS = '#27AE60';
-const DANGER = '#E74C3C';
-const BG = '#F0F4FA';
-const CARD_BG = '#FFFFFF';
+
+//const API_BASE_URL = 'http://10.0.2.2:51150/api';
+ const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
+
+const PRIMARY  = '#1E3A5F';
+const ACCENT   = '#2E86DE';
+const SUCCESS  = '#27AE60';
+const DANGER   = '#E74C3C';
+const BG       = '#F0F4FA';
+const CARD_BG  = '#FFFFFF';
+const PAGE_SIZE = 10;
 
 const URGENCY = {
   Critical: { bg: '#FDE8E8', text: '#C0392B', dot: '#E74C3C' },
-  Urgent: { bg: '#FEF3E2', text: '#D35400', dot: '#F39C12' },
-  Normal: { bg: '#E8F8F0', text: '#1E8449', dot: '#27AE60' },
+  Urgent:   { bg: '#FEF3E2', text: '#D35400', dot: '#F39C12' },
+  Normal:   { bg: '#E8F8F0', text: '#1E8449', dot: '#27AE60' },
 };
 
-// ─── Progress bar ─────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const toApiPath  = (p = '') => p.replace(/\\/g, '/');
+const firstPath  = (raw)    => {
+  if (!raw) return null;
+  return raw.split(',')[0].trim() || null;
+};
+
+// ─── AuthImage ────────────────────────────────────────────────────────────────
+function AuthImage({ path, style, resizeMode = 'cover' }) {
+  const [uri,   setUri]   = useState(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    if (!path) { setError(true); return; }
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const token   = await AsyncStorage.getItem('authToken');
+        const apiPath = toApiPath(path);
+        const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
+        const res     = await fetch(url, {
+          headers: { Authorization: token ? `Bearer ${token}` : '' },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const blob   = await res.blob();
+        const reader = new FileReader();
+        reader.onloadend = () => { if (!cancelled) setUri(reader.result); };
+        reader.onerror   = () => { if (!cancelled) setError(true); };
+        reader.readAsDataURL(blob);
+      } catch (e) {
+        console.warn('AuthImage failed:', path, e.message);
+        if (!cancelled) setError(true);
+      }
+    };
+
+    load();
+    return () => { cancelled = true; };
+  }, [path]);
+
+  if (error || !path) {
+    return (
+      <View style={[style, av.fallback]}>
+        <Text style={av.initials}>?</Text>
+      </View>
+    );
+  }
+  if (!uri) {
+    return (
+      <View style={[style, { backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }]}>
+        <ActivityIndicator size="small" color={PRIMARY} />
+      </View>
+    );
+  }
+  return <Image source={{ uri }} style={style} resizeMode={resizeMode} />;
+}
+
+// ─── BeneficiaryAvatar ────────────────────────────────────────────────────────
+function BeneficiaryAvatar({ photoPath, name }) {
+  const initials = (name || '?')
+    .split(' ').slice(0, 2)
+    .map(w => w[0]?.toUpperCase()).join('');
+
+  if (photoPath) {
+    return <AuthImage path={photoPath} style={av.img} resizeMode="cover" />;
+  }
+  return (
+    <View style={av.fallback}>
+      <Text style={av.initials}>{initials}</Text>
+    </View>
+  );
+}
+
+// ─── ProgressBar ──────────────────────────────────────────────────────────────
 function ProgressBar({ collected, target }) {
-  const pct = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
+  const pct  = target > 0 ? Math.min((collected / target) * 100, 100) : 0;
   const anim = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -41,71 +116,29 @@ function ProgressBar({ collected, target }) {
   );
 }
 
-// ─── Beneficiary Avatar ───────────────────────────────────────────────────────
-function BeneficiaryAvatar({ uri, name }) {
-  const [error, setError] = useState(false);
-
-  // Derive initials from name for fallback
-  const initials = (name || '?')
-    .split(' ')
-    .slice(0, 2)
-    .map((w) => w[0]?.toUpperCase())
-    .join('');
-
-  if (uri && !error) {
-    return (
-      <Image
-        source={{ uri }}
-        style={av.img}
-        resizeMode="cover"
-        onError={() => setError(true)}
-      />
-    );
-  }
-
-  // Fallback: initials circle
-  return (
-    <View style={av.fallback}>
-      <Text style={av.initials}>{initials}</Text>
-    </View>
-  );
-}
-
-// ─── Fund Card ────────────────────────────────────────────────────────────────
+// ─── FundCard ─────────────────────────────────────────────────────────────────
 function FundCard({ item, onPress, onEdit, onDelete }) {
-  const scale = React.useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start();
-  const handlePressOut = () => Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start();
-
-  const target = Number(item.targetAmount) || 0;
+  const scale     = React.useRef(new Animated.Value(1)).current;
+  const target    = Number(item.targetAmount)    || 0;
   const collected = Number(item.collectedAmount) || 0;
-  const pct = target > 0 ? Math.min(Math.round((collected / target) * 100), 100) : 0;
-  const urgency = URGENCY[item.urgencyLevel] || URGENCY.Normal;
+  const pct       = target > 0 ? Math.min(Math.round((collected / target) * 100), 100) : 0;
+  const urgency   = URGENCY[item.urgencyLevel]   || URGENCY.Normal;
+  const photoPath = firstPath(item.beneficiaryPhotoUrl);
 
   return (
     <Animated.View style={{ transform: [{ scale }] }}>
       <TouchableOpacity
         activeOpacity={1}
         onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        onPressIn={()  => Animated.spring(scale, { toValue: 0.97, useNativeDriver: true }).start()}
+        onPressOut={() => Animated.spring(scale, { toValue: 1,    useNativeDriver: true }).start()}
       >
         <View style={styles.card}>
 
-          {/* ── Top row: photo + title block + urgency badge ── */}
+          {/* Top row */}
           <View style={styles.cardTop}>
-            {/* Beneficiary photo / avatar */}
-            <BeneficiaryAvatar
-              uri={
-                item.beneficiaryPhotoUrl
-                  ? FILE_BASE_URL + item.beneficiaryPhotoUrl
-                  : null
-              }
-              name={item.fullName}
-            />
+            <BeneficiaryAvatar photoPath={photoPath} name={item.fullName} />
 
-            {/* Title + meta */}
             <View style={styles.cardTopInfo}>
               <View style={styles.titleRow}>
                 <Text style={styles.fundTitle} numberOfLines={1}>
@@ -121,12 +154,9 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
                 ) : null}
               </View>
 
-              {/* Name + category */}
               <View style={styles.metaRow}>
                 {item.fullName ? (
-                  <Text style={styles.metaName} numberOfLines={1}>
-                    👤 {item.fullName}
-                  </Text>
+                  <Text style={styles.metaName} numberOfLines={1}>👤 {item.fullName}</Text>
                 ) : null}
                 {item.fundCategory ? (
                   <View style={styles.categoryChip}>
@@ -137,10 +167,10 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
             </View>
           </View>
 
-          {/* ── Progress bar ── */}
+          {/* Progress */}
           <ProgressBar collected={collected} target={target} />
 
-          {/* ── Amount row ── */}
+          {/* Amount row */}
           <View style={styles.amountRow}>
             <View>
               <Text style={styles.amountLabel}>Collected</Text>
@@ -157,38 +187,21 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
             </View>
           </View>
 
-          {/* ── Divider ── */}
           <View style={styles.divider} />
 
-          {/* ── Action row ── */}
+          {/* Action row */}
           <View style={styles.actionRow}>
             <TouchableOpacity style={styles.actionBtn} onPress={onPress}>
               <Text style={styles.actionView}>👁  View</Text>
             </TouchableOpacity>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <TouchableOpacity
-                style={{ padding: 4, marginRight: 2 }}
-                onPress={onEdit}
-              >
-                <MaterialCommunityIcons
-                  name="pencil-outline"
-                  size={22}
-                  color="#1E3A5F"
-                />
+              <TouchableOpacity style={{ padding: 4, marginRight: 2 }} onPress={onEdit}>
+                <MaterialCommunityIcons name="pencil-outline" size={22} color={PRIMARY} />
               </TouchableOpacity>
-
-              <TouchableOpacity
-                style={{ padding: 4 }}
-                onPress={onDelete}
-              >
-                <MaterialCommunityIcons
-                  name="delete-outline"
-                  size={22}
-                  color="#D9534F"
-                />
+              <TouchableOpacity style={{ padding: 4 }} onPress={onDelete}>
+                <MaterialCommunityIcons name="delete-outline" size={22} color={DANGER} />
               </TouchableOpacity>
             </View>
-
           </View>
 
         </View>
@@ -197,15 +210,13 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
   );
 }
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+// ─── EmptyState ───────────────────────────────────────────────────────────────
 function EmptyState({ onAdd }) {
   return (
     <View style={styles.emptyWrap}>
       <Text style={styles.emptyIcon}>🤝</Text>
       <Text style={styles.emptyTitle}>No Funds Yet</Text>
-      <Text style={styles.emptySubtitle}>
-        Create your first fundraising campaign to get started.
-      </Text>
+      <Text style={styles.emptySubtitle}>Create your first fundraising campaign.</Text>
       <TouchableOpacity style={styles.emptyBtn} onPress={onAdd}>
         <Text style={styles.emptyBtnText}>+ Create Fund</Text>
       </TouchableOpacity>
@@ -213,29 +224,48 @@ function EmptyState({ onAdd }) {
   );
 }
 
-// ─── Main Screen ──────────────────────────────────────────────────────────────
+// ─── FundraiseListScreen ──────────────────────────────────────────────────────
 const FundraiseListScreen = ({ navigation, route }) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [data,       setData]       = useState([]);
+  const [loading,    setLoading]    = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasMore,    setHasMore]    = useState(true);
+  const pageRef = useRef(1);
 
-  const loadData = async () => {
+  // ── Load ──────────────────────────────────────────────────────────────────
+  const loadData = async (reset = false) => {
     try {
-      const res = await fundraiseService.getAll();
-      setData(res.data || []);
+      if (reset) {
+        pageRef.current = 1;
+        setHasMore(true);
+        setLoading(true);
+      }
+      const res   = await fundraiseService.getAll(pageRef.current, PAGE_SIZE);
+      const items = res.data || [];
+      setData(reset ? items : prev => [...prev, ...items]);
+      setHasMore(items.length === PAGE_SIZE);
     } catch {
       Alert.alert('Error', 'Failed to load funds');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  // Initial load only — no reload on focus
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(true); }, []);
 
-  // Update list in-place when CreateFund passes back a changedItem param
+  // ── Pull to refresh → next page ───────────────────────────────────────────
+  const onRefresh = () => {
+    if (!hasMore || refreshing) return;
+    setRefreshing(true);
+    pageRef.current += 1;
+    loadData();
+  };
+
+  // ── In-place update from CreateFund ──────────────────────────────────────
   useEffect(() => {
     const changedItem = route.params?.changedItem;
-    const isEdit = route.params?.isEdit;
+    const isEdit      = route.params?.isEdit;
     if (!changedItem) return;
     if (isEdit) {
       setData(prev => prev.map(d => d.id === changedItem.id ? changedItem : d));
@@ -245,28 +275,49 @@ const FundraiseListScreen = ({ navigation, route }) => {
     navigation.setParams({ changedItem: undefined, isEdit: undefined });
   }, [route.params?.changedItem]);
 
+  // ── Delete ────────────────────────────────────────────────────────────────
   const handleDelete = (id) => {
-    Alert.alert('Delete Fund', 'Are you sure you want to delete this fund?', [
+    Alert.alert('Delete Fund', 'Are you sure?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
           await fundraiseService.delete(id);
-          loadData();
+          loadData(true);
         },
       },
     ]);
   };
 
-  const totalTarget = data.reduce((s, i) => s + (Number(i.targetAmount) || 0), 0);
+  const totalTarget    = data.reduce((s, i) => s + (Number(i.targetAmount)    || 0), 0);
   const totalCollected = data.reduce((s, i) => s + (Number(i.collectedAmount) || 0), 0);
 
+  // ── Footer ────────────────────────────────────────────────────────────────
+  const ListFooter = () => {
+    if (data.length === 0) return null;
+    if (refreshing) return (
+      <View style={styles.footerWrap}>
+        <ActivityIndicator size="small" color={PRIMARY} />
+        <Text style={styles.footerText}>Loading next {PAGE_SIZE} records…</Text>
+      </View>
+    );
+    if (!hasMore) return (
+      <View style={styles.footerWrap}>
+        <Text style={styles.footerText}>✓ All {data.length} records loaded</Text>
+      </View>
+    );
+    return (
+      <View style={styles.footerWrap}>
+        <Text style={styles.footerText}>↓ Pull down to load more ({data.length} loaded)</Text>
+      </View>
+    );
+  };
+
+  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <View style={styles.container}>
 
-
-
-      {/* ── Summary strip ── */}
+      {/* Summary strip */}
       {data.length > 0 && (
         <View style={styles.summaryStrip}>
           <View style={styles.summaryItem}>
@@ -286,33 +337,56 @@ const FundraiseListScreen = ({ navigation, route }) => {
         </View>
       )}
 
-      {/* ── List ── */}
       <FlatList
         data={data}
         keyExtractor={(item) => item.id?.toString()}
-        contentContainerStyle={[
-          styles.listContent,
-          data.length === 0 && { flex: 1 },
-        ]}
+        contentContainerStyle={[styles.listContent, data.length === 0 && { flex: 1 }]}
+
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[PRIMARY]}
+            tintColor={PRIMARY}
+            title={
+              !hasMore
+                ? 'No more records'
+                : `Pull for next ${PAGE_SIZE} records`
+            }
+            titleColor="#888"
+          />
+        }
+
         ListEmptyComponent={
-          loading ? null : (
+          loading ? (
+            <View style={styles.emptyWrap}>
+              <ActivityIndicator size="large" color={PRIMARY} />
+            </View>
+          ) : (
             <EmptyState onAdd={() => navigation.navigate('CreateFund')} />
           )
         }
+
+        ListFooterComponent={<ListFooter />}
+
         renderItem={({ item }) => (
           <FundCard
             item={item}
             onPress={() => navigation.navigate('FundraiseView', { data: item })}
-            onEdit={() => navigation.navigate('CreateFund', { data: item })}
+            onEdit={()  => navigation.navigate('CreateFund',   { data: item })}
             onDelete={() => handleDelete(item.id)}
           />
         )}
       />
 
-      {/* ── FAB ── */}
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('CreateFund')} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate('CreateFund')}
+        activeOpacity={0.85}
+      >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
+
     </View>
   );
 };
@@ -321,146 +395,60 @@ export default FundraiseListScreen;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
+  container:      { flex: 1, backgroundColor: BG },
+  listContent:    { padding: 14, paddingBottom: 90 },
 
-  header: {
-    backgroundColor: PRIMARY,
-    paddingTop: Platform.OS === 'ios' ? 56 : 20,
-    paddingBottom: 18, paddingHorizontal: 20,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end',
-  },
-  headerTitle: { color: '#fff', fontSize: 24, fontWeight: '800', letterSpacing: 0.3 },
-  headerSub: { color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 2 },
-
-  summaryStrip: {
-    flexDirection: 'row', backgroundColor: '#fff',
-    marginHorizontal: 14, marginTop: -1, borderRadius: 14, padding: 14,
-    elevation: 4, shadowColor: '#000', shadowOpacity: 0.08,
-    shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, marginBottom: 6,
-  },
-  summaryItem: { flex: 1, alignItems: 'center' },
-  summaryVal: { fontSize: 15, fontWeight: '800', color: PRIMARY },
-  summaryLabel: { fontSize: 11, color: '#888', marginTop: 2 },
+  summaryStrip:   { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 14, marginTop: 8, borderRadius: 14, padding: 14, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, marginBottom: 6 },
+  summaryItem:    { flex: 1, alignItems: 'center' },
+  summaryVal:     { fontSize: 15, fontWeight: '800', color: PRIMARY },
+  summaryLabel:   { fontSize: 11, color: '#888', marginTop: 2 },
   summaryDivider: { width: 1, backgroundColor: '#E8ECF4' },
 
-  listContent: { padding: 14, paddingBottom: 90 },
+  card:           { backgroundColor: CARD_BG, borderRadius: 16, marginBottom: 14, padding: 16, elevation: 3, shadowColor: '#1E3A5F', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+  cardTop:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
+  cardTopInfo:    { flex: 1, marginLeft: 12 },
+  titleRow:       { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 },
+  fundTitle:      { flex: 1, fontSize: 15, fontWeight: '700', color: '#1A2540', marginRight: 8 },
+  badge:          { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4 },
+  badgeDot:       { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  badgeText:      { fontSize: 11, fontWeight: '700' },
+  metaRow:        { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  metaName:       { fontSize: 12, color: '#888' },
+  categoryChip:   { backgroundColor: '#EEF2FF', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  categoryText:   { fontSize: 11, color: '#4361EE', fontWeight: '600' },
 
-  // Card
-  card: {
-    backgroundColor: CARD_BG, borderRadius: 16,
-    marginBottom: 14, padding: 16,
-    elevation: 3, shadowColor: '#1E3A5F',
-    shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
-  },
+  amountRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
+  amountLabel:    { fontSize: 11, color: '#999', marginBottom: 2 },
+  amountValue:    { fontSize: 15, fontWeight: '700', color: SUCCESS },
+  pctBubble:      { backgroundColor: '#EEF5FF', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+  pctText:        { fontSize: 13, fontWeight: '800', color: ACCENT },
 
-  // Top section with photo
-  cardTop: {
-    flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12,
-  },
-  cardTopInfo: { flex: 1, marginLeft: 12 },
+  divider:        { height: 1, backgroundColor: '#F0F3FA', marginVertical: 12 },
+  actionRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  actionBtn:      { padding: 4 },
+  actionView:     { fontSize: 13, color: '#888', fontWeight: '500' },
 
-  titleRow: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    justifyContent: 'space-between', marginBottom: 6,
-  },
-  fundTitle: {
-    flex: 1, fontSize: 15, fontWeight: '700',
-    color: '#1A2540', marginRight: 8,
-  },
+  footerWrap:     { paddingVertical: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
+  footerText:     { fontSize: 12, color: '#aaa' },
 
-  badge: {
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4,
-  },
-  badgeDot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
-  badgeText: { fontSize: 11, fontWeight: '700' },
+  emptyWrap:      { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
+  emptyIcon:      { fontSize: 52, marginBottom: 16 },
+  emptyTitle:     { fontSize: 20, fontWeight: '700', color: PRIMARY, marginBottom: 8 },
+  emptySubtitle:  { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 21 },
+  emptyBtn:       { marginTop: 24, backgroundColor: PRIMARY, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13 },
+  emptyBtnText:   { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  metaRow: {
-    flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6,
-  },
-  metaName: { fontSize: 12, color: '#888' },
-
-  categoryChip: {
-    backgroundColor: '#EEF2FF', borderRadius: 6,
-    paddingHorizontal: 8, paddingVertical: 3,
-  },
-  categoryText: { fontSize: 11, color: '#4361EE', fontWeight: '600' },
-
-  amountRow: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginTop: 10,
-  },
-  amountLabel: { fontSize: 11, color: '#999', marginBottom: 2 },
-  amountValue: { fontSize: 15, fontWeight: '700', color: SUCCESS },
-  pctBubble: {
-    backgroundColor: '#EEF5FF', borderRadius: 20,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  pctText: { fontSize: 13, fontWeight: '800', color: ACCENT },
-
-  divider: { height: 1, backgroundColor: '#F0F3FA', marginVertical: 12 },
-
-  actionRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-  },
-  actionBtn: { padding: 4 },
-  actionView: { fontSize: 13, color: '#888', fontWeight: '500' },
-
-  editBtn: { backgroundColor: '#EEF5FF' },
-  deleteBtn: { backgroundColor: '#FEE8E8' },
-  editIcon: { fontSize: 12, marginRight: 4 },
-  editText: { fontSize: 13, color: ACCENT, fontWeight: '600' },
-  deleteIcon: { fontSize: 12, marginRight: 4 },
-  deleteText: { fontSize: 13, color: DANGER, fontWeight: '600' },
-
-  emptyWrap: {
-    flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40,
-  },
-  emptyIcon: { fontSize: 52, marginBottom: 16 },
-  emptyTitle: { fontSize: 20, fontWeight: '700', color: PRIMARY, marginBottom: 8 },
-  emptySubtitle: { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 21 },
-  emptyBtn: {
-    marginTop: 24, backgroundColor: PRIMARY,
-    borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13,
-  },
-  emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-
-  fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab:            { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
+  fabText:        { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 });
 
-// ─── Avatar styles ────────────────────────────────────────────────────────────
 const av = StyleSheet.create({
-  img: {
-    width: 58, height: 58, borderRadius: 14,
-    backgroundColor: '#E8ECF4',
-    borderWidth: 1.5, borderColor: '#DDE3EF',
-  },
-  fallback: {
-    width: 58, height: 58, borderRadius: 14,
-    backgroundColor: '#D6E4F7',
-    alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1.5, borderColor: '#B8CEE8',
-  },
-  initials: {
-    fontSize: 20, fontWeight: '800', color: PRIMARY,
-  },
-  actionRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  iconBtn: {
-    padding: 4,   // reduce from 8 or 10 if larger
-    marginHorizontal: 1, // very small gap
-  },
+  img:      { width: 58, height: 58, borderRadius: 14, backgroundColor: '#E8ECF4', borderWidth: 1.5, borderColor: '#DDE3EF' },
+  fallback: { width: 58, height: 58, borderRadius: 14, backgroundColor: '#D6E4F7', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#B8CEE8' },
+  initials: { fontSize: 20, fontWeight: '800', color: PRIMARY },
 });
 
-// ─── Progress bar styles ──────────────────────────────────────────────────────
 const pb = StyleSheet.create({
-  track: {
-    height: 7, backgroundColor: '#EEF2F8',
-    borderRadius: 99, overflow: 'hidden', marginTop: 8,
-  },
-  fill: { height: '100%', borderRadius: 99 },
+  track: { height: 7, backgroundColor: '#EEF2F8', borderRadius: 99, overflow: 'hidden', marginTop: 8 },
+  fill:  { height: '100%', borderRadius: 99 },
 });
