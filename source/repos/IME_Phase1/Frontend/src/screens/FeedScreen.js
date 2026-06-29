@@ -10,8 +10,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fundraiseService } from "../services/fundraiseService";
 const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
 //const API_BASE_URL = "http://10.0.2.2:51150/api";
-const { width }    = Dimensions.get("window");
-const CARD_WIDTH   = width - 28;
+const { width } = Dimensions.get("window");
+const CARD_WIDTH = width - 28;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getBadgeStyle(urgencyLevel, fundCategory) {
@@ -26,19 +26,28 @@ function getBadgeStyle(urgencyLevel, fundCategory) {
 
 function formatTimeAgo(dateString) {
   if (!dateString) return "";
-  const diffMs = Date.now() - new Date(dateString).getTime();
-  if (diffMs < 0) return "Just now";
-  const m = Math.floor(diffMs / 60000);
-  const h = Math.floor(diffMs / 3600000);
-  const d = Math.floor(diffMs / 86400000);
-  if (m < 1)  return "Just now";
-  if (m < 60) return `${m} min ago`;
-  if (h < 24) return `${h} hr${h > 1 ? "s" : ""} ago`;
-  if (d === 1) return "Yesterday";
-  if (d < 7)  return `${d} days ago`;
-  return new Date(dateString).toLocaleDateString("en-IN", { day: "2-digit", month: "short" });
-}
 
+  // Treat server date as UTC
+  const utcDate = new Date(
+    dateString.endsWith("Z")
+      ? dateString
+      : dateString.replace(" ", "T") + "Z"
+  );
+
+  const diffMs = Date.now() - utcDate.getTime();
+
+  const seconds = Math.floor(diffMs / 1000);
+  if (seconds < 60) return "Just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours > 1 ? "s" : ""} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? "s" : ""} ago`;
+}
 function isImagePath(p = "") {
   return /\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?.*)?$/i.test(p);
 }
@@ -74,20 +83,20 @@ function parseMediaPaths(raw, defaultType = "image") {
  */
 async function fetchAuthDataUri(storedPath) {
   try {
-    const token   = await AsyncStorage.getItem("authToken");
+    const token = await AsyncStorage.getItem("authToken");
     const apiPath = toApiPath(storedPath);
-    const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
+    const url = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
 
     const res = await fetch(url, {
       headers: { Authorization: token ? `Bearer ${token}` : "" },
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-    const blob   = await res.blob();
+    const blob = await res.blob();
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result); // "data:image/png;base64,..."
-      reader.onerror   = reject;
+      reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
   } catch (e) {
@@ -99,7 +108,7 @@ async function fetchAuthDataUri(storedPath) {
 // ─── AuthImage ────────────────────────────────────────────────────────────────
 /** Renders a single server image fetched with the auth token. */
 function AuthImage({ path, style, resizeMode = "cover" }) {
-  const [uri,   setUri]   = useState(null);
+  const [uri, setUri] = useState(null);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -144,7 +153,7 @@ function Avatar({ initials, active, size = 42 }) {
 // ─── Animated Progress Bar ────────────────────────────────────────────────────
 function ProgressBar({ raised, goal }) {
   const anim = useRef(new Animated.Value(0)).current;
-  const pct  = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
+  const pct = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
 
   useEffect(() => {
     Animated.timing(anim, {
@@ -191,9 +200,9 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
 
   const handleDocOpen = async (item) => {
     try {
-      const token   = await AsyncStorage.getItem("authToken");
+      const token = await AsyncStorage.getItem("authToken");
       const apiPath = toApiPath(item.path);
-      const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
+      const url = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
 
       // Fetch blob and open as base64 — works inside the app without browser auth
       const res = await fetch(url, {
@@ -230,7 +239,7 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
                 onPress={() => {
                   // Pass only image items to the viewer
                   const imgItems = mediaItems.filter(m => m.type === "image");
-                  const imgIdx   = imgItems.findIndex(m => m.path === item.path);
+                  const imgIdx = imgItems.findIndex(m => m.path === item.path);
                   onOpenViewer(imgItems, Math.max(imgIdx, 0));
                 }}
               >
@@ -293,7 +302,7 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
  * from the post object (comma-separated paths).
  */
 function useAttachments(post) {
-  const [mediaItems,   setMediaItems]   = useState([]);
+  const [mediaItems, setMediaItems] = useState([]);
   const [loadingMedia, setLoadingMedia] = useState(true);
 
   useEffect(() => {
@@ -306,13 +315,13 @@ function useAttachments(post) {
         if (cancelled) return;
 
         let files = [];
-        if (Array.isArray(result))        files = result;
+        if (Array.isArray(result)) files = result;
         else if (Array.isArray(result?.data)) files = result.data;
 
         if (files.length > 0) {
           const items = files.map(f => {
             const rawPath = f.filePath || f.path || f.url || f.fileUrl || f;
-            const name    = f.fileName || f.name || String(rawPath).split(/[\\/]/).pop();
+            const name = f.fileName || f.name || String(rawPath).split(/[\\/]/).pop();
             return {
               type: isImagePath(String(rawPath)) ? "image" : "doc",
               path: String(rawPath),
@@ -330,7 +339,7 @@ function useAttachments(post) {
 
       // ── Fallback: parse comma-separated paths from the post itself ──
       const fallback = [
-        ...parseMediaPaths(post.beneficiaryPhotoUrl,   "image"),
+        ...parseMediaPaths(post.beneficiaryPhotoUrl, "image"),
         ...parseMediaPaths(post.supportingDocumentUrl, "doc"),
       ];
       if (!cancelled) setMediaItems(fallback);
@@ -481,18 +490,18 @@ function PostCard({ post, onOpenViewer, navigation }) {
           onPress={() =>
             navigation.navigate("RaiseFund", {
               post: {
-                id:            post.id,
-                title:         post.fundTitle,
-                body:          post.description,
-                raised:        post.collectedAmount ?? 0,
-                goal:          post.targetAmount ?? 0,
-                badge:         post.urgencyLevel || post.fundCategory || "",
+                id: post.id,
+                title: post.fundTitle,
+                body: post.description,
+                raised: post.collectedAmount ?? 0,
+                goal: post.targetAmount ?? 0,
+                badge: post.urgencyLevel || post.fundCategory || "",
                 contactNumber: post.contactNumber,
-                bankName:      post.bankName,
+                bankName: post.bankName,
                 accountNumber: post.accountNumber,
-                ifsc:          post.ifsc,
-                upiId:         post.upiId,
-                fullName:      post.fullName,
+                ifsc: post.ifsc,
+                upiId: post.upiId,
+                fullName: post.fullName,
                 badgeColor,
                 badgeBg,
                 minimumAmount: post.minimumAmount ?? 1,
@@ -510,21 +519,21 @@ function PostCard({ post, onOpenViewer, navigation }) {
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 export default function FeedScreen({ navigation }) {
-  const [posts,     setPosts]     = useState([]);
-  const [loading,   setLoading]   = useState(true);
-  const [error,     setError]     = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [viewerVis, setViewerVis] = useState(false);
-  const [selItems,  setSelItems]  = useState([]);   // imageItems array
-  const [selIdx,    setSelIdx]    = useState(0);
+  const [selItems, setSelItems] = useState([]);   // imageItems array
+  const [selIdx, setSelIdx] = useState(0);
 
   const fetchFundraisers = async () => {
     try {
       setLoading(true); setError(null);
       const res = await fundraiseService.getAll();
-      if (Array.isArray(res))          setPosts(res);
-      else if (res?.success)           setPosts(res.data || []);
+      if (Array.isArray(res)) setPosts(res);
+      else if (res?.success) setPosts(res.data || []);
       else if (Array.isArray(res?.data)) setPosts(res.data);
-      else                             setError(res?.message || "Failed to load");
+      else setError(res?.message || "Failed to load");
     } catch {
       setError("Network error. Pull to refresh.");
     } finally {
@@ -598,10 +607,10 @@ export default function FeedScreen({ navigation }) {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  safe:     { flex: 1, backgroundColor: "#f5f4f0" },
-  feed:     { flex: 1 },
-  center:   { flex: 1, justifyContent: "center", alignItems: "center" },
-  hint:     { color: "#888", marginTop: 12, fontSize: 14 },
+  safe: { flex: 1, backgroundColor: "#f5f4f0" },
+  feed: { flex: 1 },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  hint: { color: "#888", marginTop: 12, fontSize: 14 },
   retryBtn: {
     marginTop: 16, backgroundColor: "#e8623a",
     borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10,
@@ -611,7 +620,7 @@ const s = StyleSheet.create({
 
 const av = StyleSheet.create({
   circle: { backgroundColor: "#c084fc", alignItems: "center", justifyContent: "center" },
-  text:   { color: "#fff", fontSize: 15, fontWeight: "600" },
+  text: { color: "#fff", fontSize: 15, fontWeight: "600" },
   dot: {
     position: "absolute", bottom: 0, right: 0,
     width: 12, height: 12, borderRadius: 6,
@@ -620,21 +629,21 @@ const av = StyleSheet.create({
 });
 
 const pb = StyleSheet.create({
-  wrap:   { paddingHorizontal: 16, paddingBottom: 8, paddingTop: 4 },
-  meta:   { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  label:  { fontSize: 12, color: "#888" },
-  pct:    { fontSize: 12, fontWeight: "600", color: "#22c55e" },
-  track:  {
+  wrap: { paddingHorizontal: 16, paddingBottom: 8, paddingTop: 4 },
+  meta: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
+  label: { fontSize: 12, color: "#888" },
+  pct: { fontSize: 12, fontWeight: "600", color: "#22c55e" },
+  track: {
     height: 6, backgroundColor: "#f0ede8",
     borderRadius: 99, overflow: "hidden", marginBottom: 5,
   },
-  fill:   { height: "100%", backgroundColor: "#22c55e", borderRadius: 99 },
+  fill: { height: "100%", backgroundColor: "#22c55e", borderRadius: 99 },
   amount: { fontSize: 13, fontWeight: "700", color: "#111" },
 });
 
 const ms = StyleSheet.create({
   container: { marginBottom: 2 },
-  tile:      { overflow: "hidden" },
+  tile: { overflow: "hidden" },
 
   // Image tile
   img: { width: "100%", height: 260, backgroundColor: "#e8e5e0" },
@@ -680,7 +689,7 @@ const ms = StyleSheet.create({
     flexDirection: "row", justifyContent: "center",
     alignItems: "center", gap: 5, paddingVertical: 9,
   },
-  dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ddd" },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ddd" },
   dotActive: { backgroundColor: "#e8623a", width: 18, borderRadius: 3 },
 });
 
@@ -690,16 +699,16 @@ const card = StyleSheet.create({
     borderRadius: 20, overflow: "hidden",
     borderWidth: 0.5, borderColor: "rgba(0,0,0,0.07)",
   },
-  header:     { flexDirection: "row", alignItems: "center", padding: 14, paddingBottom: 10, gap: 10 },
+  header: { flexDirection: "row", alignItems: "center", padding: 14, paddingBottom: 10, gap: 10 },
   headerInfo: { flex: 1 },
-  name:       { fontSize: 15, fontWeight: "600", color: "#111" },
-  meta:       { fontSize: 11, color: "#888", marginTop: 2 },
-  badge:      { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText:  { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
+  name: { fontSize: 15, fontWeight: "600", color: "#111" },
+  meta: { fontSize: 11, color: "#888", marginTop: 2 },
+  badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
+  badgeText: { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
 
-  body:  { paddingHorizontal: 16, paddingBottom: 12 },
+  body: { paddingHorizontal: 16, paddingBottom: 12 },
   title: { fontSize: 17, fontWeight: "700", color: "#111", lineHeight: 24, marginBottom: 6 },
-  desc:  { fontSize: 14, color: "#555", lineHeight: 22 },
+  desc: { fontSize: 14, color: "#555", lineHeight: 22 },
 
   mediaLoader: {
     height: 80, alignItems: "center", justifyContent: "center",
@@ -707,7 +716,7 @@ const card = StyleSheet.create({
   },
   mediaLoaderText: { fontSize: 13, color: "#aaa" },
 
-  endRow:  { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 16, paddingBottom: 10 },
+  endRow: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 16, paddingBottom: 10 },
   endText: { fontSize: 11, color: "#aaa" },
 
   footer: {
@@ -715,7 +724,7 @@ const card = StyleSheet.create({
     borderTopWidth: 0.5, borderTopColor: "#f0ede8",
     paddingHorizontal: 16, paddingVertical: 10,
   },
-  reaction:      { flexDirection: "row", alignItems: "center", gap: 4, marginRight: 4 },
+  reaction: { flexDirection: "row", alignItems: "center", gap: 4, marginRight: 4 },
   reactionCount: { fontSize: 12, color: "#888" },
   fundBtn: {
     marginLeft: "auto", flexDirection: "row", alignItems: "center", gap: 6,
@@ -725,10 +734,10 @@ const card = StyleSheet.create({
 });
 
 const vw = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: "#000", justifyContent: "center" },
+  root: { flex: 1, backgroundColor: "#000", justifyContent: "center" },
   imgWrap: { width, height: "100%", justifyContent: "center", alignItems: "center" },
-  img:     { width, height: "100%" },
-  close:   { position: "absolute", top: 52, right: 18 },
+  img: { width, height: "100%" },
+  close: { position: "absolute", top: 52, right: 18 },
   closeCircle: {
     width: 38, height: 38, borderRadius: 19,
     backgroundColor: "rgba(0,0,0,0.55)",
