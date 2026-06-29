@@ -225,7 +225,7 @@ public class MunicipalCorpController : ControllerBase
             response_format = new { type = "json_object" },
             messages        = new[]
             {
-                new { role = "system", content = "You are an expert on Indian municipal governance. Always respond with valid JSON only." },
+                new { role = "system", content = "You are an expert on Institute of municipal governance. Always respond with valid JSON only." },
                 new { role = "user",   content = prompt }
             },
             temperature = 0,
