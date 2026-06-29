@@ -2,17 +2,17 @@ import api from '../utils/api';
 
 export const fundraiseService = {
 
-  getAll: async () => {
-    const response = await api.get('/Fundraise');
-    return response.data;
-  },
-
+  getAll: async (pageNumber = 1, pageSize = 10) => {
+  const response = await api.get(`/Fundraise?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  return response.data;
+},
   getById: async (id) => {
     const response = await api.get(`/Fundraise/${id}`);
     return response.data;
   },
 
   create: async (data) => {
+    debugger;
     const response = await api.post('/Fundraise', data);
     return response.data;
   },
@@ -23,6 +23,7 @@ export const fundraiseService = {
   },
 
   delete: async (id) => {
+    debugger;
     const response = await api.delete(`/Fundraise/${id}`);
     return response.data;
   },
@@ -71,6 +72,7 @@ uploadAttachments: async (id, formData) => {
   }
 },
   getFile: async (params = {}) => {
+    debugger;
     const response = await api.get('/Fundraise/file', { params });
     return response.data;
   },

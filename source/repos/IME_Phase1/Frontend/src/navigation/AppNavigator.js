@@ -276,16 +276,38 @@ const MainStack = () => (
     <Stack.Screen name="CircularDetail" component={CircularDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AchievementDetail" component={AchievementDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AchievementForm" component={AchievementFormScreen} options={{ headerShown: false }} />
+    {/* <Stack.Screen
+      name="AddCircular"
+      component={AddCircularScreen}
+      options={{ headerShown: false }} /> */}
     <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
+     {/*<Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />*/}
+<Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
+
+{/* ✅ Add the missing opening tag, remove the duplicate AddCircular */}
+<Stack.Screen
+  name="RegistrationPayment"
+  component={RegistrationPaymentScreen}
+  options={{
+    headerShown: true,
+    title: 'Complete Payment',
+    headerStyle: { backgroundColor: '#1E3A5F' },
+    headerTintColor: '#fff',
+  }}
+/>
+<Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
+<Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
+<Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
+<Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AddCircular" component={AddCircularScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
+    {/*<Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />*/}
   </Stack.Navigator>
 );
 

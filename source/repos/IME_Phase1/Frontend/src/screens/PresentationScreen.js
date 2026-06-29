@@ -213,7 +213,7 @@ const HTML = `<!DOCTYPE html>
       <div class="big-icon">🏛️</div>
       <div class="slide-tag">Project Overview</div>
       <div class="slide-title">IME Member Connect App</div>
-      <div class="slide-sub">A dedicated mobile platform for Indian Municipal Engineers — connecting over 2,500 professionals across 12 regional chapters nationwide.</div>
+      <div class="slide-sub">A dedicated mobile platform for Institute of Municipal Engineers — connecting over 2,500 professionals across 12 regional chapters nationwide.</div>
       <div class="tagline-row">
         <div class="tagline-pill">Connect</div>
         <div class="tagline-pill">Grow</div>
@@ -224,7 +224,7 @@ const HTML = `<!DOCTYPE html>
     <!-- SLIDE 2: WHO IS IME -->
     <div class="slide" id="s1">
       <div class="slide-tag">Who We Are</div>
-      <div class="slide-title">Indian Municipal Engineers (IME)</div>
+      <div class="slide-title">Institute of Municipal Engineers (IME)</div>
       <div class="gold-divider"></div>
       <div class="slide-sub">India's premier professional body of engineers working in urban local bodies — municipalities, corporations, and town panchayats. Members work on roads, water supply, drainage, sanitation, and public infrastructure serving millions of citizens every day.</div>
       <div class="stat-row">
