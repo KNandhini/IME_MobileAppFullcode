@@ -7,8 +7,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fundraiseService } from '../services/fundraiseService';
 
-//const API_BASE_URL = 'http://10.0.2.2:51150/api';
- const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
+const API_BASE_URL = 'http://10.0.2.2:51150/api';
+ //const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
 
 const PRIMARY  = '#1E3A5F';
 const ACCENT   = '#2E86DE';

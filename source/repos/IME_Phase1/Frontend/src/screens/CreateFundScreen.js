@@ -12,8 +12,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { fundraiseService } from "../services/fundraiseService";
 
 // ─── API Base ─────────────────────────────────────────────────────────────────
-//const API_BASE_URL = "http://10.0.2.2:51150/api";
-const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+//const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
 /**
  * Parse comma-separated DB string into raw path array.
  * Keeps original paths exactly as stored (e.g. "Fundraise-5\\abc.png").

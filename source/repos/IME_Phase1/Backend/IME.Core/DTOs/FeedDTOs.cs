@@ -23,6 +23,8 @@ public class FeedItemDTO
     public DateTime          PostedDate  { get; set; }
     public int               Likes       { get; set; }
     public int               Comments    { get; set; }
+    public int? ClubId { get; set; }
+    public bool IsSameClub { get; set; }
 }
 
 public class FeedResponseDTO
