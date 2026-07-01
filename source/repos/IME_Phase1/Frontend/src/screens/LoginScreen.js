@@ -197,7 +197,7 @@ const LoginScreen = ({ navigation }) => {
           </View>
 
           <Text style={styles.footerText}>
-            © {new Date().getFullYear()} Indian Municipal Engineers · All rights reserved
+            © {new Date().getFullYear()} Institute of Municipal Engineers · All rights reserved
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
