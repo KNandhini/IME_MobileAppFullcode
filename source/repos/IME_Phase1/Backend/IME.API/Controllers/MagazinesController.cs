@@ -14,7 +14,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class MagazinesController : ControllerBase
 {
     private readonly IMagazineRepository _magazineRepository;
@@ -33,8 +33,14 @@ public class MagazinesController : ControllerBase
 
     private string BuildFileUrl(string? relativePath)
     {
-        if (string.IsNullOrEmpty(relativePath)) return string.Empty;
-        return $"{Request.Scheme}://{Request.Host}/uploads/{relativePath.Replace('\\', '/')}";
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return string.Empty;
+
+        return Path.Combine(
+            Directory.GetCurrentDirectory(),
+            
+            relativePath.Replace('/', Path.DirectorySeparatorChar)
+                        .Replace('\\', Path.DirectorySeparatorChar));
     }
 
     private int GetUserId() =>
@@ -115,11 +121,11 @@ public class MagazinesController : ControllerBase
                     var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                     if (!AllowedAttachmentTypes.Contains(ext)) continue;
 
-                    var filePath = await _fileStorageService.SaveFileAsync(
+                    var relativePath = await _fileStorageService.SaveFileAsync(
                         file.OpenReadStream(), "Magazines", magazineId, file.FileName);
-
+                    var fullFilePath = _fileStorageService.GetFullPath(relativePath);
                     await _magazineRepository.AddMagazineAttachmentAsync(
-                        magazineId, file.FileName, filePath, userId);
+                        magazineId, file.FileName, fullFilePath, userId);
                 }
             }
 
@@ -169,10 +175,13 @@ public class MagazinesController : ControllerBase
                     var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                     if (!AllowedAttachmentTypes.Contains(ext)) continue;
 
-                    var filePath = await _fileStorageService.SaveFileAsync(
+
+                    var relativePath = await _fileStorageService.SaveFileAsync(
                         file.OpenReadStream(), "Magazines", id, file.FileName);
 
-                    await _magazineRepository.AddMagazineAttachmentAsync(id, file.FileName, filePath, userId);
+                    var fullFilePath = _fileStorageService.GetFullPath(relativePath);
+
+                    await _magazineRepository.AddMagazineAttachmentAsync(id, file.FileName, fullFilePath, userId);
                 }
             }
 
@@ -249,11 +258,19 @@ public class MagazinesController : ControllerBase
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!AllowedAttachmentTypes.Contains(ext)) continue;
 
-                var filePath = await _fileStorageService.SaveFileAsync(
-                    file.OpenReadStream(), "Magazines", id, file.FileName);
+                var relativePath = await _fileStorageService.SaveFileAsync(
+    file.OpenReadStream(),
+    "Magazines",
+    id,
+    file.FileName);
+
+                var fullFilePath = _fileStorageService.GetFullPath(relativePath);
 
                 var att = await _magazineRepository.AddMagazineAttachmentAsync(
-                    id, file.FileName, filePath, userId);
+                    id,
+                    file.FileName,
+                    fullFilePath,
+                    userId);
 
                 att.FilePath = BuildFileUrl(att.FilePath);
                 saved.Add(att);
