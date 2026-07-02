@@ -36,8 +36,14 @@ public class AchievementsController : ControllerBase
     // ── helper ────────────────────────────────────────────────
     private string BuildFileUrl(string? relativePath)
     {
-        if (string.IsNullOrEmpty(relativePath)) return string.Empty;
-        return $"{Request.Scheme}://{Request.Host}/uploads/{relativePath.Replace('\\', '/')}";
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return string.Empty;
+
+        return Path.Combine(
+            Directory.GetCurrentDirectory(),
+
+            relativePath.Replace('/', Path.DirectorySeparatorChar)
+                        .Replace('\\', Path.DirectorySeparatorChar));
     }
 
     // helper: read userId from JWT claims
@@ -116,9 +122,10 @@ public class AchievementsController : ControllerBase
             if (request.Photo != null &&
                 AllowedPhotoTypes.Contains(Path.GetExtension(request.Photo.FileName).ToLowerInvariant()))
             {
-                var photoPath = await _fileStorageService.SaveFileAsync(
+                var relativePath = await _fileStorageService.SaveFileAsync(
                     request.Photo.OpenReadStream(), "Achievements", achievementId, request.Photo.FileName);
 
+                var fullFilePath = _fileStorageService.GetFullPath(relativePath);
                 await _achievementRepository.UpdateAchievementAsync(new Achievement
                 {
                     AchievementId = achievementId,
@@ -126,7 +133,7 @@ public class AchievementsController : ControllerBase
                     Title = request.Title,
                     Description = request.Description,
                     AchievementDate = achievement.AchievementDate,
-                    PhotoPath = photoPath,
+                    PhotoPath = fullFilePath,
                 });
             }
 
@@ -137,8 +144,10 @@ public class AchievementsController : ControllerBase
                 var attachPath = await _fileStorageService.SaveFileAsync(
                     request.Attachment.OpenReadStream(), "Achievements", achievementId, request.Attachment.FileName);
 
+                var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
+
                 await _achievementRepository.AddAchievementAttachmentAsync(
-                    achievementId, request.Attachment.FileName, attachPath, userId);
+                    achievementId, request.Attachment.FileName, fullAttachPath, userId);
             }
 
             // 4. Push notification
@@ -201,13 +210,15 @@ public class AchievementsController : ControllerBase
                 var attachPath = await _fileStorageService.SaveFileAsync(
                     request.Attachment.OpenReadStream(), "Achievements", id, request.Attachment.FileName);
 
+                var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
+
                 // Delete all old attachments first
                 var existing = await _achievementRepository.GetAchievementAttachmentsAsync(id);
                 foreach (var att in existing)
                     await _achievementRepository.DeleteAchievementAttachmentAsync(att.AttachmentId);
 
                 await _achievementRepository.AddAchievementAttachmentAsync(
-                    id, request.Attachment.FileName, attachPath, userId);
+                    id, request.Attachment.FileName, fullAttachPath, userId);
             }
 
             return Ok(new ApiResponse<object>
@@ -272,39 +283,31 @@ public class AchievementsController : ControllerBase
             if (files == null || files.Count == 0)
                 return Ok(new ApiResponse<List<AttachmentDTO>>
                 { Success = false, Message = "No files provided." });
-
             var achievement = await _achievementRepository.GetAchievementByIdAsync(id);
             if (achievement == null)
                 return NotFound(new ApiResponse<List<AttachmentDTO>>
                 { Success = false, Message = "Achievement not found." });
-
             // FIX: get real userId for UploadedBy
             var userId = GetUserId();
             var saved = new List<AttachmentDTO>();
-
             foreach (var file in files)
             {
                 if (file.Length == 0) continue;
                 if (file.Length > 50 * 1024 * 1024) continue; // skip > 50 MB
-
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!AllowedAttachmentTypes.Contains(ext)) continue;
-
                 var filePath = await _fileStorageService.SaveFileAsync(
                     file.OpenReadStream(), "Achievements", id, file.FileName);
-
+                var fullFilePath = _fileStorageService.GetFullPath(filePath);
                 // FIX: pass userId — was missing before
                 var att = await _achievementRepository.AddAchievementAttachmentAsync(
-                    id, file.FileName, filePath, userId);
-
+                    id, file.FileName, fullFilePath, userId);
                 att.FilePath = BuildFileUrl(att.FilePath);
                 saved.Add(att);
             }
-
             if (saved.Count == 0)
                 return Ok(new ApiResponse<List<AttachmentDTO>>
                 { Success = false, Message = "No valid files were uploaded." });
-
             return Ok(new ApiResponse<List<AttachmentDTO>>
             {
                 Success = true,
@@ -318,7 +321,6 @@ public class AchievementsController : ControllerBase
             { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
-
     // ── DELETE /api/achievements/attachments/{attachmentId} ───
     [HttpDelete("attachments/{attachmentId}")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteAttachment(int attachmentId)

@@ -10,8 +10,20 @@ import * as DocumentPicker from 'expo-document-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
 
+import api from '../utils/api';
+
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const MagazineFormScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
@@ -37,6 +49,7 @@ const MagazineFormScreen = ({ route, navigation }) => {
 
   const loadExistingAttachments = async () => {
     try {
+      debugger;
       const res = await magazineService.getAttachments(item.magazineId);
       if (res?.data) setExistingAttachments(res.data);
     } catch (e) {
@@ -219,11 +232,11 @@ const totalAttachments = existingAttachments.length + attachments.length;
     return (
       <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
         <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-          if (isImage) setFileViewer({ visible: true, uri: a.filePath });
-          else Linking.openURL(a.filePath);
+          if (isImage) setFileViewer({ visible: true, uri: toPublicUrl(a.filePath) });
+          else Linking.openURL(toPublicUrl(a.filePath));
         }}>
           {isImage ? (
-            <Image source={{ uri: a.filePath }} style={styles.gridImg} resizeMode="cover" />
+            <Image source={{ uri: toPublicUrl(a.filePath) }} style={styles.gridImg} resizeMode="cover" />
           ) : (
             <View style={styles.gridDoc}>
               <Text style={styles.gridDocIcon}>📄</Text>
