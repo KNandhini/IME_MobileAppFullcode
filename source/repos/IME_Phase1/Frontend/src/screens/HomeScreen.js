@@ -3,7 +3,6 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   ActivityIndicator, StatusBar, RefreshControl, Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Menu } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -25,29 +24,35 @@ const HomeScreen = ({ navigation }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const paymentPopupShown = useRef(false);
 
-  // ── Payment pending popup (once per session, driven by local AsyncStorage flag) ──
+  // ── Payment pending popup (once per session, driven by server roleId/membershipStatus/graceExpiryDate) ──
   useEffect(() => {
     if (paymentPopupShown.current) return;
     checkPaymentGrace();
-  }, []);
+  }, [user]);
 
   const checkPaymentGrace = async () => {
     try {
-      const raw = await AsyncStorage.getItem('paymentGrace');
-      if (!raw) return;
-      const grace = JSON.parse(raw);
-      if (!grace?.pending) return;
+      // Admins (roleId 1) never see the payment-pending popup
+      if (user?.roleId === 1) return;
 
-      const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-      const elapsed = Date.now() - (grace.registeredAt || 0);
+      // Only Members (roleId 2) are subject to this check
+      if (user?.roleId !== 2) return;
 
-      if (elapsed > THREE_DAYS_MS) {
-        // Grace period expired — clear flag silently
-        await AsyncStorage.removeItem('paymentGrace');
+      // Only relevant if their membership is actually pending
+      if (user?.membershipStatus !== 'Pending') return;
+
+      // Grace deadline comes straight from the server on login
+      if (!user?.graceExpiryDate) return;
+
+      const expiry = new Date(user.graceExpiryDate).getTime();
+      const msLeft = expiry - Date.now();
+
+      if (msLeft <= 0) {
+        // Grace period already expired — nothing to show
         return;
       }
 
-      const daysLeft = Math.ceil((THREE_DAYS_MS - elapsed) / (24 * 60 * 60 * 1000));
+      const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
       paymentPopupShown.current = true;
 
       Alert.alert(
@@ -56,7 +61,7 @@ const HomeScreen = ({ navigation }) => {
         [
           {
             text: 'Pay Now',
-            onPress: () => navigation.navigate('RegistrationPayment', grace.paymentParams || {}),
+            onPress: () => navigation.navigate('RegistrationPayment', { memberId: user?.memberId }),
           },
           { text: 'Remind Me Later', style: 'cancel' },
         ],
@@ -234,6 +239,8 @@ const HomeScreen = ({ navigation }) => {
             )}
             <Menu.Item title="🏢  Organisation" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Organisation'); }} />
             <Menu.Item title="📖  About IME" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
+<Menu.Item title="📰  Magazine" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Magazines'); }} />         
+     <Menu.Item  title="ℹ️  About IME"   titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
             <View style={styles.menuSep} />
             <Menu.Item title="🚪  Logout" titleStyle={[styles.menuItemText, { color: '#C0392B' }]} onPress={handleLogout} />
           </Menu>

@@ -230,6 +230,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
     if (!clubId) return;
     setMembersLoading(true);
     try {
+      debugger;
       // ✅ Use by-club endpoint — fast, no blob
       const res = await memberService.getMembersByClub(clubId, 1, 200);
       if (res?.success) {
