@@ -15,14 +15,14 @@ const PAGE_SIZE = 10;
 const HomeScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
 
-  const [posts,        setPosts]        = useState([]);
-  const [page,         setPage]         = useState(1);
-  const [loadingMore,  setLoadingMore]  = useState(false);
-  const [refreshing,   setRefreshing]   = useState(false);
-  const [hasMore,      setHasMore]      = useState(true);
-  const [initialLoad,  setInitialLoad]  = useState(true);
-  const [error,        setError]        = useState(null);
-  const [menuVisible,  setMenuVisible]  = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [error, setError] = useState(null);
+  const [menuVisible, setMenuVisible] = useState(false);
   const paymentPopupShown = useRef(false);
 
   // ── Payment pending popup (once per session, driven by local AsyncStorage flag) ──
@@ -61,7 +61,7 @@ const HomeScreen = ({ navigation }) => {
           { text: 'Remind Me Later', style: 'cancel' },
         ],
       );
-    } catch (_) {}
+    } catch (_) { }
   };
 
   // ── Reload on screen focus ──────────────────
@@ -84,7 +84,7 @@ const HomeScreen = ({ navigation }) => {
         setPage(pageNumber);
         setHasMore(res.data.hasMore);
       } else {
-        
+
         setError('Failed to load feed.');
       }
     } catch (e) {
@@ -114,42 +114,42 @@ const HomeScreen = ({ navigation }) => {
   };
 
   // ── Welcome strip ────────────────────────────
- const renderFeedHeader = () => (
-  <View>
-    <View style={styles.welcomeStrip}>
-      <View style={styles.welcomeAvatar}>
-        <Text style={styles.welcomeAvatarLetter}>
-          {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
-        </Text>
+  const renderFeedHeader = () => (
+    <View>
+      <View style={styles.welcomeStrip}>
+        <View style={styles.welcomeAvatar}>
+          <Text style={styles.welcomeAvatarLetter}>
+            {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <View style={styles.welcomeTexts}>
+          <Text style={styles.welcomeGreeting}>
+            Hello, {user?.fullName?.split(' ')[0] || 'Member'} 👋
+          </Text>
+          <Text style={styles.welcomeSub}>What's happening in IME today?</Text>
+        </View>
+        <TouchableOpacity
+          style={styles.newPostBtn}
+          onPress={() => navigation.navigate('CreatePost')}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.newPostBtnText}>+</Text>
+        </TouchableOpacity>
       </View>
-      <View style={styles.welcomeTexts}>
-        <Text style={styles.welcomeGreeting}>
-          Hello, {user?.fullName?.split(' ')[0] || 'Member'} 👋
-        </Text>
-        <Text style={styles.welcomeSub}>What's happening in IME today?</Text>
-      </View>
+
+      {/* Law Bot card as its own row below the strip */}
       <TouchableOpacity
-        style={styles.newPostBtn}
-        onPress={() => navigation.navigate('CreatePost')}
-        activeOpacity={0.8}
+        style={styles.lawBotCard}
+        onPress={() => navigation.navigate('LawBot')}
+        activeOpacity={0.85}
       >
-        <Text style={styles.newPostBtnText}>+</Text>
+        <Text style={styles.lawBotTitle}>⚖️ Law Assistant</Text>
+        <Text style={styles.lawBotSubtitle}>
+          Ask questions about the 74th Amendment Act
+        </Text>
       </TouchableOpacity>
     </View>
-
-    {/* Law Bot card as its own row below the strip */}
-    <TouchableOpacity
-      style={styles.lawBotCard}
-      onPress={() => navigation.navigate('LawBot')}
-      activeOpacity={0.85}
-    >
-      <Text style={styles.lawBotTitle}>⚖️ Law Assistant</Text>
-      <Text style={styles.lawBotSubtitle}>
-        Ask questions about the 74th Amendment Act
-      </Text>
-    </TouchableOpacity>
-  </View>
-);
+  );
 
   // ── Footer loader / end message ──────────────
   const renderFeedFooter = () => (
@@ -228,12 +228,12 @@ const HomeScreen = ({ navigation }) => {
               </TouchableOpacity>
             }
           >
-            <Menu.Item title="👤  My Profile"   titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Profile'); }} />
+            <Menu.Item title="👤  My Profile" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Profile'); }} />
             {user?.roleName === 'Admin' && (
               <Menu.Item title="⚙️  Admin Dashboard" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('AdminDashboard'); }} />
             )}
             <Menu.Item title="🏢  Organisation" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Organisation'); }} />
-            <Menu.Item title="📖  About IME"    titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
+            <Menu.Item title="📖  About IME" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
             <View style={styles.menuSep} />
             <Menu.Item title="🚪  Logout" titleStyle={[styles.menuItemText, { color: '#C0392B' }]} onPress={handleLogout} />
           </Menu>
@@ -280,10 +280,10 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container:   { flex: 1, backgroundColor: '#1E3A5F' },
-  list:        { flex: 1, backgroundColor: '#F0F2F5' },
+  container: { flex: 1, backgroundColor: '#1E3A5F' },
+  list: { flex: 1, backgroundColor: '#F0F2F5' },
   listContent: { paddingBottom: 20 },
-  emptyContent:{ flexGrow: 1 },
+  emptyContent: { flexGrow: 1 },
 
   // App header
   appHeader: {
@@ -295,22 +295,22 @@ const styles = StyleSheet.create({
     paddingTop: 44,
     paddingBottom: 10,
   },
-  headerLeft:  { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   logoBox: {
     width: 40, height: 40, borderRadius: 10,
     backgroundColor: '#D4A017',
     justifyContent: 'center', alignItems: 'center', marginRight: 10,
   },
-  logoText:   { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
-  appName:    { color: '#fff', fontSize: 13, fontWeight: '700' },
+  logoText: { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+  appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
   appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
   headerRight: { flexDirection: 'row', alignItems: 'center' },
-  iconBtn:     { padding: 7, marginLeft: 2 },
+  iconBtn: { padding: 7, marginLeft: 2 },
   iconBtnText: { fontSize: 20 },
-  kebabIcon:   { fontSize: 26, color: '#fff', fontWeight: '700' },
+  kebabIcon: { fontSize: 26, color: '#fff', fontWeight: '700' },
   menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
-  menuItemText:{ fontSize: 14, color: '#222' },
-  menuSep:     { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
+  menuItemText: { fontSize: 14, color: '#222' },
+  menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
 
   // Welcome strip
   welcomeStrip: {
@@ -322,9 +322,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center', marginRight: 12,
   },
   welcomeAvatarLetter: { color: '#D4A017', fontSize: 20, fontWeight: '800' },
-  welcomeTexts:        { flex: 1 },
-  welcomeGreeting:     { fontSize: 16, fontWeight: '700', color: '#1E3A5F' },
-  welcomeSub:          { fontSize: 12, color: '#888', marginTop: 2 },
+  welcomeTexts: { flex: 1 },
+  welcomeGreeting: { fontSize: 16, fontWeight: '700', color: '#1E3A5F' },
+  welcomeSub: { fontSize: 12, color: '#888', marginTop: 2 },
   newPostBtn: {
     width: 36, height: 36, borderRadius: 18,
     backgroundColor: '#1E3A5F',
@@ -335,34 +335,34 @@ const styles = StyleSheet.create({
 
   // Footer
   footerLoader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 18 },
-  footerText:   { fontSize: 13, color: '#888', marginLeft: 10 },
-  endWrap:      { alignItems: 'center', paddingVertical: 26 },
-  endText:      { fontSize: 13, color: '#aaa' },
+  footerText: { fontSize: 13, color: '#888', marginLeft: 10 },
+  endWrap: { alignItems: 'center', paddingVertical: 26 },
+  endText: { fontSize: 13, color: '#aaa' },
 
   // Center (loading / error)
-  centerBox:  { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5', padding: 32 },
+  centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5', padding: 32 },
   centerText: { marginTop: 14, fontSize: 14, color: '#888' },
-  errorIcon:  { fontSize: 48, marginBottom: 12 },
-  errorText:  { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 20 },
-  retryBtn:   { backgroundColor: '#1E3A5F', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
-  retryBtnText:{ color: '#fff', fontWeight: '700', fontSize: 14 },
+  errorIcon: { fontSize: 48, marginBottom: 12 },
+  errorText: { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 20 },
+  retryBtn: { backgroundColor: '#1E3A5F', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
+  retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
   // Empty
-  emptyWrap:    { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 },
-  emptyIcon:    { fontSize: 48, marginBottom: 12 },
-  emptyText:    { fontSize: 16, fontWeight: '700', color: '#555' },
+  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 },
+  emptyIcon: { fontSize: 48, marginBottom: 12 },
+  emptyText: { fontSize: 16, fontWeight: '700', color: '#555' },
   emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
   lawBotCard: {
-  backgroundColor: '#EEF4FB',
-  marginHorizontal: 16,
-  marginBottom: 8,
-  borderRadius: 10,
-  padding: 12,
-  borderWidth: 0.5,
-  borderColor: '#B5D4F4',
-},
-lawBotTitle:    { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
-lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
+    backgroundColor: '#EEF4FB',
+    marginHorizontal: 16,
+    marginBottom: 8,
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 0.5,
+    borderColor: '#B5D4F4',
+  },
+  lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+  lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
 });
 
 export default HomeScreen;

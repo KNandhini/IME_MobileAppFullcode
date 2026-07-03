@@ -314,12 +314,20 @@ const AchievementFormScreen = ({ route, navigation }) => {
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     debugger;
-    if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
+    // Title validation
+    if (!title.trim()) {
+      Alert.alert("Validation", "Title is required.");
+      return;
+    }
 
-    const effectiveMemberId = selectedMemberId || currentUserId;
-    const effectiveMemberName = selectedMemberName || '';
+    // Member validation (Admin only)
+    if (userRole === "Admin" && !selectedMemberId) {
+      Alert.alert("Validation", "Please select a member.");
+      return;
+    }
 
-    if (!effectiveMemberId) { Alert.alert('Validation', 'Member could not be determined.'); return; }
+    const effectiveMemberId =
+      userRole === "Admin" ? selectedMemberId : currentUserId;
 
     setLoading(true);
     try {
