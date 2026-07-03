@@ -42,9 +42,13 @@ public class SignupRequestDTO
     public int? StateId { get; set; }
   
     public string? ClubId { get; set; }
+
+    public string? Occupation { get; set; }
+    public string? OccupationDetails { get; set; }
+    public string? Qualification { get; set; }
     // NEW — comma-separated club ids, used when RoleId = 1 (Admin) and the
     // admin manages more than one club, e.g. "3,7,12".
- 
+
 
     // NEW — 1 = Admin, 2 = Member. Defaults to 2 so the existing member
     // signup flow keeps working without sending this field at all.

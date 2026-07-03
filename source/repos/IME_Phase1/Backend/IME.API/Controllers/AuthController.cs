@@ -153,9 +153,12 @@ public class AuthController : ControllerBase
                 CountryId = request.CountryId,
                 StateId = request.StateId,
                 ClubId = request.ClubId,
-                RoleId = request.RoleId
+                RoleId = request.RoleId,
                 // Admins can belong to several clubs ("3,7,12"); regular members
                 // just mirror their single ClubId here for consistency.
+                Occupation = request.Occupation,
+                OccupationDetails = request.OccupationDetails,
+                Qualification = request.Qualification
 
             };
 
