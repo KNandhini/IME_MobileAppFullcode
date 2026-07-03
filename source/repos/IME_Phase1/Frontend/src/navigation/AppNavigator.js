@@ -65,6 +65,10 @@ import FeesDetailsScreen from '../screens/FeesDetails';
 import GovernanceDetailsScreen from '../screens/GovernanceDetails';
 import HistoryDetailsScreen from '../screens/HistoryDetails';
 import ObjectivesDetailsScreen from '../screens/Objectivesdetailsscreen';
+import MyPostScreen from '../screens/MypostScreen';
+import MagazinesScreen from '../screens/MagazinesScreen';
+import MagazineDetailScreen from '../screens/MagazineDetailScreen';
+import MagazineFormScreen from '../screens/MagazineFormScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -327,6 +331,10 @@ const MainStack = () => (
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
     <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />*/}
+  <Stack.Screen name="MyPost" component={MyPostScreen}options={{ headerShown: false }} />
+  <Stack.Screen name="Magazines" component={MagazinesScreen} options={{ title: 'Magazines' }} />
+<Stack.Screen name="MagazineForm" component={MagazineFormScreen} options={{ headerShown: false }} />
+<Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 

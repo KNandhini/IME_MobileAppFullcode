@@ -10,10 +10,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { fundraiseService } from "../services/fundraiseService";
-const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
-//const API_BASE_URL = "http://10.0.2.2:51150/api";
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = width - 28;
+//const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+const { width }    = Dimensions.get("window");
+const CARD_WIDTH   = width - 28;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getBadgeStyle(urgencyLevel, fundCategory) {

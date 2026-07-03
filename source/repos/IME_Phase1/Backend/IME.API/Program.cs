@@ -83,6 +83,7 @@ builder.Services.AddScoped<IChatRepository, ChatRepository>();
 builder.Services.AddScoped<ICircularRepository, CircularRepository>();
 builder.Services.AddScoped<IAchievementRepository, AchievementRepository>();
 builder.Services.AddScoped<IOrganisationRepository, OrganisationRepository>();
+builder.Services.AddScoped<IMagazineRepository, MagazineRepository>();
 builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<LawBotService>();

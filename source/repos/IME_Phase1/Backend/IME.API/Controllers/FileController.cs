@@ -63,22 +63,23 @@ public class FileController : ControllerBase
                 });
             }
 
-            // Save file
-            var filePath = await _fileStorageService.SaveFileAsync(
+            // Save file and get the full absolute path to store in DB
+            var relativePath = await _fileStorageService.SaveFileAsync(
                 file.OpenReadStream(),
                 moduleName,
                 recordId,
                 file.FileName
             );
+            var fullFilePath = _fileStorageService.GetFullPath(relativePath);
 
-            // Store file metadata in database
+            // Store file metadata in database (full path stored)
             using var connection = await _dbContext.CreateOpenConnectionAsync();
             using var command = _dbContext.CreateStoredProcCommand("sp_AddAttachment", connection);
 
             command.Parameters.AddWithValue("@TableName", moduleName);
             command.Parameters.AddWithValue("@ReferenceId", recordId);
             command.Parameters.AddWithValue("@FileName", file.FileName);
-            command.Parameters.AddWithValue("@FilePath", filePath);
+            command.Parameters.AddWithValue("@FilePath", fullFilePath);
             command.Parameters.AddWithValue("@FileSize", file.Length);
 
             var attachmentId = await command.ExecuteScalarAsync();
@@ -90,7 +91,7 @@ public class FileController : ControllerBase
                 Data = new FileUploadResponseDTO
                 {
                     FileName = file.FileName,
-                    FilePath = filePath,
+                    FilePath = fullFilePath,
                     FileSize = file.Length,
                     AttachmentId = Convert.ToInt32(attachmentId)
                 }
@@ -137,22 +138,23 @@ public class FileController : ControllerBase
                 var allowedExtensions = _allowedImageExtensions.Concat(_allowedDocumentExtensions).ToArray();
                 if (!allowedExtensions.Contains(extension)) continue;
 
-                // Save file
-                var filePath = await _fileStorageService.SaveFileAsync(
+                // Save file and resolve to full absolute path for DB storage
+                var relativePath = await _fileStorageService.SaveFileAsync(
                     file.OpenReadStream(),
                     moduleName,
                     recordId,
                     file.FileName
                 );
+                var fullFilePath = _fileStorageService.GetFullPath(relativePath);
 
-                // Store file metadata in database
+                // Store file metadata in database (full path stored)
                 using var connection = await _dbContext.CreateOpenConnectionAsync();
                 using var command = _dbContext.CreateStoredProcCommand("sp_AddAttachment", connection);
 
                 command.Parameters.AddWithValue("@TableName", moduleName);
                 command.Parameters.AddWithValue("@ReferenceId", recordId);
                 command.Parameters.AddWithValue("@FileName", file.FileName);
-                command.Parameters.AddWithValue("@FilePath", filePath);
+                command.Parameters.AddWithValue("@FilePath", fullFilePath);
                 command.Parameters.AddWithValue("@FileSize", file.Length);
 
                 var attachmentId = await command.ExecuteScalarAsync();
@@ -160,7 +162,7 @@ public class FileController : ControllerBase
                 uploadedFiles.Add(new FileUploadResponseDTO
                 {
                     FileName = file.FileName,
-                    FilePath = filePath,
+                    FilePath = fullFilePath,
                     FileSize = file.Length,
                     AttachmentId = Convert.ToInt32(attachmentId)
                 });
@@ -259,20 +261,44 @@ public class FileController : ControllerBase
         }
     }
 
-    [HttpGet("download/{*filePath}")]
-    public async Task<IActionResult> DownloadFile(string filePath)
+    [HttpGet("download/{attachmentId:int}")]
+    public async Task<IActionResult> DownloadFile(int attachmentId, [FromQuery] string tableName)
     {
         try
         {
-            var fullPath = _fileStorageService.GetFullPath(filePath);
+            // Retrieve the full absolute file path stored in the database
+            string? fullPath = null;
+            using (var connection = await _dbContext.CreateOpenConnectionAsync())
+            {
+                string? query = tableName switch
+                {
+                    "Activities" => "SELECT FilePath FROM ActivityAttachments WHERE AttachmentId = @AttachmentId",
+                    "News" => "SELECT FilePath FROM NewsAttachments WHERE AttachmentId = @AttachmentId",
+                    "Media" => "SELECT FilePath FROM MediaAttachments WHERE AttachmentId = @AttachmentId",
+                    "Podcasts" => "SELECT FilePath FROM PodcastAttachments WHERE AttachmentId = @AttachmentId",
+                    "Support" => "SELECT FilePath FROM SupportAttachments WHERE AttachmentId = @AttachmentId",
+                    "GOCircular" => "SELECT FilePath FROM GOCircularAttachments WHERE AttachmentId = @AttachmentId",
+                    "Achievements" => "SELECT FilePath FROM AchievementAttachments WHERE AttachmentId = @AttachmentId",
+                    _ => null
+                };
 
-            if (!_fileStorageService.FileExists(filePath))
+                if (query == null)
+                    return BadRequest(new { message = "Invalid table name" });
+
+                using var command = _dbContext.CreateCommand(query, connection);
+                command.Parameters.AddWithValue("@AttachmentId", attachmentId);
+
+                var result = await command.ExecuteScalarAsync();
+                fullPath = result?.ToString();
+            }
+
+            if (string.IsNullOrEmpty(fullPath) || !System.IO.File.Exists(fullPath))
             {
                 return NotFound(new { message = "File not found" });
             }
 
             var memory = new MemoryStream();
-            using (var stream = new FileStream(fullPath, FileMode.Open))
+            using (var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read))
             {
                 await stream.CopyToAsync(memory);
             }
@@ -362,8 +388,9 @@ public class FileController : ControllerBase
                 }
             }
 
-            // Delete physical file
-            _fileStorageService.DeleteFile(filePath);
+            // Delete physical file using the full path retrieved from the database
+            if (System.IO.File.Exists(filePath))
+                System.IO.File.Delete(filePath);
 
             return Ok(new ApiResponse<object>
             {
