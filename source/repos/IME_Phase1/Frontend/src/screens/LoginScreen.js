@@ -8,25 +8,26 @@ import { TextInput } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';
+import WelcomeCard from '../components/WelcomeCard';
 
 const { width } = Dimensions.get('window');
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
 const LoginScreen = ({ navigation }) => {
-  const [email,      setEmail]      = useState('');
-  const [password,   setPassword]   = useState('');
-  const [loading,    setLoading]    = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [secureText, setSecureText] = useState(true);
 
   const { login } = useAuth();
 
-  const fadeAnim  = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
 
   useEffect(() => {
     Animated.parallel([
-      Animated.timing(fadeAnim,  { toValue: 1, duration: 800, delay: 200, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, delay: 200, useNativeDriver: true }),
       Animated.timing(slideAnim, { toValue: 0, duration: 700, delay: 200, useNativeDriver: true }),
     ]).start();
   }, []);
@@ -49,12 +50,12 @@ const LoginScreen = ({ navigation }) => {
               {
                 text: 'Pay Now',
                 onPress: () => navigation.navigate('RegistrationPayment', {
-                  userId:      d.userId      ?? d.UserId,
-                  memberId:    d.memberId    ?? d.MemberId,
+                  userId: d.userId ?? d.UserId,
+                  memberId: d.memberId ?? d.MemberId,
                   memberEmail: email,
-                  memberName:  d.fullName    ?? d.FullName ?? '',
+                  memberName: d.fullName ?? d.FullName ?? '',
                   memberPassword: password,
-                  feeAmount:   0,
+                  feeAmount: 0,
                 }),
               },
               { text: 'Cancel', style: 'cancel' },
@@ -95,6 +96,9 @@ const LoginScreen = ({ navigation }) => {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
 
+          {/* Welcome / About card */}
+          <WelcomeCard onViewMore={() => navigation.navigate('AboutIME')} />
+
           {/* Login card */}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Sign In</Text>
@@ -109,7 +113,7 @@ const LoginScreen = ({ navigation }) => {
               autoCapitalize="none"
               outlineColor="#BBDEFB"
               activeOutlineColor={NAVY}
-              textColor="#1E3A5F" 
+              textColor="#1E3A5F"
               left={<TextInput.Icon icon="email-outline" />}
               style={styles.input}
             />
@@ -170,7 +174,7 @@ const LoginScreen = ({ navigation }) => {
           <View style={styles.quickRow}>
             <QuickAction
               icon="information-outline"
-              label="About IMC"
+              label="About IME"
               onPress={() => navigation.navigate('About')}
             />
             <QuickAction
@@ -263,8 +267,8 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
   },
   cardTitle: { fontSize: 22, fontWeight: '800', color: NAVY, marginBottom: 4 },
-  cardSub:   { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
-  input:     { marginBottom: 12, backgroundColor: '#fff' },
+  cardSub: { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
+  input: { marginBottom: 12, backgroundColor: '#fff' },
 
   forgotWrap: { alignSelf: 'flex-end', marginBottom: 16 },
   forgotText: { color: NAVY, fontSize: 13, fontWeight: '600' },
@@ -321,10 +325,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',
   },
-  statItem:    { flex: 1, alignItems: 'center' },
-  statValue:   { color: GOLD, fontSize: 16, fontWeight: '800' },
-  statLabel:   { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2, fontWeight: '500' },
-  statsDivider:{ width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
+  statItem: { flex: 1, alignItems: 'center' },
+  statValue: { color: GOLD, fontSize: 16, fontWeight: '800' },
+  statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2, fontWeight: '500' },
+  statsDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
 
   footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 },
 });

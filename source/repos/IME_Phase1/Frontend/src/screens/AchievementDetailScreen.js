@@ -5,10 +5,21 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../utils/api';
+import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
-
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+// filePath from the server is a raw disk path like "Uploads\achievements\xyz.jpg" —
+// convert it into a URL the app can actually load/display/download.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 const AchievementDetailScreen = ({ route, navigation }) => {
  // const { item } = route.params || {};
  const { item, memberPhoto } = route.params || {};
@@ -135,16 +146,17 @@ const loadAttachments = async () => {
 
   {attachments.map((attachment, index) => {
     const filePath = attachment.filePath;
+    const url = toPublicUrl(filePath);
 
     return isImage(filePath) ? (
       <TouchableOpacity
         key={attachment.attachmentId || index}
-        onPress={() => setImgViewer(filePath)}
+        onPress={() => setImgViewer(url)}
         activeOpacity={0.85}
         style={{ marginBottom: 14 }}
       >
         <Image
-          source={{ uri: filePath }}
+          source={{ uri: url }}
           style={styles.attachImage}
           resizeMode="contain"
         />
@@ -153,23 +165,7 @@ const loadAttachments = async () => {
           Tap to enlarge
         </Text>
       </TouchableOpacity>
-    ) : (
-      <TouchableOpacity
-        key={attachment.attachmentId || index}
-        style={styles.downloadBtn}
-        onPress={() => Linking.openURL(filePath)}
-      >
-        <MaterialCommunityIcons
-          name="download-outline"
-          size={18}
-          color="#fff"
-        />
-
-        <Text style={styles.downloadText}>
-          Download Attachment
-        </Text>
-      </TouchableOpacity>
-    );
+    ) : null;
   })}
 </View>
       </ScrollView>
@@ -263,9 +259,9 @@ attachImage: {
   attachHint:  { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
   downloadBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 10, padding: 14,
+    backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 14,
   },
-  downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
+  downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
   viewerOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',

@@ -3,9 +3,27 @@ import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Image, Dimensions,
 } from 'react-native';
-import { BASE_URL } from '../utils/api';
+import api from '../utils/api';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// api.defaults.baseURL is usually something like "http://host:port/api"
+// strip the trailing "/api" so we get the plain server root to prefix
+// the raw disk-style paths ("Uploads\Posts-121\xyz.jpg") that come back
+// from the backend. Same helper as AchievementDetailScreen for consistency.
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// filePath / imagePath from the server is a raw disk path like
+// "Uploads\Posts-121\xyz.jpg" (or "Uploads/News/xyz.jpg") — convert it
+// into a URL the app can actually load/display.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.search(/uploads[\\/]/i);
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const AVATAR_COLORS = [
   '#1E3A5F', '#D4A017', '#27AE60', '#8E44AD',
@@ -82,24 +100,27 @@ const MediaCarousel = ({ mediaItems }) => {
         onMomentumScrollEnd={handleScroll}
         scrollEventThrottle={16}
       >
-        {mediaItems.map((media, index) => (
-          <View key={media.mediaId ?? index} style={carousel.slide}>
-            {media.mediaType === 'video' ? (
-              <View style={carousel.videoPlaceholder}>
-                <Text style={carousel.videoPlay}>▶</Text>
-                <Text style={carousel.videoLabel}>Video</Text>
-              </View>
-            ) : (
-              <Image
-                source={{ uri: `${BASE_URL}/api/feed/media/${media.mediaId}` }}
-                style={carousel.image}
-                resizeMode="cover"
-                onError={(e) => console.log('Image load error mediaId=' + media.mediaId, e.nativeEvent.error)}
-                onLoad={() => console.log('Image loaded mediaId=' + media.mediaId)}
-              />
-            )}
-          </View>
-        ))}
+        {mediaItems.map((media, index) => {
+          const url = toPublicUrl(media.filePath);
+          return (
+            <View key={media.mediaId ?? index} style={carousel.slide}>
+              {media.mediaType === 'video' ? (
+                <View style={carousel.videoPlaceholder}>
+                  <Text style={carousel.videoPlay}>▶</Text>
+                  <Text style={carousel.videoLabel}>Video</Text>
+                </View>
+              ) : (
+                <Image
+                  source={{ uri: url }}
+                  style={carousel.image}
+                  resizeMode="cover"
+                  onError={(e) => console.log('Image load error mediaId=' + media.mediaId, e.nativeEvent.error)}
+                  onLoad={() => console.log('Image loaded mediaId=' + media.mediaId)}
+                />
+              )}
+            </View>
+          );
+        })}
       </ScrollView>
 
       {/* Counter badge — only when >1 item */}
@@ -124,8 +145,7 @@ const MediaCarousel = ({ mediaItems }) => {
 // ── Single image for News / Activity (uses ImagePath) ─────────────────────────
 const SingleImage = ({ imagePath }) => {
   if (!imagePath) return null;
-  // imagePath may be a relative server path like "Uploads/News/xxx.jpg"
-  const uri = imagePath.startsWith('http') ? imagePath : `${BASE_URL}/${imagePath}`;
+  const uri = toPublicUrl(imagePath);
   return <Image source={{ uri }} style={single.image} resizeMode="cover" />;
 };
 

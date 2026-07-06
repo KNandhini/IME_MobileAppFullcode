@@ -9,7 +9,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/support")]
-[Authorize]
+//[Authorize]
 public class SupportController : ControllerBase
 {
     private readonly ISupportRepository _repository;
@@ -183,14 +183,14 @@ public class SupportController : ControllerBase
             await file.CopyToAsync(ms);
             ms.Position = 0;
 
-            var filePath = await _fileStorageService.SaveFileAsync(
+            var attachPath = await _fileStorageService.SaveFileAsync(
                 ms, "Support", supportId, file.FileName);
-
+            var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
             await _repository.AddAttachmentAsync(new AddAttachmentDTO
             {
                 SupportId = supportId,
                 FileName = file.FileName,
-                FilePath = filePath,
+                FilePath = fullAttachPath,
                 MediaType = mediaType,
                 SortOrder = order++,
             });

@@ -7,6 +7,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { supportService } from '../services/supportService';
 import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';
+import api from '../utils/api';
+
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// filePath from the server is a raw disk path like "Uploads\Clubs-11\xyz.jpg" or
+// "Uploads\Support-4\abc.pdf" — convert it into a URL the app can actually load.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const categoryColor = (id) => {
   const map = { 1: '#3182CE', 2: '#805AD5', 3: '#38A169', 4: '#D97706', 5: '#DD6B20' };
@@ -52,9 +66,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
 
         // Priority 2: API returned logoPath on the detail object itself
         } else if (data.clubId && data.logoPath) {
-          setClubLogoUri(
-            `${BASE_URL}/Uploads/${data.logoPath.replace(/\\/g, '/')}`
-          );
+          setClubLogoUri(toPublicUrl(data.logoPath));
 
         // Priority 3: fetch clubs list to find the matching logo
         } else if (data.clubId) {
@@ -63,9 +75,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
             if (clubRes?.success && clubRes?.data) {
               const club = clubRes.data.find((c) => c.clubId === data.clubId);
               if (club?.logoPath) {
-                setClubLogoUri(
-                  `${BASE_URL}/Uploads/${club.logoPath.replace(/\\/g, '/')}`
-                );
+                setClubLogoUri(toPublicUrl(club.logoPath));
               }
             }
           } catch (clubErr) {
@@ -80,8 +90,14 @@ const SupportDetailScreen = ({ navigation, route }) => {
     }
   };
 
+  // Resolve an attachment's URL: prefer the raw filePath (same pattern as
+  // AchievementDetailScreen), fall back to the service helper if filePath
+  // isn't present on the record.
+  const getAttachmentSrc = (a) =>
+    toPublicUrl(a.filePath) ?? supportService.getAttachmentUrl(a.attachmentId);
+
   const openAttachment = (a) => {
-    const uri  = supportService.getAttachmentUrl(a.attachmentId);
+    const uri  = getAttachmentSrc(a);
     const type = a.mediaType?.trim();
     if (type === 'image') {
       setViewer({ visible: true, uri });
@@ -216,6 +232,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
             <View style={styles.attachGrid}>
               {attachments.map((a) => {
                 const type = a.mediaType?.trim();
+                const uri  = getAttachmentSrc(a);
                 return (
                   <TouchableOpacity
                     key={a.attachmentId}
@@ -225,7 +242,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
                   >
                     {type === 'image' ? (
                       <Image
-                        source={{ uri: supportService.getAttachmentUrl(a.attachmentId) }}
+                        source={{ uri }}
                         style={styles.thumbImg}
                         resizeMode="cover"
                       />

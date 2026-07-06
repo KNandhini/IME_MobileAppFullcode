@@ -230,6 +230,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
     if (!clubId) return;
     setMembersLoading(true);
     try {
+      debugger;
       // ✅ Use by-club endpoint — fast, no blob
       const res = await memberService.getMembersByClub(clubId, 1, 200);
       if (res?.success) {
@@ -314,12 +315,20 @@ const AchievementFormScreen = ({ route, navigation }) => {
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     debugger;
-    if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
+    // Title validation
+    if (!title.trim()) {
+      Alert.alert("Validation", "Title is required.");
+      return;
+    }
 
-    const effectiveMemberId = selectedMemberId || currentUserId;
-    const effectiveMemberName = selectedMemberName || '';
+    // Member validation (Admin only)
+    if (userRole === "Admin" && !selectedMemberId) {
+      Alert.alert("Validation", "Please select a member.");
+      return;
+    }
 
-    if (!effectiveMemberId) { Alert.alert('Validation', 'Member could not be determined.'); return; }
+    const effectiveMemberId =
+      userRole === "Admin" ? selectedMemberId : currentUserId;
 
     setLoading(true);
     try {
@@ -393,11 +402,11 @@ const AchievementFormScreen = ({ route, navigation }) => {
           </View>
         ) : userRole === 'Admin' ? (
           <SimpleDropdown
-            label="Member *"
+            label="Person Name *"
             options={members}
             value={selectedMemberId}
             onChange={handleMemberChange}
-            placeholder="Select member…"
+            placeholder="Select person name"
             loading={membersLoading}
           />
         ) : (

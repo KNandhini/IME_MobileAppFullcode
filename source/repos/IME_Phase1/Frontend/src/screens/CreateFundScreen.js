@@ -12,8 +12,11 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { fundraiseService } from "../services/fundraiseService";
 
 // ─── API Base ─────────────────────────────────────────────────────────────────
-//const API_BASE_URL = "http://10.0.2.2:51150/api";
-const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+// Static file host (same host as API, no /api segment) — used to build direct
+// image URLs the same way AchievementFormScreen's buildPhotoUrl does.
+const STATIC_BASE_URL = "http://10.0.2.2:51150";
+//const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
 /**
  * Parse comma-separated DB string into raw path array.
  * Keeps original paths exactly as stored (e.g. "Fundraise-5\\abc.png").
@@ -26,59 +29,17 @@ const parseServerPaths = (raw) => {
 /** "Fundraise-5\\abc.png" → "Fundraise-5/abc.png" for the API ?path= param */
 const toApiPath = (storedPath) => storedPath.replace(/\\/g, "/");
 
-// ─── AuthImage ────────────────────────────────────────────────────────────────
 /**
- * Fetches an image from the authenticated endpoint:
- *   GET /api/Fundraise/file?path=Fundraise-5/abc.png
- * Attaches the JWT Bearer token, converts blob → base64 data URI, then renders.
+ * Builds a direct, unauthenticated image URL from a stored server path —
+ * same approach as AchievementFormScreen's buildPhotoUrl.
+ *   "Fundraise-5\\abc.png" → "http://10.0.2.2:51150/Uploads/Fundraise-5/abc.png"
  */
-function AuthImage({ path, style, resizeMode = "cover" }) {
-  const [uri,   setUri]   = useState(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const token   = await AsyncStorage.getItem("authToken");
-        const apiPath = toApiPath(path);
-        const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
-
-        const res = await fetch(url, {
-          headers: { Authorization: token ? `Bearer ${token}` : "" },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const blob   = await res.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => { if (!cancelled) setUri(reader.result); };
-        reader.onerror   = () => { if (!cancelled) setError(true); };
-        reader.readAsDataURL(blob);
-      } catch (e) {
-        console.warn("AuthImage failed:", path, e.message);
-        if (!cancelled) setError(true);
-      }
-    };
-    load();
-    return () => { cancelled = true; };
-  }, [path]);
-
-  if (error) {
-    return (
-      <View style={[style, { backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }]}>
-        <Text style={{ fontSize: 22 }}>🖼️</Text>
-      </View>
-    );
-  }
-  if (!uri) {
-    return (
-      <View style={[style, { backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator size="small" color="#0D8A6E" />
-      </View>
-    );
-  }
-  return <Image source={{ uri }} style={style} resizeMode={resizeMode} />;
-}
+const buildPhotoUrl = (photoPath) => {
+  if (!photoPath) return null;
+  if (photoPath.startsWith("http")) return photoPath;
+  const clean = photoPath.replace(/\\/g, "/").replace(/^Uploads\/?/i, "");
+  return `${STATIC_BASE_URL}/Uploads/${clean}`;
+};
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
@@ -765,8 +726,8 @@ export default function CreateFundScreen() {
             >
               {existingPhotos.map((path, idx) => (
                 <View key={`ep-${idx}`} style={s.thumbWrap}>
-                  <AuthImage
-                    path={path}
+                  <Image
+                    source={{ uri: buildPhotoUrl(path) }}
                     style={s.thumb}
                     resizeMode="cover"
                   />

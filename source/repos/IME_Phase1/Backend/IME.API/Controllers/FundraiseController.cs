@@ -192,7 +192,7 @@ public class FundraiseController : ControllerBase
 
             // Start from existing comma-separated paths
             var photoPaths = ParsePaths(fundraise.BeneficiaryPhotoUrl);
-            var docPaths   = ParsePaths(fundraise.SupportingDocumentUrl);
+            var docPaths = ParsePaths(fundraise.SupportingDocumentUrl);
 
             foreach (var file in files)
             {
@@ -204,20 +204,28 @@ public class FundraiseController : ControllerBase
                 {
                     var filePath = await _fileStorageService.SaveFileAsync(
                         file.OpenReadStream(), "Fundraise", id, file.FileName);
-                    photoPaths.Add(filePath);
+
+                    // ✅ Convert relative/stored path into the full path
+                    var fullFilePath = _fileStorageService.GetFullPath(filePath);
+
+                    photoPaths.Add(fullFilePath);
                 }
                 else if (AllowedDocTypes.Contains(ext))
                 {
                     var filePath = await _fileStorageService.SaveFileAsync(
                         file.OpenReadStream(), "Fundraise", id, file.FileName);
-                    docPaths.Add(filePath);
+
+                    // ✅ Convert relative/stored path into the full path
+                    var fullFilePath = _fileStorageService.GetFullPath(filePath);
+
+                    docPaths.Add(fullFilePath);
                 }
                 // silently skip unsupported types
             }
 
             // Save updated comma-separated paths to DB
             var photoUrlString = photoPaths.Count > 0 ? string.Join(",", photoPaths) : null;
-            var docUrlString   = docPaths.Count > 0   ? string.Join(",", docPaths)   : null;
+            var docUrlString = docPaths.Count > 0 ? string.Join(",", docPaths) : null;
 
             await _repository.UpdateFilePathsAsync(id, photoUrlString, docUrlString);
 
@@ -225,9 +233,9 @@ public class FundraiseController : ControllerBase
             {
                 Success = true,
                 Message = "Files uploaded successfully",
-                Data    = new
+                Data = new
                 {
-                    Photos    = photoPaths,
+                    Photos = photoPaths,
                     Documents = docPaths
                 }
             });

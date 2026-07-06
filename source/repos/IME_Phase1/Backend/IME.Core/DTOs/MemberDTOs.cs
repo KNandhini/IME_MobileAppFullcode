@@ -1,5 +1,4 @@
-namespace IME.Core.DTOs;
-
+﻿namespace IME.Core.DTOs;
 public class MemberProfileDTO
 {
     public int MemberId { get; set; }
@@ -26,8 +25,12 @@ public class MemberProfileDTO
     public string? ClubId { get; set; }
     public string? ClubName { get; set; }
     public DateTime? GraceExpiryDate { get; set; }  // NEW
-}
 
+    // ── Occupation / Education (NEW) ──
+    public string? Occupation { get; set; }           // Employed / Self Employed / Unemployed
+    public string? OccupationDetails { get; set; }    // free-text, only relevant when Employed/Self Employed
+    public string? Qualification { get; set; }        // free-text educational qualification
+}
 public class UpdateMemberProfileDTO
 {
     public string? FullName { get; set; }
@@ -43,8 +46,12 @@ public class UpdateMemberProfileDTO
     public string? ClubId { get; set; }  // ?
     public string? Place { get; set; }
     public string? ProfilePhotoPath { get; set; }
-}
 
+    // ── Occupation / Education (NEW) ──
+    public string? Occupation { get; set; }
+    public string? OccupationDetails { get; set; }
+    public string? Qualification { get; set; }
+}
 public class PaymentHistoryDTO
 {
     public int PaymentId { get; set; }

@@ -298,7 +298,7 @@ public class ActivityController : ControllerBase
     //}
     // ── POST /api/activity/{id}/attachments  (multipart) ─────
     [HttpPost("{id}/attachments")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<List<ActivityAttachmentDTO>>>> UploadAttachments(
         int id, [FromForm] List<IFormFile> files)
     {
@@ -319,11 +319,12 @@ public class ActivityController : ControllerBase
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!AllowedTypes.Contains(ext)) continue;
 
-                var filePath = await _fileStorageService.SaveFileAsync(
+                var attachPath = await _fileStorageService.SaveFileAsync(
                     file.OpenReadStream(), "Activities", id, file.FileName);
+                var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
 
                 var attachment = await _activityRepository.AddActivityAttachmentAsync(
-                    id, file.FileName, filePath, file.Length);
+                    id, file.FileName, fullAttachPath, file.Length);
 
                 saved.Add(attachment);
             }
