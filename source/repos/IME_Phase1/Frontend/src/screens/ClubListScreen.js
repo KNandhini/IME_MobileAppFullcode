@@ -6,8 +6,27 @@ import {
 import { Searchbar, Chip } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { clubService } from '../services/clubService';
-import { BASE_URL } from '../utils/api';
+import api from '../utils/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+// api.defaults.baseURL is usually something like "http://host:port/api"
+// strip the trailing "/api" so we get the plain server root to prefix
+// the raw disk-style paths ("Uploads\Clubs-11\xyz.jpeg") that come back
+// from the backend. Same helper as AchievementDetailScreen for consistency.
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// logoPath from the server can be a raw disk path like "Uploads\Clubs-11\xyz.jpeg"
+// (or a full absolute path once the backend stores GetFullPath()) — convert it
+// into a URL the app can actually load/display.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.search(/uploads[\\/]/i);
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
+
 const FILTERS = ['All', 'Active', 'Inactive'];
 
 export default function ClubListScreen({ navigation }) {
@@ -79,9 +98,7 @@ export default function ClubListScreen({ navigation }) {
   };
 
   const renderItem = ({ item }) => {
-    const logoUrl = item.logoPath
-      ? `${BASE_URL}/Uploads/${item.logoPath.replace(/\\/g, '/')}`
-      : null;
+    const logoUrl = toPublicUrl(item.logoPath);
 
     return (
       <View style={styles.card}>
@@ -209,6 +226,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: '#fff', borderRadius: 14, marginBottom: 12, padding: 14, elevation: 2 },
   cardTop: { flexDirection: 'row', alignItems: 'flex-start' },
 
+  logoImg: { width: 48, height: 48, borderRadius: 24, marginRight: 12, backgroundColor: '#F0F2F5' },
   avatarBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
   avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
 

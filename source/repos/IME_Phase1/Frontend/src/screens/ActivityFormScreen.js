@@ -9,17 +9,16 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
+import { BASE_URL } from '../utils/api';
 
-// ─── Static file base ─────────────────────────────────────────────────────────
-// Builds a displayable URL from a stored FilePath (handles backslashes from
-// Windows-style paths).
-/*const FILE_BASE_URL = "http://10.0.2.2:51150/uploads/";
-
-const toFileUrl = (storedPath) => {
-  if (!storedPath) return null;
-  return FILE_BASE_URL + storedPath.replace(/\\/g, "/");
-};*/
-
+// ─── Build a displayable URL from a stored FilePath ───────────────────────
+// Mirrors buildPhotoUrl in AchievementFormScreen — handles backslashes from
+// Windows-style paths and avoids double-prefixing already-absolute URLs.
+const buildFileUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  return `${BASE_URL}/Uploads/${filePath.replace(/\\/g, '/').replace(/^Uploads\/?/i, '')}`;
+};
 
 // Decide how to render an attachment based on its FileType/FileName.
 const getAttachmentKind = (fileTypeOrName = "") => {
@@ -258,7 +257,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
     const token = await AsyncStorage.getItem("authToken");
 
     const response = await fetch(
-      `https://prasath-001-site1.ftempurl.com/api/activity/${id}/attachments`,
+      `${BASE_URL}/api/Activity/${id}/attachments`,
       {
         method: "POST",
         // Do NOT set Content-Type manually — fetch sets the multipart boundary itself
@@ -526,17 +525,18 @@ const ActivityFormScreen = ({ route, navigation }) => {
                 {/* Existing (server) attachments */}
                 {existingAttachments.map((a) => {
                   const kind = getAttachmentKind(a.fileType || a.fileName);
-                  const url = toFileUrl(a.filePath);
+                  const url = buildFileUrl(a.filePath);
                   return (
                     <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
                       <TouchableOpacity
                         style={{ flex: 1 }}
-                        onPress={() =>
-                          kind !== 'image' &&
-                          Linking.openURL(url).catch(() =>
-                            Alert.alert('Error', 'Cannot open this file.')
-                          )
-                        }
+                        onPress={() => {
+                          if (kind !== 'image') {
+                            Linking.openURL(url).catch(() =>
+                              Alert.alert('Error', 'Cannot open this file.')
+                            );
+                          }
+                        }}
                       >
                         {kind === 'image' ? (
                           <Image
@@ -564,49 +564,6 @@ const ActivityFormScreen = ({ route, navigation }) => {
                     </View>
                   );
                 })}
-            {/* Existing Attachments */}
-{existingAttachments.map((a) => {
-  const isImage =
-    a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-    a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-
-  return (
-    <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
-      <TouchableOpacity
-        style={{ flex: 1 }}
-        onPress={() => {
-          if (isImage) {
-            // Optional: open image viewer
-          } else {
-            Linking.openURL(a.filePath);
-          }
-        }}
-      >
-        {isImage ? (
-          <Image
-            source={{ uri: a.filePath }}
-            style={styles.thumbImg}
-            resizeMode="cover"
-          />
-        ) : (
-          <View style={styles.thumbDoc}>
-            <Text style={styles.thumbIcon}>📄</Text>
-            <Text style={styles.thumbName} numberOfLines={2}>
-              {a.fileName}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.thumbRemove}
-        onPress={() => deleteExisting(a.attachmentId, a.fileName)}
-      >
-        <Text style={styles.thumbRemoveText}>✕</Text>
-      </TouchableOpacity>
-    </View>
-  );
-})}
 
                 {/* New, not-yet-uploaded attachments */}
                 {attachments.map((a, i) => (

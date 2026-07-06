@@ -10,9 +10,25 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../utils/api';
+import api from '../utils/api';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+// api.defaults.baseURL is usually something like "http://host:port/api"
+// strip the trailing "/api" so we get the plain server root to prefix
+// the raw disk-style paths ("Uploads\circulars\xyz.jpg") that come back
+// from the backend. Same helper as AchievementDetailScreen for consistency.
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.search(/uploads[\\/]/i);
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const VISIBILITY_OPTIONS = [
   { value: 'Public(All Clubs)',  label: 'Public',  sub: 'All Clubs' },
@@ -53,9 +69,7 @@ console.log(editData,"editData");
         const mapped = raw.map((a) => ({
           ...a,
           filePath: a.filePath
-            ? a.filePath.startsWith('http')
-              ? a.filePath
-              : `${BASE_URL}/uploads/${a.filePath.replace(/\\/g, '/')}`
+            ? toPublicUrl(a.filePath)
             : circularService.getAttachmentUrl(a.attachmentId),
         }));
         setExistingAttachments(mapped);

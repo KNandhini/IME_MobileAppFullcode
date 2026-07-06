@@ -394,11 +394,11 @@ const AchievementFormScreen = ({ route, navigation }) => {
           </View>
         ) : userRole === 'Admin' ? (
           <SimpleDropdown
-            label="Member *"
+            label="Person Name *"
             options={members}
             value={selectedMemberId}
             onChange={handleMemberChange}
-            placeholder="Select member…"
+            placeholder="Select person name"
             loading={membersLoading}
           />
         ) : (

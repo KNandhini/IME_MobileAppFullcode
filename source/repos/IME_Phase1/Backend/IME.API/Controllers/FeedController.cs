@@ -143,8 +143,13 @@ public class FeedController : ControllerBase
                 }
 
                 var saveTasks = validFiles.Select(f =>
-                    _fileStorageService.SaveFileAsync(f.Stream, "Posts", postId, f.FileName)
-                        .ContinueWith(t => (Path: t.Result, f.MediaType, f.Order)));
+    _fileStorageService.SaveFileAsync(f.Stream, "Posts", postId, f.FileName)
+        .ContinueWith(t =>
+        {
+            var relativePath = t.Result;
+            var fullPath = _fileStorageService.GetFullPath(relativePath);
+            return (Path: fullPath, f.MediaType, f.Order);
+        }));
 
                 var results = await Task.WhenAll(saveTasks);
                 foreach (var r in results.OrderBy(r => r.Order))

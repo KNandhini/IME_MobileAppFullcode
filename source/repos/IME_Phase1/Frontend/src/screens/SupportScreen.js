@@ -19,6 +19,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';  // ✅ add this
+import api from '../utils/api';
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -46,6 +47,24 @@ const getUserRole = async () => {
   // adjust based on your API response
   return parsed.roleName || parsed.role || null;
 };
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// filePath from the server is a raw disk path like "Uploads\Clubs-11\xyz.jpg" —
+// convert it into a URL the app can actually load/display.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
+
+// ✅ FIX: Resolve an attachment's URL the same way SupportDetailScreen does —
+// prefer the raw filePath (converted to a proper URL), fall back to the
+// service helper (by attachmentId) only if filePath isn't present on the record.
+const getAttachmentSrc = (a) =>
+  toPublicUrl(a.filePath) ?? supportService.getAttachmentUrl(a.attachmentId);
 
 const TITLE_ALLOWED = /^[a-zA-Z0-9 \-.,]*$/;
 
@@ -449,8 +468,13 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
     }
   }, [visible]);
 
+  // ✅ FIX: only gate on `categories` — the member dropdown is no longer used in
+  // this form (replaced by `clubId`/`clubs`). Previously this required
+  // `members.length` too, and if the member list ever came back empty this
+  // effect never ran, so `existingAttachments` (and the rest of the edit form)
+  // never populated at all.
   useEffect(() => {
-    if (editItem && visible && members.length && categories.length) {
+    if (editItem && visible && categories.length) {
       const loadDetail = async () => {
         try {
           const detail = await supportService.getById(editItem.supportId);
@@ -474,7 +498,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
       };
       loadDetail();
     }
-  }, [editItem, visible, members, categories]);
+  }, [editItem, visible, categories]);
 
   const handleTitleChange = (val) => {
     if (!TITLE_ALLOWED.test(val)) return;
@@ -620,7 +644,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
               <Text style={fs.navCancelText}>Cancel</Text>
             </TouchableOpacity>
             <View style={fs.navCenter}>
-              <Text style={fs.navTitle}>{editItem ? 'Edit Support' : 'New Support'}</Text>
+              <Text style={fs.navTitle}>{editItem ? '' : 'New Support'}</Text>
             </View>
             <TouchableOpacity onPress={handleSubmit} style={fs.navSideBtn}>
               <Text style={fs.navSubmitText}>{editItem ? 'Update' : 'Add'}</Text>
@@ -787,7 +811,10 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 
                   {/* EXISTING attachments */}
                   {existingAttachments.map((a) => {
-                    const uri = supportService.getAttachmentUrl(a.attachmentId);
+                    // ✅ FIX: use getAttachmentSrc (prefers filePath, same as
+                    // SupportDetailScreen) instead of relying solely on
+                    // supportService.getAttachmentUrl(a.attachmentId).
+                    const uri = getAttachmentSrc(a);
                     const type = a.mediaType?.trim();
                     return (
                       <View key={`ex-${a.attachmentId}`} style={fs.gridThumb}>
@@ -796,7 +823,14 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
                           else Linking.openURL(uri);
                         }}>
                           {type === 'image' ? (
-                            <Image source={{ uri }} style={fs.gridImg} resizeMode="cover" />
+                            <Image
+                              source={{ uri }}
+                              style={fs.gridImg}
+                              resizeMode="cover"
+                              onError={(e) =>
+                                console.warn('Attachment image failed to load:', a.fileName, uri, e.nativeEvent?.error)
+                              }
+                            />
                           ) : (
                             <View style={fs.gridDoc}>
                               <Text style={fs.gridDocIcon}>{type === 'video' ? '🎬' : '📄'}</Text>
@@ -952,17 +986,22 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <View
-            style={[
-              s.photoPlaceholder,
-              { backgroundColor: categoryColor(item.categoryId) }
-            ]}
-          >
-            <Text style={s.photoPlaceholderText}>
-              {getInitial(item.clubName)}
-            </Text>
-          </View>
-        )}
+    <View
+      style={[
+        s.photoPlaceholder,
+        { backgroundColor: categoryColor(item.categoryId) }
+      ]}
+    >
+      <Text style={s.photoPlaceholderText}>
+        {(item.clubName || "S")
+          .split(" ")
+          .map(w => w[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase()}
+      </Text>
+    </View>
+  )}
 
         <View style={s.textContainer}>
           <Text style={s.title} numberOfLines={1}>{item.title}</Text>
@@ -1005,64 +1044,6 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
     if (refresh > 0 && isActive) loadSupport();
   }, [refresh]);
 
-  /* const loadSupport = async () => {
-     setLoading(true);
-     try {
-       const response = await supportService.getByCategory(categoryId);
-       if (Array.isArray(response))      setSupportList(response);
-       else if (response?.data)          setSupportList(response.data);
-       else                              setSupportList([]);
-     } catch (error) {
-       console.error('Failed to load support:', error);
-       setSupportList([]);
-     } finally {
-       setLoading(false);
-       setRefreshing(false);
-     }
-   };*/
-  /* const loadSupport = async () => {
-   setLoading(true);
-   try {
-    
-     // ✅ Fetch BOTH APIs in parallel
-     const [response, membersRes] = await Promise.all([
-       supportService.getByCategory(categoryId),
-       memberService.getAllMembers(1, 100),
-     ]);
- 
-     // ✅ Build image map
-     const imageMap = {};
- 
-     if (membersRes?.success) {
-       (membersRes.data ?? []).forEach((m) => {
-         if (m.profilePhoto) {
-           imageMap[m.fullName] = `data:image/jpeg;base64,${m.profilePhoto}`;
-         }
-       });
-     }
- 
-     // ✅ Normalize support list
-     const list = Array.isArray(response)
-       ? response
-       : response?.data ?? [];
- 
-     // ✅ Merge image into each item
-     const enrichedList = list.map((item) => ({
-       ...item,
-       image: imageMap[item.personName] ?? null,
-     }));
- 
-     // ✅ SET FINAL DATA
-     setSupportList(enrichedList);
- 
-   } catch (error) {
-     console.error('Failed to load support:', error);
-     setSupportList([]);
-   } finally {
-     setLoading(false);
-     setRefreshing(false);
-   }
- };*/
   const loadSupport = async () => {
     setLoading(true);
     try {
@@ -1078,8 +1059,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
       if (clubsRes?.success && clubsRes?.data) {
         (clubsRes.data ?? []).forEach((c) => {
           if (c.logoPath) {
-            // Same pattern as ClubFormScreen uses for existingLogo
-            clubLogoMap[c.clubId] = `${BASE_URL}/Uploads/${c.logoPath.replace(/\\/g, '/')}`;
+            clubLogoMap[c.clubId] = toPublicUrl(c.logoPath);   // ✅ FIXED — no more double "Uploads"
           }
         });
       }
@@ -1397,15 +1377,14 @@ const s = StyleSheet.create({
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginBottom: 4 },
   emptyText: { fontSize: 14, color: '#A0AEC0' },
   loadingText: { color: '#718096', marginTop: 10, fontSize: 14 },
-  cardActions: { flexDirection: 'row', gap: 8 },
-  editBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#BFDBFE' },
-  deleteBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#FECACA' },
-  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
   cardActions: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  editBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#BFDBFE' },
+  deleteBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#FECACA' },
+  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
 
   iconBotton: {
     marginLeft: 8,
