@@ -12,15 +12,15 @@ namespace IME.API.Controllers;
 //[Authorize]
 public class FeedController : ControllerBase
 {
-    private readonly IFeedRepository     _feedRepository;
-    private readonly FileStorageService  _fileStorageService;
+    private readonly IFeedRepository _feedRepository;
+    private readonly FileStorageService _fileStorageService;
 
     private static readonly string[] AllowedImageTypes = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp" };
     private static readonly string[] AllowedVideoTypes = { ".mp4", ".mov", ".avi", ".mkv", ".webm" };
 
     public FeedController(IFeedRepository feedRepository, FileStorageService fileStorageService)
     {
-        _feedRepository     = feedRepository;
+        _feedRepository = feedRepository;
         _fileStorageService = fileStorageService;
     }
 
@@ -28,11 +28,10 @@ public class FeedController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<ApiResponse<FeedResponseDTO>>> GetFeed(
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize   = 10)
+        [FromQuery] int pageSize = 10)
     {
         try
         {
-
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? viewerUserId = int.TryParse(userIdClaim, out var uid) && uid > 0 ? uid : null;
             var feed = await _feedRepository.GetFeedAsync(pageNumber, pageSize, viewerUserId);
@@ -45,15 +44,45 @@ public class FeedController : ControllerBase
     }
 
     // ── GET /api/feed/member/{memberId} ──────────────────────
-    [HttpGet("member/{memberId:int}")]
+    /*[HttpGet("member/{memberId:int}")]
     public async Task<ActionResult<ApiResponse<FeedResponseDTO>>> GetMemberFeed(
         int memberId,
         [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize   = 10)
+        [FromQuery] int pageSize = 10)
     {
         try
         {
-            var feed = await _feedRepository.GetMemberFeedAsync(memberId, pageNumber, pageSize);
+            // Viewer's own MemberId (matches tbl_Members.MemberId, used for the club-match check)
+            var viewerMemberIdClaim = User.FindFirst("MemberId")?.Value;
+            int? viewerId = int.TryParse(viewerMemberIdClaim, out var vid) && vid > 0 ? vid : null;
+
+            var feed = await _feedRepository.GetMemberFeedAsync(memberId, pageNumber, pageSize, viewerId);
+            return Ok(new ApiResponse<FeedResponseDTO> { Success = true, Data = feed });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<FeedResponseDTO> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }*/
+
+    [HttpGet("member/{memberId:int}")]
+    public async Task<ActionResult<ApiResponse<FeedResponseDTO>>> GetMemberFeed(
+    int memberId,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10,
+    [FromQuery] int? viewerId = null)
+    {
+        try
+        {
+            // Prefer an explicitly passed viewerId (from frontend), but fall back to
+            // the authenticated user's own MemberId claim if none was passed.
+            if (viewerId is null || viewerId <= 0)
+            {
+                var viewerMemberIdClaim = User.FindFirst("MemberId")?.Value;
+                viewerId = int.TryParse(viewerMemberIdClaim, out var vid) && vid > 0 ? vid : null;
+            }
+
+            var feed = await _feedRepository.GetMemberFeedAsync(memberId, pageNumber, pageSize, viewerId);
             return Ok(new ApiResponse<FeedResponseDTO> { Success = true, Data = feed });
         }
         catch (Exception ex)
@@ -62,12 +91,13 @@ public class FeedController : ControllerBase
         }
     }
 
-    // ── POST /api/feed/post  (multipart: content + files[]) ─
+    // ── POST /api/feed/post  (multipart: content + files[] + clubId) ─
     [HttpPost("post")]
     public async Task<ActionResult<ApiResponse<object>>> CreatePost(
         [FromForm] string? content,
         [FromForm] List<IFormFile>? files,
-        [FromForm] string? createdDate)
+        [FromForm] string? createdDate,
+        [FromForm] int? clubId)
     {
         try
         {
@@ -80,18 +110,18 @@ public class FeedController : ControllerBase
             if (string.IsNullOrWhiteSpace(content) && (files == null || files.Count == 0))
                 return Ok(new ApiResponse<object> { Success = false, Message = "Post must have content or at least one media file." });
 
-            // Parse mobile datetime; fall back to server UTC if missing or invalid
             DateTime? postedDate = null;
             if (!string.IsNullOrWhiteSpace(createdDate) &&
                 DateTime.TryParse(createdDate, null, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed))
                 postedDate = parsed.ToUniversalTime();
 
-            // Create the post record first
-            var postId = await _feedRepository.CreatePostAsync(memberId, content, postedDate);
+            // 0 (or missing) = Public; any positive value = Private to that club
+            int resolvedClubId = clubId.GetValueOrDefault(0);
+
+            var postId = await _feedRepository.CreatePostAsync(memberId, content, postedDate, resolvedClubId);
             if (postId <= 0)
                 return Ok(new ApiResponse<object> { Success = false, Message = "Failed to create post." });
 
-            // Buffer all valid files into memory first, then save in parallel
             var savedMedia = new List<FeedMediaDTO>();
             if (files != null && files.Count > 0)
             {
@@ -102,9 +132,9 @@ public class FeedController : ControllerBase
                     if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
                     var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                     string mediaType;
-                    if (AllowedImageTypes.Contains(ext))      mediaType = "image";
+                    if (AllowedImageTypes.Contains(ext)) mediaType = "image";
                     else if (AllowedVideoTypes.Contains(ext)) mediaType = "video";
-                    else                                       continue;
+                    else continue;
 
                     var ms = new MemoryStream();
                     await file.CopyToAsync(ms);
@@ -112,10 +142,14 @@ public class FeedController : ControllerBase
                     validFiles.Add((ms, file.FileName, mediaType, order++));
                 }
 
-                // Save all files to disk in parallel, then insert DB records sequentially
                 var saveTasks = validFiles.Select(f =>
-                    _fileStorageService.SaveFileAsync(f.Stream, "Posts", postId, f.FileName)
-                        .ContinueWith(t => (Path: t.Result, f.MediaType, f.Order)));
+    _fileStorageService.SaveFileAsync(f.Stream, "Posts", postId, f.FileName)
+        .ContinueWith(t =>
+        {
+            var relativePath = t.Result;
+            var fullPath = _fileStorageService.GetFullPath(relativePath);
+            return (Path: fullPath, f.MediaType, f.Order);
+        }));
 
                 var results = await Task.WhenAll(saveTasks);
                 foreach (var r in results.OrderBy(r => r.Order))
@@ -131,8 +165,49 @@ public class FeedController : ControllerBase
             {
                 Success = true,
                 Message = "Post created successfully.",
-                Data    = new { PostId = postId, MediaCount = savedMedia.Count }
+                Data = new { PostId = postId, MediaCount = savedMedia.Count }
             });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+    // ── DELETE /api/feed/post/{postId} ───────────────────────
+    // Deletes a post owned by the calling member, removes its media rows,
+    // then deletes the physical files from disk.
+    [HttpDelete("post/{postId:int}")]
+    public async Task<ActionResult<ApiResponse<object>>> DeletePost(int postId)
+    {
+        try
+        {
+            var memberIdClaim = User.FindFirst("MemberId")?.Value
+                             ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(memberIdClaim, out var memberId) || memberId <= 0)
+                return Ok(new ApiResponse<object> { Success = false, Message = "Member not found in token." });
+
+            var (success, filePaths) = await _feedRepository.DeletePostAsync(postId, memberId);
+
+            if (!success)
+                return Ok(new ApiResponse<object> { Success = false, Message = "Post not found or you don't have permission to delete it." });
+
+            // Best-effort cleanup of physical files; don't fail the request if this errors
+            foreach (var path in filePaths)
+            {
+                try
+                {
+                    if (_fileStorageService.FileExists(path))
+                        _fileStorageService.DeleteFile(path);
+                }
+                catch
+                {
+                    // DB delete already succeeded — file cleanup failure shouldn't block the response
+                }
+            }
+
+            return Ok(new ApiResponse<object> { Success = true, Message = "Post deleted successfully." });
         }
         catch (Exception ex)
         {
@@ -147,27 +222,26 @@ public class FeedController : ControllerBase
     {
         try
         {
-            // Look up the file path from PostMedia table via a direct query
             using var connection = await GetDbContext().CreateOpenConnectionAsync();
             using var cmd = GetDbContext().CreateCommand(
                 "SELECT FilePath, MediaType FROM tbl_PostMedia WHERE MediaId = @MediaId", connection);
             cmd.Parameters.AddWithValue("@MediaId", mediaId);
 
-            string? filePath  = null;
-            string  mediaType = "image";
+            string? filePath = null;
+            string mediaType = "image";
 
             using var reader = await cmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
             {
-                filePath  = reader.IsDBNull(0) ? null : reader.GetString(0);
+                filePath = reader.IsDBNull(0) ? null : reader.GetString(0);
                 mediaType = reader.IsDBNull(1) ? "image" : reader.GetString(1);
             }
 
             if (string.IsNullOrEmpty(filePath) || !_fileStorageService.FileExists(filePath))
                 return NotFound();
 
-            var fullPath    = _fileStorageService.GetFullPath(filePath);
-            var ext         = Path.GetExtension(filePath).ToLowerInvariant();
+            var fullPath = _fileStorageService.GetFullPath(filePath);
+            var ext = Path.GetExtension(filePath).ToLowerInvariant();
             var contentType = mediaType == "video" ? GetVideoContentType(ext) : GetImageContentType(ext);
 
             var bytes = await System.IO.File.ReadAllBytesAsync(fullPath);
@@ -188,20 +262,20 @@ public class FeedController : ControllerBase
     private static string GetImageContentType(string ext) => ext switch
     {
         ".jpg" or ".jpeg" => "image/jpeg",
-        ".png"            => "image/png",
-        ".gif"            => "image/gif",
-        ".bmp"            => "image/bmp",
-        ".webp"           => "image/webp",
-        _                 => "application/octet-stream"
+        ".png" => "image/png",
+        ".gif" => "image/gif",
+        ".bmp" => "image/bmp",
+        ".webp" => "image/webp",
+        _ => "application/octet-stream"
     };
 
     private static string GetVideoContentType(string ext) => ext switch
     {
-        ".mp4"  => "video/mp4",
-        ".mov"  => "video/quicktime",
-        ".avi"  => "video/x-msvideo",
-        ".mkv"  => "video/x-matroska",
+        ".mp4" => "video/mp4",
+        ".mov" => "video/quicktime",
+        ".avi" => "video/x-msvideo",
+        ".mkv" => "video/x-matroska",
         ".webm" => "video/webm",
-        _       => "application/octet-stream"
+        _ => "application/octet-stream"
     };
 }

@@ -189,22 +189,7 @@ const AboutScreen = ({ navigation }) => {
           </View>
         </FadeIn>
 
-        {/* ── Short Summary: Mission ── */}
-        <FadeIn delay={600}>
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <View style={styles.goldAccent} />
-              <Text style={styles.sectionTitle}>Our Mission</Text>
-            </View>
-            <Text style={styles.bodyText}>
-              To upskill municipal engineers and develop talent for local-body
-              challenges, create opportunities for higher studies in town planning and
-              infrastructure, and explore an all-India municipal service — supported by
-              conferences, technical publications, exchange visits abroad, and welfare
-              schemes for the municipal engineering community.
-            </Text>
-          </View>
-        </FadeIn>
+
 
         {/* ── Featured Cards (Quick Links) ── */}
         <View style={styles.linksWrap}>
@@ -230,14 +215,14 @@ const AboutScreen = ({ navigation }) => {
                 onPress={() => Linking.openURL('mailto:info@ime.org')}
               >
                 <Text style={styles.contactBtnIcon}>✉️</Text>
-                <Text style={styles.contactBtnText}>info@ime.org</Text>
+                <Text style={styles.contactBtnText}>imeindia2026@gmail.com</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.contactBtn}
                 onPress={() => Linking.openURL('tel:+911800000000')}
               >
                 <Text style={styles.contactBtnIcon}>📞</Text>
-                <Text style={styles.contactBtnText}>1800-000-0000</Text>
+                <Text style={styles.contactBtnText}>9789966699</Text>
               </TouchableOpacity>
             </View>
           </View>

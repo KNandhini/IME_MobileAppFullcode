@@ -5,9 +5,27 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { circularService } from '../services/circularService';
+import api from '../utils/api';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+// api.defaults.baseURL is usually something like "http://host:port/api"
+// strip the trailing "/api" so we get the plain server root to prefix
+// the raw disk-style paths ("Uploads\circulars\xyz.jpg") that come back
+// from the backend.
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// filePath from the server can be a raw disk path like "Uploads\circulars\xyz.jpg"
+// (or "uploads/circulars/xyz.jpg") — convert it into a URL the app can load/display/download.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.search(/uploads[\\/]/i);
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const CircularDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
@@ -102,15 +120,16 @@ const CircularDetailScreen = ({ route, navigation }) => {
           ) : (
             attachments.map((att, index) => {
               const filePath = att.filePath ?? att.FilePath ?? '';
+              const url = toPublicUrl(filePath);
               return isImage(filePath) ? (
                 <TouchableOpacity
                   key={att.attachmentId ?? index}
-                  onPress={() => setImgViewer(filePath)}
+                  onPress={() => setImgViewer(url)}
                   activeOpacity={0.85}
                   style={{ marginBottom: 14 }}
                 >
                   <Image
-                    source={{ uri: filePath }}
+                    source={{ uri: url }}
                     style={styles.attachImage}
                     resizeMode="contain"
                   />
@@ -120,7 +139,7 @@ const CircularDetailScreen = ({ route, navigation }) => {
                 <TouchableOpacity
                   key={att.attachmentId ?? index}
                   style={styles.downloadBtn}
-                  onPress={() => Linking.openURL(filePath)}
+                  onPress={() => Linking.openURL(url)}
                   activeOpacity={0.8}
                 >
                   <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />

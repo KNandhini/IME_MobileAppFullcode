@@ -27,9 +27,16 @@ public class CircularController : ControllerBase
 
     private string BuildFileUrl(string? relativePath)
     {
-        if (string.IsNullOrEmpty(relativePath)) return string.Empty;
-        return $"{Request.Scheme}://{Request.Host}/uploads/{relativePath.Replace('\\', '/')}";
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return string.Empty;
+
+        return Path.Combine(
+            Directory.GetCurrentDirectory(),
+
+            relativePath.Replace('/', Path.DirectorySeparatorChar)
+                        .Replace('\\', Path.DirectorySeparatorChar));
     }
+
 
     private int GetUserId() =>
         int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
@@ -269,8 +276,10 @@ public class CircularController : ControllerBase
             await file.CopyToAsync(ms);
             ms.Position = 0;
 
-            var filePath = await _fileStorageService.SaveFileAsync(ms, "Circular", circularId, file.FileName);
-            await _circularRepository.AddCircularAttachmentAsync(circularId, file.FileName, filePath);
+            var attachPath = await _fileStorageService.SaveFileAsync(ms, "Circular", circularId, file.FileName);
+            var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
+
+            await _circularRepository.AddCircularAttachmentAsync(circularId, file.FileName, fullAttachPath);
         }
     }
 

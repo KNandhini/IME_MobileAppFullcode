@@ -8,8 +8,26 @@ import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
-import { BASE_URL } from '../utils/api';
+import api from '../utils/api';
 //import AdminSignupScreen from '../screens/AddAdminScreen';
+
+// api.defaults.baseURL is usually something like "http://host:port/api"
+// strip the trailing "/api" so we get the plain server root to prefix
+// the raw disk-style paths ("Uploads\Clubs-11\xyz.jpeg") that come back
+// from the backend. Same helper as AchievementDetailScreen for consistency.
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// logoPath from the server can be a raw disk path like "Uploads\Clubs-11\xyz.jpeg"
+// (or a full absolute path once the backend stores GetFullPath()) — convert it
+// into a URL the app can actually load/display.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.search(/uploads[\\/]/i);
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
@@ -25,6 +43,7 @@ export default function ClubFormScreen({ route, navigation }) {
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [members, setMembers] = useState([]);
+  const [clubMembers, setClubMembers] = useState([]); // members belonging to this club (edit mode)
 
   // ── Modal state ───────────────────────────────────────────────────────────
   const [countryModal, setCountryModal] = useState(false);
@@ -34,7 +53,8 @@ export default function ClubFormScreen({ route, navigation }) {
   const [memberSearch, setMemberSearch] = useState('');
 
   // ── Admin Members: radio toggle between "existing" and "add new" ──────────
-  const [adminMode, setAdminMode] = useState('existing'); // 'existing' | 'new'
+  // On Add screen, "Existing Member" is hidden — always defaults to 'new'.
+  const [adminMode, setAdminMode] = useState(isEditMode ? 'existing' : 'new');
 
   // ── Date picker state ─────────────────────────────────────────────────────
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -75,8 +95,10 @@ export default function ClubFormScreen({ route, navigation }) {
     loadLookups();
     if (isEditMode) {
       loadClub();
+      loadClubMembers(clubId);
     } else {
       fetchNextCode();
+      setAdminMode('new'); // Add screen only supports "Add New Admin"
     }
   }, []);
 /*useEffect(() => {
@@ -144,6 +166,16 @@ useEffect(() => {
     if (mRes.success) setMembers((mRes.data || []).filter(m => m.membershipStatus === 'Active'));
   };
 
+  // Members that already belong to this club — used in Edit mode's
+  // "Existing Member" picker so admins are chosen from the club's own roster.
+  const loadClubMembers = async (id) => {
+    if (!id) return;
+    const res = await memberService.getMembersByClub(id);
+    if (res.success) {
+      setClubMembers((res.data || []).filter(m => m.membershipStatus === 'Active'));
+    }
+  };
+
   const loadClub = async () => {
     const res = await clubService.getById(clubId);
     if (res.success && res.data) {
@@ -182,7 +214,7 @@ useEffect(() => {
         isActive:           d.isActive !== false,
       });
       if (d.logoPath) {
-        setExistingLogo(`${BASE_URL}/Uploads/${d.logoPath.replace(/\\/g, '/')}`);
+        setExistingLogo(toPublicUrl(d.logoPath));
       }
       if (d.countryId) loadStates(d.countryId);
     }
@@ -272,7 +304,11 @@ useEffect(() => {
   );
 };
 
-  const filteredMembers = members.filter(m =>
+  // In Edit mode, the "Existing Member" picker pulls from this club's own
+  // roster (clubMembers via GetMembersByClub). In Add mode this branch is
+  // unused since the "Existing Member" option is hidden.
+  const memberSource = isEditMode ? clubMembers : members;
+  const filteredMembers = memberSource.filter(m =>
     m.fullName?.toLowerCase().includes(memberSearch.toLowerCase())
   );
 
@@ -816,25 +852,29 @@ if (savedId && form.adminMembers.length > 0) {
 
   <View style={styles.radioRow}>
 
-    <TouchableOpacity
-      style={styles.radioOption}
-      onPress={() => setAdminMode('existing')}
-    >
-      <View
-        style={[
-          styles.radioOuter,
-          adminMode === 'existing' && styles.radioOuterActive,
-        ]}
+    {/* "Existing Member" is only relevant once a club exists, so it's
+        hidden on the Add screen and only shown in Edit mode. */}
+    {isEditMode && (
+      <TouchableOpacity
+        style={styles.radioOption}
+        onPress={() => setAdminMode('existing')}
       >
-        {adminMode === 'existing' && (
-          <View style={styles.radioInner} />
-        )}
-      </View>
+        <View
+          style={[
+            styles.radioOuter,
+            adminMode === 'existing' && styles.radioOuterActive,
+          ]}
+        >
+          {adminMode === 'existing' && (
+            <View style={styles.radioInner} />
+          )}
+        </View>
 
-      <Text style={styles.radioLabel}>
-        Existing Member
-      </Text>
-    </TouchableOpacity>
+        <Text style={styles.radioLabel}>
+          Existing Member
+        </Text>
+      </TouchableOpacity>
+    )}
 
     <TouchableOpacity
       style={styles.radioOption}
@@ -871,7 +911,7 @@ setForm(prev => ({
 
   </View>
 
-  {adminMode === 'existing' && (
+  {adminMode === 'existing' && isEditMode && (
     <>
       <TouchableOpacity
         style={styles.selector}

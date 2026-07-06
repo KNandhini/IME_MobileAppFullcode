@@ -397,7 +397,6 @@ useEffect(() => {
     )}
   </>
 )}
-        {errors.clubs && <Text style={styles.error}>{errors.clubs}</Text>}
 
         <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
           <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}

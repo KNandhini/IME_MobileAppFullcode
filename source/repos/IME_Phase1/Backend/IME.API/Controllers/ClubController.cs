@@ -109,6 +109,40 @@ public class ClubController : ControllerBase
         }
     }
 
+    /* [HttpPost("{id:int}/logo")]
+     [Authorize(Roles = "Admin")]
+     public async Task<ActionResult<ApiResponse<object>>> UploadLogo(int id, [FromForm] IFormFile file)
+     {
+         try
+         {
+             if (file == null || file.Length == 0)
+                 return BadRequest(new ApiResponse<object> { Success = false, Message = "No file provided" });
+
+             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+             if (!AllowedImageTypes.Contains(ext))
+                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Only JPG, PNG, WEBP images are allowed" });
+
+             if (file.Length > 5 * 1024 * 1024)
+                 return BadRequest(new ApiResponse<object> { Success = false, Message = "Image must be under 5 MB" });
+
+             var club = await _clubRepository.GetClubByIdAsync(id);
+             if (club == null)
+                 return NotFound(new ApiResponse<object> { Success = false, Message = "Club not found" });
+
+             if (!string.IsNullOrEmpty(club.LogoPath))
+                 _fileStorageService.DeleteFile(club.LogoPath);
+
+             var logoPath = await _fileStorageService.SaveFileAsync(file.OpenReadStream(), "Clubs", id, file.FileName);
+             var userName = GetCurrentUser();
+             await _clubRepository.UpdateClubLogoAsync(id, logoPath, userName);
+
+             return Ok(new ApiResponse<object> { Success = true, Data = new { LogoPath = logoPath }, Message = "Logo uploaded successfully" });
+         }
+         catch (Exception ex)
+         {
+             return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+         }
+     }*/
     [HttpPost("{id:int}/logo")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> UploadLogo(int id, [FromForm] IFormFile file)
@@ -132,7 +166,10 @@ public class ClubController : ControllerBase
             if (!string.IsNullOrEmpty(club.LogoPath))
                 _fileStorageService.DeleteFile(club.LogoPath);
 
-            var logoPath = await _fileStorageService.SaveFileAsync(file.OpenReadStream(), "Clubs", id, file.FileName);
+            // Save, then resolve to the full path (same pattern as AchievementController.Create)
+            var relativePath = await _fileStorageService.SaveFileAsync(file.OpenReadStream(), "Clubs", id, file.FileName);
+            var logoPath = _fileStorageService.GetFullPath(relativePath);
+
             var userName = GetCurrentUser();
             await _clubRepository.UpdateClubLogoAsync(id, logoPath, userName);
 

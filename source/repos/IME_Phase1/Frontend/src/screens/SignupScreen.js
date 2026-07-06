@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal, Image,FlatList
+  TouchableOpacity, Modal, Image, FlatList
 } from 'react-native';
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -28,25 +28,41 @@ const SignupScreen = ({ navigation }) => {
   const [welcomeVisible, setWelcomeVisible] = useState(true);
   const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-// ── Location state ─────────────────────────────────────────────────────────
-const [countries,       setCountries]       = useState([]);
-const [states,          setStates]          = useState([]);
-const [clubs,           setClubs]           = useState([]);
+  // ── Location state ─────────────────────────────────────────────────────────
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [clubs, setClubs] = useState([]);
 
-const [countryModal,    setCountryModal]    = useState(false);
-const [stateModal,      setStateModal]      = useState(false);
-const [clubModal,       setClubModal]       = useState(false);
+  const [countryModal, setCountryModal] = useState(false);
+  const [stateModal, setStateModal] = useState(false);
+  const [clubModal, setClubModal] = useState(false);
 
-const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
-const [selectedState,   setSelectedState]   = useState(null); // { stateId, stateName }
-const [selectedClub,    setSelectedClub]    = useState(null); // { clubId, clubName }
+  const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
+  const [selectedState, setSelectedState] = useState(null); // { stateId, stateName }
+  const [selectedClub, setSelectedClub] = useState(null); // { clubId, clubName }
 
-const [statesLoading,   setStatesLoading]   = useState(false);
-const [clubsLoading,    setClubsLoading]    = useState(false);
+  const [statesLoading, setStatesLoading] = useState(false);
+  const [clubsLoading, setClubsLoading] = useState(false);
+
+  // ── Occupation state ───────────────────────────────────────────────────────
+  const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
+  const [occupation, setOccupation] = useState('');
+  const [occupationMenuVisible, setOccupationMenuVisible] = useState(false);
+  const [occupationMenuWidth, setOccupationMenuWidth] = useState(0);
+
+  // ── Occupation Details state (shown for Employed / Self Employed) ─────────
+  const [occupationDetails, setOccupationDetails] = useState(''); // free-text: role, company/business, etc.
+
+  // ── Educational Qualification state (always shown once occupation chosen) ─
+  const [qualification, setQualification] = useState(''); // free-text
+
+  // Derived visibility flags — recompute on every render, no refresh needed
+  const showOccupationDetails = occupation === 'Employed' || occupation === 'Self Employed';
+  const showEducationSection = occupation === 'Employed' || occupation === 'Self Employed' || occupation === 'Unemployed';
 
   useEffect(() => {
     fetchFee();
-     loadCountries(); // ✅ ADD THIS
+    loadCountries(); // ✅ ADD THIS
   }, []);
 
   const fetchFee = async () => {
@@ -57,47 +73,63 @@ const [clubsLoading,    setClubsLoading]    = useState(false);
       console.warn('Fee fetch failed:', e.message);
     }
   };
-const loadCountries = async () => {
-  try {
-    const res = await clubService.getCountries();
-    if (res.success) setCountries(res.data || []);
-  } catch (e) {
-    console.warn('Countries fetch failed:', e.message);
-  }
-};
-
-const loadStates = async (countryId) => {
-  setStatesLoading(true);
-  setStates([]);
-  setSelectedState(null);
-  setSelectedClub(null);
-  setClubs([]);
-  try {
-    const res = await clubService.getStatesByCountry(countryId);
-    if (res.success) setStates(res.data || []);
-  } catch (e) {
-    console.warn('States fetch failed:', e.message);
-  } finally {
-    setStatesLoading(false);
-  }
-};
-
-const loadClubsByState = async (stateId) => {
-  setClubsLoading(true);
-  setClubs([]);
-  setSelectedClub(null);
-  try {
-    const res = await clubService.getAll(1, 200, '', true);
-    if (res.success && res.data) {
-      const filtered = res.data.filter(c => c.stateId === stateId);
-      setClubs(filtered);
+  const loadCountries = async () => {
+    try {
+      const res = await clubService.getCountries();
+      if (res.success) setCountries(res.data || []);
+    } catch (e) {
+      console.warn('Countries fetch failed:', e.message);
     }
-  } catch (e) {
-    console.warn('Clubs fetch failed:', e.message);
-  } finally {
-    setClubsLoading(false);
-  }
-};
+  };
+
+  const loadStates = async (countryId) => {
+    setStatesLoading(true);
+    setStates([]);
+    setSelectedState(null);
+    setSelectedClub(null);
+    setClubs([]);
+    try {
+      const res = await clubService.getStatesByCountry(countryId);
+      if (res.success) setStates(res.data || []);
+    } catch (e) {
+      console.warn('States fetch failed:', e.message);
+    } finally {
+      setStatesLoading(false);
+    }
+  };
+
+  const loadClubsByState = async (stateId) => {
+    setClubsLoading(true);
+    setClubs([]);
+    setSelectedClub(null);
+    try {
+      const res = await clubService.getAll(1, 200, '', true);
+      if (res.success && res.data) {
+        const filtered = res.data.filter(c => c.stateId === stateId);
+        setClubs(filtered);
+      }
+    } catch (e) {
+      console.warn('Clubs fetch failed:', e.message);
+    } finally {
+      setClubsLoading(false);
+    }
+  };
+
+  // Clears whatever is no longer relevant when the occupation selection changes,
+  // so stale data from a previous choice never gets silently submitted.
+  const handleOccupationSelect = (value) => {
+    setOccupation(value);
+    setOccupationMenuVisible(false);
+    if (value !== 'Employed' && value !== 'Self Employed') {
+      setOccupationDetails('');
+    }
+    setErrors((prev) => ({
+      ...prev,
+      occupation: undefined,
+      occupationDetails: undefined,
+    }));
+  };
+
   const updateField = (field, value) => {
     let v = value;
     if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
@@ -137,7 +169,20 @@ const loadClubsByState = async (stateId) => {
     //if (!formData.place) e.place = 'Required';
     if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
     if (!selectedCountry) e.country = 'Required';       // ✅ NEW
-  if (!selectedState)   e.state   = 'Required';       // ✅ NEW
+    if (!selectedState) e.state = 'Required';       // ✅ NEW
+
+    // ── Occupation ──
+    if (!occupation) e.occupation = 'Required';
+
+    if (showOccupationDetails) {
+      if (!occupationDetails) e.occupationDetails = 'Required';
+    }
+
+    // ── Educational Qualification ──
+    if (showEducationSection) {
+      if (!qualification) e.qualification = 'Required';
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -159,120 +204,127 @@ const loadClubsByState = async (stateId) => {
     }
   };
 
-const handleSignup = async () => {
-  if (!validate()) return;
-  setLoading(true);
-  try {
+  const handleSignup = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
       debugger;
-    // ✅ Explicit payload — no spread, no extra fields
-    const payload = {
-    
-      fullName:      formData.fullName,
-      email:         formData.email,
-      password:      formData.password,
-      contactNumber: formData.contactNumber,
-      address:       formData.address,
-      gender:        formData.gender,
-      age:           parseInt(formData.age),
-      dateOfBirth:   formData.dateOfBirth,
-      designationId: formData.designationId,
-      countryId:     selectedCountry?.countryId ?? null,
-      stateId:       selectedState?.stateId     ?? null,
-   clubId: selectedClub?.clubId?.toString() ?? null,
-      roleId:        2,
-    };
+      // ✅ Explicit payload — no spread, no extra fields
+      const payload = {
 
-    const response = await api.post('/Auth/signup', payload);
-    const res = response.data;
-    if (res.success) {
-      const paymentParams = {
-        userId:          res.data.userId,
-        memberId:        res.data.memberId,
-        feeAmount:       currentFee ? parseFloat(currentFee.amount) : 0,
-        memberName:      formData.fullName,
-        memberEmail:     formData.email,
-        memberPassword:  formData.password,
-        profilePhotoUri: profilePhoto?.uri ?? null,
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        contactNumber: formData.contactNumber,
+        address: formData.address,
+        gender: formData.gender,
+        age: parseInt(formData.age),
+        dateOfBirth: formData.dateOfBirth,
+        designationId: formData.designationId,
+        countryId: selectedCountry?.countryId ?? null,
+        stateId: selectedState?.stateId ?? null,
+        clubId: selectedClub?.clubId?.toString() ?? null,
+        roleId: 2,
+
+        // ── Occupation ──
+        occupation,
+        ...(showOccupationDetails && { occupationDetails }),
+
+        // ── Educational Qualification ──
+        ...(showEducationSection && { qualification }),
       };
 
-      const isPendingPayment = res.message === 'PENDING_PAYMENT';
-      const isGraceExpired   = res.message === 'GRACE_EXPIRED';
+      const response = await api.post('/Auth/signup', payload);
+      const res = response.data;
+      if (res.success) {
+        const paymentParams = {
+          userId: res.data.userId,
+          memberId: res.data.memberId,
+          feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
+          memberName: formData.fullName,
+          memberEmail: formData.email,
+          memberPassword: formData.password,
+          profilePhotoUri: profilePhoto?.uri ?? null,
+        };
 
-      // Always refresh the local grace flag (covers re-register after back-press)
-      await AsyncStorage.setItem('paymentGrace', JSON.stringify({
-        pending:      true,
-        registeredAt: Date.now(),
-        memberId:     res.data.memberId,
-        paymentParams,
-      }));
+        const isPendingPayment = res.message === 'PENDING_PAYMENT';
+        const isGraceExpired = res.message === 'GRACE_EXPIRED';
 
-      if (isGraceExpired) {
-        Alert.alert(
-          'Grace Period Expired',
-          'Your 3-day free period had ended, but we\'ve reset it.\n\nComplete your payment now to activate your account.',
-          [
-            {
-              text: 'Pay Now',
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-            },
-            {
-              text: 'Pay Later',
-              style: 'cancel',
-              onPress: () => navigation.navigate('Login'),
-            },
-          ],
-        );
-      } else if (isPendingPayment) {
-        // Account already exists, payment not completed — resume payment
-        Alert.alert(
-          'Payment Pending',
-          'Your account is already registered but payment is incomplete.\n\nComplete payment now to activate your account.',
-          [
-            {
-              text: 'Pay Now',
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-            },
-            {
-              text: 'Pay Later',
-              style: 'cancel',
-              onPress: () => navigation.navigate('Login'),
-            },
-          ],
-        );
-      } else {
-        Alert.alert(
-          'Registration Successful! 🎉',
-          'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
-          [
-            {
-              text: 'Pay Now',
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-            },
-            {
-              text: 'Pay Later (3 days)',
-              style: 'cancel',
-              onPress: () => {
-                Alert.alert(
-                  'Account Activated',
-                  'Your account is active for 3 days. Please complete payment before it expires.',
-                  [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
-                );
+        // Always refresh the local grace flag (covers re-register after back-press)
+        await AsyncStorage.setItem('paymentGrace', JSON.stringify({
+          pending: true,
+          registeredAt: Date.now(),
+          memberId: res.data.memberId,
+          paymentParams,
+        }));
+
+        if (isGraceExpired) {
+          Alert.alert(
+            'Grace Period Expired',
+            'Your 3-day free period had ended, but we\'ve reset it.\n\nComplete your payment now to activate your account.',
+            [
+              {
+                text: 'Pay Now',
+                onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
               },
-            },
-          ],
-        );
+              {
+                text: 'Pay Later',
+                style: 'cancel',
+                onPress: () => navigation.navigate('Login'),
+              },
+            ],
+          );
+        } else if (isPendingPayment) {
+          // Account already exists, payment not completed — resume payment
+          Alert.alert(
+            'Payment Pending',
+            'Your account is already registered but payment is incomplete.\n\nComplete payment now to activate your account.',
+            [
+              {
+                text: 'Pay Now',
+                onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+              },
+              {
+                text: 'Pay Later',
+                style: 'cancel',
+                onPress: () => navigation.navigate('Login'),
+              },
+            ],
+          );
+        } else {
+          Alert.alert(
+            'Registration Successful! 🎉',
+            'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
+            [
+              {
+                text: 'Pay Now',
+                onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+              },
+              {
+                text: 'Pay Later (3 days)',
+                style: 'cancel',
+                onPress: () => {
+                  Alert.alert(
+                    'Account Activated',
+                    'Your account is active for 3 days. Please complete payment before it expires.',
+                    [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
+                  );
+                },
+              },
+            ],
+          );
+        }
+      } else {
+        Alert.alert('Registration Failed', res.message);
       }
-    } else {
-      Alert.alert('Registration Failed', res.message);
+    } catch (e) {
+      const status = e?.response?.status;
+      const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
+      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
+    } finally {
+      setLoading(false);
     }
-  } catch (e) {
-    const status    = e?.response?.status;
-    const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
-    Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
@@ -342,7 +394,7 @@ const handleSignup = async () => {
           multiline mode="outlined" theme={{ roundness: 10 }}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.address && <Text style={styles.error}>{errors.address}</Text>}
-{/* ── Address Line (kept) ── */}
+        {/* ── Address Line (kept) ── */}
         {/* ── Country ── */}
         <TouchableOpacity onPress={() => setCountryModal(true)}>
           <View pointerEvents="none">
@@ -442,9 +494,60 @@ const handleSignup = async () => {
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
-       {/* <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
+        {/* <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
           mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.place && <Text style={styles.error}>{errors.place}</Text>}*/}
+
+        {/* ── Occupation ── */}
+        <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
+          <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
+            contentStyle={{ width: occupationMenuWidth }}
+            anchor={
+              <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                <View pointerEvents="none">
+                  <TextInput label="Occupation *" value={occupation} mode="outlined"
+                    theme={{ roundness: 10 }}
+                    outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
+                    activeOutlineColor="#1976D2"
+                    style={styles.input} editable={false} />
+                </View>
+              </TouchableOpacity>
+            }>
+            {OCCUPATION_OPTIONS.map((opt) => (
+              <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+            ))}
+          </Menu>
+        </View>
+        {errors.occupation && <Text style={styles.error}>{errors.occupation}</Text>}
+
+        {/* ── Occupation Details (Employed / Self Employed only) ── */}
+        {showOccupationDetails && (
+          <View style={styles.sectionBox}>
+            <Text style={styles.sectionTitle}>Occupation Details</Text>
+            <TextInput
+              label="Occupation Details *"
+              value={occupationDetails}
+              onChangeText={setOccupationDetails}
+              multiline mode="outlined" theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+            {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
+          </View>
+        )}
+
+        {/* ── Educational Qualification (shown for any occupation once selected) ── */}
+        {showEducationSection && (
+          <View style={styles.sectionBox}>
+            <Text style={styles.sectionTitle}>Educational Qualification</Text>
+            <TextInput
+              label="Educational Qualification *"
+              value={qualification}
+              placeholder="e.g., Diploma-Civil Engineering"
+              onChangeText={setQualification}
+              mode="outlined" theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+            {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
+          </View>
+        )}
 
         {/* Profile Photo */}
         <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
@@ -567,50 +670,53 @@ const handleSignup = async () => {
 };
 
 const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#fff' },
-  content:        { padding: 20 },
-  header:         { alignItems: 'center', marginBottom: 25 },
-  title:          { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
-  subtitle:       { fontSize: 14, color: '#666', marginTop: 5 },
-  input:          { marginBottom: 10, borderRadius: 10 },
-  button:         { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
-  linkButton:     { marginTop: 10 },
-  error:          { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
-  helper:         { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { padding: 20 },
+  header: { alignItems: 'center', marginBottom: 25 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
+  subtitle: { fontSize: 14, color: '#666', marginTop: 5 },
+  input: { marginBottom: 10, borderRadius: 10 },
+  button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
+  linkButton: { marginTop: 10 },
+  error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
+  helper: { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
+  // Occupation / Education sections
+  sectionBox: { backgroundColor: '#F7F9FC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E3EAF5' },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F', marginBottom: 10 },
   // Profile Photo
-  photoLabel:         { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
-  photoPickerRow:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
-  photoPreview:       { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
-  photoPlaceholder:   { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
+  photoLabel: { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
+  photoPickerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
+  photoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
+  photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
   photoPlaceholderIcon: { fontSize: 28 },
-  photoPickerText:    { marginLeft: 14, flex: 1 },
-  photoPickerTitle:   { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
-  photoPickerHint:    { fontSize: 12, color: '#888', marginTop: 2 },
+  photoPickerText: { marginLeft: 14, flex: 1 },
+  photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
+  photoPickerHint: { fontSize: 12, color: '#888', marginTop: 2 },
   // Welcome Modal
-  modalOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
-  modalBox:       { backgroundColor: '#fff', borderRadius: 16, padding: 28, width: '100%', alignItems: 'center' },
-  modalTitle:     { fontSize: 24, fontWeight: 'bold', color: '#1E3A5F', marginBottom: 4 },
-  modalSubtitle:  { fontSize: 14, color: '#666', marginBottom: 16 },
-  modalBody:      { fontSize: 14, color: '#444', textAlign: 'center', lineHeight: 22, marginBottom: 20 },
-  feeBox:         { backgroundColor: '#1E3A5F', borderRadius: 12, padding: 20, alignItems: 'center', width: '100%', marginBottom: 20 },
-  feeLabel:       { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
-  feeAmount:      { color: '#D4A017', fontSize: 32, fontWeight: 'bold', marginTop: 4 },
-  feeNote:        { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 6 },
-  noFee:          { color: '#999', fontSize: 13, marginBottom: 20 },
-  proceedBtn:     { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
+  modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 28, width: '100%', alignItems: 'center' },
+  modalTitle: { fontSize: 24, fontWeight: 'bold', color: '#1E3A5F', marginBottom: 4 },
+  modalSubtitle: { fontSize: 14, color: '#666', marginBottom: 16 },
+  modalBody: { fontSize: 14, color: '#444', textAlign: 'center', lineHeight: 22, marginBottom: 20 },
+  feeBox: { backgroundColor: '#1E3A5F', borderRadius: 12, padding: 20, alignItems: 'center', width: '100%', marginBottom: 20 },
+  feeLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
+  feeAmount: { color: '#D4A017', fontSize: 32, fontWeight: 'bold', marginTop: 4 },
+  feeNote: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 6 },
+  noFee: { color: '#999', fontSize: 13, marginBottom: 20 },
+  proceedBtn: { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
   proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  backLink:       { color: '#1976D2', fontSize: 14 },
+  backLink: { color: '#1976D2', fontSize: 14 },
   // Picker modals
-  pickerOverlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  pickerSheet:         { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  pickerTitle:         { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  pickerItem:          { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  pickerItemActive:    { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
-  pickerItemText:      { fontSize: 15, color: '#111' },
-  pickerItemTextActive:{ color: '#1E3A5F', fontWeight: '700' },
-  pickerEmpty:         { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  pickerCancel:        { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerCancelText:    { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+  pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
+  pickerItemText: { fontSize: 15, color: '#111' },
+  pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
+  pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
+  pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
 });
 
 export default SignupScreen;

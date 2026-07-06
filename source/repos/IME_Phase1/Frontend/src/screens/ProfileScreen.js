@@ -132,6 +132,13 @@ const ProfileScreen = ({ navigation }) => {
           Change Password
         </Button>
         <Button
+          mode="outlined"
+          onPress={() => navigation.navigate('MyPost')}
+          style={styles.button}
+        >
+          My Post
+        </Button>
+        <Button
           mode="contained"
           onPress={handleLogout}
           style={[styles.button, styles.logoutButton]}

@@ -6,9 +6,15 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fundraiseService } from '../services/fundraiseService';
+import api from '../utils/api'; // ✅ ADDED — needed to build API_BASE like AchievementDetailScreen
 
-//const API_BASE_URL = 'http://10.0.2.2:51150/api';
- const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
+const API_BASE_URL = 'http://10.0.2.2:51150/api';
+ //const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
+
+// ✅ ADDED — same pattern as AchievementDetailScreen: derive the file-server
+// base (without "/api") so raw "Uploads\..." paths can be turned into a
+// directly-loadable static URL.
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
 const PRIMARY  = '#1E3A5F';
 const ACCENT   = '#2E86DE';
@@ -31,64 +37,42 @@ const firstPath  = (raw)    => {
   return raw.split(',')[0].trim() || null;
 };
 
-// ─── AuthImage ────────────────────────────────────────────────────────────────
-function AuthImage({ path, style, resizeMode = 'cover' }) {
-  const [uri,   setUri]   = useState(null);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    if (!path) { setError(true); return; }
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        const token   = await AsyncStorage.getItem('authToken');
-        const apiPath = toApiPath(path);
-        const url     = `${API_BASE_URL}/Fundraise/file?path=${encodeURIComponent(apiPath)}`;
-        const res     = await fetch(url, {
-          headers: { Authorization: token ? `Bearer ${token}` : '' },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const blob   = await res.blob();
-        const reader = new FileReader();
-        reader.onloadend = () => { if (!cancelled) setUri(reader.result); };
-        reader.onerror   = () => { if (!cancelled) setError(true); };
-        reader.readAsDataURL(blob);
-      } catch (e) {
-        console.warn('AuthImage failed:', path, e.message);
-        if (!cancelled) setError(true);
-      }
-    };
-
-    load();
-    return () => { cancelled = true; };
-  }, [path]);
-
-  if (error || !path) {
-    return (
-      <View style={[style, av.fallback]}>
-        <Text style={av.initials}>?</Text>
-      </View>
-    );
-  }
-  if (!uri) {
-    return (
-      <View style={[style, { backgroundColor: '#E2E8F0', alignItems: 'center', justifyContent: 'center' }]}>
-        <ActivityIndicator size="small" color={PRIMARY} />
-      </View>
-    );
-  }
-  return <Image source={{ uri }} style={style} resizeMode={resizeMode} />;
-}
+// ✅ ADDED — same toPublicUrl helper used in AchievementDetailScreen.
+// Converts a raw disk path like "Uploads\Fundraise-27\xyz.jpg" into a URL
+// the app can load directly via <Image>, no auth/blob fetch needed.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 // ─── BeneficiaryAvatar ────────────────────────────────────────────────────────
+// ✅ CHANGED — replaced AuthImage (token-fetch + blob->dataURI) with a plain
+// <Image> bound to toPublicUrl(photoPath), same pattern as
+// AchievementDetailScreen's attachment images. Falls back to initials on error.
 function BeneficiaryAvatar({ photoPath, name }) {
+  const [error, setError] = useState(false);
   const initials = (name || '?')
     .split(' ').slice(0, 2)
     .map(w => w[0]?.toUpperCase()).join('');
 
-  if (photoPath) {
-    return <AuthImage path={photoPath} style={av.img} resizeMode="cover" />;
+  const uri = toPublicUrl(photoPath);
+
+  if (uri && !error) {
+    return (
+      <Image
+        source={{ uri }}
+        style={av.img}
+        resizeMode="cover"
+        onError={(e) => {
+          console.warn('BeneficiaryAvatar failed to load:', uri, e.nativeEvent?.error);
+          setError(true);
+        }}
+      />
+    );
   }
   return (
     <View style={av.fallback}>

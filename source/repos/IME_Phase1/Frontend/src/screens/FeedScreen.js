@@ -10,11 +10,27 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { fundraiseService } from "../services/fundraiseService";
-const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
-//const API_BASE_URL = "http://10.0.2.2:51150/api";
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = width - 28;
+import api from "../utils/api";
+//const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+const { width }    = Dimensions.get("window");
+const CARD_WIDTH   = width - 28;
 
+
+const API_BASE = (api.defaults.baseURL || "").replace(/\/api\/?$/, "");
+
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+
+  if (filePath.startsWith("http")) return filePath;
+
+  const idx = filePath.indexOf("Uploads\\");
+  if (idx === -1) return filePath;
+
+  const relative = filePath.substring(idx).replace(/\\/g, "/");
+
+  return `${API_BASE}/${relative}`;
+};
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function getBadgeStyle(urgencyLevel, fundCategory) {
   if (urgencyLevel === "Critical" || urgencyLevel === "High")
@@ -55,9 +71,25 @@ function isImagePath(p = "") {
 }
 
 /** Windows backslash path → forward slash for API ?path= param */
-const toApiPath = (storedPath) =>
-  (storedPath || "").replace(/\\/g, "/");
+/*const toApiPath = (storedPath) =>
+  (storedPath || "").replace(/\\/g, "/");*/
+const toApiPath = (storedPath) => {
+    if (!storedPath) return "";
 
+    let path = storedPath;
+
+    // remove server url if present
+    path = path.replace(/^https?:\/\/[^/]+\//, "");
+
+    // normalize backslashes to forward slashes
+    path = path.replace(/\\/g, "/");
+
+    // the file endpoint's ?path= is relative to the Uploads root on the
+    // server, so strip a leading "Uploads/" segment if present
+    path = path.replace(/^Uploads\//i, "");
+
+    return path;
+};
 /**
  * Parse a comma-separated DB string of paths into an array of media items.
  * Each item: { type: 'image'|'doc', path: string, name: string }
@@ -315,7 +347,12 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
                   onOpenViewer(imgItems, Math.max(imgIdx, 0));
                 }}
               >
-                <AuthImage path={item.path} style={ms.img} resizeMode="cover" />
+                {/*<AuthImage path={item.path} style={ms.img} resizeMode="cover" />*/}
+                <Image
+    source={{ uri: item.path }}
+    style={ms.img}
+    resizeMode="cover"
+/>
                 <View style={ms.expandHint}>
                   <Ionicons name="expand-outline" size={16} color="#fff" />
                 </View>
@@ -418,7 +455,10 @@ function useAttachments(post) {
             const name    = f.fileName || f.name || String(rawPath).split(/[\\/]/).pop();
             return {
               type: isImagePath(String(rawPath)) ? "image" : "doc",
-              path: String(rawPath),
+              //path: String(rawPath),
+              path: isImagePath(rawPath)
+    ? toPublicUrl(rawPath)
+    : rawPath,
               name,
             };
           });
@@ -433,7 +473,12 @@ function useAttachments(post) {
 
       // ── Fallback: parse comma-separated paths from the post itself ──
       const fallback = [
-        ...parseMediaPaths(post.beneficiaryPhotoUrl,   "image"),
+       // ...parseMediaPaths(post.beneficiaryPhotoUrl,   "image"),
+       
+  ...parseMediaPaths(post.beneficiaryPhotoUrl, "image").map(x => ({
+    ...x,
+    path: toPublicUrl(x.path),
+  })),
         ...parseMediaPaths(post.supportingDocumentUrl, "doc"),
       ];
       if (!cancelled) setMediaItems(fallback);
@@ -450,7 +495,7 @@ function useAttachments(post) {
 /**
  * Receives imageItems: Array<{ path, name }> — fetches each with auth token.
  */
-function ImageViewer({ visible, imageItems, startIndex, onClose }) {
+{/*function ImageViewer({ visible, imageItems, startIndex, onClose }) {
   const [dataUris, setDataUris] = useState([]);
 
   useEffect(() => {
@@ -503,8 +548,64 @@ function ImageViewer({ visible, imageItems, startIndex, onClose }) {
       </View>
     </Modal>
   );
-}
+}*/}
+function ImageViewer({
+    visible,
+    imageItems,
+    startIndex,
+    onClose,
+}) {
 
+    return (
+        <Modal
+            visible={visible}
+            transparent
+            animationType="fade"
+            onRequestClose={onClose}
+        >
+            <View style={vw.root}>
+
+                <FlatList
+                    data={imageItems}
+                    horizontal
+                    pagingEnabled
+                    initialScrollIndex={startIndex}
+                    keyExtractor={(item, i) => i.toString()}
+                    getItemLayout={(data, index) => ({
+                        length: width,
+                        offset: width * index,
+                        index,
+                    })}
+                    renderItem={({ item }) => (
+
+                        <View style={vw.imgWrap}>
+                            <Image
+                                source={{ uri: item.path }}
+                                style={vw.img}
+                                resizeMode="contain"
+                            />
+                        </View>
+
+                    )}
+                />
+
+                <TouchableOpacity
+                    style={vw.close}
+                    onPress={onClose}
+                >
+                    <View style={vw.closeCircle}>
+                        <Ionicons
+                            name="close"
+                            size={28}
+                            color="#fff"
+                        />
+                    </View>
+                </TouchableOpacity>
+
+            </View>
+        </Modal>
+    );
+}
 // ─── Post Card ────────────────────────────────────────────────────────────────
 function PostCard({ post, onOpenViewer, navigation }) {
   const [liked, setLiked] = useState(false);
