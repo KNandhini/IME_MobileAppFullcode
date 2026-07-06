@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator, View, Text } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 
 // Screens
+import AnimatedSplashScreen from '../screens/AnimatedSplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
@@ -56,7 +58,7 @@ import LawBotScreen from '../screens/LawBotScreen';
 import MemberEditScreen from '../screens/MemberEditScreen';
 import CorpDetailScreen from '../screens/CorpDetailsScreen';
 import AdminSignupScreen from '../screens/AddAdminScreen';
-
+import AboutIMEScreen from "../screens/AboutIMEScreen";
 
 import MembershipDetailsScreen from '../screens/MembershipDetails';
 import FeesDetailsScreen from '../screens/FeesDetails';
@@ -74,10 +76,18 @@ const HEADER_STYLE = {
   headerStyle: { backgroundColor: '#1E3A5F' },
   headerTintColor: '#fff',
   headerTitleStyle: { fontWeight: '700' },
+  // Prevents the default white flash behind screens during transitions.
+  cardStyle: { backgroundColor: '#1E3A5F' },
 };
 
 const AuthStack = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator
+    screenOptions={{
+      headerShown: false,
+      // Same fix as MainStack — no white flash before Login paints.
+      cardStyle: { backgroundColor: '#1E3A5F' },
+    }}
+  >
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Signup" component={SignupScreen} />
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -101,10 +111,18 @@ const AuthStack = () => (
         headerTintColor: '#fff',
       }}
     />
+    <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
+    {/*<Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />*/}
+    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MunicipalMap" component={MunicipalMapScreen} />
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Demo" component={DemoScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ headerShown: false }} />
+
   </Stack.Navigator>
 );
 
@@ -235,6 +253,7 @@ const MainStack = () => (
     <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Membership Payment' }} />
     <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Payment History' }} />
     {/* Content */}
+    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ title: 'About IME' }} />
     <Stack.Screen
       name="ContentViewer"
       component={ContentViewerScreen}
@@ -288,24 +307,24 @@ const MainStack = () => (
     <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
-     {/*<Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />*/}
-<Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
+    {/*<Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />*/}
+    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
 
-{/* ✅ Add the missing opening tag, remove the duplicate AddCircular */}
-<Stack.Screen
-  name="RegistrationPayment"
-  component={RegistrationPaymentScreen}
-  options={{
-    headerShown: true,
-    title: 'Complete Payment',
-    headerStyle: { backgroundColor: '#1E3A5F' },
-    headerTintColor: '#fff',
-  }}
-/>
-<Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
-<Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
-<Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
-<Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
+    {/* ✅ Add the missing opening tag, remove the duplicate AddCircular */}
+    <Stack.Screen
+      name="RegistrationPayment"
+      component={RegistrationPaymentScreen}
+      options={{
+        headerShown: true,
+        title: 'Complete Payment',
+        headerStyle: { backgroundColor: '#1E3A5F' },
+        headerTintColor: '#fff',
+      }}
+    />
+    <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AddCircular" component={AddCircularScreen} options={{ headerShown: false }} />
     {/*<Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
@@ -321,10 +340,33 @@ const MainStack = () => (
 
 const AppNavigator = () => {
   const { isAuthenticated, loading } = useAuth();
+  const [showSplash, setShowSplash] = React.useState(true);
+
+  // Called by AnimatedSplashScreen once it has actually painted a frame —
+  // this is the moment it's safe to hide the native launch screen without
+  // a white gap appearing between it and the animated gradient.
+  const handleSplashReady = useCallback(() => {
+    SplashScreen.hideAsync().catch(() => { });
+  }, []);
+
+  if (showSplash) {
+    return (
+      <AnimatedSplashScreen
+        onReady={handleSplashReady}
+        onFinish={() => setShowSplash(false)}
+      />
+    );
+  }
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E3A5F' }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: '#1E3A5F',
+        }}>
         <ActivityIndicator size="large" color="#D4A017" />
       </View>
     );
