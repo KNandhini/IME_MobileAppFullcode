@@ -13,24 +13,26 @@ import { Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 
+const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
+
 const ProfileEditScreen = ({ navigation }) => {
   const [profilePhoto, setProfilePhoto] = useState(null);
 
   // ── Loading / saving ──────────────────────────────────────────────────────
   const [pageLoading, setPageLoading] = useState(true);
-  const [saving,      setSaving]      = useState(false);
-  const [memberId,    setMemberId]    = useState(null);
-  const [clubId,      setClubId]      = useState(null); // ✅ added
+  const [saving, setSaving] = useState(false);
+  const [memberId, setMemberId] = useState(null);
+  const [clubId, setClubId] = useState(null); // ✅ added
 
   // ── Form data ─────────────────────────────────────────────────────────────
   const [formData, setFormData] = useState({
-    fullName:      '',
-    email:         '',
+    fullName: '',
+    email: '',
     contactNumber: '',
-    address:       '',
-    gender:        '',
-    age:           '',
-    dateOfBirth:   '',
+    address: '',
+    gender: '',
+    age: '',
+    dateOfBirth: '',
     designationId: 1,
   });
 
@@ -38,20 +40,30 @@ const ProfileEditScreen = ({ navigation }) => {
 
   // ── Gender menu ───────────────────────────────────────────────────────────
   const [genderMenuVisible, setGenderMenuVisible] = useState(false);
-  const [menuWidth,         setMenuWidth]         = useState(0);
+  const [menuWidth, setMenuWidth] = useState(0);
 
   // ── Date picker ───────────────────────────────────────────────────────────
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate,   setSelectedDate]   = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
 
   // ── Location state ────────────────────────────────────────────────────────
-  const [countries,       setCountries]       = useState([]);
-  const [states,          setStates]          = useState([]);
-  const [countryModal,    setCountryModal]    = useState(false);
-  const [stateModal,      setStateModal]      = useState(false);
+  const [countries, setCountries] = useState([]);
+  const [states, setStates] = useState([]);
+  const [countryModal, setCountryModal] = useState(false);
+  const [stateModal, setStateModal] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedState,   setSelectedState]   = useState(null);
-  const [statesLoading,   setStatesLoading]   = useState(false);
+  const [selectedState, setSelectedState] = useState(null);
+  const [statesLoading, setStatesLoading] = useState(false);
+
+  // ── Occupation / Education state (NEW) ────────────────────────────────────
+  const [occupation, setOccupation] = useState('');
+  const [occupationMenuVisible, setOccupationMenuVisible] = useState(false);
+  const [occupationMenuWidth, setOccupationMenuWidth] = useState(0);
+  const [occupationDetails, setOccupationDetails] = useState('');
+  const [qualification, setQualification] = useState('');
+
+  const showOccupationDetails = occupation === 'Employed' || occupation === 'Self Employed';
+  const showEducationSection = occupation === 'Employed' || occupation === 'Self Employed' || occupation === 'Unemployed';
 
   // ── On mount ──────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -65,7 +77,7 @@ const ProfileEditScreen = ({ navigation }) => {
       const userStr = await AsyncStorage.getItem('userData');
       if (!userStr) return;
       const user = JSON.parse(userStr);
-      const id   = user.memberId;
+      const id = user.memberId;
       setMemberId(id);
 
       const res = await memberService.getProfile(id);
@@ -78,15 +90,20 @@ const ProfileEditScreen = ({ navigation }) => {
         setClubId(cid);
 
         setFormData({
-          fullName:      d.fullName      || '',
-          email:         d.email         || '',
+          fullName: d.fullName || '',
+          email: d.email || '',
           contactNumber: d.contactNumber || '',
-          address:       d.address       || '',
-          gender:        d.gender        || '',
-          age:           d.age != null   ? String(d.age) : '',
-          dateOfBirth:   d.dateOfBirth   ? d.dateOfBirth.split('T')[0] : '',
+          address: d.address || '',
+          gender: d.gender || '',
+          age: d.age != null ? String(d.age) : '',
+          dateOfBirth: d.dateOfBirth ? d.dateOfBirth.split('T')[0] : '',
           designationId: d.designationId || 1,
         });
+
+        // ── Occupation / Education (NEW) ──
+        setOccupation(d.occupation || '');
+        setOccupationDetails(d.occupationDetails || '');
+        setQualification(d.qualification || '');
 
         if (d.profilePhoto) {
           setProfilePhoto(`data:image/jpeg;base64,${d.profilePhoto}`);
@@ -122,10 +139,39 @@ const ProfileEditScreen = ({ navigation }) => {
     }
   };
 
- /* const uploadProfilePhoto = async (photoUri) => {
+  /* const uploadProfilePhoto = async (photoUri) => {
+     try {
+       debugger;
+       // ✅ Skip if still the server-loaded base64 (not a newly picked file)
+       if (photoUri.startsWith('data:')) {
+         console.log('Photo unchanged, skipping upload.');
+         return true;
+       }
+ 
+       const formData = new FormData();
+       formData.append('file', {
+         uri:  photoUri,
+         name: 'profile_photo.jpg',
+         type: 'image/jpeg',
+       });
+       formData.append('memberId', memberId.toString());
+ 
+       const baseUrl  = api.defaults.baseURL;
+       const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
+         method: 'POST',
+         body: formData,
+       });
+ 
+       const json = await response.json();
+       return json.success;
+     } catch (e) {
+       console.warn('Profile photo upload failed:', e.message);
+       return false;
+     }
+   };*/
+  const uploadProfilePhoto = async (photoUri) => {
     try {
-      debugger;
-      // ✅ Skip if still the server-loaded base64 (not a newly picked file)
+      // Skip if still the server-loaded base64 (not a newly picked file)
       if (photoUri.startsWith('data:')) {
         console.log('Photo unchanged, skipping upload.');
         return true;
@@ -133,62 +179,33 @@ const ProfileEditScreen = ({ navigation }) => {
 
       const formData = new FormData();
       formData.append('file', {
-        uri:  photoUri,
+        uri: photoUri,
         name: 'profile_photo.jpg',
         type: 'image/jpeg',
       });
       formData.append('memberId', memberId.toString());
 
-      const baseUrl  = api.defaults.baseURL;
+      const baseUrl = api.defaults.baseURL;
       const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
         method: 'POST',
         body: formData,
       });
 
       const json = await response.json();
-      return json.success;
+
+      // ── Show API error message if upload failed ──
+      if (!json.success) {
+        Alert.alert('Photo Upload Failed', json.message || 'Failed to upload profile photo.');
+        return false;
+      }
+
+      return true;
     } catch (e) {
       console.warn('Profile photo upload failed:', e.message);
+      Alert.alert('Upload Error', 'Failed to upload profile photo. Please try again.');
       return false;
     }
-  };*/
-  const uploadProfilePhoto = async (photoUri) => {
-  try {
-    // Skip if still the server-loaded base64 (not a newly picked file)
-    if (photoUri.startsWith('data:')) {
-      console.log('Photo unchanged, skipping upload.');
-      return true;
-    }
-
-    const formData = new FormData();
-    formData.append('file', {
-      uri:  photoUri,
-      name: 'profile_photo.jpg',
-      type: 'image/jpeg',
-    });
-    formData.append('memberId', memberId.toString());
-
-    const baseUrl  = api.defaults.baseURL;
-    const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    const json = await response.json();
-
-    // ── Show API error message if upload failed ──
-    if (!json.success) {
-      Alert.alert('Photo Upload Failed', json.message || 'Failed to upload profile photo.');
-      return false;
-    }
-
-    return true;
-  } catch (e) {
-    console.warn('Profile photo upload failed:', e.message);
-    Alert.alert('Upload Error', 'Failed to upload profile photo. Please try again.');
-    return false;
-  }
-};
+  };
 
   const loadCountries = async () => {
     try {
@@ -221,15 +238,25 @@ const ProfileEditScreen = ({ navigation }) => {
   // ── Field updater ─────────────────────────────────────────────────────────
   const updateField = (field, value) => {
     let v = value;
-    if      (field === 'fullName')      v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
-    else if (field === 'email')         v = value.slice(0, 100);
+    if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
+    else if (field === 'email') v = value.slice(0, 100);
     else if (field === 'contactNumber') v = value.replace(/[^0-9]/g, '').slice(0, 10);
-    else if (field === 'age')           v = value.replace(/[^0-9]/g, '').slice(0, 3);
-    else if (field === 'address')       v = value.replace(/[^A-Za-z0-9\s,./-]/g, '').slice(0, 250);
+    else if (field === 'age') v = value.replace(/[^0-9]/g, '').slice(0, 3);
+    else if (field === 'address') v = value.replace(/[^A-Za-z0-9\s,./-]/g, '').slice(0, 250);
     setFormData(prev => ({ ...prev, [field]: v }));
   };
 
-  const today   = new Date();
+  // ── Occupation select (NEW) ───────────────────────────────────────────────
+  const handleOccupationSelect = (value) => {
+    setOccupation(value);
+    setOccupationMenuVisible(false);
+    if (value !== 'Employed' && value !== 'Self Employed') {
+      setOccupationDetails('');
+    }
+    setErrors(prev => ({ ...prev, occupation: undefined, occupationDetails: undefined, qualification: undefined }));
+  };
+
+  const today = new Date();
   const minDate = new Date();
   minDate.setFullYear(today.getFullYear() - 80);
 
@@ -243,52 +270,108 @@ const ProfileEditScreen = ({ navigation }) => {
   // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     let e = {};
-    if (!formData.fullName)      e.fullName      = 'Required';
-    if (!formData.email)         e.email         = 'Required';
+    if (!formData.fullName) e.fullName = 'Required';
+    if (!formData.email) e.email = 'Required';
     else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(formData.email))
-                                 e.email         = 'Invalid email';
+      e.email = 'Invalid email';
     if (!formData.contactNumber) e.contactNumber = 'Required';
     else if (!/^[0-9]{10}$/.test(formData.contactNumber))
-                                 e.contactNumber = 'Must be 10 digits';
-    if (!formData.address)       e.address       = 'Required';
-    if (!formData.gender)        e.gender        = 'Required';
-    if (!formData.age)           e.age           = 'Required';
-    if (!formData.dateOfBirth)   e.dateOfBirth   = 'Required';
-    if (!selectedCountry)        e.country       = 'Required';
-    if (!selectedState)          e.state         = 'Required';
+      e.contactNumber = 'Must be 10 digits';
+    if (!formData.address) e.address = 'Required';
+    if (!formData.gender) e.gender = 'Required';
+    if (!formData.age) e.age = 'Required';
+    if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
+    if (!selectedCountry) e.country = 'Required';
+    if (!selectedState) e.state = 'Required';
+
+    // ── Occupation / Education (NEW) ──
+    if (!occupation) e.occupation = 'Required';
+    if (showOccupationDetails && !occupationDetails) e.occupationDetails = 'Required';
+    if (showEducationSection && !qualification) e.qualification = 'Required';
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
 
   // ── Save ──────────────────────────────────────────────────────────────────
- /* const handleSave = async () => {
+  /* const handleSave = async () => {
+     if (!validate()) return;
+     setSaving(true);
+     try {
+       const payload = {
+         memberId:      memberId,                          // ✅ added
+         fullName:      formData.fullName,
+         email:         formData.email,
+         contactNumber: formData.contactNumber,
+         address:       formData.address,
+         gender:        formData.gender,
+         age:           parseInt(formData.age),
+         dateOfBirth:   formData.dateOfBirth,
+         designationId: formData.designationId,
+         countryId:     selectedCountry?.countryId ?? null,
+         stateId:       selectedState?.stateId     ?? null,
+         clubId:        clubId,                            // ✅ added
+       };
+ 
+       console.log('Update payload:', JSON.stringify(payload)); // ✅ helpful for debugging
+ 
+       const res = await memberService.updateProfile(memberId, payload);
+ 
+       if (res.success) {
+         // Upload image AFTER profile update
+         if (profilePhoto) {
+           await uploadProfilePhoto(profilePhoto);
+         }
+         Alert.alert('Success', 'Profile updated successfully!', [
+           { text: 'OK', onPress: () => navigation.goBack() },
+         ]);
+       } else {
+         Alert.alert('Failed', res.message || 'Update failed.');
+       }
+     } catch (e) {
+       Alert.alert('Error', e?.message || 'An error occurred.');
+     } finally {
+       setSaving(false);
+     }
+   };
+ */
+  const handleSave = async () => {
     if (!validate()) return;
     setSaving(true);
     try {
       const payload = {
-        memberId:      memberId,                          // ✅ added
-        fullName:      formData.fullName,
-        email:         formData.email,
+        memberId: memberId,
+        fullName: formData.fullName,
+        email: formData.email,
         contactNumber: formData.contactNumber,
-        address:       formData.address,
-        gender:        formData.gender,
-        age:           parseInt(formData.age),
-        dateOfBirth:   formData.dateOfBirth,
+        address: formData.address,
+        gender: formData.gender,
+        age: parseInt(formData.age),
+        dateOfBirth: formData.dateOfBirth,
         designationId: formData.designationId,
-        countryId:     selectedCountry?.countryId ?? null,
-        stateId:       selectedState?.stateId     ?? null,
-        clubId:        clubId,                            // ✅ added
-      };
+        countryId: selectedCountry?.countryId ?? null,
+        stateId: selectedState?.stateId ?? null,
+        clubId: clubId,
 
-      console.log('Update payload:', JSON.stringify(payload)); // ✅ helpful for debugging
+        // ── Occupation / Education (NEW) ──
+        occupation,
+        occupationDetails: showOccupationDetails ? occupationDetails : null,
+        qualification,
+      };
 
       const res = await memberService.updateProfile(memberId, payload);
 
       if (res.success) {
-        // Upload image AFTER profile update
+        // Upload photo and check result
         if (profilePhoto) {
-          await uploadProfilePhoto(profilePhoto);
+          const photoUploaded = await uploadProfilePhoto(profilePhoto);
+          if (!photoUploaded) {
+            // Profile saved but photo failed — stay on screen
+            // Alert already shown inside uploadProfilePhoto
+            return;
+          }
         }
+        // Both profile + photo saved successfully
         Alert.alert('Success', 'Profile updated successfully!', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
@@ -301,51 +384,6 @@ const ProfileEditScreen = ({ navigation }) => {
       setSaving(false);
     }
   };
-*/
-const handleSave = async () => {
-  if (!validate()) return;
-  setSaving(true);
-  try {
-    const payload = {
-      memberId:      memberId,
-      fullName:      formData.fullName,
-      email:         formData.email,
-      contactNumber: formData.contactNumber,
-      address:       formData.address,
-      gender:        formData.gender,
-      age:           parseInt(formData.age),
-      dateOfBirth:   formData.dateOfBirth,
-      designationId: formData.designationId,
-      countryId:     selectedCountry?.countryId ?? null,
-      stateId:       selectedState?.stateId     ?? null,
-      clubId:        clubId,
-    };
-
-    const res = await memberService.updateProfile(memberId, payload);
-
-    if (res.success) {
-      // Upload photo and check result
-      if (profilePhoto) {
-        const photoUploaded = await uploadProfilePhoto(profilePhoto);
-        if (!photoUploaded) {
-          // Profile saved but photo failed — stay on screen
-          // Alert already shown inside uploadProfilePhoto
-          return;
-        }
-      }
-      // Both profile + photo saved successfully
-      Alert.alert('Success', 'Profile updated successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } else {
-      Alert.alert('Failed', res.message || 'Update failed.');
-    }
-  } catch (e) {
-    Alert.alert('Error', e?.message || 'An error occurred.');
-  } finally {
-    setSaving(false);
-  }
-};
   // ── Loading screen ────────────────────────────────────────────────────────
   if (pageLoading) {
     return (
@@ -522,8 +560,8 @@ const handleSave = async () => {
                   </TouchableOpacity>
                 }
               >
-                <Menu.Item title="Male"        onPress={() => { updateField('gender', 'Male');        setGenderMenuVisible(false); }} />
-                <Menu.Item title="Female"      onPress={() => { updateField('gender', 'Female');      setGenderMenuVisible(false); }} />
+                <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
+                <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
                 <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
               </Menu>
             </View>
@@ -576,6 +614,80 @@ const handleSave = async () => {
               style={styles.input}
             />
             {errors.age && <Text style={styles.error}>{errors.age}</Text>}
+          </View>
+
+          {/* ── Occupation & Education (NEW) ── */}
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Occupation & Education</Text>
+
+            {/* Occupation */}
+            <View
+              style={{ width: '100%' }}
+              onLayout={e => setOccupationMenuWidth(e.nativeEvent.layout.width)}
+            >
+              <Menu
+                visible={occupationMenuVisible}
+                onDismiss={() => setOccupationMenuVisible(false)}
+                contentStyle={{ width: occupationMenuWidth }}
+                anchor={
+                  <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                    <View pointerEvents="none">
+                      <TextInput
+                        label="Occupation *"
+                        value={occupation}
+                        mode="outlined"
+                        theme={{ roundness: 10 }}
+                        outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
+                        activeOutlineColor="#1976D2"
+                        style={styles.input}
+                        editable={false}
+                        right={<TextInput.Icon icon="chevron-down" />}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                }
+              >
+                {OCCUPATION_OPTIONS.map(opt => (
+                  <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+                ))}
+              </Menu>
+            </View>
+            {errors.occupation && <Text style={styles.error}>{errors.occupation}</Text>}
+
+            {/* Occupation Details — Employed / Self Employed only */}
+            {showOccupationDetails && (
+              <>
+                <TextInput
+                  label="Occupation Details *"
+                  value={occupationDetails}
+                  onChangeText={setOccupationDetails}
+                  multiline
+                  mode="outlined"
+                  theme={{ roundness: 10 }}
+                  outlineColor="#BBDEFB"
+                  activeOutlineColor="#1976D2"
+                  style={styles.input}
+                />
+                {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
+              </>
+            )}
+
+            {/* Educational Qualification — shown once any occupation is selected */}
+            {showEducationSection && (
+              <>
+                <TextInput
+                  label="Educational Qualification *"
+                  value={qualification}
+                  onChangeText={setQualification}
+                  mode="outlined"
+                  theme={{ roundness: 10 }}
+                  outlineColor="#BBDEFB"
+                  activeOutlineColor="#1976D2"
+                  style={styles.input}
+                />
+                {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
+              </>
+            )}
           </View>
 
         </ScrollView>
@@ -658,13 +770,13 @@ const styles = StyleSheet.create({
     paddingTop: (StatusBar.currentHeight ?? 0) + 12,
     backgroundColor: '#1E3A5F',
   },
-  navSide:   { minWidth: 72, paddingHorizontal: 4 },
-  navTitle:  { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
+  navSide: { minWidth: 72, paddingHorizontal: 4 },
+  navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
   navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  navSave:   { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+  navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
   scrollContainer: { flex: 1, backgroundColor: '#f5f5f5' },
-  content:         { padding: 16, paddingBottom: 40 },
+  content: { padding: 16, paddingBottom: 40 },
 
   card: {
     backgroundColor: '#fff', borderRadius: 16,
@@ -679,21 +791,21 @@ const styles = StyleSheet.create({
   input: { marginBottom: 10, backgroundColor: '#fff' },
   error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
 
-  pickerOverlay:        { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  pickerSheet:          { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  pickerTitle:          { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  pickerItem:           { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  pickerItemActive:     { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
-  pickerItemText:       { fontSize: 15, color: '#111' },
+  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+  pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
+  pickerItemText: { fontSize: 15, color: '#111' },
   pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
-  pickerEmpty:          { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  pickerCancel:         { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerCancelText:     { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+  pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
+  pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
 
-  profileContainer:    { alignItems: 'center', marginBottom: 20 },
-  profileImage:        { width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#fff' },
-  profilePlaceholder:  { width: 110, height: 110, borderRadius: 55, backgroundColor: '#6A5ACD', justifyContent: 'center', alignItems: 'center' },
-  profileInitial:      { fontSize: 40, color: '#fff', fontWeight: 'bold' },
+  profileContainer: { alignItems: 'center', marginBottom: 20 },
+  profileImage: { width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#fff' },
+  profilePlaceholder: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#6A5ACD', justifyContent: 'center', alignItems: 'center' },
+  profileInitial: { fontSize: 40, color: '#fff', fontWeight: 'bold' },
 });
 
 export default ProfileEditScreen;

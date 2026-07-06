@@ -3,14 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ── Update with your actual backend URL ───────────────────────
 // For local development use your machine IP (not localhost):
-//   Android emulator: http://10.0.2.2:5000/api
-//   Physical device:  http://YOUR_LOCAL_IP:5000/api
+//   Android emulator: http://10.0.2.2:51150/api
+//   Physical device:  http://YOUR_LOCAL_IP:51150/api
 //   Production:       https://your-api-domain.com/api
+const API_BASE_URL = 'http://10.0.2.2:51150/api';
 //const API_BASE_URL = 'https://localhost:51149/api';
 //const API_BASE_URL ='https://prasath-001-site1.ftempurl.com/api';
 const API_BASE_URL = 'http://10.0.2.2:51150/api';
 export const BASE_URL = API_BASE_URL.replace(/\/api$/, '');
- 
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,

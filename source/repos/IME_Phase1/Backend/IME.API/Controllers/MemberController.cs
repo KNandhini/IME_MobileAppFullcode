@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
 using IME.Core.Interfaces;
@@ -60,7 +60,7 @@ public class MemberController : ControllerBase
                 ProfilePhotoPath = member.ProfilePhotoPath,
 
                 // ? FIXED
-                ProfilePhoto = member.ProfilePhoto ,
+                ProfilePhoto = member.ProfilePhoto,
                 // ?? You missed this line also
                 CountryId = member.CountryId,
                 CountryName = member.CountryName,
@@ -70,7 +70,12 @@ public class MemberController : ControllerBase
                 ClubName = member.ClubName,
 
                 MembershipStatus = member.MembershipStatus,
-                CreatedDate = member.CreatedDate
+                CreatedDate = member.CreatedDate,
+
+                // ── Occupation / Education (NEW) ──
+                Occupation = member.Occupation,
+                OccupationDetails = member.OccupationDetails,
+                Qualification = member.Qualification
             };
 
             return Ok(new ApiResponse<MemberProfileDTO>
@@ -98,17 +103,22 @@ public class MemberController : ControllerBase
             {
                 MemberId = memberId,
                 FullName = request.FullName,
-                Email = request.Email,         
+                Email = request.Email,
                 Address = request.Address,
                 ContactNumber = request.ContactNumber,
                 Gender = request.Gender,
                 Age = request.Age,
-                DateOfBirth = request.DateOfBirth,    
+                DateOfBirth = request.DateOfBirth,
                 DesignationId = request.DesignationId,
-                CountryId = request.CountryId,       
-                StateId = request.StateId,        
-                ClubId = request.ClubId,          
+                CountryId = request.CountryId,
+                StateId = request.StateId,
+                ClubId = request.ClubId,
                 ProfilePhotoPath = request.ProfilePhotoPath,
+
+                // ── Occupation / Education (NEW) ──
+                Occupation = request.Occupation,
+                OccupationDetails = request.OccupationDetails,
+                Qualification = request.Qualification,
             };
 
             var success = await _memberRepository.UpdateMemberProfileAsync(member);
@@ -146,7 +156,7 @@ public class MemberController : ControllerBase
             });
         }
     }
-   
+
     [HttpGet("photos-by-ids")]
     [Authorize(Roles = "Admin,Member")]
     public async Task<ActionResult<ApiResponse<List<MemberPhoto>>>> GetMemberPhotosByIds(
@@ -173,9 +183,9 @@ public class MemberController : ControllerBase
             });
         }
     }
-    // NEW � club filtered, same ApiResponse<T> structure
+    // NEW — club filtered, same ApiResponse<T> structure
     [HttpGet("by-club")]
-  //  [Authorize]
+    //  [Authorize]
     public async Task<ActionResult<ApiResponse<List<Member>>>> GetMembersByClub(
      [FromQuery] int clubId,
      [FromQuery] int pageNumber = 1,
@@ -209,36 +219,6 @@ public class MemberController : ControllerBase
 
     [HttpPut("{memberId}/status")]
     //[Authorize(Roles = "Admin")]
-    /*public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(int memberId, [FromBody] string status)
-    {
-        try
-        {
-            var success = await _memberRepository.UpdateMemberStatusAsync(memberId, status);
-
-            if (success)
-            {
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Status updated successfully"
-                });
-            }
-
-            return Ok(new ApiResponse<object>
-            {
-                Success = false,
-                Message = "Failed to update status"
-            });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new ApiResponse<object>
-            {
-                Success = false,
-                Message = $"Error: {ex.Message}"
-            });
-        }
-    }*/
     public async Task<ActionResult<ApiResponse<object>>> UpdateMemberStatus(
     int memberId,
     [FromBody] UpdateMemberStatusRequest request)

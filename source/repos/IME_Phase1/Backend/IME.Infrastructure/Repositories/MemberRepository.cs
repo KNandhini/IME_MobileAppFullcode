@@ -1,4 +1,4 @@
-using System.Data;
+﻿using System.Data;
 using System.Data.SqlClient;
 using IME.Core.Interfaces;
 using IME.Core.Models;
@@ -50,7 +50,9 @@ public class MemberRepository : IMemberRepository
                     ? null
                     : reader.GetInt32(reader.GetOrdinal("Age")),
 
-                DateOfBirth = reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
+                DateOfBirth = reader.IsDBNull(reader.GetOrdinal("DateOfBirth"))
+                    ? null
+                    : reader.GetDateTime(reader.GetOrdinal("DateOfBirth")),
 
                 Place = reader.IsDBNull(reader.GetOrdinal("Place"))
                     ? null
@@ -93,7 +95,21 @@ public class MemberRepository : IMemberRepository
     : (byte[])reader["ProfilePhoto"],
 
                 MembershipStatus = reader.GetString(reader.GetOrdinal("MembershipStatus")),
-                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+                CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+
+                // ── Occupation / Education (NEW) ──
+                // NOTE: requires sp_GetMemberProfile to SELECT these columns.
+                Occupation = reader.IsDBNull(reader.GetOrdinal("Occupation"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Occupation")),
+
+                OccupationDetails = reader.IsDBNull(reader.GetOrdinal("OccupationDetails"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("OccupationDetails")),
+
+                Qualification = reader.IsDBNull(reader.GetOrdinal("Qualification"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("Qualification"))
             };
         }
 
@@ -118,6 +134,13 @@ public class MemberRepository : IMemberRepository
         command.Parameters.AddWithValue("@StateId", (object?)member.StateId ?? DBNull.Value);
         command.Parameters.AddWithValue("@ClubId", (object?)member.ClubId ?? DBNull.Value);
         command.Parameters.AddWithValue("@ProfilePhotoPath", member.ProfilePhotoPath ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Place", member.Place ?? (object)DBNull.Value);
+
+        // ── Occupation / Education (NEW) ──
+        // NOTE: requires sp_UpdateMemberProfile to accept and persist these params.
+        command.Parameters.AddWithValue("@Occupation", member.Occupation ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@OccupationDetails", member.OccupationDetails ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Qualification", member.Qualification ?? (object)DBNull.Value);
 
         // ? Fix: specify SqlDbType explicitly so null doesn't get cast to nvarchar
         var photoParam = command.Parameters.Add("@ProfilePhoto", System.Data.SqlDbType.VarBinary, -1);
@@ -163,14 +186,18 @@ public class MemberRepository : IMemberRepository
                 ClubId = reader.IsDBNull(reader.GetOrdinal("ClubId")) ? null : reader.GetString(reader.GetOrdinal("ClubId")),
                 ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? null : reader.GetString(reader.GetOrdinal("ClubName")),
                 ProfilePhotoPath = reader.IsDBNull(reader.GetOrdinal("ProfilePhotoPath")) ? null : reader.GetString(reader.GetOrdinal("ProfilePhotoPath")),
-               //  ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
+                //  ProfilePhoto = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto")) ? null : (byte[])reader["ProfilePhoto"],
 
-                // Do this � convert to base64 string:
-    //            ProfilePhotoBase64 = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
-    //? null
-    //: Convert.ToBase64String((byte[])reader["ProfilePhoto"]),
+                // Do this — convert to base64 string:
+                //            ProfilePhotoBase64 = reader.IsDBNull(reader.GetOrdinal("ProfilePhoto"))
+                //? null
+                //: Convert.ToBase64String((byte[])reader["ProfilePhoto"]),
                 GraceExpiryDate = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate")) ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")), // NEW
                 CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"))
+
+                // NOTE: Occupation/OccupationDetails/Qualification intentionally omitted here.
+                // This is the admin list view (sp_GetAllMembers) — add columns to that SP
+                // and map them here too if the member list/table also needs to show them.
             });
         }
         return members;
@@ -203,7 +230,7 @@ public class MemberRepository : IMemberRepository
         }
         return photos;
     }
-    // NEW method � club filtered
+    // NEW method — club filtered
     public async Task<List<Member>> GetMembersByClubAsync(int pageNumber, int pageSize, int clubId)
     {
         var members = new List<Member>();
@@ -248,7 +275,7 @@ public class MemberRepository : IMemberRepository
 
         command.Parameters.AddWithValue("@MemberId", memberId);
         command.Parameters.AddWithValue("@Status", status);
-        command.Parameters.AddWithValue("@Reason", (object?)reason ?? DBNull.Value); 
+        command.Parameters.AddWithValue("@Reason", (object?)reason ?? DBNull.Value);
 
         using var reader = await command.ExecuteReaderAsync();
 

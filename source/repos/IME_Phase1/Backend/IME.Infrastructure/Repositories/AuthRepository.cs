@@ -101,7 +101,9 @@ public class AuthRepository : IAuthRepository
         command.Parameters.AddWithValue("@CountryId", member.CountryId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@StateId", member.StateId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@ClubId", member.ClubId ?? (object)DBNull.Value);
-
+        command.Parameters.AddWithValue("@Occupation", member.Occupation ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@OccupationDetails", member.OccupationDetails ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Qualification", member.Qualification ?? (object)DBNull.Value);
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
         {
