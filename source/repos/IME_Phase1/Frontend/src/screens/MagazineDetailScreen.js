@@ -19,8 +19,21 @@ import { magazineService } from '../services/magazineService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
+import api from '../utils/api';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+// filePath from the server is a raw disk path like "Uploads\magazines\xyz.jpg" —
+// convert it into a URL the app can actually load/display/download.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 
 const MagazineDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
@@ -141,7 +154,7 @@ console.log(userData,"user");
     try {
       const token = await AsyncStorage.getItem("authToken");
       const fileName = attachment.fileName;
-      const url = attachment.filePath;
+      const url = toPublicUrl(attachment.filePath);
       const tempUri = FileSystem.cacheDirectory + fileName;
 
       const result = await FileSystem.downloadAsync(url, tempUri, {
@@ -265,56 +278,45 @@ console.log(userData,"user");
           ) : attachments.length === 0 ? (
             <Text style={styles.noAttach}>No files attached.</Text>
           ) : (
-            <View style={styles.attachList}>
-              {attachments.map((a) => (
-                <TouchableOpacity
-                  key={a.attachmentId}
-                  style={styles.attachRow}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    if (isImage(a.filePath)) {
-                      setPreviewImage(a.filePath);
+            <View style={styles.attachSection}>
+              {attachments.map((a) => {
+                const url = toPublicUrl(a.filePath);
+                return isImage(a.filePath) ? (
+                  <TouchableOpacity
+                    key={a.attachmentId}
+                    onPress={() => {
+                      setPreviewImage(url);
                       setPreviewVisible(true);
-                    }
-                  }}
-                >
-                  {isImage(a.filePath) ? (
-                    <Image source={{ uri: a.filePath }} style={styles.attachThumb} />
-                  ) : (
-                    <View style={styles.attachIconBox}>
-                      <MaterialCommunityIcons
-                        name={isPdf(a.filePath) ? "file-pdf-box" : "file-document-outline"}
-                        size={26}
-                        color={NAVY}
-                      />
-                    </View>
-                  )}
-
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.attachName} numberOfLines={1}>{a.fileName}</Text>
-                    <Text style={styles.attachDate}>
-                      {new Date(a.uploadedDate).toLocaleDateString("en-IN")}
+                    }}
+                    activeOpacity={0.85}
+                    style={{ marginBottom: 14 }}
+                  >
+                    <Image source={{ uri: url }} style={styles.attachImage} resizeMode="contain" />
+                    <Text style={styles.attachHint}>Tap to enlarge</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    key={a.attachmentId}
+                    style={styles.downloadBtn}
+                    onPress={() => handleAttachmentDownload(a)}
+                    activeOpacity={0.8}
+                  >
+                    <MaterialCommunityIcons
+                      name={isPdf(a.filePath) ? "file-pdf-box" : "download-outline"}
+                      size={18}
+                      color="#fff"
+                    />
+                    <Text style={styles.downloadText} numberOfLines={1}>
+                      {a.fileName || 'Download Attachment'}
                     </Text>
-                  </View>
-
-                  {!isImage(a.filePath) && (
-                    <TouchableOpacity
-                      onPress={(e) => {
-                        e.stopPropagation();
-                        handleAttachmentDownload(a);
-                      }}
-                      style={{ padding: 6 }}
-                    >
-                      <MaterialCommunityIcons name="download-outline" size={22} color={NAVY} />
-                    </TouchableOpacity>
-                  )}
-                </TouchableOpacity>
-              ))}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
 
           {/* ===================== DISCUSSION FORUM ===================== */}
-          <Text style={styles.attachLabel}>DISCUSSION</Text>
+          <Text style={styles.attachLabel}>DISCUSSION FORUM</Text>
 
           <View style={styles.discussionBox}>
             {discussionLoading ? (
@@ -423,18 +425,19 @@ const styles = StyleSheet.create({
   descText: { fontSize: 14, color: '#334155', lineHeight: 21 },
   attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, letterSpacing: 0.6, marginTop: 8 },
   noAttach: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-  attachList: { gap: 10 },
-  attachRow: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 10, padding: 12, borderWidth: 1, borderColor: '#E2E8F0',
+  attachSection: { width: '100%', marginBottom: 20 },
+  attachImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 12,
+    backgroundColor: '#fff',
   },
-  attachThumb: { width: 44, height: 44, borderRadius: 6 },
-  attachIconBox: {
-    width: 44, height: 44, borderRadius: 6, backgroundColor: '#F1F5F9',
-    alignItems: 'center', justifyContent: 'center',
+  attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
+  downloadBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 14,
   },
-  attachName: { fontSize: 13, fontWeight: '600', color: '#1A202C' },
-  attachDate: { fontSize: 11, color: '#94A3B8', marginTop: 2 },
+  downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
   // ---------- Discussion / chat styles ----------
   discussionBox: { gap: 10 },
