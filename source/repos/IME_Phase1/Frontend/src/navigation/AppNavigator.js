@@ -59,6 +59,9 @@ import MemberEditScreen from '../screens/MemberEditScreen';
 import CorpDetailScreen from '../screens/CorpDetailsScreen';
 import AdminSignupScreen from '../screens/AddAdminScreen';
 import AboutIMEScreen from "../screens/AboutIMEScreen";
+import JobPostingDetailScreen from '../screens/JobPostingDetailScreen';
+import JobPostingFormScreen from '../screens/JobPostingFormScreen';
+import JobPostingListScreen from '../screens/JobPostingListScreen';
 
 import MembershipDetailsScreen from '../screens/MembershipDetails';
 import FeesDetailsScreen from '../screens/FeesDetails';
@@ -305,6 +308,14 @@ const MainStack = () => (
     <Stack.Screen name="CircularDetail" component={CircularDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AchievementDetail" component={AchievementDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AchievementForm" component={AchievementFormScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="JobPostingDetail" component={JobPostingDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="JobPostingForm" component={JobPostingFormScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="JobPostingList" component={JobPostingListScreen} options={{ headerShown: false }} />
+
+    {/* <Stack.Screen
+      name="AddCircular"
+      component={AddCircularScreen}
+      options={{ headerShown: false }} /> */}
     <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />

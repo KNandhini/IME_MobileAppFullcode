@@ -14,6 +14,7 @@ const ADMIN_MENU = [
   { title: 'Set Annual Fee',    route: 'SetAnnualFee',     icon: '💰', params: {} },
   { title: 'Fund Raise', route: 'FundraiseList',           icon: '💸', params: {} },
   { title: 'Club List',  route: 'ClubList',               icon: '🏢', params: {} },
+  { title: 'Job Postings',      route: 'JobPostingList',   icon: '💼', params: {} },
 ];
 
 const AdminDashboardScreen = ({ navigation }) => {
