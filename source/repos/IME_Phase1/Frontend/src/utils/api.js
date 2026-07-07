@@ -10,7 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Use the HTTP port shown by local Swagger: http://localhost:51150/swagger/index.html
 const API_BASE_URL = 'http://10.0.2.2:51150/api';
 //const API_BASE_URL ='https://prasath-001-site1.ftempurl.com/api';
-//const API_BASE_URL = 'https://localhost:51149/api';
+//const API_BASE_URL = 'http://10.0.2.2:51150/api';
 export const BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 
 const api = axios.create({

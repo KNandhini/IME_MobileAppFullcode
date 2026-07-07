@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Alert,
-  Animated, StatusBar, Dimensions,
+  Animated, StatusBar, Dimensions, Easing,
   KeyboardAvoidingView, Platform, ScrollView,
 } from 'react-native';
 import { TextInput } from 'react-native-paper';
@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';
 import WelcomeCard from '../components/WelcomeCard';
+import { SplashFadeContext } from '../navigation/AppNavigator';
 
 const { width } = Dimensions.get('window');
 const NAVY = '#1E3A5F';
@@ -21,16 +22,27 @@ const LoginScreen = ({ navigation }) => {
   const [secureText, setSecureText] = useState(true);
 
   const { login } = useAuth();
+  const startFadeIn = useContext(SplashFadeContext);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(40)).current;
+  const screenOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    if (!startFadeIn) return; // stay invisible until the splash tells us to go
+
+    Animated.timing(screenOpacity, {
+      toValue: 1,
+      duration: 480, // matches the splash's fade-out duration for a clean crossfade
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+
     Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 800, delay: 200, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 700, delay: 200, useNativeDriver: true }),
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, delay: 100, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 700, delay: 100, useNativeDriver: true }),
     ]).start();
-  }, []);
+  }, [startFadeIn]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -73,7 +85,7 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.root}>
+    <Animated.View style={[styles.root, { opacity: screenOpacity }]}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       {/* ── Hero / Logo section ── */}
@@ -206,7 +218,7 @@ const LoginScreen = ({ navigation }) => {
         </ScrollView>
       </KeyboardAvoidingView>
 
-    </View>
+    </Animated.View>
   );
 };
 
@@ -254,7 +266,6 @@ const styles = StyleSheet.create({
 
   scrollContent: { paddingHorizontal: 16, paddingBottom: 30 },
 
-  // Login card
   card: {
     backgroundColor: '#fff',
     borderRadius: 20,
@@ -296,7 +307,6 @@ const styles = StyleSheet.create({
   },
   signupBtnText: { color: NAVY, fontSize: 15, fontWeight: '700' },
 
-  // Quick actions
   quickRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
   quickAction: {
     flex: 1,
@@ -315,7 +325,6 @@ const styles = StyleSheet.create({
   },
   quickLabel: { color: '#fff', fontSize: 11, fontWeight: '600', textAlign: 'center' },
 
-  // Stats
   statsBar: {
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.08)',

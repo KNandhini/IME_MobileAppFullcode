@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { ActivityIndicator, View, Text } from 'react-native';
+import React, { useCallback, useState, createContext } from 'react';
+import { ActivityIndicator, View, Text, StyleSheet } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -72,8 +72,15 @@ import MyPostScreen from '../screens/MypostScreen';
 import MagazinesScreen from '../screens/MagazinesScreen';
 import MagazineDetailScreen from '../screens/MagazineDetailScreen';
 import MagazineFormScreen from '../screens/MagazineFormScreen';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Lets LoginScreen (mounted underneath the splash overlay from app start)
+// know when to begin its own fade-in. Defaults to `true` so any screen
+// reached later (e.g. Login after a logout) just fades in immediately
+// instead of waiting for a splash signal that will never come again.
+export const SplashFadeContext = createContext(true);
 
 const HEADER_STYLE = {
   headerStyle: { backgroundColor: '#1E3A5F' },
@@ -118,7 +125,6 @@ const AuthStack = () => (
     <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
-    {/*<Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />*/}
     <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MunicipalMap" component={MunicipalMapScreen} />
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
@@ -314,10 +320,8 @@ const MainStack = () => (
     <Stack.Screen name="FeesDetails" component={FeesDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="GovernanceDetails" component={GovernanceDetailsScreen} options={{ headerShown: false }} />
     <Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />
-    {/*<Stack.Screen name="HistoryDetails" component={HistoryDetailsScreen} options={{ headerShown: false }} />*/}
     <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />
 
-    {/* ✅ Add the missing opening tag, remove the duplicate AddCircular */}
     <Stack.Screen
       name="RegistrationPayment"
       component={RegistrationPaymentScreen}
@@ -333,21 +337,17 @@ const MainStack = () => (
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AddCircular" component={AddCircularScreen} options={{ headerShown: false }} />
-    {/*<Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="MemberEdit" component={MemberEditScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="AdminSignup" component={AdminSignupScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="ObjectivesDetails" component={ObjectivesDetailsScreen} options={{ headerShown: false }} />*/}
-  <Stack.Screen name="MyPost" component={MyPostScreen}options={{ headerShown: false }} />
-  <Stack.Screen name="Magazines" component={MagazinesScreen} options={{ title: 'Magazines' }} />
-<Stack.Screen name="MagazineForm" component={MagazineFormScreen} options={{ headerShown: false }} />
-<Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="MyPost" component={MyPostScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="Magazines" component={MagazinesScreen} options={{ title: 'Magazines' }} />
+    <Stack.Screen name="MagazineForm" component={MagazineFormScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
 const AppNavigator = () => {
   const { isAuthenticated, loading } = useAuth();
-  const [showSplash, setShowSplash] = React.useState(true);
+  const [showSplash, setShowSplash] = useState(true);
+  const [loginFadeIn, setLoginFadeIn] = useState(false);
 
   // Called by AnimatedSplashScreen once it has actually painted a frame —
   // this is the moment it's safe to hide the native launch screen without
@@ -356,30 +356,41 @@ const AppNavigator = () => {
     SplashScreen.hideAsync().catch(() => { });
   }, []);
 
-  if (showSplash) {
-    return (
-      <AnimatedSplashScreen
-        onReady={handleSplashReady}
-        onFinish={() => setShowSplash(false)}
-      />
-    );
-  }
+  // The real app content — mounted from the very start (invisible),
+  // sitting underneath the splash overlay until it's revealed.
+  const content = loading ? (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#1E3A5F',
+      }}>
+      <ActivityIndicator size="large" color="#D4A017" />
+    </View>
+  ) : isAuthenticated ? (
+    <MainStack />
+  ) : (
+    <AuthStack />
+  );
 
-  if (loading) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: '#1E3A5F',
-        }}>
-        <ActivityIndicator size="large" color="#D4A017" />
+  return (
+    <SplashFadeContext.Provider value={loginFadeIn}>
+      <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
+        {content}
+
+        {showSplash && (
+          <View style={StyleSheet.absoluteFill}>
+            <AnimatedSplashScreen
+              onReady={handleSplashReady}
+              onExitStart={() => setLoginFadeIn(true)}
+              onFinish={() => setShowSplash(false)}
+            />
+          </View>
+        )}
       </View>
-    );
-  }
-
-  return isAuthenticated ? <MainStack /> : <AuthStack />;
+    </SplashFadeContext.Provider>
+  );
 };
 
 export default AppNavigator;
