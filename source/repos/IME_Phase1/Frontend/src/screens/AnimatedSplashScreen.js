@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
+import { Audio } from 'expo-av';
 
 const COLORS = {
     navy: '#123663',
@@ -19,9 +20,22 @@ const COLORS = {
 
 const SPARKLE_COUNT = 12;
 
+// Music starts as soon as it's loaded (t=0). The logo waits this long
+// AFTER that before it appears, so the music plays alone for 1s first.
+const MUSIC_LEAD_MS = 1000;
+const LOGO_START_DELAY_MS = MUSIC_LEAD_MS;
+
+// How long the logo + music play together (after the logo appears)
+// before the fade-out begins.
+const SYNCED_PLAY_DURATION_MS = 6000;
+
+// Total time-on-screen before the exit (fade-out) animation starts.
+// = 1s music-alone lead-in + 6s logo-and-music-together.
+const SPLASH_DURATION_MS = LOGO_START_DELAY_MS + SYNCED_PLAY_DURATION_MS;
+
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-export default function AnimatedSplashScreen({ onFinish, onReady }) {
+export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart }) {
     const { width, height } = useWindowDimensions();
 
     const layout = useMemo(() => {
@@ -53,6 +67,9 @@ export default function AnimatedSplashScreen({ onFinish, onReady }) {
         Array.from({ length: SPARKLE_COUNT }, () => new Animated.Value(0)),
     ).current;
 
+    // Ref to the loaded background music Sound object
+    const soundRef = useRef(null);
+
     // Tell the parent (App.js) that this screen has actually painted a frame,
     // so the native splash screen can be hidden without a white gap showing
     // between it and this gradient.
@@ -66,11 +83,52 @@ export default function AnimatedSplashScreen({ onFinish, onReady }) {
         return () => cancelAnimationFrame(raf1);
     }, []);
 
+    // Load and immediately play the background music — this starts the
+    // instant it's ready, 1 full second BEFORE the logo begins appearing.
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadAndPlay = async () => {
+            try {
+                await Audio.setAudioModeAsync({
+                    playsInSilentModeIOS: true,
+                    staysActiveInBackground: false,
+                    shouldDuckAndroid: true,
+                });
+
+                const { sound } = await Audio.Sound.createAsync(
+                    require('../assets/audio/splash-theme.mp3'),
+                    { shouldPlay: true, volume: 1.0 },
+                );
+
+                if (!isMounted) {
+                    await sound.unloadAsync();
+                    return;
+                }
+
+                soundRef.current = sound;
+            } catch (e) {
+                console.warn('Splash audio failed to load/play:', e.message);
+            }
+        };
+
+        loadAndPlay();
+
+        return () => {
+            isMounted = false;
+            if (soundRef.current) {
+                soundRef.current.stopAsync().catch(() => {});
+                soundRef.current.unloadAsync().catch(() => {});
+                soundRef.current = null;
+            }
+        };
+    }, []);
+
     useEffect(() => {
         const activeLoops = [];
 
         Animated.sequence([
-            Animated.delay(200),
+            Animated.delay(LOGO_START_DELAY_MS),
             Animated.parallel([
                 Animated.timing(logoOpacity, {
                     toValue: 1,
@@ -88,7 +146,9 @@ export default function AnimatedSplashScreen({ onFinish, onReady }) {
         ]).start();
 
         sparkleAnims.forEach((anim) => {
-            const delay = 700 + Math.random() * 700;
+            // Shifted forward by LOGO_START_DELAY_MS so sparkles still feel
+            // staged relative to the logo, not relative to raw mount time.
+            const delay = LOGO_START_DELAY_MS + 700 + Math.random() * 700;
             let cancelled = false;
 
             const loop = () => {
@@ -119,7 +179,9 @@ export default function AnimatedSplashScreen({ onFinish, onReady }) {
         });
 
         Animated.sequence([
-            Animated.delay(750),
+            // Shifted forward by LOGO_START_DELAY_MS so the title still
+            // appears just after the logo, not before it.
+            Animated.delay(LOGO_START_DELAY_MS + 750),
             Animated.parallel([
                 Animated.timing(titleOpacity, {
                     toValue: 1,
@@ -137,6 +199,16 @@ export default function AnimatedSplashScreen({ onFinish, onReady }) {
         ]).start();
 
         const exitTimer = setTimeout(() => {
+            // Fade the music out alongside the screen
+            if (soundRef.current) {
+                soundRef.current.stopAsync().catch(() => {});
+            }
+
+            // Tell the parent the crossfade is starting, right now
+            if (onExitStart) {
+                onExitStart();
+            }
+
             Animated.parallel([
                 Animated.timing(screenFade, {
                     toValue: 0,
@@ -151,11 +223,15 @@ export default function AnimatedSplashScreen({ onFinish, onReady }) {
                     useNativeDriver: true,
                 }),
             ]).start(() => {
+                if (soundRef.current) {
+                    soundRef.current.unloadAsync().catch(() => {});
+                    soundRef.current = null;
+                }
                 if (onFinish) {
                     onFinish();
                 }
             });
-        }, 3200);
+        }, SPLASH_DURATION_MS);
 
         return () => {
             clearTimeout(exitTimer);

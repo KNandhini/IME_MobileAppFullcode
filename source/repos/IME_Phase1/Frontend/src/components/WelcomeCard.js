@@ -1,51 +1,375 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+    View,
+    Text,
+    StyleSheet,
+    TouchableOpacity,
+    FlatList,
+    Dimensions,
+    Modal,
+    ScrollView,
+    SafeAreaView,
+} from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { NumberedItem, BulletItem } from './Accordion';
 
 const NAVY = '#003366';
+const ROYAL = '#0055AA';
 const GOLD = '#D4AF37';
 
-const WelcomeCard = ({ onViewMore }) => (
-    <View style={styles.card}>
-        <Text style={styles.welcome}>
-            Welcome to Institution of Municipal Engineers, India (IME India)
-        </Text>
-        <Text style={styles.tagline}>Engineering Better Cities for Tomorrow</Text>
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+// Matches the parent ScrollView's horizontal padding (16 on each side, see
+// LoginScreen's `scrollContent` style) so the carousel exactly fills the card.
+const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-        <Text style={styles.desc} numberOfLines={4}>
-            IME (India) is the national professional body dedicated to strengthening
-            municipal engineering and promoting sustainable urban infrastructure
-            across India.
-        </Text>
+// Single shared gradient so Vision, Mission, and Core Objectives all look consistent.
+const HEADER_COLORS = [NAVY, ROYAL];
 
-        <TouchableOpacity style={styles.btn} onPress={onViewMore} activeOpacity={0.85}>
-            <Text style={styles.btnText}>View More</Text>
-            <MaterialIcons name="arrow-forward" size={16} color="#fff" />
-        </TouchableOpacity>
-    </View>
-);
+const SLIDES = [
+    {
+        key: 'vision',
+        icon: 'visibility',
+        label: 'Vision',
+        colors: HEADER_COLORS,
+        body:
+            'To be the apex professional body for Municipal Engineers in India, ' +
+            'fostering excellence, innovation, and sustainability in urban ' +
+            'infrastructure to engineer livable, resilient, and inclusive cities ' +
+            'across the nation.',
+        // Vision is short enough to always show in full — no truncation, no button.
+        truncate: false,
+        showButton: false,
+        buttonLabel: null,
+    },
+    {
+        key: 'mission',
+        icon: 'flag',
+        label: 'Mission',
+        colors: HEADER_COLORS,
+        body:
+            'Upgrade the skills of municipal engineers nationwide, serve as a ' +
+            'technical think-tank for urban infrastructure policy, disseminate ' +
+            'best practices through journals and conferences, promote ' +
+            'professional ethics, and connect engineers pan-India with ' +
+            'academia and global bodies.',
+        truncate: true,
+        showButton: true,
+        buttonLabel: 'Show More',
+        // Full detail shown in the modal — mirrors the Mission accordion on the About screen.
+        detailItems: [
+            { number: '1', text: 'Professional Development — Upgrade skills of municipal engineers across all States/UTs in roads, water supply, sewerage, street lighting, solid waste, survey & planning, and urban greenery through training, certification, and knowledge exchange.' },
+            { number: '2', text: 'Policy Advocacy — Serve as a technical think-tank to MoHUA, State Governments, and ULBs on urban infrastructure norms, service standards, and municipal reforms.' },
+            { number: '3', text: 'Knowledge Hub — Disseminate best practices, research, and technology solutions for Indian cities through journals, conferences, and digital platforms.' },
+            { number: '4', text: 'Ethics & Standards — Promote professional ethics, safety, and citizen-centric engineering practices in municipal governance.' },
+            { number: '5', text: 'Networking — Connect municipal engineers pan-India and foster collaboration with CPWD, PWD, smart city SPVs, academia, and global bodies.' },
+        ],
+    },
+    {
+        key: 'objectives',
+        icon: 'track-changes',
+        label: 'Core Objectives',
+        colors: HEADER_COLORS,
+        body:
+            'Integrated planning across roads, water, waste water, lighting, ' +
+            'solid waste and green spaces — backed by technical manuals, new ' +
+            'technology adoption, State Chapters in every State/UT, national ' +
+            'awards, and capacity-building conferences with CPHEEO and NIUA.',
+        truncate: true,
+        showButton: true,
+        buttonLabel: 'Show More',
+        // Full detail shown in the modal — mirrors the Core Objectives accordion on the About screen.
+        detailGroups: [
+            {
+                title: 'Technical',
+                bullets: [
+                    'Promote integrated planning and execution of roads, water supply, waste water, street lighting, solid waste management, survey & planning, and urban parks/green spaces.',
+                    'Develop and publish technical manuals, SOPs, and model by-laws suited to Indian ULBs.',
+                    'Facilitate adoption of new technologies: GIS, SCADA, IoT for utilities, C&D waste recycling, energy-efficient lighting.',
+                ],
+            },
+            {
+                title: 'Institutional',
+                bullets: [
+                    'Represent municipal engineering cadre in national forums; work for cadre strengthening and service conditions.',
+                    'Establish State Chapters in all States/UTs under IME (India).',
+                    'Institute national awards for excellence in municipal engineering projects.',
+                ],
+            },
+            {
+                title: 'Capacity Building',
+                bullets: [
+                    'Conduct All-India conferences, workshops, and certification programs in partnership with CPHEEO, NIUA, and engineering colleges.',
+                    'Create a digital repository of DPRs, drawings, and case studies from Indian cities.',
+                ],
+            },
+        ],
+    },
+];
+
+const WelcomeCard = ({ onViewMore }) => {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [modalItem, setModalItem] = useState(null); // holds the slide whose full content is shown
+    const listRef = useRef(null);
+
+    const handleScroll = (e) => {
+        const idx = Math.round(e.nativeEvent.contentOffset.x / CARD_WIDTH);
+        setActiveIndex(idx);
+    };
+
+    const goToSlide = (idx) => {
+        listRef.current?.scrollToOffset({ offset: idx * CARD_WIDTH, animated: true });
+        setActiveIndex(idx);
+    };
+
+    // Auto-play: advance to the next slide every 4s, looping back to the first.
+    // Restarts whenever activeIndex changes, so a manual swipe/dot-tap doesn't
+    // get immediately overridden by a stale timer.
+    useEffect(() => {
+        const timer = setInterval(() => {
+            const nextIndex = (activeIndex + 1) % SLIDES.length;
+            listRef.current?.scrollToOffset({ offset: nextIndex * CARD_WIDTH, animated: true });
+            setActiveIndex(nextIndex);
+        }, 4000);
+        return () => clearInterval(timer);
+    }, [activeIndex]);
+
+    const openDetail = (item) => {
+        // Only opens the local modal for THIS slide's content — does not navigate
+        // to the full About IME screen. `onViewMore` is intentionally not called
+        // here so tapping "View More" / "Show More" never triggers navigation.
+        setModalItem(item);
+    };
+
+    const closeDetail = () => setModalItem(null);
+
+    return (
+        <View style={styles.card}>
+            
+
+            <FlatList
+                ref={listRef}
+                data={SLIDES}
+                keyExtractor={(item) => item.key}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={CARD_WIDTH}
+                decelerationRate="fast"
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+                getItemLayout={(_, i) => ({ length: CARD_WIDTH, offset: CARD_WIDTH * i, index: i })}
+                style={styles.carousel}
+                renderItem={({ item }) => (
+                    <View style={[styles.slide, { width: CARD_WIDTH }]}>
+                        <LinearGradient
+                            colors={item.colors}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.slideHeader}
+                        >
+                            <View style={styles.iconBadge}>
+                                <MaterialIcons name={item.icon} size={18} color="#fff" />
+                            </View>
+                            <Text style={styles.slideLabel}>{item.label}</Text>
+                        </LinearGradient>
+
+                        <Text
+                            style={styles.desc}
+                            numberOfLines={item.truncate ? 4 : undefined}
+                        >
+                            {item.body}
+                        </Text>
+
+                        {item.showButton && (
+                            <TouchableOpacity
+                                style={styles.btn}
+                                onPress={() => openDetail(item)}
+                                activeOpacity={0.6}
+                            >
+                                <Text style={styles.btnText}>{item.buttonLabel}</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                )}
+            />
+
+            {/* Pagination dots */}
+            <View style={styles.dotsRow}>
+                {SLIDES.map((_, i) => (
+                    <TouchableOpacity
+                        key={i}
+                        onPress={() => goToSlide(i)}
+                        hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
+                    >
+                        <View style={[styles.dot, i === activeIndex && styles.dotActive]} />
+                    </TouchableOpacity>
+                ))}
+            </View>
+
+            {/* Full-content modal — shows ONLY the tapped slide's content, nothing else */}
+            <Modal
+                visible={!!modalItem}
+                animationType="slide"
+                presentationStyle="fullScreen"
+                onRequestClose={closeDetail}
+            >
+                <View style={styles.modalOverlay}>
+                    <SafeAreaView style={styles.modalSheet}>
+                        {modalItem && (
+                            <>
+                                <LinearGradient
+                                    colors={modalItem.colors}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 0 }}
+                                    style={styles.modalHeader}
+                                >
+                                    <TouchableOpacity
+                                        onPress={closeDetail}
+                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    >
+                                        <MaterialIcons name="arrow-back" size={22} color="#fff" />
+                                    </TouchableOpacity>
+                                    <View style={styles.modalHeaderLeft}>
+                                        <View style={styles.iconBadgeLg}>
+                                            <MaterialIcons name={modalItem.icon} size={20} color="#fff" />
+                                        </View>
+                                        <Text style={styles.modalTitle}>{modalItem.label}</Text>
+                                    </View>
+                                </LinearGradient>
+
+                                <ScrollView
+                                    style={styles.modalBody}
+                                    contentContainerStyle={styles.modalBodyContent}
+                                    showsVerticalScrollIndicator={false}
+                                    alwaysBounceVertical
+                                >
+                                    {/* Mission: numbered list, same as the About screen's Mission accordion */}
+                                    {modalItem.detailItems && modalItem.detailItems.map((it) => (
+                                        <NumberedItem key={it.number} number={it.number} text={it.text} />
+                                    ))}
+
+                                    {/* Core Objectives: Technical / Institutional / Capacity Building
+                                        sections — plain headers, always expanded, no collapse icon */}
+                                    {modalItem.detailGroups && modalItem.detailGroups.map((group) => (
+                                        <View key={group.title} style={styles.groupBlock}>
+                                            <Text style={styles.groupTitle}>{group.title}</Text>
+                                            {group.bullets.map((b, idx) => (
+                                                <BulletItem key={idx} text={b} />
+                                            ))}
+                                        </View>
+                                    ))}
+
+                                    {/* Fallback: plain paragraph if a slide has neither structure */}
+                                    {!modalItem.detailItems && !modalItem.detailGroups && (
+                                        <Text style={styles.modalText}>{modalItem.body}</Text>
+                                    )}
+                                </ScrollView>
+                            </>
+                        )}
+                    </SafeAreaView>
+                </View>
+            </Modal>
+        </View>
+    );
+};
 
 const styles = StyleSheet.create({
     card: {
         backgroundColor: '#fff',
         borderRadius: 16,
-        padding: 18,
+        paddingTop: 18,
+        paddingHorizontal: 18,
+        paddingBottom: 12,
         marginBottom: 14,
         elevation: 4,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 3 },
         shadowOpacity: 0.1,
         shadowRadius: 8,
+        overflow: 'hidden',
     },
     welcome: { fontSize: 15, fontWeight: '800', color: NAVY, marginBottom: 4 },
-    tagline: { fontSize: 12, fontWeight: '600', color: GOLD, marginBottom: 10 },
-    desc: { fontSize: 13, color: '#4A5568', lineHeight: 19, marginBottom: 14 },
-    btn: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        alignSelf: 'flex-start', backgroundColor: NAVY,
-        borderRadius: 10, paddingVertical: 9, paddingHorizontal: 18,
+    tagline: { fontSize: 12, fontWeight: '600', color: GOLD, marginBottom: 14 },
+
+    // Carousel sits edge-to-edge by cancelling out the card's own horizontal padding
+    carousel: { marginHorizontal: -18 },
+    slide: { paddingHorizontal: 18 },
+
+    slideHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        alignSelf: 'flex-start',
+        borderRadius: 20,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        marginBottom: 12,
+        gap: 8,
     },
-    btnText: { color: '#fff', fontWeight: '700', fontSize: 13, marginRight: 6 },
+    iconBadge: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    slideLabel: { color: '#fff', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
+
+    desc: { fontSize: 13, color: '#4A5568', lineHeight: 20, marginBottom: 14, minHeight: 80 },
+
+    btn: {
+        alignSelf: 'flex-start',
+    },
+    btnText: { color: ROYAL, fontWeight: '700', fontSize: 12.5 },
+
+    dotsRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 6,
+        marginTop: 6,
+    },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D9E2EC' },
+    dotActive: { backgroundColor: NAVY, width: 18, borderRadius: 3 },
+
+    // Full-screen detail view (for Mission / Core Objectives)
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    modalSheet: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 16,
+        paddingHorizontal: 20,
+        gap: 14,
+    },
+    modalHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+    iconBadgeLg: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: 'rgba(255,255,255,0.25)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    modalTitle: { color: '#fff', fontWeight: '800', fontSize: 17, letterSpacing: 0.3 },
+    modalBody: { flex: 1, paddingHorizontal: 20 },
+    modalBodyContent: { paddingVertical: 20, paddingBottom: 32 },
+    modalText: { fontSize: 14.5, lineHeight: 23, color: '#334155' },
+
+    groupBlock: {
+        backgroundColor: '#F5F7FA',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 14,
+    },
+    groupTitle: { fontSize: 15, fontWeight: '800', color: ROYAL, marginBottom: 10 },
 });
 
 export default WelcomeCard;
