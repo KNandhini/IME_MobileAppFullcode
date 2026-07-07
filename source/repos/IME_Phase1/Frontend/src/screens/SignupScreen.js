@@ -3,7 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, Alert,
   TouchableOpacity, Modal, Image, FlatList
 } from 'react-native';
-import { TextInput, Button, Menu } from 'react-native-paper';
+import { TextInput, Button, Menu, Checkbox } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -26,6 +26,9 @@ const SignupScreen = ({ navigation }) => {
   const [selectedDate, setSelectedDate] = useState(null);
 
   const [welcomeVisible, setWelcomeVisible] = useState(true);
+  const [termsVisible, setTermsVisible] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [pendingPaymentParams, setPendingPaymentParams] = useState(null);
   const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
   // ── Location state ─────────────────────────────────────────────────────────
@@ -152,6 +155,18 @@ const SignupScreen = ({ navigation }) => {
     return `${y}-${m}-${d}`;
   };
 
+  const calculateAge = (dateOfBirth) => {
+    const todayDate = new Date();
+    let age = todayDate.getFullYear() - dateOfBirth.getFullYear();
+    const monthDiff = todayDate.getMonth() - dateOfBirth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && todayDate.getDate() < dateOfBirth.getDate())) {
+      age -= 1;
+    }
+
+    return String(Math.max(age, 0));
+  };
+
   const validate = () => {
     let e = {};
     if (!formData.fullName) e.fullName = 'Required';
@@ -204,38 +219,42 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
-  const handleSignup = async () => {
-    if (!validate()) return;
+  const buildSignupPayload = () => ({
+    fullName: formData.fullName,
+    email: formData.email,
+    password: formData.password,
+    contactNumber: formData.contactNumber,
+    address: formData.address,
+    gender: formData.gender,
+    age: parseInt(formData.age),
+    dateOfBirth: formData.dateOfBirth,
+    designationId: formData.designationId,
+    countryId: selectedCountry?.countryId ?? null,
+    stateId: selectedState?.stateId ?? null,
+    clubId: selectedClub?.clubId?.toString() ?? null,
+    roleId: 2,
+    occupation,
+    ...(showOccupationDetails && { occupationDetails }),
+    ...(showEducationSection && { qualification }),
+  });
+
+  const showTermsAndConditions = () => {
+    setPendingPaymentParams(null);
+    setTermsAccepted(false);
+    setTermsVisible(true);
+  };
+
+  const handleTermsContinue = async () => {
+    if (!termsAccepted) {
+      Alert.alert('Terms Required', 'Please agree to the terms and conditions to continue.');
+      return;
+    }
+
     setLoading(true);
     try {
-      debugger;
-      // ✅ Explicit payload — no spread, no extra fields
-      const payload = {
-
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        contactNumber: formData.contactNumber,
-        address: formData.address,
-        gender: formData.gender,
-        age: parseInt(formData.age),
-        dateOfBirth: formData.dateOfBirth,
-        designationId: formData.designationId,
-        countryId: selectedCountry?.countryId ?? null,
-        stateId: selectedState?.stateId ?? null,
-        clubId: selectedClub?.clubId?.toString() ?? null,
-        roleId: 2,
-
-        // ── Occupation ──
-        occupation,
-        ...(showOccupationDetails && { occupationDetails }),
-
-        // ── Educational Qualification ──
-        ...(showEducationSection && { qualification }),
-      };
-
-      const response = await api.post('/Auth/signup', payload);
+      const response = await api.post('/Auth/signup', buildSignupPayload());
       const res = response.data;
+
       if (res.success) {
         const paymentParams = {
           userId: res.data.userId,
@@ -247,10 +266,6 @@ const SignupScreen = ({ navigation }) => {
           profilePhotoUri: profilePhoto?.uri ?? null,
         };
 
-        const isPendingPayment = res.message === 'PENDING_PAYMENT';
-        const isGraceExpired = res.message === 'GRACE_EXPIRED';
-
-        // Always refresh the local grace flag (covers re-register after back-press)
         await AsyncStorage.setItem('paymentGrace', JSON.stringify({
           pending: true,
           registeredAt: Date.now(),
@@ -258,62 +273,25 @@ const SignupScreen = ({ navigation }) => {
           paymentParams,
         }));
 
-        if (isGraceExpired) {
-          Alert.alert(
-            'Grace Period Expired',
-            'Your 3-day free period had ended, but we\'ve reset it.\n\nComplete your payment now to activate your account.',
-            [
-              {
-                text: 'Pay Now',
-                onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-              },
-              {
-                text: 'Pay Later',
-                style: 'cancel',
-                onPress: () => navigation.navigate('Login'),
-              },
-            ],
-          );
-        } else if (isPendingPayment) {
-          // Account already exists, payment not completed — resume payment
-          Alert.alert(
-            'Payment Pending',
-            'Your account is already registered but payment is incomplete.\n\nComplete payment now to activate your account.',
-            [
-              {
-                text: 'Pay Now',
-                onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-              },
-              {
-                text: 'Pay Later',
-                style: 'cancel',
-                onPress: () => navigation.navigate('Login'),
-              },
-            ],
-          );
-        } else {
-          Alert.alert(
-            'Registration Successful! 🎉',
-            'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
-            [
-              {
-                text: 'Pay Now',
-                onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-              },
-              {
-                text: 'Pay Later (3 days)',
-                style: 'cancel',
-                onPress: () => {
-                  Alert.alert(
-                    'Account Activated',
-                    'Your account is active for 3 days. Please complete payment before it expires.',
-                    [{ text: 'Go to Login', onPress: () => navigation.navigate('Login') }],
-                  );
-                },
-              },
-            ],
-          );
-        }
+        setPendingPaymentParams(paymentParams);
+        setTermsVisible(false);
+        setTermsAccepted(false);
+
+        Alert.alert(
+          'Registration Successful! 🎉',
+          'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
+          [
+            {
+              text: 'Pay Now',
+              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
+            },
+            {
+              text: 'Pay Later (3 Days)',
+              style: 'cancel',
+              onPress: () => navigation.navigate('Login'),
+            },
+          ],
+        );
       } else {
         Alert.alert('Registration Failed', res.message);
       }
@@ -324,6 +302,16 @@ const SignupScreen = ({ navigation }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleTermsClose = () => {
+    setTermsVisible(false);
+    setTermsAccepted(false);
+  };
+
+  const handleSignup = async () => {
+    if (!validate()) return;
+    showTermsAndConditions();
   };
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -352,6 +340,69 @@ const SignupScreen = ({ navigation }) => {
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
               <Text style={styles.backLink}>Already a member? Login</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Terms & Conditions Modal */}
+      <Modal visible={termsVisible} transparent animationType="slide" onRequestClose={() => setTermsVisible(false)}>
+        <View style={styles.termsOverlay}>
+          <View style={styles.termsSheet}>
+            <View style={styles.termsHeader}>
+              <Text style={styles.termsTitle}>Terms & Conditions</Text>
+              <TouchableOpacity
+                style={styles.termsCloseButton}
+                onPress={handleTermsClose}
+                accessibilityRole="button"
+                accessibilityLabel="Close terms and conditions"
+              >
+                <Text style={styles.termsCloseText}>X</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.termsSubtitle}>Please review before payment</Text>
+
+            <ScrollView style={styles.termsContent} showsVerticalScrollIndicator>
+              <Text style={styles.termsText}>
+                By continuing, you confirm that the details submitted during registration are accurate and belong to you.
+              </Text>
+              <Text style={styles.termsText}>
+                Membership activation is subject to successful payment verification and approval by the IME administration.
+              </Text>
+              <Text style={styles.termsText}>
+                The annual membership fee is non-transferable. Payment status and receipts will be maintained in your member account.
+              </Text>
+              <Text style={styles.termsText}>
+                You agree to follow IME member guidelines and understand that misuse of the account may lead to restricted access.
+              </Text>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.termsCheckRow}
+              onPress={() => setTermsAccepted((value) => !value)}
+              activeOpacity={0.8}
+            >
+              <View pointerEvents="none">
+                <Checkbox
+                  status={termsAccepted ? 'checked' : 'unchecked'}
+                  color="#1E3A5F"
+                />
+              </View>
+              <Text style={styles.termsCheckText}>I agree to the terms and conditions</Text>
+            </TouchableOpacity>
+
+            <Button
+              mode="contained"
+              onPress={handleTermsContinue}
+              disabled={!termsAccepted || loading}
+              loading={loading}
+              style={[styles.button, !termsAccepted && styles.disabledButton]}
+              labelStyle={{ fontSize: 16 }}
+            >
+              Agree & Continue
+            </Button>
+            <Button mode="text" onPress={() => setTermsVisible(false)} style={styles.linkButton}>
+              Back to Registration
+            </Button>
           </View>
         </View>
       </Modal>
@@ -484,14 +535,18 @@ const SignupScreen = ({ navigation }) => {
               setShowDatePicker(false);
               if (event.type === 'set' && date) {
                 setSelectedDate(date);
-                updateField('dateOfBirth', formatDate(date));
+                setFormData((prev) => ({
+                  ...prev,
+                  dateOfBirth: formatDate(date),
+                  age: calculateAge(date),
+                }));
               }
             }} />
         )}
 
-        <TextInput label="Age *" value={formData.age} onChangeText={(t) => updateField('age', t)}
+        <TextInput label="Age *" value={formData.age}
           keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
         {/* <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
@@ -706,6 +761,19 @@ const styles = StyleSheet.create({
   proceedBtn: { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
   proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   backLink: { color: '#1976D2', fontSize: 14 },
+  // Terms & Conditions
+  termsOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
+  termsSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '88%' },
+  termsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  termsTitle: { fontSize: 22, fontWeight: 'bold', color: '#1E3A5F' },
+  termsCloseButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F0F2F5' },
+  termsCloseText: { fontSize: 18, color: '#1E3A5F', fontWeight: '700' },
+  termsSubtitle: { fontSize: 13, color: '#666', marginTop: 4, marginBottom: 14 },
+  termsContent: { maxHeight: 260, borderWidth: 1, borderColor: '#E3EAF5', borderRadius: 12, padding: 14, backgroundColor: '#F7F9FC' },
+  termsText: { fontSize: 14, color: '#333', lineHeight: 21, marginBottom: 12 },
+  termsCheckRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 2 },
+  termsCheckText: { flex: 1, fontSize: 14, color: '#1E3A5F', fontWeight: '600' },
+  disabledButton: { backgroundColor: '#9CA9B8' },
   // Picker modals
   pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
   pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
@@ -720,3 +788,5 @@ const styles = StyleSheet.create({
 });
 
 export default SignupScreen;
+
+
