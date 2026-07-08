@@ -72,6 +72,8 @@ import MyPostScreen from '../screens/MypostScreen';
 import MagazinesScreen from '../screens/MagazinesScreen';
 import MagazineDetailScreen from '../screens/MagazineDetailScreen';
 import MagazineFormScreen from '../screens/MagazineFormScreen';
+import MembershipBenefitsScreen from '../screens/Membershipbenefitsscreen';
+
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -100,6 +102,7 @@ const AuthStack = () => (
   >
     <Stack.Screen name="Login" component={LoginScreen} />
     <Stack.Screen name="Signup" component={SignupScreen} />
+
     <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
     <Stack.Screen
       name="RegistrationPayment"
@@ -111,7 +114,7 @@ const AuthStack = () => (
         headerTintColor: '#fff',
       }}
     />
-<Stack.Screen
+    <Stack.Screen
       name="About"
       component={AboutScreen}
       options={{
@@ -130,7 +133,7 @@ const AuthStack = () => (
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Demo" component={DemoScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
-
+    <Stack.Screen name="MembershipBenefits" component={MembershipBenefitsScreen} options={{ headerShown: false }} />
   </Stack.Navigator>
 );
 
