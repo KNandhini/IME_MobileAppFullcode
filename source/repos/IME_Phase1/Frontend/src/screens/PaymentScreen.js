@@ -1,17 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-  Modal,
-} from 'react-native';
+import { View, Text, ScrollView, Alert, ActivityIndicator, Modal } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { Button, Card, RadioButton, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { paymentService } from '../services/paymentService';
+import { PaymentScreenStyles as styles } from './screenStyles';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 const HARDCODED_AMOUNT = 2500;
@@ -429,46 +422,6 @@ const PaymentScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  feeCard: { margin: 15, elevation: 3, backgroundColor: '#2196F3' },
-  feeLabel: { fontSize: 16, color: '#fff', opacity: 0.9 },
-  feeAmount: { fontSize: 36, fontWeight: 'bold', color: '#fff', marginVertical: 8 },
-  feeYear: { fontSize: 14, color: '#fff', opacity: 0.8 },
-
-  methodCard: { margin: 15, marginTop: 0, elevation: 2 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 12, color: '#333' },
-  radioItem: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  radioLabel: { fontSize: 16, color: '#333', marginLeft: 8 },
-
-  actionCard: { margin: 15, marginTop: 0, elevation: 2 },
-  amountBreakdown: { backgroundColor: '#F8F9FA', borderRadius: 12, padding: 16, marginBottom: 16 },
-  breakdownRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 4 },
-  breakdownLabel: { fontSize: 14, color: '#666' },
-  breakdownValue: { fontSize: 14, color: '#333', fontWeight: '500' },
-  breakdownDivider: { height: 1, backgroundColor: '#E0E0E0', marginVertical: 8 },
-  breakdownTotal: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  breakdownTotalValue: { fontSize: 18, fontWeight: 'bold', color: '#2196F3' },
-
-  infoText: { fontSize: 13, color: '#666', marginBottom: 16, textAlign: 'center' },
-  payButton: { paddingVertical: 6 },
-  historyButton: { margin: 15 },
-
-  webViewContainer: { flex: 1, backgroundColor: '#fff' },
-  webViewHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16, paddingTop: 48,
-    paddingBottom: 8, backgroundColor: '#fff',
-    borderBottomWidth: 1, borderBottomColor: '#eee',
-  },
-  webViewTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  webViewLoading: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    justifyContent: 'center', alignItems: 'center',
-  },
-});
 
 export default PaymentScreen;

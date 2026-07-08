@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Linking, Share, Image, Modal, ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Linking, Share, Image, Modal, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { circularService } from '../services/circularService';
 import api from '../utils/api';
+import { CircularDetailScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -178,45 +176,6 @@ const CircularDetailScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F5F7FA' },
 
-  header: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn:   { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  body: { padding: 20, paddingBottom: 40 },
-
-  chipWrap: { marginBottom: 14 },
-  chip: {
-    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
-    backgroundColor: '#EFF6FF', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
-  },
-  chipText: { color: NAVY, fontSize: 12, fontWeight: '700', marginLeft: 5, letterSpacing: 0.3 },
-
-  title:       { fontSize: 22, fontWeight: '800', color: '#0F172A', lineHeight: 30, marginBottom: 14 },
-  metaRow:     { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  metaText:    { color: '#64748B', fontSize: 13, fontWeight: '500', marginLeft: 6 },
-  goldDivider: { height: 3, width: 48, backgroundColor: GOLD, borderRadius: 2, marginBottom: 20 },
-  description: { fontSize: 15, color: '#334155', lineHeight: 24, marginBottom: 24 },
-  noDesc:      { fontSize: 14, color: '#94A3B8', fontStyle: 'italic' },
-
-  attachSection: { width: '100%', marginTop: 8 },
-  attachLabel:   { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-  noAttach:      { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-  attachImage:   { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#fff' },
-  attachHint:    { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
-  downloadBtn:   { flexDirection: 'row', alignItems: 'center', backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10 },
-  downloadText:  { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8, flex: 1 },
-
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
-  viewerClose:   { position: 'absolute', top: 40, right: 20, padding: 8 },
-  viewerImage:   { width: '100%', height: '80%' },
-});
 
 export default CircularDetailScreen;

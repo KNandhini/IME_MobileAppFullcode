@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { List, Divider, Badge } from 'react-native-paper';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
+import { NotificationsScreenStyles as styles } from './screenStyles';
 
 const NotificationsScreen = () => {
   const [notifications, setNotifications] = useState([]);
@@ -122,41 +123,6 @@ const NotificationsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-  },
-  unreadItem: {
-    backgroundColor: '#E3F2FD',
-  },
-  unreadTitle: {
-    fontWeight: 'bold',
-  },
-  readTitle: {
-    fontWeight: 'normal',
-  },
-  rightContainer: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-  },
-  time: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 4,
-  },
-  badge: {
-    backgroundColor: '#2196F3',
-  },
-});
+
 
 export default NotificationsScreen;

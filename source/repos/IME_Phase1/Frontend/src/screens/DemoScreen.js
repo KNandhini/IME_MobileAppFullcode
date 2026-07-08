@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, Animated,
-  StatusBar, Dimensions, ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Animated, StatusBar, Dimensions, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { DemoScreenStyles as styles } from './screenStyles';
 
 const { width: W, height: H } = Dimensions.get('window');
-const NAVY  = '#1E3A5F';
-const GOLD  = '#D4A017';
+const NAVY = '#1E3A5F';
+const GOLD = '#D4A017';
 const WHITE = '#FFFFFF';
 const LIGHT = '#F0F4F8';
 
@@ -108,8 +106,8 @@ const SLIDES = [
   {
     id: 'done',
     title: "You're All Set!",
-    subtitle: 'Start Your IMC Journey',
-    desc: 'Sign in with your member credentials to access all features. New member? Register to join the IMC community.',
+    subtitle: 'Start Your IME Journey',
+    desc: 'Sign in with your member credentials to access all features. New member? Register to join the IME community.',
     icon: 'check-circle-outline',
     color: '#1B5E20',
     accent: '#69F0AE',
@@ -147,7 +145,7 @@ const MockupContent = ({ type, accent }) => {
           <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
             <MaterialCommunityIcons name="city-variant-outline" size={32} color={NAVY} />
           </View>
-          <Text style={{ color: GOLD, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IMC</Text>
+          <Text style={{ color: GOLD, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IME</Text>
           <Text style={{ color: WHITE, fontSize: 10, marginTop: 2 }}>Institute of Municipal Corporation</Text>
           <View style={{ marginTop: 20, width: 40, height: 3, backgroundColor: GOLD, borderRadius: 2 }} />
         </View>
@@ -160,7 +158,7 @@ const MockupContent = ({ type, accent }) => {
             <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' }}>
               <MaterialCommunityIcons name="city-variant-outline" size={20} color={GOLD} />
             </View>
-            <Text style={{ color: GOLD, fontSize: 10, fontWeight: '900', marginTop: 4 }}>IMC</Text>
+            <Text style={{ color: GOLD, fontSize: 10, fontWeight: '900', marginTop: 4 }}>IME</Text>
           </View>
           <View style={{ backgroundColor: WHITE, borderRadius: 10, margin: 8, padding: 10 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 11, marginBottom: 6 }}>Sign In</Text>
@@ -210,7 +208,7 @@ const MockupContent = ({ type, accent }) => {
       return (
         <View style={{ flex: 1 }}>
           <View style={{ backgroundColor: NAVY, padding: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: GOLD, fontWeight: '900', fontSize: 10 }}>IMC</Text>
+            <Text style={{ color: GOLD, fontWeight: '900', fontSize: 10 }}></Text>
             <MaterialCommunityIcons name="bell-outline" size={14} color={WHITE} />
           </View>
           <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
@@ -241,7 +239,7 @@ const MockupContent = ({ type, accent }) => {
               <Text style={{ color: WHITE, fontSize: 16, fontWeight: '700' }}>M</Text>
             </View>
             <Text style={{ color: WHITE, fontWeight: '700', fontSize: 10 }}>Member Name</Text>
-            <Text style={{ color: GOLD, fontSize: 8 }}>IMC Member · Active</Text>
+            <Text style={{ color: GOLD, fontSize: 8 }}>IME Member · Active</Text>
           </View>
           {['Full Name', 'Email', 'Contact', 'Location'].map((f, i) => (
             <View key={i} style={{ backgroundColor: WHITE, marginHorizontal: 8, marginTop: 4, borderRadius: 6, padding: 6 }}>
@@ -369,7 +367,7 @@ const MockupContent = ({ type, accent }) => {
             Ready to Go!
           </Text>
           <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, marginTop: 6, textAlign: 'center', paddingHorizontal: 20 }}>
-            Sign in to your IMC account{'\n'}and start exploring all features.
+            Sign in to your IME account{'\n'}and start exploring all features.
           </Text>
           <View style={{ marginTop: 16, backgroundColor: GOLD, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 20 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 10 }}>Sign In Now</Text>
@@ -384,11 +382,11 @@ const MockupContent = ({ type, accent }) => {
 
 // ── Main Screen ───────────────────────────────────────────────────
 const DemoScreen = ({ navigation }) => {
-  const [current,   setCurrent]   = useState(0);
-  const [playing,   setPlaying]   = useState(true);
-  const slideAnim   = useRef(new Animated.Value(0)).current;
+  const [current, setCurrent] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const slideAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
-  const timerRef    = useRef(null);
+  const timerRef = useRef(null);
   const progressRef = useRef(null);
 
   const total = SLIDES.length;
@@ -582,162 +580,6 @@ const DemoScreen = ({ navigation }) => {
 };
 
 // ── Styles ────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  root: { flex: 1 },
 
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: (StatusBar.currentHeight || 0) + 8,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
-  },
-  closeBtn: { padding: 4 },
-  playBtn:  { padding: 4 },
-  topTitle: {
-    flex: 1, textAlign: 'center',
-    color: WHITE, fontSize: 15, fontWeight: '700',
-  },
-
-  // Progress strips
-  stripsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 12,
-    paddingBottom: 8,
-  },
-  stripWrap: { flex: 1, paddingHorizontal: 2 },
-  stripBg: {
-    height: 3, borderRadius: 2,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    overflow: 'hidden',
-  },
-  stripFill: { height: '100%', borderRadius: 2 },
-
-  // Full colored content area
-  contentArea: {
-    flex: 1,
-    alignItems: 'center',
-    paddingTop: 10,
-    paddingBottom: 14,
-    paddingHorizontal: 12,
-  },
-
-  // Phone mockup — expands to fill space above bottom strip
-  phoneMockupWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  phoneFrame: {
-    width: W * 0.72,
-    height: H * 0.52,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 34,
-    padding: 12,
-    alignItems: 'center',
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.45,
-    shadowRadius: 20,
-    borderWidth: 2.5,
-    borderColor: '#2A2A3E',
-  },
-  phoneSpeaker: {
-    width: 44, height: 5, borderRadius: 3,
-    backgroundColor: '#2A2A3E', marginBottom: 10,
-  },
-  phoneScreen: {
-    flex: 1, width: '100%',
-    backgroundColor: NAVY,
-    borderRadius: 18,
-    overflow: 'hidden',
-  },
-  phoneHome: {
-    width: 32, height: 5, borderRadius: 3,
-    backgroundColor: '#2A2A3E', marginTop: 10,
-  },
-
-  // Bottom info strip (inside colored area)
-  bottomStrip: {
-    width: '100%',
-    backgroundColor: 'rgba(0,0,0,0.22)',
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginTop: 10,
-  },
-
-  stepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  stepBadge: {
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    borderRadius: 10,
-    paddingVertical: 2,
-    paddingHorizontal: 10,
-    marginRight: 8,
-  },
-  stepText: { fontSize: 11, fontWeight: '700' },
-
-  infoSubtitle: {
-    fontSize: 11, fontWeight: '700',
-    color: 'rgba(255,255,255,0.65)',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    flex: 1,
-  },
-  infoTitle: {
-    fontSize: 15, fontWeight: '800',
-    color: WHITE, marginBottom: 3,
-    lineHeight: 20,
-  },
-  infoDesc: {
-    fontSize: 12, color: 'rgba(255,255,255,0.7)',
-    lineHeight: 17,
-  },
-
-  // Dots
-  dotsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    marginTop: 10,
-    marginBottom: 8,
-  },
-  dot: {
-    width: 6, height: 6, borderRadius: 3,
-    marginHorizontal: 3,
-  },
-  dotActive: { width: 18, borderRadius: 3 },
-
-  // Navigation
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  navBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.35)',
-    minWidth: 76,
-    justifyContent: 'center',
-  },
-  navBtnDisabled: { opacity: 0.3 },
-  navBtnNext: {
-    backgroundColor: WHITE,
-    borderColor: WHITE,
-  },
-  navBtnText: { fontSize: 13, fontWeight: '700', color: WHITE, marginHorizontal: 2 },
-});
 
 export default DemoScreen;

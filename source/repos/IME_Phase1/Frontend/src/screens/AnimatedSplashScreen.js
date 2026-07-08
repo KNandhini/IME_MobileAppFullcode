@@ -9,6 +9,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { Audio } from 'expo-av';
+import { AnimatedSplashScreenStyles as styles } from './screenStyles';
 
 const COLORS = {
     navy: '#123663',
@@ -322,25 +323,3 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
     );
 }
 
-const styles = StyleSheet.create({
-    center: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    logo: {},
-    sparkle: {
-        position: 'absolute',
-        width: 5,
-        height: 5,
-        borderRadius: 2.5,
-        backgroundColor: COLORS.goldBright,
-    },
-    title: {
-        marginTop: 22,
-        textAlign: 'center',
-        fontWeight: '700',
-        letterSpacing: 6,
-        color: COLORS.darkGold,
-    },
-});

@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
+import { RaiseFundScreenS as s } from './screenStyles';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
@@ -587,78 +588,3 @@ export default function RaiseFundScreen({ route, navigation }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-  safe      : { flex: 1, backgroundColor: '#f5f4f0' },
-  centered  : { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll    : { padding: 16, paddingBottom: 60 },
-
-  postCard  : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
-  badge     : { alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 10 },
-  badgeText : { fontSize: 11, fontWeight: '600', letterSpacing: 0.3 },
-  postTitle : { fontSize: 18, fontWeight: '700', color: '#111', lineHeight: 26, marginBottom: 8 },
-  postBody  : { fontSize: 14, color: '#555', lineHeight: 22 },
-
-  progressCard     : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
-  cardSectionLabel : { fontSize: 13, fontWeight: '600', color: '#888', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
-  progressMeta     : { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-  progressLabel    : { fontSize: 13, color: '#555' },
-  progressPct      : { fontSize: 13, fontWeight: '700' },
-  progressTrack    : { height: 8, backgroundColor: '#f0ede8', borderRadius: 99, overflow: 'hidden', marginBottom: 8 },
-  progressFill     : { height: '100%', backgroundColor: '#22c55e', borderRadius: 99 },
-  progressGoal     : { fontSize: 12, color: '#aaa' },
-
-  statsRow   : { flexDirection: 'row', marginTop: 16, alignItems: 'center' },
-  stat       : { flex: 1, alignItems: 'center' },
-  statVal    : { fontSize: 16, fontWeight: '700', color: '#111' },
-  statLabel  : { fontSize: 11, color: '#888', marginTop: 2 },
-  statDivider: { width: 1, height: 36, backgroundColor: '#f0ede8' },
-
-  memberCard       : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
-  memberRow        : { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  memberAvatar     : { width: 44, height: 44, borderRadius: 22, backgroundColor: '#e8623a', alignItems: 'center', justifyContent: 'center' },
-  memberAvatarText : { color: '#fff', fontSize: 18, fontWeight: '600' },
-  memberName       : { fontSize: 15, fontWeight: '600', color: '#111' },
-  memberEmail      : { fontSize: 12, color: '#888', marginTop: 2 },
-
-  beneficiaryCard : { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
-  beneficiaryText : { fontSize: 14, color: '#333', marginBottom: 6 },
-
-  raiseFundBtn    : { backgroundColor: '#e8623a', borderRadius: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
-  raiseFundBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 },
-  secureNote      : { fontSize: 12, color: '#aaa', textAlign: 'center' },
-
-  wvHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  wvTitle : { fontSize: 17, fontWeight: '600', color: '#333' },
-  wvClose : { padding: 4 },
-
-  processingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', zIndex: 999 },
-  processingText   : { color: '#fff', marginTop: 12, fontSize: 15 },
-
-  modalOverlay : { flex: 1, justifyContent: 'flex-end' },
-  modalSheet   : { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 36 },
-  modalHandle  : { width: 40, height: 4, backgroundColor: '#ddd', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  modalTitle   : { fontSize: 20, fontWeight: '700', color: '#111', marginBottom: 16 },
-
-  modalGoalBox     : { backgroundColor: '#f5f4f0', borderRadius: 14, padding: 14, marginBottom: 20 },
-  modalGoalRow     : { flexDirection: 'row', marginTop: 14, alignItems: 'center' },
-  modalStat        : { flex: 1, alignItems: 'center' },
-  modalStatVal     : { fontSize: 15, fontWeight: '700', color: '#111' },
-  modalStatLabel   : { fontSize: 11, color: '#888', marginTop: 2 },
-  modalStatDivider : { width: 1, height: 32, backgroundColor: '#ddd' },
-
-  modalSectionLabel: { fontSize: 12, fontWeight: '600', color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-  quickRow         : { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
-  quickChip        : { flex: 1, minWidth: 70, borderRadius: 10, paddingVertical: 10, backgroundColor: '#f0ede8', alignItems: 'center' },
-  quickChipActive  : { backgroundColor: '#e8623a' },
-  quickChipText    : { fontSize: 14, fontWeight: '600', color: '#666' },
-  quickChipTextActive: { color: '#fff' },
-
-  amountInputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e0ddd8', borderRadius: 12, paddingHorizontal: 14, marginBottom: 20, backgroundColor: '#fafaf8' },
-  rupeeSign     : { fontSize: 20, fontWeight: '600', color: '#333', marginRight: 6 },
-  amountInput   : { flex: 1, fontSize: 22, fontWeight: '600', color: '#111', paddingVertical: 14 },
-  proceedBtn    : { backgroundColor: '#e8623a', borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  minAmountBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fef3ed', borderRadius: 8, padding: 10, marginBottom: 14 },
-  minAmountText  : { fontSize: 13, color: '#e8623a', fontWeight: '600' },
-});

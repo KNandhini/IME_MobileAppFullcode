@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { FundScreenStyles as styles } from './screenStyles';
 
 const FundScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -44,58 +45,6 @@ const FundScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: '#F4F6F9' },
-  content:         { padding: 16, paddingBottom: 32 },
 
-  heroBanner: {
-    backgroundColor: '#1E3A5F',
-    borderRadius: 16,
-    padding: 28,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  heroIcon:     { fontSize: 48, marginBottom: 8 },
-  heroTitle:    { fontSize: 26, fontWeight: '800', color: '#D4A017', marginBottom: 4 },
-  heroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.75)', textAlign: 'center' },
-
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 14,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  comingSoonCard: { opacity: 0.65 },
-  comingSoonBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#D4A017',
-    color: '#1E3A5F',
-    fontSize: 11,
-    fontWeight: '700',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 20,
-    marginBottom: 8,
-    overflow: 'hidden',
-  },
-  cardTitle: { fontSize: 16, fontWeight: '700', color: '#1E3A5F', marginBottom: 6 },
-  cardDesc:  { fontSize: 13, color: '#666', lineHeight: 20, marginBottom: 14 },
-
-  btn: {
-    backgroundColor: '#1E3A5F',
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  btnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  btnOutline: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#1E3A5F' },
-  btnOutlineText: { color: '#1E3A5F', fontWeight: '700', fontSize: 14 },
-});
 
 export default FundScreen;

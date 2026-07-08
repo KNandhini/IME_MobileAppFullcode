@@ -1,13 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar, RefreshControl, Alert,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, Alert } from 'react-native';
 import { Menu } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import FeedCard from '../components/FeedCard';
 import { feedService } from '../services/feedService';
+import { HomeScreenStyles as styles } from './screenStyles';
 
 const PAGE_SIZE = 10;
 
@@ -285,90 +283,6 @@ const HomeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1E3A5F' },
-  list: { flex: 1, backgroundColor: '#F0F2F5' },
-  listContent: { paddingBottom: 20 },
-  emptyContent: { flexGrow: 1 },
 
-  // App header
-  appHeader: {
-    backgroundColor: '#1E3A5F',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 44,
-    paddingBottom: 10,
-  },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  logoBox: {
-    width: 40, height: 40, borderRadius: 10,
-    backgroundColor: '#D4A017',
-    justifyContent: 'center', alignItems: 'center', marginRight: 10,
-  },
-  logoText: { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
-  appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
-  headerRight: { flexDirection: 'row', alignItems: 'center' },
-  iconBtn: { padding: 7, marginLeft: 2 },
-  iconBtnText: { fontSize: 20 },
-  kebabIcon: { fontSize: 26, color: '#fff', fontWeight: '700' },
-  menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
-  menuItemText: { fontSize: 14, color: '#222' },
-  menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
-
-  // Welcome strip
-  welcomeStrip: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 14, marginBottom: 8,
-  },
-  welcomeAvatar: {
-    width: 46, height: 46, borderRadius: 23,
-    backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center', marginRight: 12,
-  },
-  welcomeAvatarLetter: { color: '#D4A017', fontSize: 20, fontWeight: '800' },
-  welcomeTexts: { flex: 1 },
-  welcomeGreeting: { fontSize: 16, fontWeight: '700', color: '#1E3A5F' },
-  welcomeSub: { fontSize: 12, color: '#888', marginTop: 2 },
-  newPostBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#1E3A5F',
-    justifyContent: 'center', alignItems: 'center',
-    marginLeft: 8,
-  },
-  newPostBtnText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-
-  // Footer
-  footerLoader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 18 },
-  footerText: { fontSize: 13, color: '#888', marginLeft: 10 },
-  endWrap: { alignItems: 'center', paddingVertical: 26 },
-  endText: { fontSize: 13, color: '#aaa' },
-
-  // Center (loading / error)
-  centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5', padding: 32 },
-  centerText: { marginTop: 14, fontSize: 14, color: '#888' },
-  errorIcon: { fontSize: 48, marginBottom: 12 },
-  errorText: { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 20 },
-  retryBtn: { backgroundColor: '#1E3A5F', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
-  retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  // Empty
-  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyText: { fontSize: 16, fontWeight: '700', color: '#555' },
-  emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
-  lawBotCard: {
-    backgroundColor: '#EEF4FB',
-    marginHorizontal: 16,
-    marginBottom: 8,
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 0.5,
-    borderColor: '#B5D4F4',
-  },
-  lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
-  lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
-});
 
 export default HomeScreen;

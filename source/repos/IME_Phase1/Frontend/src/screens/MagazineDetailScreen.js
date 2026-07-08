@@ -1,25 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  ActivityIndicator,
-  Modal,
-  Alert,
-  Platform,
-  TextInput,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, ActivityIndicator, Modal, Alert, Platform, TextInput, KeyboardAvoidingView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import api from '../utils/api';
+import { MagazineDetailScreenStyles as styles } from './screenStyles';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -395,113 +382,6 @@ console.log(userData,"user");
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F7F9FC' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn: { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-  body: { padding: 20, paddingBottom: 20 },
-  badge: {
-    alignSelf: 'flex-start', backgroundColor: '#FEF9EC', borderRadius: 6,
-    paddingHorizontal: 8, paddingVertical: 3, marginBottom: 10,
-  },
-  badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  title: { fontSize: 20, fontWeight: '800', color: '#1A202C', marginBottom: 4 },
-  issue: { fontSize: 13, color: GOLD, fontWeight: '700', marginBottom: 10 },
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 10 },
-  metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  metaText: { fontSize: 13, color: '#64748B' },
-  categoryPill: {
-    alignSelf: 'flex-start', backgroundColor: '#EFF6FF', borderRadius: 6,
-    paddingHorizontal: 10, paddingVertical: 4, marginBottom: 16,
-  },
-  categoryText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-  descBlock: { marginBottom: 24 },
-  descLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, letterSpacing: 0.6 },
-  descText: { fontSize: 14, color: '#334155', lineHeight: 21 },
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, letterSpacing: 0.6, marginTop: 8 },
-  noAttach: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-  attachSection: { width: '100%', marginBottom: 20 },
-  attachImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-  },
-  attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
-  downloadBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 14,
-  },
-  downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
-  // ---------- Discussion / chat styles ----------
-  discussionBox: { gap: 10 },
-  chatBubbleWrap: { flexDirection: 'row', marginBottom: 4 },
-  chatBubbleWrapMine: { justifyContent: 'flex-end' },
-  chatBubbleWrapOther: { justifyContent: 'flex-start' },
-  chatBubble: {
-    maxWidth: '80%',
-    borderRadius: 12,
-    padding: 10,
-  },
-  chatBubbleMine: {
-    backgroundColor: '#DCEEFF',
-    borderTopRightRadius: 2,
-  },
-  chatBubbleOther: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderTopLeftRadius: 2,
-  },
-  chatName: { fontSize: 12, fontWeight: '700', color: NAVY, marginBottom: 2 },
-  chatContent: { fontSize: 14, color: '#1A202C', lineHeight: 20 },
-  chatDate: { fontSize: 10, color: '#94A3B8', marginTop: 4, textAlign: 'right' },
-
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#F1F5F9',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#1A202C',
-    minHeight: 100,   // Initial height
-  maxHeight: 150,  // Maximum height when typing
-  textAlignVertical: 'top', // Android: starts text at the top
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: NAVY,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-
-  previewContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.95)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  previewImage: { width: "100%", height: "100%" },
-  closeButton: { position: "absolute", top: 50, right: 20, zIndex: 100 },
-});
 
 export default MagazineDetailScreen;

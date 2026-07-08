@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ObjectivesdetailsscreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -64,87 +65,6 @@ const ObjectivesDetailsScreen = ({ navigation }) => (
     </View>
 );
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: LIGHT },
 
-    header: {
-        backgroundColor: NAVY,
-        paddingTop: 48,
-        paddingBottom: 24,
-        paddingHorizontal: 16,
-    },
-
-    headerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-
-    backBtn: {
-        marginRight: 14,
-        padding: 4,
-    },
-
-    headerTitle: {
-        color: WHITE,
-        fontSize: 19,
-        fontWeight: '800',
-    },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16 },
-
-    subtitle: {
-        color: 'rgba(255,255,255,0.75)',
-        fontSize: 13,
-        marginTop: 8,
-        marginLeft: 40,
-    },
-
-    goldLine: {
-        width: 40,
-        height: 3,
-        backgroundColor: GOLD,
-        borderRadius: 2,
-        marginTop: 12,
-        marginLeft: 40,
-    },
-
-    // List
-    scroll: { paddingHorizontal: 16, paddingTop: 20, paddingBottom: 40 },
-    row: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        backgroundColor: WHITE,
-        borderRadius: 12,
-        padding: 14,
-        marginBottom: 10,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        borderLeftWidth: 4,
-        borderLeftColor: GOLD,
-    },
-    numWrap: {
-        width: 28,
-        height: 28,
-        borderRadius: 8,
-        backgroundColor: 'rgba(212,160,23,0.15)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginRight: 12,
-        marginTop: 1,
-    },
-    numText: {
-        fontSize: 11,
-        fontWeight: '800',
-        color: GOLD,
-    },
-    objText: {
-        flex: 1,
-        fontSize: 13.5,
-        lineHeight: 20,
-        color: '#444',
-    },
-});
 
 export default ObjectivesDetailsScreen;

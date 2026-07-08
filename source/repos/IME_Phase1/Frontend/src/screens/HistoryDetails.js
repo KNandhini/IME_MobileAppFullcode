@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { HistoryDetailsStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -62,24 +63,6 @@ const HistoryDetailsScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: LIGHT },
-    header: {
-        backgroundColor: NAVY, paddingTop: 48, paddingBottom: 18, paddingHorizontal: 16,
-        flexDirection: 'row', alignItems: 'center',
-    },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 18, fontWeight: '800' },
-    scroll: { padding: 16, paddingBottom: 40 },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 20 },
-    timeline: { paddingLeft: 4 },
-    timelineRow: { flexDirection: 'row' },
-    timelineMarkerCol: { width: 24, alignItems: 'center' },
-    timelineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: GOLD, marginTop: 4 },
-    timelineLine: { width: 2, flex: 1, backgroundColor: '#D8DEE6', marginVertical: 2 },
-    timelineContent: { flex: 1, paddingLeft: 14, paddingBottom: 20 },
-    timelineYear: { fontSize: 14, fontWeight: '800', color: NAVY, marginBottom: 4 },
-    timelineText: { fontSize: 13, lineHeight: 19, color: '#444' },
-});
+
 
 export default HistoryDetailsScreen;

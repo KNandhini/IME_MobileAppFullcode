@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MembershipDetailsStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -90,50 +91,6 @@ const MembershipDetailsScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: LIGHT },
-    header: {
-        backgroundColor: NAVY,
-        paddingTop: 48,
-        paddingBottom: 18,
-        paddingHorizontal: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
-    scroll: { padding: 16, paddingBottom: 40 },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16 },
-    card: {
-        backgroundColor: WHITE,
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 12,
-        elevation: 2,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-        borderLeftWidth: 4,
-        borderLeftColor: GOLD,
-    },
-    cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-    iconWrap: {
-        width: 38, height: 38, borderRadius: 9,
-        backgroundColor: 'rgba(212,160,23,0.12)',
-        alignItems: 'center', justifyContent: 'center', marginRight: 12,
-    },
-    cardTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444' },
-    benefitsCard: {
-        backgroundColor: NAVY,
-        borderRadius: 12,
-        padding: 18,
-        marginTop: 8,
-    },
-    benefitsTitle: { color: WHITE, fontSize: 16, fontWeight: '700', marginBottom: 12 },
-    benefitRow: { flexDirection: 'row', marginBottom: 10, gap: 8 },
-    benefitText: { flex: 1, fontSize: 13, lineHeight: 19, color: 'rgba(255,255,255,0.85)' },
-});
+
 
 export default MembershipDetailsScreen;

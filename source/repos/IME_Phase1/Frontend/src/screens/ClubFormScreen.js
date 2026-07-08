@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image,
-} from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
 import api from '../utils/api';
+import { ClubFormScreenStyles as styles } from './screenStyles';
 //import AdminSignupScreen from '../screens/AddAdminScreen';
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
@@ -877,7 +875,7 @@ if (savedId && form.adminMembers.length > 0) {
     )}
 
     <TouchableOpacity
-      style={styles.radioOption}
+      style={styles.addAdminButton}
       onPress={() => {
         setAdminMode('new');
 setForm(prev => ({
@@ -893,19 +891,9 @@ setForm(prev => ({
         });
       }}
     >
-      <View
-        style={[
-          styles.radioOuter,
-          adminMode === 'new' && styles.radioOuterActive,
-        ]}
-      >
-        {adminMode === 'new' && (
-          <View style={styles.radioInner} />
-        )}
-      </View>
-
-      <Text style={styles.radioLabel}>
-        Add New Admin
+      <Ionicons name="person-add-outline" size={17} color="#1E3A5F" />
+      <Text style={styles.addAdminButtonText}>
+        Click here to add new admin
       </Text>
     </TouchableOpacity>
 
@@ -1143,83 +1131,3 @@ function PickerModal({ visible, title, items, keyProp, labelProp, onSelect, onCl
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  root:     { flex: 1, backgroundColor: '#F0F2F5' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  header:      { backgroundColor: '#1E3A5F', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 44 : 54, paddingBottom: 14 },
-  headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  headerBtn:   { padding: 4, minWidth: 48 },
-  saveText:    { color: '#D4A017', fontSize: 16, fontWeight: '700', textAlign: 'right' },
-
-  scroll: { paddingBottom: 40 },
-
-  // Logo
-  logoSection:         { alignItems: 'center', paddingVertical: 20, backgroundColor: '#fff', marginBottom: 2 },
-  logoBox:             { width: 110, height: 110, borderRadius: 55, overflow: 'hidden', backgroundColor: '#F0F2F5', borderWidth: 2, borderColor: '#E0E0E0', borderStyle: 'dashed' },
-  logoImage:           { width: '100%', height: '100%' },
-  logoPlaceholder:     { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  logoPlaceholderText: { fontSize: 12, color: '#aaa', marginTop: 4 },
-  changeLogoBtn:       { marginTop: 10 },
-  changeLogoText:      { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
-
-  sectionHeader: { backgroundColor: '#E8EDF5', paddingHorizontal: 16, paddingVertical: 8, marginTop: 8 },
-  sectionTitle:  { fontSize: 12, fontWeight: '700', color: '#1E3A5F', textTransform: 'uppercase', letterSpacing: 0.6 },
-
-  field:      { paddingHorizontal: 16, paddingTop: 12 },
-  fieldFlex:  { flex: 1 },
-  fieldLabel: { fontSize: 12, color: '#666', marginBottom: 4, fontWeight: '600' },
-
-  input:      { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: '#111' },
-  inputError: { borderColor: '#D32F2F', borderWidth: 1.5 },
-  codeRow:    { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  codeInput:  { flex: 1 },
-  regenBtn:   { width: 42, height: 42, borderRadius: 10, backgroundColor: '#EBF0FA', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D0DBF0' },
-  textarea:   { minHeight: 80 },
-
-  selector:            { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#E0E0E0', paddingHorizontal: 12, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  selectorDisabled:    { backgroundColor: '#F5F5F5', borderColor: '#E8E8E8' },
-  selectorError:       { borderColor: '#D32F2F', borderWidth: 1.5 },
-  selectorValue:       { fontSize: 14, color: '#111', flex: 1 },
-  selectorPlaceholder: { fontSize: 14, color: '#bbb', flex: 1 },
-
-  error: { color: '#D32F2F', fontSize: 12, marginTop: 4, marginBottom: 4, paddingHorizontal: 16 },
-
-  row: { flexDirection: 'row' },
-
-  // Admin chips
-  chipWrap:      { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
-  adminChip:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EBF0FA', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-  adminChipText: { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
-
-  // Admin radio toggle
-  radioRow:         { flexDirection: 'row', gap: 20, marginTop: 4, marginBottom: 4 },
-  radioOption:      { flexDirection: 'row', alignItems: 'center' },
-  radioOuter:       { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: '#bbb', alignItems: 'center', justifyContent: 'center', marginRight: 6 },
-  radioOuterActive: { borderColor: '#1E3A5F' },
-  radioInner:       { width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#1E3A5F' },
-  radioLabel:       { fontSize: 13, color: '#333' },
-  embeddedAdminBox: { marginTop: 8, borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 10, backgroundColor: '#fff', padding: 4 },
-
-  switchRow:   { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, backgroundColor: '#fff', marginTop: 2 },
-  switchLabel: { fontSize: 15, color: '#333', fontWeight: '600' },
-
-  modalOverlay:  { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet:    { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  modalTitle:    { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 4 },
-  modalSubtitle: { fontSize: 12, color: '#888', marginBottom: 10 },
-  modalSearch:   { backgroundColor: '#F0F2F5', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10, fontSize: 14, color: '#111' },
-
-  modalItem:             { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0', flexDirection: 'row', alignItems: 'center' },
-  modalItemSelected:     { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8, marginBottom: 2 },
-  modalItemText:         { fontSize: 15, color: '#111' },
-  modalItemTextSelected: { color: '#1E3A5F', fontWeight: '600' },
-  modalItemSub:          { fontSize: 12, color: '#888', marginTop: 2 },
-  modalEmpty:            { textAlign: 'center', color: '#888', paddingVertical: 24 },
-
-  modalDone:       { marginTop: 14, backgroundColor: '#1E3A5F', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  modalDoneText:   { color: '#fff', fontSize: 15, fontWeight: '700' },
-  modalCancel:     { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  modalCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-});
