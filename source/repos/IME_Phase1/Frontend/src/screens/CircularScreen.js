@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, RefreshControl,
-  TouchableOpacity, Alert,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { circularService } from '../services/circularService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCallback } from 'react';
+import { CircularScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -151,55 +149,3 @@ const CircularScreen = ({ navigation }) => {
 
 export default CircularScreen;
 
-const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#F5F7FA' },
-  list:           { padding: 12 },
-
-  card: {
-    backgroundColor: '#fff', borderRadius: 12, padding: 14,
-    marginBottom: 12, elevation: 2,
-    shadowColor: '#000', shadowOpacity: 0.06,
-    shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
-  },
-
-  /* header row */
-  cardHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', marginBottom: 8,
-  },
-
-  /* ✅ left group — shrinks to content */
-  leftBadges: {
-    flexDirection: 'row', alignItems: 'center',
-    gap: 6, flexShrink: 1,
-  },
-
-  /* circular-number chip */
-  chip:     { backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  chipText: { fontSize: 11, fontWeight: '700', color: '#3B82F6', letterSpacing: 0.3 },
-
-  /* ✅ visibility badge — alignSelf keeps it compact */
-  visBadge:    { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20, alignSelf: 'flex-start',marginBottom: 8,  },
-  visBadgeAll: { backgroundColor: '#DBEAFE' },
-  visBadgeClub:{ backgroundColor: '#FEF3C7' },
-  visText:     { fontSize: 10, fontWeight: '700', color: '#475569' },
-
-  /* admin action icons */
-  actionRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  iconBtn:   { padding: 4 },
-
-  /* card body */
-  title:       { fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 4 },
-  description: { fontSize: 13, color: '#64748B', lineHeight: 19, marginBottom: 8 },
-  dateRow:     { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  date:        { fontSize: 12, color: '#94A3B8' },
-  viewHint:    { fontSize: 11, color: '#3B82F6', fontWeight: '600' },
-
-  /* empty state */
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText:      { fontSize: 16, color: '#999' },
-
-  /* FAB */
-  fab:     { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-});

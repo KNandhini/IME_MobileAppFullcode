@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, Image, Modal, Linking, ActivityIndicator, Platform,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Image, Modal, Linking, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { circularService } from '../services/circularService';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -11,6 +7,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
+import { AddCircularScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -360,73 +357,3 @@ console.log(editData,"editData");
 
 export default AddCircularScreen;
 
-const styles = StyleSheet.create({
-  safe        : { flex: 1, backgroundColor: NAVY },
-  navbar      : { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, backgroundColor: NAVY },
-  navSide     : { minWidth: 64, paddingHorizontal: 4 },
-  navTitle    : { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
-  cancelText  : { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  saveText    : { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
-  scroll        : { flex: 1, backgroundColor: '#FAFBFC' },
-  scrollContent : { padding: 20, paddingBottom: 52 },
-  label : { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 16 },
-  input : { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
-
-  // ── Visibility Radio Buttons ──
-  radioGroup: { gap: 10 },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 14,
-    backgroundColor: '#F8FAFC',
-  },
-  radioOptionSelected: {
-    borderColor: NAVY,
-    backgroundColor: '#EFF6FF',
-  },
-  radioCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#9CA3AF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  radioCircleSelected: {
-    borderColor: NAVY,
-  },
-  radioInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: NAVY,
-  },
-  radioTextWrap       : { flex: 1 },
-  radioLabel          : { fontSize: 15, fontWeight: '600', color: '#374151' },
-  radioLabelSelected  : { color: NAVY },
-  radioSub            : { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  radioSubSelected    : { color: '#6B9CC7' },
-  radioIcon           : { fontSize: 20, marginLeft: 8 },
-
-  attachGrid     : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
-  thumb          : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  thumbImg       : { width: '100%', height: '100%' },
-  thumbDoc       : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  thumbIcon      : { fontSize: 24 },
-  thumbName      : { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  thumbRemove    : { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  thumbAdd       : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-  thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
-  thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-  viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage    : { width: '100%', height: '80%' },
-  viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-});

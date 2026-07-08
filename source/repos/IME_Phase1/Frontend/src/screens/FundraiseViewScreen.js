@@ -1,9 +1,7 @@
 import React, { useRef, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, Alert, ScrollView,
-  TouchableOpacity, Animated, Platform
-} from 'react-native';
+import { View, Text, Alert, ScrollView, TouchableOpacity, Animated, Platform } from 'react-native';
 import { fundraiseService } from '../services/fundraiseService';
+import { FundraiseViewScreenStyles as styles, FundraiseViewScreenSc as sc, FundraiseViewScreenIr as ir, FundraiseViewScreenPb as pb } from './screenStyles';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PRIMARY = '#1E3A5F';
@@ -239,128 +237,12 @@ const FundraiseViewScreen = ({ route, navigation }) => {
 export default FundraiseViewScreen;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: BG },
 
-  // Header
-  header: {
-    backgroundColor: PRIMARY,
-    paddingTop: Platform.OS === 'ios' ? 52 : 18,
-    paddingBottom: 16,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  backBtn:        { padding: 6 },
-  backArrow:      { color: '#fff', fontSize: 22, fontWeight: '300' },
-  headerLabel:    { color: '#fff', fontSize: 17, fontWeight: '700' },
-  editHeaderBtn:  { backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 8, paddingHorizontal: 14, paddingVertical: 6 },
-  editHeaderText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-
-  scroll: { padding: 14 },
-
-  // Hero card
-  heroCard: {
-    backgroundColor: '#fff', borderRadius: 18, padding: 18,
-    marginBottom: 14,
-    elevation: 4, shadowColor: '#1E3A5F',
-    shadowOpacity: 0.09, shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-  },
-  heroMeta: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  categoryChip: {
-    backgroundColor: '#EEF2FF', borderRadius: 6,
-    paddingHorizontal: 10, paddingVertical: 4,
-  },
-  categoryText:  { fontSize: 12, color: '#4361EE', fontWeight: '700' },
-  urgencyBadge: {
-    flexDirection: 'row', alignItems: 'center',
-    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4,
-  },
-  urgencyDot:  { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
-  urgencyText: { fontSize: 12, fontWeight: '700' },
-
-  fundTitle: {
-    fontSize: 22, fontWeight: '800', color: '#1A2540',
-    lineHeight: 28, marginBottom: 8,
-  },
-  description: {
-    fontSize: 14, color: '#666', lineHeight: 21, marginBottom: 16,
-  },
-  progressWrap: { marginBottom: 16 },
-
-  // Amount tiles
-  amountGrid: { flexDirection: 'row', gap: 8 },
-  amountTile: {
-    flex: 1, borderRadius: 12,
-    paddingVertical: 12, paddingHorizontal: 8, alignItems: 'center',
-  },
-  amountTileVal:   { fontSize: 14, fontWeight: '800', color: SUCCESS, marginBottom: 3 },
-  amountTileLabel: { fontSize: 11, fontWeight: '600' },
-
-  // Action buttons
-  actionsCard: { gap: 10 },
-  editBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: PRIMARY, borderRadius: 14,
-    paddingVertical: 15, gap: 8,
-    elevation: 3, shadowColor: PRIMARY,
-    shadowOpacity: 0.25, shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  editBtnIcon: { fontSize: 16 },
-  editBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  deleteBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: '#fff', borderRadius: 14,
-    paddingVertical: 15, gap: 8,
-    borderWidth: 1.5, borderColor: '#F5C6C6',
-  },
-  deleteBtnIcon: { fontSize: 16 },
-  deleteBtnText: { color: DANGER, fontSize: 16, fontWeight: '700' },
-});
 
 // ─── Section card styles ──────────────────────────────────────────────────────
-const sc = StyleSheet.create({
-  card: {
-    backgroundColor: '#fff', borderRadius: 16, padding: 16,
-    marginBottom: 14,
-    elevation: 2, shadowColor: '#000',
-    shadowOpacity: 0.05, shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  title: { fontSize: 13, fontWeight: '800', color: PRIMARY, marginBottom: 12, letterSpacing: 0.3 },
-});
+
 
 // ─── Info row styles ──────────────────────────────────────────────────────────
-const ir = StyleSheet.create({
-  row: {
-    flexDirection: 'row', alignItems: 'flex-start',
-    paddingVertical: 9, borderBottomWidth: 1, borderColor: '#F3F5FB',
-  },
-  iconWrap: {
-    width: 34, height: 34, borderRadius: 10,
-    backgroundColor: '#F3F6FC', alignItems: 'center',
-    justifyContent: 'center', marginRight: 12,
-  },
-  icon:    { fontSize: 15 },
-  content: { flex: 1, justifyContent: 'center' },
-  label:   { fontSize: 11, color: '#999', fontWeight: '500', marginBottom: 2 },
-  value:   { fontSize: 14, color: '#1A2540', fontWeight: '600' },
-});
+
 
 // ─── Progress bar styles ──────────────────────────────────────────────────────
-const pb = StyleSheet.create({
-  track: {
-    height: 8, backgroundColor: '#EEF2F8',
-    borderRadius: 99, overflow: 'hidden',
-  },
-  fill:   { height: '100%', borderRadius: 99 },
-  labels: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  labelText: { fontSize: 12, color: '#888' },
-});

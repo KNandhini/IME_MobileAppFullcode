@@ -1,15 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  RefreshControl,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  Alert,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,6 +8,7 @@ import { memberService } from '../services/memberService';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';  // ← ADD
 import { BASE_URL } from '../utils/api';                                // ← ADD
+import { AchievementsScreenS as s } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -282,86 +273,6 @@ const AchievementsScreen = ({ navigation }) => {
   );
 };
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F7F9FC' },
-  list: { padding: 16, paddingBottom: 90 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginBottom: 12,
-    padding: 16,
-    shadowColor: '#1A202C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  badge: {
-    backgroundColor: '#FEF9EC',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeText: {
-    fontSize: 10,
-    color: '#B7791F',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  cardActions: { flexDirection: 'row', gap: 8 },
-  editBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 0.5,
-    borderColor: '#BFDBFE',
-  },
-  deleteBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 0.5,
-    borderColor: '#FECACA',
-  },
-  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  photo: {
-    width: 52, height: 52, borderRadius: 26,
-    marginRight: 14, borderWidth: 2, borderColor: GOLD,
-  },
-  photoPlaceholder: {
-    width: 52, height: 52, borderRadius: 26,
-    marginRight: 14, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: GOLD,
-  },
-  photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
-  textContainer: { flex: 1 },
-  memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-  achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
-  description: { fontSize: 13, color: '#718096', lineHeight: 18 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-  date: { fontSize: 11, color: '#A0AEC0' },
-  centered: {
-    flex: 1, justifyContent: 'center',
-    alignItems: 'center', paddingVertical: 60,
-  },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#A0AEC0' },
-  fab: {
-    position: 'absolute', right: 20, bottom: 24,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: NAVY, alignItems: 'center',
-    justifyContent: 'center', elevation: 4, zIndex: 100,
-  },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-});
+
 
 export default AchievementsScreen;

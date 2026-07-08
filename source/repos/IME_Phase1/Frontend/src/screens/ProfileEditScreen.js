@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal, FlatList,
-  ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, FlatList, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -12,6 +8,7 @@ import { clubService } from '../services/clubService';
 import { Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
+import { ProfileEditScreenStyles as styles } from './screenStyles';
 
 const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
 
@@ -95,7 +92,7 @@ const ProfileEditScreen = ({ navigation }) => {
           contactNumber: d.contactNumber || '',
           address: d.address || '',
           gender: d.gender || '',
-          age: d.age != null ? String(d.age) : '',
+          age: d.dateOfBirth ? calculateAge(new Date(d.dateOfBirth)) : (d.age != null ? String(d.age) : ''),
           dateOfBirth: d.dateOfBirth ? d.dateOfBirth.split('T')[0] : '',
           designationId: d.designationId || 1,
         });
@@ -265,6 +262,18 @@ const ProfileEditScreen = ({ navigation }) => {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    const todayDate = new Date();
+    let age = todayDate.getFullYear() - dateOfBirth.getFullYear();
+    const monthDiff = todayDate.getMonth() - dateOfBirth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && todayDate.getDate() < dateOfBirth.getDate())) {
+      age -= 1;
+    }
+
+    return String(Math.max(age, 0));
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
@@ -595,7 +604,11 @@ const ProfileEditScreen = ({ navigation }) => {
                   setShowDatePicker(false);
                   if (event.type === 'set' && date) {
                     setSelectedDate(date);
-                    updateField('dateOfBirth', formatDate(date));
+                    setFormData((prev) => ({
+                      ...prev,
+                      dateOfBirth: formatDate(date),
+                      age: calculateAge(date),
+                    }));
                   }
                 }}
               />
@@ -605,13 +618,13 @@ const ProfileEditScreen = ({ navigation }) => {
             <TextInput
               label="Age *"
               value={formData.age}
-              onChangeText={t => updateField('age', t)}
               keyboardType="numeric"
               mode="outlined"
               theme={{ roundness: 10 }}
               outlineColor="#BBDEFB"
               activeOutlineColor="#1976D2"
               style={styles.input}
+              editable={false}
             />
             {errors.age && <Text style={styles.error}>{errors.age}</Text>}
           </View>
@@ -761,51 +774,6 @@ const ProfileEditScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
 
-  navbar: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 12, paddingVertical: 12,
-    paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-    backgroundColor: '#1E3A5F',
-  },
-  navSide: { minWidth: 72, paddingHorizontal: 4 },
-  navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
-  navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
-
-  scrollContainer: { flex: 1, backgroundColor: '#f5f5f5' },
-  content: { padding: 16, paddingBottom: 40 },
-
-  card: {
-    backgroundColor: '#fff', borderRadius: 16,
-    padding: 20, marginBottom: 16, elevation: 2,
-  },
-  sectionTitle: {
-    fontSize: 15, fontWeight: '700', color: '#1E3A5F',
-    marginBottom: 14, borderBottomWidth: 1,
-    borderBottomColor: '#EEF2FF', paddingBottom: 8,
-  },
-
-  input: { marginBottom: 10, backgroundColor: '#fff' },
-  error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
-
-  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
-  pickerItemText: { fontSize: 15, color: '#111' },
-  pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
-  pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-
-  profileContainer: { alignItems: 'center', marginBottom: 20 },
-  profileImage: { width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#fff' },
-  profilePlaceholder: { width: 110, height: 110, borderRadius: 55, backgroundColor: '#6A5ACD', justifyContent: 'center', alignItems: 'center' },
-  profileInitial: { fontSize: 40, color: '#fff', fontWeight: 'bold' },
-});
 
 export default ProfileEditScreen;

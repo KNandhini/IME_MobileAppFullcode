@@ -4,22 +4,12 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  StatusBar,
-  Linking,
-  Alert,
-  FlatList,
-  Dimensions,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StatusBar, Linking, Alert, FlatList, Dimensions } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { clubService } from '../services/clubService';
 import api from '../utils/api';
+import { MunicipalMapScreenStyles as styles } from './screenStyles';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -1685,94 +1675,6 @@ const MunicipalMapScreen = ({ navigation }) => {
 
 // ─── styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
 
-  header: {
-    backgroundColor: NAVY,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 48,
-    paddingBottom: 14,
-    paddingHorizontal: 16,
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center', marginRight: 10,
-  },
-  loginBackBtn: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: GOLD, borderRadius: 20,
-    paddingHorizontal: 12, paddingVertical: 6, gap: 4,
-  },
-  loginBackBtnText: { color: NAVY, fontWeight: '700', fontSize: 12 },
-  headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  breadcrumb:  { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
-
-  levelRow: {
-    flexDirection: 'row', backgroundColor: NAVY,
-    paddingHorizontal: 12, paddingBottom: 12,
-  },
-  levelPill: {
-    flex: 1, paddingVertical: 6, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center', marginHorizontal: 3,
-  },
-  levelPillActive:     { backgroundColor: GOLD },
-  levelPillText:       { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
-  levelPillTextActive: { color: NAVY },
-
-  mapContainer: { flex: 1 },
-  map:          { flex: 1 },
-
-  carouselOverlay: {
-    position: 'absolute', left: 16, right: 16, bottom: 16,
-    backgroundColor: '#fff', borderRadius: 16,
-    paddingTop: 14, paddingBottom: 10,
-    elevation: 14,
-    shadowColor: '#000', shadowOpacity: 0.22, shadowRadius: 8, shadowOffset: { width: 0, height: -2 },
-  },
-  carouselHeader: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 14, marginBottom: 10,
-  },
-  carouselTitle:       { fontSize: 13, fontWeight: '700', color: NAVY, flex: 1 },
-  carouselLoadingBox:  { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingBottom: 14 },
-  carouselLoadingText: { color: '#6B7A8D', fontSize: 12, marginLeft: 10 },
-  carouselEmpty:       { color: '#6B7A8D', fontSize: 12, paddingHorizontal: 14, paddingBottom: 14 },
-
-  corpCard:      { paddingHorizontal: 14, paddingBottom: 4 },
-  corpCardInner: { backgroundColor: '#F4F6FB', borderRadius: 12, padding: 14 },
-  corpTypePill:  {
-    flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start',
-    borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4, marginBottom: 8,
-  },
-  corpTypePillText: { fontSize: 11, fontWeight: '700', marginLeft: 4 },
-  corpName:    { fontSize: 15, fontWeight: '800', color: NAVY, marginBottom: 8 },
-  corpMetas:   { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  corpMetaChip: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#E8EEF6', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 12,
-  },
-  corpMetaChipText: { fontSize: 11, color: NAVY, fontWeight: '600' },
-  corpBtnRow: { flexDirection: 'row', marginTop: 0 },
-  corpNavBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    borderRadius: 10, paddingVertical: 8, gap: 6,
-  },
-  corpNavBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-
-  dotRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8, gap: 6 },
-  dot:       { width: 6, height: 6, borderRadius: 3, backgroundColor: '#C5CDD8' },
-  dotActive: { width: 18, borderRadius: 3, backgroundColor: NAVY },
-
-  bottomPanel: {
-    backgroundColor: '#fff', borderTopLeftRadius: 18, borderTopRightRadius: 18, elevation: 8,
-  },
-  bottomRow:  { padding: 14, flexDirection: 'row', alignItems: 'center' },
-  panelTitle: { fontSize: 14, fontWeight: '700', color: NAVY },
-  panelText:  { fontSize: 12, color: '#6B7A8D', marginLeft: 6 },
-});
 
 export default MunicipalMapScreen;

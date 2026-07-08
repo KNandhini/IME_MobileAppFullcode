@@ -1,13 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, RefreshControl,
-  TouchableOpacity, StatusBar, Image, Alert,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { magazineService } from '../services/magazineService';
+import { MagazinesScreenS as s } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -186,52 +184,6 @@ const handleEdit = (item) => {
   );
 };
 
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F7F9FC' },
-  list: { padding: 16, paddingBottom: 90 },
-  card: {
-    backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16,
-    shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
-  },
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  badge: { backgroundColor: '#FEF9EC', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  iconBotton: { padding: 4 },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
-  coverPlaceholder: {
-    width: 52, height: 68, borderRadius: 6, marginRight: 14,
-    backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
-  },
-  textContainer: { flex: 1 },
-  title: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-  issue: { fontSize: 12, color: GOLD, fontWeight: '600', marginBottom: 2 },
-  author: { fontSize: 13, color: '#718096', marginBottom: 4 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 8 },
-  categoryPill: { backgroundColor: '#EFF6FF', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  categoryText: { fontSize: 10, color: '#2563EB', fontWeight: '600' },
-  date: { fontSize: 11, color: '#A0AEC0' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#A0AEC0' },
-  fab: {
-    position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18,
-    backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100,
-  },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  actionContainer: {
-  position: 'absolute',
-  top: 12,
-  right: 12,
-  flexDirection: 'row',
-  alignItems: 'center',
-},
 
-iconButton: {
-  padding: 4,
-  marginLeft: 8, // space between icons
-},
-});
 
 export default MagazinesScreen;

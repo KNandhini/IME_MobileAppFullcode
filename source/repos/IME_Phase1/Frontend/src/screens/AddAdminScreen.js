@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal, Image, FlatList,
-} from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList } from 'react-native';
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
+import { AddAdminScreenStyles as styles } from './screenStyles';
 
 // ─────────────────────────────────────────────────────────────────────────
 // AdminSignupScreen
@@ -174,6 +172,18 @@ const AdminSignupScreen = ({
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    const todayDate = new Date();
+    let age = todayDate.getFullYear() - dateOfBirth.getFullYear();
+    const monthDiff = todayDate.getMonth() - dateOfBirth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && todayDate.getDate() < dateOfBirth.getDate())) {
+      age -= 1;
+    }
+
+    return String(Math.max(age, 0));
   };
 
   const validate = () => {
@@ -481,14 +491,18 @@ const AdminSignupScreen = ({
               setShowDatePicker(false);
               if (event.type === 'set' && date) {
                 setSelectedDate(date);
-                updateField('dateOfBirth', formatDate(date));
+                setFormData((prev) => ({
+                  ...prev,
+                  dateOfBirth: formatDate(date),
+                  age: calculateAge(date),
+                }));
               }
             }} />
         )}
 
-        <TextInput label="Age *" value={formData.age} onChangeText={(t) => updateField('age', t)}
+        <TextInput label="Age *" value={formData.age}
           keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
         {/* ── Occupation ── */}
