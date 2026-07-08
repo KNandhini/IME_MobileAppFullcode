@@ -1,9 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import {
-  View, Text, ScrollView, TouchableOpacity, Pressable, StyleSheet,
-  SafeAreaView, StatusBar, Image, Dimensions, FlatList,
-  ActivityIndicator, Modal, Animated, Alert, Platform,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Pressable, SafeAreaView, StatusBar, Image, Dimensions, FlatList, ActivityIndicator, Modal, Animated, Alert, Platform } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,6 +7,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { fundraiseService } from "../services/fundraiseService";
 import api from "../utils/api";
+import { FeedScreenS as s, FeedScreenAv as av, FeedScreenPb as pb, FeedScreenMs as ms, FeedScreenCard as card, FeedScreenVw as vw } from './screenStyles';
 //const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
 const API_BASE_URL = "http://10.0.2.2:51150/api";
 const { width }    = Dimensions.get("window");
@@ -801,141 +798,13 @@ export default function FeedScreen({ navigation }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f5f4f0" },
-  feed: { flex: 1 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  hint: { color: "#888", marginTop: 12, fontSize: 14 },
-  retryBtn: {
-    marginTop: 16, backgroundColor: "#e8623a",
-    borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10,
-  },
-  retryText: { color: "#fff", fontWeight: "600" },
-});
 
-const av = StyleSheet.create({
-  circle: { backgroundColor: "#c084fc", alignItems: "center", justifyContent: "center" },
-  text: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  dot: {
-    position: "absolute", bottom: 0, right: 0,
-    width: 12, height: 12, borderRadius: 6,
-    backgroundColor: "#22c55e", borderWidth: 2, borderColor: "#fff",
-  },
-});
 
-const pb = StyleSheet.create({
-  wrap: { paddingHorizontal: 16, paddingBottom: 8, paddingTop: 4 },
-  meta: { flexDirection: "row", justifyContent: "space-between", marginBottom: 5 },
-  label: { fontSize: 12, color: "#888" },
-  pct: { fontSize: 12, fontWeight: "600", color: "#22c55e" },
-  track: {
-    height: 6, backgroundColor: "#f0ede8",
-    borderRadius: 99, overflow: "hidden", marginBottom: 5,
-  },
-  fill: { height: "100%", backgroundColor: "#22c55e", borderRadius: 99 },
-  amount: { fontSize: 13, fontWeight: "700", color: "#111" },
-});
 
-const ms = StyleSheet.create({
-  container: { marginBottom: 2 },
-  tile: { overflow: "hidden" },
 
-  // Image tile
-  img: { width: "100%", height: 260, backgroundColor: "#e8e5e0" },
-  expandHint: {
-    position: "absolute", bottom: 10, right: 12,
-    backgroundColor: "rgba(0,0,0,0.35)", borderRadius: 6, padding: 5,
-  },
-  counterBadge: {
-    position: "absolute", top: 10, right: 12,
-    backgroundColor: "rgba(0,0,0,0.45)", borderRadius: 12,
-    paddingHorizontal: 9, paddingVertical: 3,
-  },
-  counterText: { color: "#fff", fontSize: 11, fontWeight: "600" },
 
-  // Document tile
-  docTile: {
-    height: 260, backgroundColor: "#1a1a2e",
-    alignItems: "center", justifyContent: "center",
-    paddingHorizontal: 28, gap: 10,
-  },
-  docIconCircle: {
-    width: 72, height: 72, borderRadius: 36,
-    backgroundColor: "#e8623a",
-    alignItems: "center", justifyContent: "center", marginBottom: 4,
-  },
-  docLabel: {
-    color: "rgba(255,255,255,0.6)", fontSize: 12,
-    fontWeight: "500", textTransform: "uppercase", letterSpacing: 1,
-  },
-  docFileName: {
-    color: "#fff", fontSize: 15, fontWeight: "700",
-    textAlign: "center", lineHeight: 21,
-  },
-  docDownloadBtn: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    backgroundColor: "#e8623a",
-    borderRadius: 22, paddingHorizontal: 22, paddingVertical: 11, marginTop: 6,
-  },
-  docDownloadText: { color: "#fff", fontSize: 14, fontWeight: "700" },
 
-  // Pagination dots
-  dotsRow: {
-    flexDirection: "row", justifyContent: "center",
-    alignItems: "center", gap: 5, paddingVertical: 9,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ddd" },
-  dotActive: { backgroundColor: "#e8623a", width: 18, borderRadius: 3 },
-});
 
-const card = StyleSheet.create({
-  root: {
-    backgroundColor: "#fff", marginHorizontal: 14, marginTop: 12,
-    borderRadius: 20, overflow: "hidden",
-    borderWidth: 0.5, borderColor: "rgba(0,0,0,0.07)",
-  },
-  header: { flexDirection: "row", alignItems: "center", padding: 14, paddingBottom: 10, gap: 10 },
-  headerInfo: { flex: 1 },
-  name: { fontSize: 15, fontWeight: "600", color: "#111" },
-  meta: { fontSize: 11, color: "#888", marginTop: 2 },
-  badge: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
 
-  body: { paddingHorizontal: 16, paddingBottom: 12 },
-  title: { fontSize: 17, fontWeight: "700", color: "#111", lineHeight: 24, marginBottom: 6 },
-  desc: { fontSize: 14, color: "#555", lineHeight: 22 },
 
-  mediaLoader: {
-    height: 80, alignItems: "center", justifyContent: "center",
-    flexDirection: "row", gap: 10, backgroundColor: "#fafaf9",
-  },
-  mediaLoaderText: { fontSize: 13, color: "#aaa" },
 
-  endRow: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 16, paddingBottom: 10 },
-  endText: { fontSize: 11, color: "#aaa" },
-
-  footer: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    borderTopWidth: 0.5, borderTopColor: "#f0ede8",
-    paddingHorizontal: 16, paddingVertical: 10,
-  },
-  reaction: { flexDirection: "row", alignItems: "center", gap: 4, marginRight: 4 },
-  reactionCount: { fontSize: 12, color: "#888" },
-  fundBtn: {
-    marginLeft: "auto", flexDirection: "row", alignItems: "center", gap: 6,
-    borderRadius: 20, paddingHorizontal: 18, paddingVertical: 9,
-  },
-  fundBtnText: { fontSize: 13, fontWeight: "600", color: "#fff", letterSpacing: 0.3 },
-});
-
-const vw = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#000", justifyContent: "center" },
-  imgWrap: { width, height: "100%", justifyContent: "center", alignItems: "center" },
-  img: { width, height: "100%" },
-  close: { position: "absolute", top: 52, right: 18 },
-  closeCircle: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    alignItems: "center", justifyContent: "center",
-  },
-});

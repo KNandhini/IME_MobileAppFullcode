@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FeesDetailsStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -71,35 +72,6 @@ const FeesDetailsScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: LIGHT },
-    header: {
-        backgroundColor: NAVY, paddingTop: 48, paddingBottom: 18, paddingHorizontal: 16,
-        flexDirection: 'row', alignItems: 'center',
-    },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
-    scroll: { padding: 16, paddingBottom: 40 },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16 },
-    table: {
-        backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden',
-        elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06, shadowRadius: 4,
-    },
-    row: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 14, alignItems: 'center' },
-    tableHead: { backgroundColor: NAVY },
-    rowAlt: { backgroundColor: '#F7F9FB' },
-    headText: { color: WHITE, fontWeight: '700', fontSize: 12 },
-    cellCategory: { flex: 2, fontSize: 13, color: '#333', fontWeight: '600' },
-    cellAmount: { flex: 1, fontSize: 13, color: NAVY, fontWeight: '700', textAlign: 'right' },
-    note: { fontSize: 12, color: GREY, marginTop: 12, fontStyle: 'italic', lineHeight: 18 },
-    paymentCard: {
-        backgroundColor: WHITE, borderRadius: 12, padding: 16, marginTop: 18,
-        borderLeftWidth: 4, borderLeftColor: GOLD,
-    },
-    cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
-    paymentTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444' },
-});
+
 
 export default FeesDetailsScreen;

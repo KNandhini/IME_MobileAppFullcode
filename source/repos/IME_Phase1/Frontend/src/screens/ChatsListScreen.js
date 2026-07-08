@@ -1,10 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { chatService } from '../services/chatService';
+import { ChatsListScreenStyles as styles } from './screenStyles';
 
 const AVATAR_COLORS = [
   '#1E3A5F', '#D4A017', '#27AE60', '#8E44AD',
@@ -111,45 +109,6 @@ const ChatsListScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
 
-  header: {
-    backgroundColor: '#1E3A5F',
-    paddingTop: 44,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-  },
-  headerTitle: { color: '#fff', fontSize: 20, fontWeight: '800' },
-
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#fff',
-  },
-  avatar: {
-    width: 50, height: 50, borderRadius: 25,
-    justifyContent: 'center', alignItems: 'center',
-    marginRight: 13,
-  },
-  avatarLetter: { color: '#fff', fontSize: 20, fontWeight: '700' },
-
-  info:    { flex: 1 },
-  topRow:  { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 },
-  name:    { fontSize: 15, fontWeight: '700', color: '#1a1a1a', flex: 1, marginRight: 8 },
-  time:    { fontSize: 12, color: '#aaa' },
-  preview: { fontSize: 13, color: '#888' },
-
-  separator: { height: 1, backgroundColor: '#F5F5F5', marginLeft: 79 },
-
-  centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-
-  emptyWrap: { flex: 1, alignItems: 'center', paddingTop: 80, paddingHorizontal: 32 },
-  emptyIcon: { fontSize: 52, marginBottom: 14 },
-  emptyText: { fontSize: 17, fontWeight: '700', color: '#555', marginBottom: 6 },
-  emptySub:  { fontSize: 13, color: '#aaa', textAlign: 'center', lineHeight: 20 },
-});
 
 export default ChatsListScreen;

@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
-  KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar,
-} from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/chatService';
+import { ChatScreenStyles as styles } from './screenStyles';
 
 const POLL_INTERVAL_MS = 3000;
 
@@ -219,92 +217,6 @@ const ChatScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F2F5' },
 
-  // Header
-  header: {
-    backgroundColor: '#1E3A5F',
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 44,
-    paddingBottom: 10,
-    paddingHorizontal: 14,
-  },
-  backBtn:   { padding: 6, marginRight: 6 },
-  backIcon:  { fontSize: 22, color: '#fff', fontWeight: '700' },
-  headerAvatar: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#D4A017',
-    justifyContent: 'center', alignItems: 'center',
-    marginRight: 10,
-  },
-  headerAvatarLetter: { color: '#1E3A5F', fontSize: 16, fontWeight: '800' },
-  headerInfo: { flex: 1 },
-  headerName: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  // Messages
-  centerBox:   { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  messageList: { padding: 12, paddingBottom: 8 },
-
-  msgRow:      { flexDirection: 'row', marginBottom: 6 },
-  msgRowOwn:   { justifyContent: 'flex-end' },
-  msgRowOther: { justifyContent: 'flex-start' },
-
-  bubble: {
-    maxWidth: '75%',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 18,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    shadowOffset: { width: 0, height: 1 },
-  },
-  bubbleOwn:   { backgroundColor: '#1E3A5F', borderBottomRightRadius: 4 },
-  bubbleOther: { backgroundColor: '#fff',    borderBottomLeftRadius: 4  },
-
-  bubbleText:       { fontSize: 15, lineHeight: 21 },
-  bubbleTextOwn:    { color: '#fff' },
-  bubbleTextOther:  { color: '#1a1a1a' },
-
-  timeText:   { fontSize: 10, marginTop: 3 },
-  timeOwn:    { color: 'rgba(255,255,255,0.55)', textAlign: 'right' },
-  timeOther:  { color: '#aaa', textAlign: 'left' },
-
-  // Empty
-  emptyWrap: { flex: 1, alignItems: 'center', paddingTop: 80 },
-  emptyText: { fontSize: 15, color: '#aaa' },
-
-  // Input bar
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E8E8E8',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  textInput: {
-    flex: 1,
-    backgroundColor: '#F5F5F5',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    fontSize: 15,
-    color: '#1a1a1a',
-    maxHeight: 120,
-    marginRight: 8,
-  },
-  sendBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: '#1E3A5F',
-    justifyContent: 'center', alignItems: 'center',
-  },
-  sendBtnDisabled: { backgroundColor: '#B0BEC5' },
-  sendIcon: { color: '#fff', fontSize: 18, marginLeft: 2 },
-});
 
 export default ChatScreen;

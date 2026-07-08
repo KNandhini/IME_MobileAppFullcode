@@ -5,13 +5,10 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TextInput,
-  TouchableOpacity, KeyboardAvoidingView, Platform,
-  ActivityIndicator, StatusBar, SafeAreaView,
-} from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, SafeAreaView } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
+import { LawBotScreenStyles as styles } from './screenStyles';
 
 // ── Suggested quick questions ──────────────────────────────────
 const SUGGESTIONS = [
@@ -248,131 +245,6 @@ const GOLD  = '#D4A017';
 const BG    = '#F0F2F5';
 const WHITE = '#ffffff';
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: BG },
 
-  // Header
-  header: {
-    backgroundColor: NAVY,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: Platform.OS === 'android' ? 12 : 4,
-    paddingBottom: 12,
-    paddingHorizontal: 14,
-  },
-  backBtn:  { padding: 6, marginRight: 6 },
-  backIcon: { fontSize: 22, color: WHITE, fontWeight: '700' },
-  headerIcon: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: GOLD,
-    justifyContent: 'center', alignItems: 'center',
-    marginRight: 10,
-  },
-  headerIconText: { fontSize: 18 },
-  headerInfo:  { flex: 1 },
-  headerTitle: { color: WHITE, fontSize: 16, fontWeight: '800' },
-  headerSub:   { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 1 },
-  liveTag: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: 'rgba(212,160,23,0.2)',
-    borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4,
-    borderWidth: 1, borderColor: 'rgba(212,160,23,0.4)',
-  },
-  liveDot:  { width: 6, height: 6, borderRadius: 3, backgroundColor: '#4CAF50', marginRight: 4 },
-  liveText: { color: GOLD, fontSize: 10, fontWeight: '700' },
-
-  // Messages
-  messageList: { padding: 14, paddingBottom: 8, backgroundColor: BG },
-
-  msgRow:    { flexDirection: 'row', marginBottom: 12, alignItems: 'flex-end' },
-  msgRowBot: { justifyContent: 'flex-start' },
-  msgRowUser:{ justifyContent: 'flex-end' },
-
-  botAvatar: {
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: NAVY,
-    justifyContent: 'center', alignItems: 'center',
-    marginRight: 8, flexShrink: 0,
-  },
-  botAvatarErr: { backgroundColor: '#c0392b' },
-  botAvatarText: { fontSize: 14 },
-
-  bubble: {
-    maxWidth: '78%',
-    paddingHorizontal: 14, paddingVertical: 10,
-    borderRadius: 18, elevation: 1,
-    shadowColor: '#000', shadowOpacity: 0.06,
-    shadowRadius: 3, shadowOffset: { width: 0, height: 1 },
-  },
-  bubbleBot:  {
-    backgroundColor: WHITE,
-    borderBottomLeftRadius: 4,
-    borderWidth: 1, borderColor: '#E8EEF4',
-  },
-  bubbleUser: { backgroundColor: NAVY, borderBottomRightRadius: 4 },
-  bubbleErr:  { backgroundColor: '#FFF3F3', borderWidth: 1, borderColor: '#FFCDD2' },
-
-  bubbleSender: { fontSize: 10, fontWeight: '700', color: GOLD, marginBottom: 4 },
-
-  bubbleText:     { fontSize: 14, lineHeight: 21 },
-  bubbleTextBot:  { color: '#1a1a1a' },
-  bubbleTextUser: { color: WHITE },
-  bubbleTextErr:  { color: '#c0392b' },
-
-  timeText:  { fontSize: 10, marginTop: 5 },
-  timeBot:   { color: '#aaa' },
-  timeUser:  { color: 'rgba(255,255,255,0.5)', textAlign: 'right' },
-
-  // Typing
-  typingRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 14, paddingBottom: 6,
-    backgroundColor: BG,
-  },
-  typingBubble: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: WHITE, borderRadius: 14,
-    paddingHorizontal: 12, paddingVertical: 8,
-    borderWidth: 1, borderColor: '#E8EEF4',
-    gap: 8,
-  },
-  typingText: { color: '#888', fontSize: 12, marginLeft: 6 },
-
-  // Suggestions
-  suggWrap: { backgroundColor: BG, paddingVertical: 8 },
-  suggLabel: {
-    fontSize: 11, fontWeight: '700', color: '#888',
-    marginLeft: 14, marginBottom: 6,
-  },
-  suggList: { paddingHorizontal: 14, gap: 8 },
-  suggChip: {
-    backgroundColor: WHITE,
-    borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8,
-    borderWidth: 1, borderColor: '#D0DBE8',
-    marginRight: 8,
-  },
-  suggText: { fontSize: 12, color: NAVY, fontWeight: '600' },
-
-  // Input bar
-  inputBar: {
-    flexDirection: 'row', alignItems: 'flex-end',
-    backgroundColor: WHITE,
-    borderTopWidth: 1, borderTopColor: '#E8E8E8',
-    paddingHorizontal: 12, paddingVertical: 8,
-  },
-  textInput: {
-    flex: 1, backgroundColor: '#F5F5F5',
-    borderRadius: 22, paddingHorizontal: 16,
-    paddingVertical: 10, fontSize: 14,
-    color: '#1a1a1a', maxHeight: 120, marginRight: 8,
-  },
-  sendBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    backgroundColor: NAVY,
-    justifyContent: 'center', alignItems: 'center',
-  },
-  sendBtnDisabled: { backgroundColor: '#B0BEC5' },
-  sendIcon: { color: WHITE, fontSize: 18, marginLeft: 2 },
-});
 
 export default LawBotScreen;

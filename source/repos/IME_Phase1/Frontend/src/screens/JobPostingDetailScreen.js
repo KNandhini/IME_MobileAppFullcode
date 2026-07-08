@@ -2,12 +2,10 @@
 // Mirrors AchievementDetailScreen.js structure exactly.
 
 import React, { useEffect, useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Image, Linking, Modal,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { jobPostingService } from '../services/jobpostingService';
+import { JobPostingDetailScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -184,80 +182,6 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F0F4F8' },
 
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn:   { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  body: { padding: 20, paddingBottom: 40, alignItems: 'center' },
-
-  heroSection:    { marginBottom: 16, marginTop: 8 },
-  heroIconCircle: {
-    width: 100, height: 100, borderRadius: 50, backgroundColor: '#EFF6FF',
-    alignItems: 'center', justifyContent: 'center', borderWidth: 3, borderColor: GOLD,
-  },
-
-  jobTitle:    { fontSize: 20, fontWeight: '800', color: NAVY, textAlign: 'center', marginBottom: 4 },
-  companyName: { fontSize: 15, color: '#64748B', textAlign: 'center', fontWeight: '500', marginBottom: 12 },
-
-  goldDivider: { width: 56, height: 3, backgroundColor: GOLD, borderRadius: 2, marginBottom: 16 },
-
-  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginBottom: 20 },
-  badge:    {
-    paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20,
-    borderWidth: 1, borderColor: GOLD, backgroundColor: '#FFFBEB',
-    marginRight: 8, marginBottom: 6,
-  },
-  badgeText: { fontSize: 12, color: '#92400E', fontWeight: '600' },
-
-  infoCard: {
-    width: '100%', backgroundColor: '#fff', borderRadius: 12, padding: 16,
-    marginBottom: 16, elevation: 2,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
-  },
-  infoRow:   { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  infoLabel: { fontSize: 11, fontWeight: '700', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.4 },
-  infoValue: { fontSize: 14, color: '#334155', fontWeight: '500', marginTop: 2 },
-
-  section: {
-    width: '100%', backgroundColor: '#fff', borderRadius: 12, padding: 16,
-    marginBottom: 14, elevation: 2,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
-  },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: GOLD, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
-  sectionText:  { fontSize: 14, color: '#334155', lineHeight: 22 },
-
-  contactCard: {
-    width: '100%', flexDirection: 'row', alignItems: 'flex-start',
-    backgroundColor: '#EFF6FF', borderRadius: 12, padding: 14, marginBottom: 20,
-    borderWidth: 1, borderColor: '#BFDBFE',
-  },
-  contactLabel: { fontSize: 11, fontWeight: '700', color: '#1D4ED8', textTransform: 'uppercase', letterSpacing: 0.4 },
-  contactValue: { fontSize: 14, color: '#1E3A5F', fontWeight: '600', marginTop: 2 },
-
-  attachSection: { width: '100%', marginBottom: 20 },
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-  attachImage:  { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#fff' },
-  attachHint:   { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
-  downloadBtn:  {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10,
-  },
-  downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
-
-  viewerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-  viewerImage: { width: '100%', height: '80%' },
-});
 
 export default JobPostingDetailScreen;

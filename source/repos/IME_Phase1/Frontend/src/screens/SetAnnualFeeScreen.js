@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, TextInput, StyleSheet, ScrollView,
-  TouchableOpacity, Alert, ActivityIndicator, Platform,
-} from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../utils/api';
+import { SetAnnualFeeScreenStyles as styles } from './screenStyles';
 
 const formatDate = (date) => {
   if (!date) return '';
@@ -147,23 +145,6 @@ const SetAnnualFeeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container:       { flex: 1, backgroundColor: '#f5f5f5' },
-  currentCard:     { backgroundColor: '#1E3A5F', margin: 16, borderRadius: 12, padding: 24, alignItems: 'center' },
-  currentTitle:    { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 8 },
-  currentAmount:   { color: '#D4A017', fontSize: 36, fontWeight: 'bold' },
-  currentDate:     { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 6 },
-  form:            { backgroundColor: '#fff', margin: 16, borderRadius: 12, padding: 20, elevation: 2 },
-  sectionTitle:    { fontSize: 18, fontWeight: '700', color: '#1E3A5F', marginBottom: 20 },
-  label:           { fontSize: 14, color: '#333', marginBottom: 6, fontWeight: '600' },
-  input:           { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 16, backgroundColor: '#fafafa' },
-  dateInput:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16, backgroundColor: '#fafafa' },
-  dateText:        { fontSize: 15, color: '#333' },
-  datePlaceholder: { fontSize: 15, color: '#aaa' },
-  calendarIcon:    { fontSize: 18 },
-  button:          { backgroundColor: '#1E3A5F', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 8 },
-  buttonDisabled:  { opacity: 0.6 },
-  buttonText:      { color: '#fff', fontSize: 16, fontWeight: '700' },
-});
+
 
 export default SetAnnualFeeScreen;

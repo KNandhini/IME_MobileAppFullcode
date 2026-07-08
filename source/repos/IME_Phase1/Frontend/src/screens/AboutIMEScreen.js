@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Accordion, SubAccordion, NumberedItem, BulletItem } from '../components/Accordion';
 import IMELogo from '../components/IMELogo';
+import { AboutIMEScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#003366';
 const ROYAL = '#0055AA';

@@ -1,12 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar, RefreshControl, Alert, Image,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, Alert, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { feedService } from '../services/feedService';
 import api from '../utils/api';
+import { MypostScreenStyles as styles } from './screenStyles';
 
 const PAGE_SIZE = 10;
 
@@ -245,87 +243,6 @@ function formatTimeAgo(dateString) {
   return `${days}d ago`;
 }
 
-const styles = StyleSheet.create({
-  container:    { flex: 1, backgroundColor: '#1E3A5F' },
-  list:         { flex: 1, backgroundColor: '#F0F2F5' },
-  listContent:  { paddingBottom: 20 },
-  emptyContent: { flexGrow: 1 },
 
-  appHeader: {
-    backgroundColor: '#1E3A5F',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 44,
-    paddingBottom: 14,
-  },
-  backBtn:    { width: 36, height: 36, justifyContent: 'center', alignItems: 'center' },
-  backIcon:   { color: '#fff', fontSize: 22 },
-  headerTitle:{ color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  card: {
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginTop: 10,
-    borderRadius: 12,
-    overflow: 'hidden',
-    paddingBottom: 14,
-  },
-  cardTopRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, paddingBottom: 0 },
-  avatar: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#1E3A5F',
-    justifyContent: 'center', alignItems: 'center', marginRight: 10,
-  },
-  avatarLetter: { color: '#D4A017', fontSize: 16, fontWeight: '800' },
-  cardTopTexts: { flex: 1 },
-  memberName:   { fontSize: 14, fontWeight: '700', color: '#222' },
-  metaRow:      { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
-  typePill: {
-    backgroundColor: '#EEF1F5', borderRadius: 6,
-    paddingHorizontal: 6, paddingVertical: 1,
-  },
-  typePillText: { fontSize: 11, color: '#555' },
-  metaDot:      { fontSize: 12, color: '#aaa', marginHorizontal: 5 },
-  metaTime:     { fontSize: 11, color: '#999' },
-
-  deleteBtn:  { padding: 6, marginLeft: 6 },
-  deleteIcon: { fontSize: 18 },
-
-  cardBody: { fontSize: 14, color: '#333', marginTop: 10, lineHeight: 19, paddingHorizontal: 14 },
-
-  // ── Full-width attached image, same treatment as the home feed card ──
-  postImage: {
-    width: '100%',
-    height: 320,
-    marginTop: 12,
-    backgroundColor: '#eee',
-  },
-
-  cardFooter: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginTop: 12, paddingTop: 10, paddingHorizontal: 14,
-    borderTopWidth: 1, borderTopColor: '#F0F0F0',
-  },
-  footerStat: { fontSize: 12, color: '#888' },
-
-  footerLoader:     { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 18 },
-  footerLoaderText: { fontSize: 13, color: '#888', marginLeft: 10 },
-  endWrap:          { alignItems: 'center', paddingVertical: 26 },
-  endText:          { fontSize: 13, color: '#aaa' },
-
-  centerBox:   { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5', padding: 32 },
-  centerText:  { marginTop: 14, fontSize: 14, color: '#888' },
-  errorIcon:   { fontSize: 48, marginBottom: 12 },
-  errorText:   { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 20 },
-  retryBtn:    { backgroundColor: '#1E3A5F', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
-  retryBtnText:{ color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  emptyWrap:    { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 },
-  emptyIcon:    { fontSize: 48, marginBottom: 12 },
-  emptyText:    { fontSize: 16, fontWeight: '700', color: '#555' },
-  emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
-});
 
 export default MyPostScreen;

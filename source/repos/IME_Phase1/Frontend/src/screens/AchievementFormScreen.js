@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Alert, ActivityIndicator, Image, Modal, Linking,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -13,6 +10,7 @@ import { memberService } from '../services/memberService';
 import { useAuth } from '../context/AuthContext';
 import { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -92,29 +90,7 @@ function SimpleDropdown({ label, options, value, onChange, placeholder = 'Select
   );
 }
 
-const drop = StyleSheet.create({
-  wrapper: { marginBottom: 14 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
-  trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
-  triggerError: { borderColor: '#EF4444' },
-  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder: { color: '#CBD5E1' },
-  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-  option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  optionActive: { backgroundColor: '#EFF6FF' },
-  optionRow: { flexDirection: 'row', alignItems: 'center' },
-  optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
-  optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  optionText: { fontSize: 15, color: '#334155', flex: 1 },
-  optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
-});
+
 
 // ── AchievementFormScreen ─────────────────────────────────────────────────────
 const AchievementFormScreen = ({ route, navigation }) => {
@@ -574,79 +550,6 @@ const AchievementFormScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F7F9FC' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn: { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-  body: { padding: 18, paddingBottom: 40 },
 
-  roleLoadingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingVertical: 14 },
-  roleLoadingText: { marginLeft: 8, fontSize: 14, color: '#94A3B8' },
-
-  avatarBlock: { alignItems: 'center', marginBottom: 16 },
-  avatarImage: { width: 90, height: 90, borderRadius: 45, borderWidth: 2.5, borderColor: GOLD },
-  avatarPlaceholder: {
-    width: 90, height: 90, borderRadius: 45, backgroundColor: NAVY,
-    borderWidth: 2.5, borderColor: GOLD, alignItems: 'center', justifyContent: 'center',
-  },
-  avatarInitials: { color: '#fff', fontSize: 26, fontWeight: '800' },
-
-  input: { marginBottom: 14, backgroundColor: '#fff' },
-  inputReadOnly: { marginBottom: 14, backgroundColor: '#F1F5F9' },
-
-  dateField: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
-    borderWidth: 1, borderColor: '#BBDEFB',
-  },
-  dateText: { flex: 1, marginLeft: 10 },
-  dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
-
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-  attachGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-    alignItems: 'center', marginBottom: 6,
-  },
-  gridThumb: {
-    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-  },
-  gridImg: { width: '100%', height: '100%' },
-  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon: { fontSize: 24 },
-  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  gridRemove: {
-    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-  },
-  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  gridAddBtn: {
-    width: 80, height: 80, borderRadius: 10, margin: 4,
-    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-  },
-  gridAddIcon: { fontSize: 22, marginBottom: 2 },
-  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
-
-  saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-  },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
-
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-});
 
 export default AchievementFormScreen;

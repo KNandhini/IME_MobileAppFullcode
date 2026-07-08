@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, StatusBar, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, ScrollView, Alert, StatusBar, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Card } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
+import { ChangePasswordScreenStyles as styles } from './screenStyles';
 
 const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -81,26 +82,6 @@ const ChangePasswordScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  navbar: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 12, paddingVertical: 12,
-    paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-    backgroundColor: '#1E3A5F',
-  },
-  navSide:   { minWidth: 72, paddingHorizontal: 4 },
-  navTitle:  { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
-  navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  navSave:   { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
-  container:    { flex: 1, backgroundColor: '#f5f5f5' },
-  card:         { margin: 15, elevation: 2 },
-  title:        { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 6 },
-  subtitle:     { fontSize: 13, color: '#666', marginBottom: 18 },
-  input:        { marginBottom: 10, backgroundColor: '#fff' },
-  requirements: { backgroundColor: '#E3F2FD', padding: 14, borderRadius: 8, marginBottom: 18 },
-  reqTitle:     { fontSize: 13, fontWeight: '600', color: '#333', marginBottom: 6 },
-  req:          { fontSize: 12, color: '#555', marginBottom: 3 },
-});
 
 export default ChangePasswordScreen;

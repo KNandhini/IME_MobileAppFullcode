@@ -1,14 +1,12 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity,
-  ActivityIndicator, StatusBar, Linking, RefreshControl, Alert, Image,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, Linking, RefreshControl, Alert, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { feedService } from '../services/feedService';
 import { chatService } from '../services/chatService';
 import { memberService } from '../services/memberService';
 import api from '../utils/api';
+import { UserProfileScreenStyles as styles } from './screenStyles';
 
 const PAGE_SIZE = 10;
 
@@ -345,126 +343,6 @@ function formatTimeAgo(dateString) {
   return `${days}d ago`;
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1E3A5F' },
-  list:      { flex: 1, backgroundColor: '#F0F2F5' },
-  listContent:  { paddingBottom: 20 },
-  emptyContent: { flexGrow: 1 },
 
-  appHeader: {
-    backgroundColor: '#1E3A5F',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingTop: 44,
-    paddingBottom: 10,
-  },
-  backBtn:     { padding: 6 },
-  backIcon:    { fontSize: 22, color: '#fff', fontWeight: '700' },
-  headerTitle: { color: '#fff', fontSize: 16, fontWeight: '700', flex: 1, textAlign: 'center' },
-
-  profileCard: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 80, height: 80, borderRadius: 40,
-    justifyContent: 'center', alignItems: 'center',
-    marginBottom: 12,
-  },
-  avatarPhoto: {
-    width: 80, height: 80, borderRadius: 40,
-    marginBottom: 12,
-    borderWidth: 3,
-    borderColor: '#D4A017',
-  },
-  avatarLetter: { color: '#D4A017', fontSize: 32, fontWeight: '800' },
-  nameRow:      { alignItems: 'center', marginBottom: 16 },
-  nameClubWrap: { alignItems: 'center', marginBottom: 12 },
-  memberName:   { fontSize: 20, fontWeight: '800', color: '#1E3A5F' },
-  clubName:     { fontSize: 13, fontWeight: '600', color: '#888', marginTop: 2 },
-
-  actionBtns: { flexDirection: 'row', gap: 10 },
-  actionBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 22,
-    minWidth: 110,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  messageBtn:    { backgroundColor: '#1E3A5F' },
-  mailBtn:       { backgroundColor: '#D4A017' },
-  actionBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
-
-  postsLabelWrap: {
-    alignSelf: 'stretch',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingTop: 12,
-    marginTop: 4,
-  },
-  postsLabel: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
-
-  // ── Post card (mirrors home feed card, plus optional delete icon) ──
-  card: {
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginTop: 10,
-    borderRadius: 12,
-    overflow: 'hidden',
-    paddingBottom: 14,
-  },
-  cardTopRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, paddingBottom: 0 },
-  cardAvatar: {
-    width: 38, height: 38, borderRadius: 19,
-    backgroundColor: '#1E3A5F',
-    justifyContent: 'center', alignItems: 'center', marginRight: 10,
-  },
-  cardAvatarLetter: { color: '#D4A017', fontSize: 16, fontWeight: '800' },
-  cardTopTexts:     { flex: 1 },
-  cardMemberName:   { fontSize: 14, fontWeight: '700', color: '#222' },
-  metaRow:          { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
-  typePill: {
-    backgroundColor: '#EEF1F5', borderRadius: 6,
-    paddingHorizontal: 6, paddingVertical: 1,
-  },
-  typePillText: { fontSize: 11, color: '#555' },
-  metaDot:      { fontSize: 12, color: '#aaa', marginHorizontal: 5 },
-  metaTime:     { fontSize: 11, color: '#999' },
-
-  deleteBtn:  { padding: 6, marginLeft: 6 },
-  deleteIcon: { fontSize: 18 },
-
-  cardBody: { fontSize: 14, color: '#333', marginTop: 10, lineHeight: 19, paddingHorizontal: 14 },
-
-  postImage: {
-    width: '100%',
-    height: 320,
-    marginTop: 12,
-    backgroundColor: '#eee',
-  },
-
-  cardFooter: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    marginTop: 12, paddingTop: 10, paddingHorizontal: 14,
-    borderTopWidth: 1, borderTopColor: '#F0F0F0',
-  },
-  footerStat: { fontSize: 12, color: '#888' },
-
-  footerLoader: { padding: 18, alignItems: 'center' },
-  endWrap:      { alignItems: 'center', paddingVertical: 20 },
-  endText:      { fontSize: 13, color: '#aaa' },
-
-  centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5' },
-
-  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyIcon: { fontSize: 40, marginBottom: 10 },
-  emptyText: { fontSize: 15, color: '#888' },
-});
 
 export default UserProfileScreen;

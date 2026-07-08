@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, StyleSheet, FlatList, RefreshControl, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, RefreshControl, Image, TouchableOpacity } from 'react-native';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { Card, Title, Paragraph } from 'react-native-paper';
 import { newsService } from '../services/newsService';
 import { mediaService } from '../services/mediaService';
 import { podcastService } from '../services/podcastService';
+import { NewsScreenStyles as styles } from './screenStyles';
 
 const Tab = createMaterialTopTabNavigator();
 
@@ -223,48 +224,6 @@ const NewsScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  tabContent: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  list: {
-    padding: 15,
-  },
-  card: {
-    marginBottom: 15,
-    elevation: 2,
-  },
-  date: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 8,
-  },
-  mediaType: {
-    fontSize: 12,
-    color: '#2196F3',
-    marginTop: 8,
-    fontWeight: '500',
-  },
-  podcastInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
-  },
-  duration: {
-    fontSize: 12,
-    color: '#666',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-  },
-});
+
 
 export default NewsScreen;

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, StatusBar, Image } from 'react-native';
+import { View, Text, ScrollView, Alert, StatusBar, Image } from 'react-native';
 import { Button, Card } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import api from '../utils/api';
+import { ProfileScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -151,47 +152,6 @@ const ProfileScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
 
-  header: {
-    backgroundColor: NAVY,
-    padding: 30,
-    alignItems: 'center',
-  },
-
-  // ── Photo styles ──
-  avatar: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    borderWidth: 3,
-    borderColor: GOLD,
-  },
-  avatarPlaceholder: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: '#6A5ACD',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: GOLD,
-  },
-  avatarInitial: { fontSize: 36, color: '#fff', fontWeight: 'bold' },
-
-  name:  { fontSize: 22, fontWeight: 'bold', color: '#fff', marginTop: 12 },
-  email: { fontSize: 13, color: '#fff', opacity: 0.85, marginTop: 4 },
-
-  card:         { margin: 15, elevation: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12, color: NAVY },
-  infoRow:      { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  label:        { fontSize: 14, color: '#666' },
-  value:        { fontSize: 14, fontWeight: '500' },
-
-  actions:      { padding: 15 },
-  button:       { marginBottom: 10 },
-  logoutButton: { marginTop: 20 },
-});
 
 export default ProfileScreen;
