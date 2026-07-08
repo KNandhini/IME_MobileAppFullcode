@@ -1,15 +1,12 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity, Alert,
-  Animated, StatusBar, Dimensions, Easing,
-  KeyboardAvoidingView, Platform, ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Alert, Animated, StatusBar, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';
 import WelcomeCard from '../components/WelcomeCard';
 import { SplashFadeContext } from '../navigation/AppNavigator';
+import { LoginScreenStyles as styles } from './screenStyles';
 
 const { width } = Dimensions.get('window');
 const NAVY = '#1E3A5F';
@@ -240,106 +237,6 @@ const StatItem = ({ value, label }) => (
 );
 
 // ── Styles ───────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: NAVY },
 
-  heroBg: {
-    backgroundColor: NAVY,
-    alignItems: 'center',
-    paddingTop: (StatusBar.currentHeight ?? 0) + 24,
-    paddingBottom: 28,
-    overflow: 'hidden',
-  },
-  circle1: {
-    position: 'absolute', width: 240, height: 240, borderRadius: 120,
-    borderWidth: 1, borderColor: 'rgba(212,160,23,0.12)', top: -60, right: -60,
-  },
-  circle2: {
-    position: 'absolute', width: 160, height: 160, borderRadius: 80,
-    borderWidth: 1, borderColor: 'rgba(212,160,23,0.08)', bottom: -20, left: -40,
-  },
-  circle3: {
-    position: 'absolute', width: 80, height: 80, borderRadius: 40,
-    backgroundColor: 'rgba(212,160,23,0.05)', top: 20, left: 30,
-  },
-  logoWrap: { alignItems: 'center' },
-
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 30 },
-
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 22,
-    marginBottom: 14,
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  cardTitle: { fontSize: 22, fontWeight: '800', color: NAVY, marginBottom: 4 },
-  cardSub: { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
-  input: { marginBottom: 12, backgroundColor: '#fff' },
-
-  forgotWrap: { alignSelf: 'flex-end', marginBottom: 16 },
-  forgotText: { color: NAVY, fontSize: 13, fontWeight: '600' },
-
-  loginBtn: {
-    backgroundColor: NAVY,
-    borderRadius: 12,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-  loginBtnIcon: { marginRight: 8 },
-  loginBtnDisabled: { opacity: 0.7 },
-  loginBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 16 },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#E2E8F0' },
-  dividerText: { color: '#8090A0', fontSize: 12, fontWeight: '600', marginHorizontal: 10 },
-
-  signupBtn: {
-    borderWidth: 2, borderColor: NAVY, borderRadius: 12,
-    paddingVertical: 13, alignItems: 'center',
-  },
-  signupBtnText: { color: NAVY, fontSize: 15, fontWeight: '700' },
-
-  quickRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
-  quickAction: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.18)',
-  },
-  quickIconWrap: {
-    width: 46, height: 46, borderRadius: 23,
-    backgroundColor: 'rgba(212,160,23,0.15)',
-    alignItems: 'center', justifyContent: 'center',
-    marginBottom: 6,
-  },
-  quickLabel: { color: '#fff', fontSize: 11, fontWeight: '600', textAlign: 'center' },
-
-  statsBar: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255,255,255,0.08)',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-  },
-  statItem: { flex: 1, alignItems: 'center' },
-  statValue: { color: GOLD, fontSize: 16, fontWeight: '800' },
-  statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2, fontWeight: '500' },
-  statsDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
-
-  footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 },
-});
 
 export default LoginScreen;

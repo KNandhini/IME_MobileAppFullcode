@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { GovernanceDetailsStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -102,43 +103,6 @@ const GovernanceDetailsScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: LIGHT },
-    header: {
-        backgroundColor: NAVY, paddingTop: 48, paddingBottom: 18, paddingHorizontal: 16,
-        flexDirection: 'row', alignItems: 'center',
-    },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
-    scroll: { padding: 16, paddingBottom: 40 },
-    advisoryCard: {
-        backgroundColor: NAVY, borderRadius: 12, padding: 16, marginBottom: 18,
-    },
-    cardHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-    advisoryTitle: { color: WHITE, fontSize: 15, fontWeight: '700' },
-    advisoryText: { color: 'rgba(255,255,255,0.85)', fontSize: 13, lineHeight: 19 },
-    sectionLabel: { fontSize: 13, fontWeight: '700', color: GREY, letterSpacing: 1, marginBottom: 10, textTransform: 'uppercase' },
-    card: {
-        backgroundColor: WHITE, borderRadius: 12, padding: 16, marginBottom: 10,
-        elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06, shadowRadius: 4, borderLeftWidth: 4, borderLeftColor: GOLD,
-    },
-    cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    iconWrap: {
-        width: 34, height: 34, borderRadius: 8, backgroundColor: 'rgba(212,160,23,0.12)',
-        alignItems: 'center', justifyContent: 'center', marginRight: 10,
-    },
-    cardTitle: { fontSize: 14, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444' },
-    meetingsCard: {
-        backgroundColor: WHITE, borderRadius: 12, padding: 16, marginTop: 8, marginBottom: 12,
-    },
-    meetingsTitle: { fontSize: 14, fontWeight: '700', color: NAVY, marginBottom: 6 },
-    officeCard: {
-        flexDirection: 'row', alignItems: 'center', gap: 8,
-        backgroundColor: 'rgba(212,160,23,0.12)', borderRadius: 10, padding: 14,
-    },
-    officeText: { fontSize: 13, color: '#444' },
-});
+
 
 export default GovernanceDetailsScreen;

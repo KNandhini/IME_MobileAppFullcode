@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Alert, TouchableOpacity, Platform,
-  StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking,
-} from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking } from 'react-native';
 import { TextInput, Card, Chip } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -10,6 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
 import { BASE_URL } from '../utils/api';
+import { ActivityFormScreenStyles as styles } from './screenStyles';
 
 // ─── Build a displayable URL from a stored FilePath ───────────────────────
 // Mirrors buildPhotoUrl in AchievementFormScreen — handles backslashes from
@@ -621,96 +619,6 @@ const ActivityFormScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  navbar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-    backgroundColor: '#1E3A5F',
-  },
-  navSide: { minWidth: 72, paddingHorizontal: 4 },
-  navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
-  navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  card: { margin: 12, elevation: 2 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
-  input: { marginBottom: 10, backgroundColor: '#fff' },
-
-  dateInput: { borderWidth: 1, borderColor: '#888', borderRadius: 4, padding: 12, marginBottom: 10, backgroundColor: '#fff' },
-  dateLabel: { fontSize: 12, color: '#555', marginBottom: 4 },
-  dateValueRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dateText: { fontSize: 15, color: '#333' },
-  datePlaceholder: { fontSize: 15, color: '#aaa' },
-  calendarIcon: { fontSize: 18 },
-
-  statusRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { marginRight: 8, marginBottom: 8 },
-  chipSelected: { backgroundColor: '#1E3A5F' },
-
-  radioGroup: { gap: 10 },
-  radioOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#D1D5DB',
-    borderRadius: 10,
-    padding: 14,
-    backgroundColor: '#fff',
-  },
-  radioOptionSelected: {
-    borderColor: '#1E3A5F',
-    backgroundColor: '#EFF6FF',
-  },
-  radioCircle: {
-    width: 20, height: 20, borderRadius: 10,
-    borderWidth: 2, borderColor: '#9CA3AF',
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 12,
-  },
-  radioCircleSelected: { borderColor: '#1E3A5F' },
-  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#1E3A5F' },
-  radioTextWrap: { flex: 1 },
-  radioLabel: { fontSize: 15, fontWeight: '600', color: '#374151' },
-  radioLabelSelected: { color: '#1E3A5F' },
-  radioSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
-  radioSubSelected: { color: '#6B9CC7' },
-  radioIcon: { fontSize: 20, marginLeft: 8 },
-
-  attachGrid: {
-    flexDirection: 'row', flexWrap: 'wrap',
-    borderWidth: 1.5, borderColor: '#CBD5E1',
-    borderRadius: 12, borderStyle: 'dashed',
-    padding: 8, minHeight: 80,
-    alignItems: 'center', marginTop: 4,
-  },
-  thumb: {
-    width: 80, height: 80, borderRadius: 10, margin: 4,
-    overflow: 'hidden', backgroundColor: '#F1F5F9',
-    borderWidth: 1, borderColor: '#E2E8F0',
-  },
-  thumbImg: { width: '100%', height: '100%' },
-  thumbDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  thumbIcon: { fontSize: 24 },
-  thumbName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  thumbRemove: {
-    position: 'absolute', top: 2, right: 2,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 8, width: 18, height: 18,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  thumbAdd: {
-    width: 80, height: 80, borderRadius: 10, margin: 4,
-    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-  },
-  thumbAddIcon: { fontSize: 22, marginBottom: 2 },
-  thumbAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-});
 
 export default ActivityFormScreen;

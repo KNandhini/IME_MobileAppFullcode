@@ -111,7 +111,7 @@ const AuthStack = () => (
         headerTintColor: '#fff',
       }}
     />
-    <Stack.Screen
+<Stack.Screen
       name="About"
       component={AboutScreen}
       options={{
@@ -130,7 +130,6 @@ const AuthStack = () => (
     <Stack.Screen name="CorpDetails" component={CorpDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Demo" component={DemoScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Presentation" component={PresentationScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ headerShown: false }} />
 
   </Stack.Navigator>
 );
@@ -281,7 +280,7 @@ const MainStack = () => (
     <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
-    <Stack.Screen name="About" component={AboutScreen} options={{ title: 'About IME' }} />
+    <Stack.Screen name="About" component={AboutIMEScreen} options={{ title: 'About IME' }} />
     <Stack.Screen
       name="FundraiseList"
       component={FundraiseListScreen}
@@ -310,7 +309,7 @@ const MainStack = () => (
     <Stack.Screen name="AchievementForm" component={AchievementFormScreen} options={{ headerShown: false }} />
     <Stack.Screen name="JobPostingDetail" component={JobPostingDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="JobPostingForm" component={JobPostingFormScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="JobPostingList" component={JobPostingListScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="JobPostingList" component={JobPostingListScreen} options={{ headerShown: false }} />
 
     {/* <Stack.Screen
       name="AddCircular"

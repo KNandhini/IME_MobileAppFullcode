@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Alert, ActivityIndicator, Image, Modal, Linking,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
@@ -14,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -100,29 +98,7 @@ function SimpleDropdown({ label, options, value, onChange, placeholder = 'Select
   );
 }
 
-const drop = StyleSheet.create({
-  wrapper: { marginBottom: 14 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
-  trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
-  triggerError: { borderColor: '#EF4444' },
-  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder: { color: '#CBD5E1' },
-  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-  option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  optionActive: { backgroundColor: '#EFF6FF' },
-  optionRow: { flexDirection: 'row', alignItems: 'center' },
-  optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
-  optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  optionText: { fontSize: 15, color: '#334155', flex: 1 },
-  optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
-});
+
 
 // ── AchievementFormScreen ─────────────────────────────────────────────────────
 const AchievementFormScreen = ({ route, navigation }) => {

@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, ActivityIndicator } from 'react-native';
 import { Card, Chip, Searchbar } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { paymentService } from '../services/paymentService';
+import { PaymentHistoryScreenStyles as styles } from './screenStyles';
 
 const PaymentHistoryScreen = () => {
   const [payments, setPayments] = useState([]);
@@ -207,105 +201,6 @@ const PaymentHistoryScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchBar: {
-    margin: 15,
-    elevation: 2,
-  },
-  list: {
-    padding: 15,
-    paddingTop: 0,
-  },
-  card: {
-    marginBottom: 15,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  headerLeft: {
-    flex: 1,
-  },
-  year: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  date: {
-    fontSize: 12,
-    color: '#666',
-    marginTop: 2,
-  },
-  statusChip: {
-    height: 28,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  amountContainer: {
-    backgroundColor: '#E3F2FD',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-    alignItems: 'center',
-  },
-  amountLabel: {
-    fontSize: 12,
-    color: '#666',
-  },
-  amount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginTop: 4,
-  },
-  detailsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-    paddingTop: 12,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    fontSize: 14,
-    color: '#666',
-    width: 110,
-  },
-  detailValue: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-  },
-});
+
 
 export default PaymentHistoryScreen;
