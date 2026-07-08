@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, StatusBar, Linking, RefreshControl,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Linking, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../utils/api';
 import { localBodyService } from '../services/localBodyService';
+import { CorpDetailsScreenStyles as styles } from './screenStyles';
 
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
@@ -501,101 +499,7 @@ const AboutTab = ({ data, corpWebsite, masterData, masterLoading }) => {
 };
  
 // ── Styles ────────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: BG },
- 
-  header: {
-    backgroundColor: NAVY, flexDirection: 'row', alignItems: 'center',
-    paddingTop: StatusBar.currentHeight ? StatusBar.currentHeight + 10 : 48,
-    paddingBottom: 14, paddingHorizontal: 16,
-  },
-  backBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center', justifyContent: 'center', marginRight: 10,
-  },
-  headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
-  headerSub: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 2 },
-  mapBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    alignItems: 'center', justifyContent: 'center',
-  },
- 
-  strip: {
-    backgroundColor: NAVY, flexDirection: 'row', flexWrap: 'wrap',
-    paddingHorizontal: 16, paddingBottom: 12, gap: 12,
-  },
-  stripItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  stripText: { color: 'rgba(255,255,255,0.75)', fontSize: 11, fontWeight: '500', maxWidth: 180 },
- 
-  tabBar: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
-  tabBarInner: { paddingHorizontal: 10, paddingVertical: 8, gap: 6 },
-  pill: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#F0F4F8',
-  },
-  pillActive: { backgroundColor: NAVY },
-  pillText: { fontSize: 12, fontWeight: '600', color: NAVY, marginLeft: 4 },
-  pillTextActive: { color: '#fff' },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: GREEN, marginLeft: 5 },
- 
-  content: { padding: 12, paddingBottom: 40 },
- 
-  srcBadge: {
-    flexDirection: 'row', alignItems: 'center',
-    backgroundColor: `${GREEN}12`, borderRadius: 8,
-    paddingVertical: 5, paddingHorizontal: 10, marginBottom: 10,
-  },
-  srcText: { fontSize: 11, color: GREEN, fontWeight: '500', flex: 1 },
- 
-  card: {
-    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 12,
-    elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 4,
-  },
- 
-  secRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  secIcon: { width: 28, height: 28, borderRadius: 7, alignItems: 'center', justifyContent: 'center', marginRight: 8 },
-  secTitle: { fontSize: 14, fontWeight: '700', color: NAVY },
- 
-  field: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
-  fieldLabel: { fontSize: 12, color: '#6B7A8D', width: 90, fontWeight: '600' },
-  fieldValue: { fontSize: 13, color: '#2D3748', fontWeight: '500', flex: 1 },
- 
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
-  chip: { borderRadius: 20, paddingVertical: 4, paddingHorizontal: 10 },
-  chipText: { fontSize: 11, fontWeight: '600' },
- 
-  bullet: { flexDirection: 'row', marginBottom: 7 },
-  bulletDot: { color: GOLD, fontWeight: '700', marginRight: 7, fontSize: 14 },
-  bulletText: { fontSize: 13, color: '#4A5568', flex: 1, lineHeight: 19 },
- 
-  overview: { fontSize: 13, color: '#4A5568', lineHeight: 20 },
- 
-  masterLoadRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 4, marginBottom: 4 },
-  masterLoadText: { fontSize: 11, color: '#8090A0', fontStyle: 'italic' },
 
-  websiteRow: {
-    flexDirection: 'row', alignItems: 'center',
-    padding: 10, backgroundColor: `${GREEN}10`,
-    borderRadius: 10, borderWidth: 1, borderColor: `${GREEN}30`,
-  },
-  websiteLink: {
-    fontSize: 12, color: NAVY, flex: 1, lineHeight: 17,
-    textDecorationLine: 'underline', fontWeight: '500', marginRight: 6,
-  },
-
-  loadTitle: { color: '#2D3748', marginTop: 14, fontSize: 15, fontWeight: '600' },
-  loadSub: { color: '#6B7A8D', marginTop: 4, fontSize: 12, textAlign: 'center' },
- 
-  errBox: { alignItems: 'center', paddingTop: 60, paddingHorizontal: 24 },
-  errTitle: { fontSize: 15, fontWeight: '700', color: CRIMSON, marginTop: 10 },
-  errMsg: { marginTop: 10, padding: 12, backgroundColor: '#FFF0F0', borderRadius: 8, width: '100%' },
-  errMsgText: { fontSize: 12, color: CRIMSON, lineHeight: 18 },
-  retryBtn: { flexDirection: 'row', alignItems: 'center', marginTop: 16, paddingVertical: 10, paddingHorizontal: 24, backgroundColor: NAVY, borderRadius: 24 },
-  retryText: { color: '#fff', fontSize: 13, fontWeight: '600' },
-});
  
 export default CorpDetailScreen;
  

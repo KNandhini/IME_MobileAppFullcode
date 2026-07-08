@@ -1,15 +1,13 @@
 // Place in: src/screens/JobPostingListScreen.js
 
 import React, { useState, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, FlatList, TouchableOpacity, Alert,
-  StatusBar, ActivityIndicator, RefreshControl, Image,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, StatusBar, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { jobPostingService } from '../services/jobpostingService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { JobPostingListScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -212,52 +210,6 @@ const JobPostingListScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F0F2F5' },
 
-  appHeader: {
-    backgroundColor: NAVY, flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 14, paddingTop: 44, paddingBottom: 14,
-  },
-  backBtn:     { padding: 8, marginRight: 6 },
-  headerTitle: { color: '#fff', fontSize: 17, fontWeight: '800' },
-  headerSub:   { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 1 },
-
-  listContent: { padding: 12, paddingBottom: 90, flexGrow: 1 },
-
-  card: {
-    flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, marginBottom: 12,
-    elevation: 2, overflow: 'hidden',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
-  },
-  cardThumb: { width: 80, height: '100%', minHeight: 120 },
-  cardThumbFallback: { backgroundColor: '#EFF6FF', alignItems: 'center', justifyContent: 'center' },
-  cardBody: { flex: 1, padding: 12 },
-  cardHeaderRow: { flexDirection: 'row', alignItems: 'center' },
-  cardTitle:   { flex: 1, fontSize: 15, fontWeight: '800', color: NAVY },
-  actionRow:   { flexDirection: 'row' },
-  iconBtn:     { padding: 4, marginLeft: 4 },
-  cardCompany: { fontSize: 13, color: '#64748B', fontWeight: '500', marginTop: 2 },
-
-  metaRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 },
-  metaChip: { flexDirection: 'row', alignItems: 'center', marginRight: 10, marginBottom: 4 },
-  metaText: { fontSize: 11, color: '#64748B', marginLeft: 3 },
-
-  salaryText: { fontSize: 12, color: '#047857', fontWeight: '600', marginTop: 4 },
-
-  cardFooter:  { marginTop: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 6 },
-  closingText: { fontSize: 11, color: NAVY, fontWeight: '600' },
-  closedText:  { color: '#EF4444' },
-
-  centered:    { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 60 },
-  emptyText:   { fontSize: 15, color: '#888', fontWeight: '600' },
-  emptySubText:{ fontSize: 13, color: '#aaa', marginTop: 4 },
-
-  fab: {
-    position: 'absolute', right: 20, bottom: 24,
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', elevation: 4,
-  },
-});
 
 export default JobPostingListScreen;

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, ActivityIndicator, Modal, Image,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
+import { RegistrationPaymentScreenStyles as styles } from './screenStyles';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
@@ -486,63 +484,6 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container:            { flex: 1, backgroundColor: '#f5f5f5' },
-  header:               { backgroundColor: '#1E3A5F', padding: 28, alignItems: 'center' },
-  headerTitle:          { fontSize: 22, fontWeight: 'bold', color: '#fff' },
-  headerSubtitle:       { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
 
-  feeCard:              { backgroundColor: '#D4A017', margin: 16, borderRadius: 12, padding: 24, alignItems: 'center' },
-  feeLabel:             { color: '#1E3A5F', fontSize: 13, fontWeight: '600' },
-  feeAmount:            { color: '#1E3A5F', fontSize: 40, fontWeight: 'bold', marginVertical: 4 },
-  feeNote:              { color: '#1E3A5F', fontSize: 12, textAlign: 'center', marginTop: 4 },
-
-  section:              { backgroundColor: '#fff', margin: 16, marginTop: 0, borderRadius: 12, padding: 16, elevation: 1 },
-  sectionTitle:         { fontSize: 15, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-
-  // Profile photo
-  photoRow:             { flexDirection: 'row', alignItems: 'center' },
-  photoPreview:         { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#1E3A5F' },
-  photoPlaceholder:     { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E8EFF7', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#BBDEFB', borderStyle: 'dashed' },
-  photoPlaceholderIcon: { fontSize: 32 },
-  photoBadge:           { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center' },
-  photoBadgeText:       { fontSize: 10 },
-  photoInfo:            { marginLeft: 16, flex: 1 },
-  photoInfoTitle:       { fontSize: 14, fontWeight: '600', color: '#333' },
-  photoInfoHint:        { fontSize: 12, color: '#888', marginTop: 2 },
-  photoOptional:        { fontSize: 11, color: '#aaa', marginTop: 4, fontStyle: 'italic' },
-
-  // Razorpay badge
-  razorpayBadge:        { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 10, padding: 12, borderWidth: 1.5, borderColor: '#1E3A5F' },
-  razorpayIcon:         { fontSize: 28 },
-  razorpayTitle:        { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
-  razorpaySubtitle:     { fontSize: 12, color: '#666', marginTop: 2 },
-  razorpayActive:       { width: 28, height: 28, borderRadius: 14, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center' },
-  razorpayActiveText:   { color: '#fff', fontSize: 14, fontWeight: 'bold' },
-
-  // Amount breakdown
-  breakdownRow:         { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
-  breakdownLabel:       { fontSize: 14, color: '#666' },
-  breakdownValue:       { fontSize: 14, color: '#333', fontWeight: '500' },
-  breakdownDivider:     { height: 1, backgroundColor: '#E0E0E0', marginVertical: 8 },
-  breakdownTotal:       { fontSize: 16, fontWeight: 'bold', color: '#222' },
-  breakdownTotalValue:  { fontSize: 18, fontWeight: 'bold', color: '#1E3A5F' },
-
-  button:               { backgroundColor: '#1E3A5F', margin: 16, borderRadius: 10, padding: 16, alignItems: 'center' },
-  buttonText:           { color: '#fff', fontSize: 16, fontWeight: '700' },
-  backLink:             { alignItems: 'center', marginBottom: 30 },
-  backLinkText:         { color: '#1976D2', fontSize: 14 },
-
-  // WebView
-  webViewContainer:     { flex: 1, backgroundColor: '#fff' },
-  webViewHeader:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 48, paddingBottom: 8, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#eee' },
-  webViewTitle:         { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  webViewLoading:       { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
-
-  // Processing overlay
-  processingOverlay:    { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  processingBox:        { backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center', minWidth: 200 },
-  processingText:       { marginTop: 16, fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-});
 
 export default RegistrationPaymentScreen;

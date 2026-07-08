@@ -1,13 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  View, Text, StyleSheet, FlatList, RefreshControl,
-  Alert, Image, TouchableOpacity,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, Alert, Image, TouchableOpacity } from 'react-native';
 import { Card, IconButton, Searchbar, Chip, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MemberManagementScreenStyles as styles } from './screenStyles';
 
 // ── same helper used in AchievementsScreen ────────────────────────────────────
 const blobToDataUri = (blob) => {
@@ -315,28 +313,6 @@ const MemberManagementScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  searchBar: { margin: 15, elevation: 2 },
-  filters: { flexDirection: 'row', paddingHorizontal: 15, marginBottom: 10 },
-  filterChip: { marginRight: 8 },
-  list: { padding: 15, paddingTop: 0, paddingBottom: 90 },
-  card: { marginBottom: 15, borderRadius: 16, backgroundColor: '#fff', elevation: 4 },
-  memberHeader: { flexDirection: 'row', alignItems: 'center' },
-  photo: { width: 60, height: 60, borderRadius: 30, marginRight: 12 },
-  photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#1976D2', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  photoPlaceholderText: { fontSize: 22, color: '#fff', fontWeight: 'bold' },
-  memberInfo: { flex: 1 },
-  memberName: { fontSize: 18, fontWeight: 'bold', color: '#222' },
-  memberEmail: { fontSize: 13, color: '#777', marginTop: 2 },
-  memberPhone: { fontSize: 13, color: '#777' },
-  statusBadge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, marginTop: 6 },
-  statusBadgeText: { fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase' },
-  designation: { fontSize: 13, color: '#999', fontStyle: 'italic', marginTop: 8 },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
-  emptyText: { fontSize: 16, color: '#999' },
-  fab: { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#1E3A5F' },
-});
+
 
 export default MemberManagementScreen;

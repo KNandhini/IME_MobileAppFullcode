@@ -1,18 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  RefreshControl,
-  Image,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, Image, ActivityIndicator } from 'react-native';
 import { Card } from 'react-native-paper';
 import { organisationService } from '../services/organisationService';
 import api from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { OrganisationScreenStyles as styles } from './screenStyles';
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 //const CLUB_ID = 1; // replace with your actual clubId or read from auth context
 
@@ -222,156 +215,6 @@ const OrganisationScreen = () => {
 };
 
 // ─── STYLES ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  list: {
-    padding: 15,
-  },
-  
-  photo: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    marginRight: 14,
-    borderWidth: 2,
-    borderColor: '#2196F3',
-  },
-  photoPlaceholder: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#2196F3',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-  },
-  photoPlaceholderText: {
-    fontSize: 28,
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  textContainer: {
-    flex: 1,
-  },
-  name: {
-    fontSize: 17,
-    fontWeight: 'bold',
-    color: '#222',
-    marginBottom: 3,
-  },
-  role: {
-    fontSize: 13,
-    color: '#6d6c6c',
-    fontWeight: '500',
-    marginBottom: 4,
-    //textTransform: 'uppercase',
-    letterSpacing: 0.5,
-     marginLeft: 6,
-  },
-  detail: {
-    fontSize: 13,
-    color: '#6d6c6c',
-     fontWeight: '500',
-    marginBottom: 2,
-     marginLeft: 6,
-  },
-  clubName: {
-    fontSize: 13,
-    color: '#6d6c6c',
-     fontWeight: '500',
-    marginTop: 4,
-    fontStyle: 'italic',
-     marginLeft: 6,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 50,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#999',
-  },
-  card: {
-  marginBottom: 12,
-  borderRadius: 14,
-  backgroundColor: '#fff',
-  elevation: 4,
-  shadowColor: '#000',
-  shadowOpacity: 0.08,
-  shadowRadius: 6,
-  shadowOffset: {
-    width: 0,
-    height: 2,
-  },
-},
 
-cardContent: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  padding: 14,
-},
-
-photo: {
-  width: 60,
-  height: 60,
-  borderRadius: 30,
-  borderWidth: 2,
-  borderColor: '#2196F3',
-  marginRight: 12,
-},
-
-photoPlaceholder: {
-  width: 60,
-  height: 60,
-  borderRadius: 30,
-  backgroundColor: '#2196F3',
-  justifyContent: 'center',
-  alignItems: 'center',
-  marginRight: 12,
-},
-
-photoPlaceholderText: {
-  color: '#fff',
-  fontSize: 24,
-  fontWeight: 'bold',
-},
-
-textContainer: {
-  flex: 1,
-},
-
-name: {
-  fontSize: 18,
-  fontWeight: '700',
-  color: '#222',
-  marginBottom: 2,
-},
-row: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 4,
-},
-
-infoText: {
-  marginLeft: 6,
-  fontSize: 13,
-  color: '#666',
-},
-
-
-
-
-
-});
 
 export default OrganisationScreen;

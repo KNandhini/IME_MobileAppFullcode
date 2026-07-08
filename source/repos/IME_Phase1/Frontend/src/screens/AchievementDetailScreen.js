@@ -1,12 +1,10 @@
 import React, { useEffect,useState } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Image, Linking, Modal,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
+import { AchievementDetailScreenStyles as styles } from './screenStyles';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
@@ -188,87 +186,6 @@ const loadAttachments = async () => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F0F4F8' },
 
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn:   { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  body: { padding: 20, paddingBottom: 40, alignItems: 'center' },
-
-  heroSection: { position: 'relative', marginBottom: 14, marginTop: 8 },
-  heroAvatar: {
-    width: 110, height: 110, borderRadius: 55,
-    borderWidth: 4, borderColor: GOLD,
-  },
-  heroAvatarFallback: {
-    backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
-  },
-  heroInitials: { color: '#fff', fontSize: 36, fontWeight: '800' },
-  trophyCircle: {
-    position: 'absolute', bottom: 0, right: 0,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
-    elevation: 4, borderWidth: 2, borderColor: GOLD,
-  },
-
-  memberName: {
-    fontSize: 20, fontWeight: '800', color: NAVY,
-    textAlign: 'center', marginBottom: 12,
-  },
-  goldDivider: {
-    width: 56, height: 3, backgroundColor: GOLD,
-    borderRadius: 2, marginBottom: 16,
-  },
-
-  achTitle: {
-    fontSize: 18, fontWeight: '700', color: '#0F172A',
-    textAlign: 'center', lineHeight: 26, marginBottom: 12,
-  },
-
-  metaRow: {
-    flexDirection: 'row', alignItems: 'center',
-    marginBottom: 20,
-  },
-  metaText: { color: '#64748B', fontSize: 13, marginLeft: 6, fontWeight: '500' },
-
-  descCard: {
-    width: '100%', backgroundColor: '#fff',
-    borderRadius: 12, padding: 16, marginBottom: 20,
-    elevation: 2, shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
-  },
-  descLabel: { fontSize: 11, fontWeight: '700', color: GOLD, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
-  descText:  { fontSize: 14, color: '#334155', lineHeight: 22 },
-
-  attachSection: { width: '100%', marginBottom: 20 },
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-attachImage: {
-  width: '100%',
-  height: 220,
-  borderRadius: 12,
-  resizeMode: 'contain',
-  backgroundColor: '#fff',
-},
-  attachHint:  { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
-  downloadBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 14,
-  },
-  downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-
-  viewerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-  viewerImage: { width: '100%', height: '80%' },
-});
 
 export default AchievementDetailScreen;

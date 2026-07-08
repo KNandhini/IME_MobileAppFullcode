@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import { contentService } from '../services/contentService';
+import { ContentViewerScreenStyles as styles } from './screenStyles';
 
 const ContentViewerScreen = ({ route }) => {
   const { pageKey, title } = route.params;
@@ -64,15 +65,6 @@ const ContentViewerScreen = ({ route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
-  emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1E3A5F', marginBottom: 6 },
-  emptySubtitle: { fontSize: 14, color: '#999', textAlign: 'center' },
-  header: { backgroundColor: '#1E3A5F', padding: 24, paddingTop: 32 },
-  headerTitle: { color: '#fff', fontSize: 24, fontWeight: '800' },
-  body: { padding: 20 },
-});
+
 
 export default ContentViewerScreen;

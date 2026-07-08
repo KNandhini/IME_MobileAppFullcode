@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Image, ActivityIndicator, StatusBar, Linking, Modal,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Linking, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supportService } from '../services/supportService';
 import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
+import { SupportDetailScreenStyles as styles } from './screenStyles';
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
@@ -291,99 +289,6 @@ const SupportDetailScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  safe:       { flex: 1, backgroundColor: '#F7F9FC' },
-  fullCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7F9FC' },
-  errorText:  { fontSize: 15, color: '#718096', marginBottom: 16 },
-  backBtn:    { backgroundColor: '#1E3A5F', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
-  backBtnText:{ color: '#fff', fontWeight: '700' },
 
-  header: {
-    backgroundColor: '#1E3A5F',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-  },
-  closeBtn:    { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
-  closeIcon:   { fontSize: 18, color: '#fff', fontWeight: '700' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#fff' },
-
-  scroll:        { flex: 1 },
-  scrollContent: { padding: 16, paddingBottom: 40 },
-
-  badgeRow: { marginBottom: 14 },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#EBF4FF',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeText: { fontSize: 11, color: '#2B6CB0', fontWeight: '700', letterSpacing: 0.5 },
-
-  titleBlock:  { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  avatar:      { width: 60, height: 60, borderRadius: 30, marginRight: 14 },
-  avatarPlaceholder: {
-    width: 60, height: 60, borderRadius: 30,
-    marginRight: 14, alignItems: 'center', justifyContent: 'center',
-  },
-  avatarLetter: { color: '#fff', fontSize: 24, fontWeight: '800' },
-  titleMeta:   { flex: 1 },
-  title:       { fontSize: 18, fontWeight: '800', color: '#1A202C', marginBottom: 4 },
-  clubName:    { fontSize: 13, color: '#4A5568', fontWeight: '500' },
-
-  statsRow: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 14,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    gap: 8,
-  },
-  statBox:     { flex: 1, alignItems: 'center' },
-  statLabel:   { fontSize: 10, color: '#A0AEC0', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  statValue:   { fontSize: 14, fontWeight: '700', color: '#2D3748', textAlign: 'center' },
-  amountValue: { color: '#276749', fontSize: 16 },
-
-  section: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  sectionLabel:    { fontSize: 10, color: '#A0AEC0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 },
-  sectionText:     { fontSize: 15, color: '#2D3748', fontWeight: '600' },
-  descriptionText: { fontSize: 14, color: '#4A5568', lineHeight: 22 },
-
-  attachGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  thumb: {
-    width: 90, height: 90, borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: '#F1F5F9',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  thumbImg:     { width: '100%', height: '100%' },
-  thumbDoc:     { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 6 },
-  thumbDocIcon: { fontSize: 28 },
-  thumbDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 4 },
-
-  viewerOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage:     { width: '100%', height: '80%' },
-  viewerClose:     { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-});
 
 export default SupportDetailScreen;
