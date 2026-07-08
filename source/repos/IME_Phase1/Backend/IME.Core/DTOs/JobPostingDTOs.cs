@@ -13,6 +13,7 @@ namespace IME.Core.DTOs
         public int ClubId { get; set; }
         public string JobTitle { get; set; } = string.Empty;
         public string CompanyName { get; set; } = string.Empty;
+        public string ContactInfo { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
         public string EmploymentType { get; set; } = string.Empty;
         public string? WorkingHours { get; set; }

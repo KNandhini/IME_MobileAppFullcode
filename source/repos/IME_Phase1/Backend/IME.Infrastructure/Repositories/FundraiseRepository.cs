@@ -1,7 +1,8 @@
-﻿using System.Data;
-using IME.Core.Interfaces;
+﻿using IME.Core.Interfaces;
 using IME.Core.Models;
 using IME.Infrastructure.Data;
+using System.Data;
+using System.Data.SqlClient;
 
 namespace IME.Infrastructure.Repositories
 {
@@ -15,13 +16,14 @@ namespace IME.Infrastructure.Repositories
         }
 
         // ✅ GET ALL
-        public async Task<List<Fundraise>> GetAllFundraiseAsync(int pageNumber = 1, int pageSize = 10)
+        public async Task<List<Fundraise>> GetAllFundraiseAsync(int pageNumber = 1, int pageSize = 10, string type = null)
         {
             var list = new List<Fundraise>();
             using var connection = await _dbContext.CreateOpenConnectionAsync();
             using var command = _dbContext.CreateStoredProcCommand("sp_GetAllFundraise", connection);
             command.Parameters.AddWithValue("@PageNumber", pageNumber);
             command.Parameters.AddWithValue("@PageSize", pageSize);
+            command.Parameters.AddWithValue("@Type", (object)type ?? DBNull.Value);
             using var reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
                 list.Add(MapFundraise(reader));
@@ -138,25 +140,28 @@ namespace IME.Infrastructure.Repositories
 
             return false;
         }
-
-        // ✅ DELETE
-        public async Task<bool> DeleteFundraiseAsync(int id)
+        public async Task<(bool Success, string Message)> DeleteFundraiseAsync(int id)
         {
             using var connection = await _dbContext.CreateOpenConnectionAsync();
             using var command = _dbContext.CreateStoredProcCommand("sp_DeleteFundraise", connection);
-
             command.Parameters.AddWithValue("@Id", id);
 
-            using var reader = await command.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            try
             {
-                return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    var rows = reader.GetInt32(reader.GetOrdinal("RowsAffected"));
+                    return (rows > 0, rows > 0 ? "Deleted successfully." : "Fundraise not found.");
+                }
+                return (false, "Fundraise not found.");
             }
-
-            return false;
+            catch (SqlException ex)
+            {
+                // RAISERROR/THROW from the SP surfaces here with ex.Message = the message we raised
+                return (false, ex.Message);
+            }
         }
-
         // 🔥 COMMON MAPPING METHOD
         private Fundraise MapFundraise(IDataReader reader)
         {

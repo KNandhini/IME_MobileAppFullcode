@@ -11,7 +11,18 @@ import { jobPostingService } from '../services/jobpostingService';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
-
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+import api from '../utils/api';
+// filePath from the server is a raw disk path like "Uploads\JobPostings-4\xyz.jpg" —
+// convert it into a URL the app can actually load/display/download.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 const JobPostingDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
   const [imgViewer,    setImgViewer]    = useState(null);
@@ -69,11 +80,7 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
         {/* ── Hero: briefcase icon ── */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroIconCircle}>
-            <Text style={{ fontSize: 38 }}>💼</Text>
-          </View>
-        </View>
+       
 
         {/* ── Job title ── */}
         <Text style={styles.jobTitle}>{item.jobTitle}</Text>
@@ -137,35 +144,36 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
         {attachments.length > 0 && (
           <View style={styles.attachSection}>
             <Text style={styles.attachLabel}>Attachments</Text>
-            {attachments.map((attachment, index) => {
-              const filePath = attachment.filePath;
-              return isImage(filePath) ? (
-                <TouchableOpacity
-                  key={attachment.attachmentId || index}
-                  onPress={() => setImgViewer(filePath)}
-                  activeOpacity={0.85}
-                  style={{ marginBottom: 14 }}
-                >
-                  <Image
-                    source={{ uri: filePath }}
-                    style={styles.attachImage}
-                    resizeMode="contain"
-                  />
-                  <Text style={styles.attachHint}>Tap to enlarge</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  key={attachment.attachmentId || index}
-                  style={styles.downloadBtn}
-                  onPress={() => Linking.openURL(filePath)}
-                >
-                  <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-                  <Text style={styles.downloadText}>
-                    {attachment.fileName || 'Download Attachment'}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+           {attachments.map((attachment, index) => {
+  const filePath = attachment.filePath;
+  const url = toPublicUrl(filePath);
+  return isImage(filePath) ? (
+    <TouchableOpacity
+      key={attachment.attachmentId || index}
+      onPress={() => setImgViewer(url)}
+      activeOpacity={0.85}
+      style={{ marginBottom: 14 }}
+    >
+      <Image
+        source={{ uri: url }}
+        style={styles.attachImage}
+        resizeMode="contain"
+      />
+      <Text style={styles.attachHint}>Tap to enlarge</Text>
+    </TouchableOpacity>
+  ) : (
+    <TouchableOpacity
+      key={attachment.attachmentId || index}
+      style={styles.downloadBtn}
+      onPress={() => Linking.openURL(url)}
+    >
+      <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+      <Text style={styles.downloadText}>
+        {attachment.fileName || 'Download Attachment'}
+      </Text>
+    </TouchableOpacity>
+  );
+})}
           </View>
         )}
       </ScrollView>

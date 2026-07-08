@@ -14,7 +14,18 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { jobPostingService } from '../services/jobpostingService';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../utils/api';
 
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -55,11 +66,11 @@ const chip = StyleSheet.create({
 const JobPostingFormScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
   const isEdit = !!item;
+  console.log(item,"edit");
   const { user } = useAuth();
 
   const [currentUserName, setCurrentUserName] = useState('');
-  const [currentClubId, setCurrentClubId]     = useState(null);
-
+const [currentClubId, setCurrentClubId]     = useState(null);  
   // Form fields
   const [jobTitle,                 setJobTitle]                 = useState(item?.jobTitle || '');
   const [companyName,              setCompanyName]              = useState(item?.companyName || '');
@@ -180,6 +191,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
 
   // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = async () => {
+    debugger;
     if (!jobTitle.trim())    { Alert.alert('Validation', 'Job Title is required.'); return; }
     if (!companyName.trim()) { Alert.alert('Validation', 'Company Name is required.'); return; }
     if (!location.trim())    { Alert.alert('Validation', 'Location is required.'); return; }
@@ -208,6 +220,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         res      = await jobPostingService.update(item.jobPostingId, { ...payload, modifiedBy: currentUserName });
         recordId = item.jobPostingId;
       } else {
+        debugger;
         res      = await jobPostingService.create({
           ...payload,
           clubId: Number(currentClubId),
@@ -224,6 +237,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
       // Upload new attachments one-by-one (same as AchievementFormScreen)
       for (const file of attachments) {
         try {
+          debugger;
           const fd = new FormData();
           fd.append('files', { uri: file.uri, name: file.fileName, type: file.mimeType });
           await jobPostingService.uploadAttachments(recordId, fd);
@@ -236,6 +250,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
+      debugger;
       Alert.alert('Error', e.message || 'Something went wrong.');
     } finally {
       setLoading(false);
@@ -248,13 +263,17 @@ const JobPostingFormScreen = ({ route, navigation }) => {
     <View style={styles.root}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEdit ? 'Edit Job Posting' : 'Add Job Posting'}</Text>
-        <View style={{ width: 36 }} />
-      </View>
+      <View style={styles.navbar}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
+    <Text style={styles.cancelText}>Cancel</Text>
+  </TouchableOpacity>
+  <Text style={styles.navTitle}>{isEdit ? 'Edit Job Posting' : 'Add Job Posting'}</Text>
+  <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
+    {loading
+      ? <ActivityIndicator size="small" color={GOLD} />
+      : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
+  </TouchableOpacity>
+</View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
@@ -314,25 +333,27 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         {/* ── Attachments (same grid as AchievementFormScreen) ── */}
         <Text style={styles.attachLabel}>ATTACHMENTS</Text>
         <View style={styles.attachGrid}>
-          {existingAttachments.map((a) => {
-            const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-            return (
-              <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
-                <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-                  if (isImage) setFileViewer({ visible: true, uri: a.filePath });
-                  else Linking.openURL(a.filePath);
-                }}>
-                  {isImage ? (
-                    <Image source={{ uri: a.filePath }} style={styles.gridImg} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.gridDoc}>
-                      <Text style={styles.gridDocIcon}>📄</Text>
-                      <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.gridRemove} onPress={() => {
+         {existingAttachments.map((a) => {
+  const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+    a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+  const url = toPublicUrl(a.filePath);
+  return (
+    <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
+      <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+        if (isImage) setFileViewer({ visible: true, uri: url });
+        else Linking.openURL(url);
+      }}>
+        {isImage ? (
+          <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+        ) : (
+          <View style={styles.gridDoc}>
+            <Text style={styles.gridDocIcon}>📄</Text>
+            <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      {/* ...remove button unchanged... */}
+      <TouchableOpacity style={styles.gridRemove} onPress={() => {
                   Alert.alert('Delete', `Delete "${a.fileName}"?`, [
                     { text: 'Cancel', style: 'cancel' },
                     {
@@ -346,10 +367,10 @@ const JobPostingFormScreen = ({ route, navigation }) => {
                   ]);
                 }}>
                   <Text style={styles.gridRemoveText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
+                </TouchableOpacity>   
+                 </View>
+  );
+})}
 
           {attachments.map((a, i) => (
             <View key={`new-${i}`} style={styles.gridThumb}>
@@ -382,7 +403,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         </View>
         <Text style={styles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
 
-        {/* ── Save button ── */}
+        {/* ── Save button ── 
         <TouchableOpacity
           style={[styles.saveBtn, loading && { opacity: 0.7 }]}
           onPress={handleSave} disabled={loading} activeOpacity={0.85}
@@ -395,7 +416,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
               <Text style={styles.saveBtnText}>{isEdit ? 'Update Job Posting' : 'Post Job'}</Text>
             </>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </ScrollView>
 
       {/* ── Image viewer modal ── */}
@@ -479,6 +500,16 @@ const styles = StyleSheet.create({
     borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10,
   },
   viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  navbar: {
+  flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+  backgroundColor: NAVY,
+  paddingTop: (StatusBar.currentHeight || 0) + 6,
+  paddingBottom: 12, paddingHorizontal: 12,
+},
+navSide: { minWidth: 64, paddingHorizontal: 4 },
+navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
 });
 
 export default JobPostingFormScreen;
