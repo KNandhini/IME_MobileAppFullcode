@@ -238,7 +238,6 @@ const HomeScreen = ({ navigation }) => {
               <Menu.Item title="⚙️  Admin Dashboard" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('AdminDashboard'); }} />
             )}
             <Menu.Item title="🏢  Organisation" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Organisation'); }} />
-            <Menu.Item title="📖  About IME" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
 <Menu.Item title="📰  Magazine" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Magazines'); }} />         
      <Menu.Item  title="ℹ️  About IME"   titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
             <View style={styles.menuSep} />

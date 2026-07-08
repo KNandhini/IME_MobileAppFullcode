@@ -323,7 +323,7 @@ const SignupScreen = ({ navigation }) => {
             <Text style={styles.modalTitle}>Welcome to IME</Text>
             <Text style={styles.modalSubtitle}>Member Registration</Text>
             <Text style={styles.modalBody}>
-              Complete the registration form to join the IMC community. You can pay the annual membership fee now or within 3 days of registration.
+              Complete the registration form to join the IME community. You can pay the annual membership fee now or within 3 days of registration.
             </Text>
             {currentFee ? (
               <View style={styles.feeBox}>
