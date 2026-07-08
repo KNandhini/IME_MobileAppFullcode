@@ -95,15 +95,29 @@ const FundraiseViewScreen = ({ route, navigation }) => {
   const balance   = Number(data.balanceAmount)   || target;
   const urgency   = URGENCY[data.urgencyLevel]   || URGENCY.Normal;
 
-  const handleDelete = () => {
+// ── Delete ────────────────────────────────────────────────────────────────
+  const handleDelete = (id) => {
     Alert.alert('Delete Fund', 'Are you sure you want to delete this fund?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Delete',
-        style: 'destructive',
+        text: 'Delete', style: 'destructive',
         onPress: async () => {
-          await fundraiseService.delete(data.id);
-          navigation.goBack();
+          try {
+            const res = await fundraiseService.delete(id);
+            if (res?.success) {
+              Alert.alert('Success', res?.message || 'Deleted successfully.');
+              loadData(true);
+            } else {
+              Alert.alert('Error', res?.message || 'Failed to delete fund.');
+            }
+          } catch (e) {
+            const apiMessage =
+              e?.response?.data?.message ||
+              e?.response?.data?.title ||
+              e?.message ||
+              'Failed to delete fund.';
+            Alert.alert('Error', apiMessage);
+          }
         },
       },
     ]);
@@ -215,7 +229,7 @@ const FundraiseViewScreen = ({ route, navigation }) => {
         ) : null}
 
         {/* ── Actions ── */}
-        <View style={styles.actionsCard}>
+        {/*<View style={styles.actionsCard}>
           <TouchableOpacity
             style={styles.editBtn}
             onPress={() => navigation.navigate('CreateFund', { data })}
@@ -228,7 +242,7 @@ const FundraiseViewScreen = ({ route, navigation }) => {
             <Text style={styles.deleteBtnIcon}>🗑️</Text>
             <Text style={styles.deleteBtnText}>Delete Fund</Text>
           </TouchableOpacity>
-        </View>
+        </View>*/}
 
         <View style={{ height: 40 }} />
       </Animated.ScrollView>

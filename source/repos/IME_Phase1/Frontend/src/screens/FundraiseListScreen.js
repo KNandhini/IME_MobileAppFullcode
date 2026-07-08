@@ -125,18 +125,35 @@ function FundCard({ item, onPress, onEdit, onDelete }) {
 
             <View style={styles.cardTopInfo}>
               <View style={styles.titleRow}>
-                <Text style={styles.fundTitle} numberOfLines={1}>
-                  {item.fundTitle || 'Untitled Fund'}
-                </Text>
-                {item.urgencyLevel ? (
-                  <View style={[styles.badge, { backgroundColor: urgency.bg }]}>
-                    <View style={[styles.badgeDot, { backgroundColor: urgency.dot }]} />
-                    <Text style={[styles.badgeText, { color: urgency.text }]}>
-                      {item.urgencyLevel}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
+  <Text style={styles.fundTitle} numberOfLines={1}>
+    {item.fundTitle || 'Untitled Fund'}
+  </Text>
+  {item.status ? (
+    <View style={[
+      styles.statusBadge,
+      { backgroundColor: item.status === 'Active' ? '#E8F8F0' : '#F1F1F1' },
+    ]}>
+      <View style={[
+        styles.badgeDot,
+        { backgroundColor: item.status === 'Active' ? SUCCESS : '#9AA5B1' },
+      ]} />
+      <Text style={[
+        styles.badgeText,
+        { color: item.status === 'Active' ? '#1E8449' : '#6B7280' },
+      ]}>
+        {item.status}
+      </Text>
+    </View>
+  ) : null}
+  {item.urgencyLevel ? (
+    <View style={[styles.badge, { backgroundColor: urgency.bg }]}>
+      <View style={[styles.badgeDot, { backgroundColor: urgency.dot }]} />
+      <Text style={[styles.badgeText, { color: urgency.text }]}>
+        {item.urgencyLevel}
+      </Text>
+    </View>
+  ) : null}
+</View>
 
               <View style={styles.metaRow}>
                 {item.fullName ? (
@@ -224,7 +241,7 @@ const FundraiseListScreen = ({ navigation, route }) => {
         setHasMore(true);
         setLoading(true);
       }
-      const res   = await fundraiseService.getAll(pageRef.current, PAGE_SIZE);
+      const res   = await fundraiseService.getAll(pageRef.current, PAGE_SIZE,'list');
       const items = res.data || [];
       setData(reset ? items : prev => [...prev, ...items]);
       setHasMore(items.length === PAGE_SIZE);
@@ -260,14 +277,29 @@ const FundraiseListScreen = ({ navigation, route }) => {
   }, [route.params?.changedItem]);
 
   // ── Delete ────────────────────────────────────────────────────────────────
+ // ── Delete ────────────────────────────────────────────────────────────────
   const handleDelete = (id) => {
-    Alert.alert('Delete Fund', 'Are you sure?', [
+    Alert.alert('Delete Fund', 'Are you sure you want to delete this fund?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete', style: 'destructive',
         onPress: async () => {
-          await fundraiseService.delete(id);
-          loadData(true);
+          try {
+            const res = await fundraiseService.delete(id);
+            if (res?.success) {
+              Alert.alert('Success', res?.message || 'Deleted successfully.');
+              loadData(true);
+            } else {
+              Alert.alert('Error', res?.message || 'Failed to delete fund.');
+            }
+          } catch (e) {
+            const apiMessage =
+              e?.response?.data?.message ||
+              e?.response?.data?.title ||
+              e?.message ||
+              'Failed to delete fund.';
+            Alert.alert('Error', apiMessage);
+          }
         },
       },
     ]);
@@ -424,6 +456,7 @@ const styles = StyleSheet.create({
 
   fab:            { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
   fabText:        { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+statusBadge: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6 },
 });
 
 const av = StyleSheet.create({

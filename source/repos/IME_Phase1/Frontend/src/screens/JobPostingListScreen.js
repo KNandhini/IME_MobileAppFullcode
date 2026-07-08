@@ -10,7 +10,18 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { jobPostingService } from '../services/jobpostingService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../utils/api';
 
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -22,15 +33,18 @@ const JobPostingListScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [clubId,     setClubId]     = useState(null);
   const [clubName,   setClubName]   = useState('');
+const [currentUserName, setCurrentUserName] = useState('');
+
 
   // ── Bootstrap club info from AsyncStorage (same pattern as AchievementFormScreen) ──
   const getClubId = async () => {
-    const raw    = await AsyncStorage.getItem('userData');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    setClubName(parsed.clubName || '');
-    return parsed.clubId || null;
-  };
+  const raw = await AsyncStorage.getItem('userData');
+  if (!raw) return null;
+  const parsed = JSON.parse(raw);
+  setClubName(parsed.clubName || '');
+  setCurrentUserName(parsed.fullName || parsed.name || '');
+  return parsed.clubId || null;
+};
 
   const loadJobs = useCallback(async () => {
     try {
@@ -82,8 +96,8 @@ const JobPostingListScreen = ({ navigation }) => {
           style: 'destructive',
           onPress: async () => {
             try {
-              await jobPostingService.delete(job.jobPostingId);
-              setJobs((prev) => prev.filter((j) => j.jobPostingId !== job.jobPostingId));
+await jobPostingService.delete(job.jobPostingId, currentUserName);      
+        setJobs((prev) => prev.filter((j) => j.jobPostingId !== job.jobPostingId));
             } catch {
               Alert.alert('Error', 'Failed to delete job posting.');
             }
@@ -105,13 +119,13 @@ const JobPostingListScreen = ({ navigation }) => {
       activeOpacity={0.85}
     >
       {/* Thumbnail — same as AchievementListScreen pattern */}
-      {item.attachmentPath && isImage(item.attachmentPath) ? (
-        <Image source={{ uri: item.attachmentPath }} style={styles.cardThumb} />
-      ) : (
-        <View style={[styles.cardThumb, styles.cardThumbFallback]}>
-          <Text style={{ fontSize: 28 }}>💼</Text>
-        </View>
-      )}
+     {/* {item.attachmentPath && isImage(item.attachmentPath) ? (
+  <Image source={{ uri: toPublicUrl(item.attachmentPath) }} style={styles.cardThumb} />
+) : (
+  <View style={[styles.cardThumb, styles.cardThumbFallback]}>
+    <Text style={{ fontSize: 28 }}>💼</Text>
+  </View>
+)}*/}
 
       <View style={styles.cardBody}>
         <View style={styles.cardHeaderRow}>

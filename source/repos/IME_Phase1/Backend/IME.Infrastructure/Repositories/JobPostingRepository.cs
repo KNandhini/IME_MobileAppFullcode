@@ -111,11 +111,12 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
     }
 
     // ── DELETE ────────────────────────────────────────────────
-    public async Task<bool> DeleteJobPostingAsync(int jobPostingId)
+    public async Task<bool> DeleteJobPostingAsync(int jobPostingId, string modifiedBy)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_DeleteJobPosting", connection);
         command.Parameters.AddWithValue("@JobPostingId", jobPostingId);
+        command.Parameters.AddWithValue("@ModifiedBy", modifiedBy);
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
             return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
@@ -146,16 +147,14 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
     // ── ADD ATTACHMENT ────────────────────────────────────────
     // Uses SP directly — same fix as AchievementRepository to avoid silent failures.
     public async Task<AttachmentDTO> AddJobPostingAttachmentAsync(
-        int jobPostingId, string fileName, string filePath, int uploadedBy)
+     int jobPostingId, string fileName, string filePath, long fileSize)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_AddJobPostingAttachment", connection);
         command.Parameters.AddWithValue("@JobPostingId", jobPostingId);
         command.Parameters.AddWithValue("@FileName", fileName);
         command.Parameters.AddWithValue("@FilePath", filePath);
-        command.Parameters.AddWithValue("@FileSize", 0);
-        command.Parameters.AddWithValue("@FileType", Path.GetExtension(fileName).TrimStart('.'));
-        command.Parameters.AddWithValue("@UploadedBy", uploadedBy);
+        command.Parameters.AddWithValue("@FileSize", fileSize);
         var attachmentId = Convert.ToInt32(await command.ExecuteScalarAsync());
         return new AttachmentDTO
         {
@@ -187,6 +186,7 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
             ClubId = r.GetInt32(r.GetOrdinal("ClubId")),
             JobTitle = r.GetString(r.GetOrdinal("JobTitle")),
             CompanyName = r.GetString(r.GetOrdinal("CompanyName")),
+               ContactInfo = r.GetString(r.GetOrdinal("ContactInfo")), 
             Location = r.GetString(r.GetOrdinal("Location")),
             EmploymentType = r.GetString(r.GetOrdinal("EmploymentType")),
             WorkingHours = r.IsDBNull(r.GetOrdinal("WorkingHours")) ? null : r.GetString(r.GetOrdinal("WorkingHours")),

@@ -26,13 +26,13 @@ public class FundraiseController : ControllerBase
         _fileStorageService = fileStorageService;
     }
 
-    // ✅ GET ALL
     [HttpGet]
     public async Task<ActionResult<ApiResponse<List<Fundraise>>>> GetAll(
      [FromQuery] int pageNumber = 1,
-     [FromQuery] int pageSize = 10)
+     [FromQuery] int pageSize = 10,
+     [FromQuery] string type = null)
     {
-        var data = await _repository.GetAllFundraiseAsync(pageNumber, pageSize);
+        var data = await _repository.GetAllFundraiseAsync(pageNumber, pageSize, type);
         return Ok(new ApiResponse<List<Fundraise>>
         {
             Success = true,
@@ -99,6 +99,7 @@ public class FundraiseController : ControllerBase
         }
         catch (Exception ex)
         {
+         
             return StatusCode(500, new ApiResponse<object> { Success = false, Message = ex.Message });
         }
     }
@@ -150,32 +151,26 @@ public class FundraiseController : ControllerBase
         });
     }
 
-    // ✅ DELETE — also deletes folder and clears DB paths
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
     {
-        // 1. Load record to get file paths before deleting
-        var fundraise = await _repository.GetFundraiseByIdAsync(id);
-        if (fundraise != null)
+        var (success, message) = await _repository.DeleteFundraiseAsync(id);
+
+        if (success)
         {
-            // 2. Delete the entire folder: Fundraise-{id}
             var folderName = $"Fundraise-{id}";
             var folderPath = _fileStorageService.GetFullPath(folderName);
-
             if (Directory.Exists(folderPath))
             {
                 Directory.Delete(folderPath, recursive: true);
             }
         }
 
-        // 3. Delete DB record
-        var success = await _repository.DeleteFundraiseAsync(id);
-
         return Ok(new ApiResponse<object>
         {
             Success = success,
-            Message = success ? "Deleted" : "Failed"
+            Message = message
         });
     }
 
