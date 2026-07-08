@@ -172,9 +172,11 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.dividerLine} />
             </View>
 
+            {/* Routes through the Membership Benefits screen first, so new
+                users see what they're joining before hitting the signup form. */}
             <TouchableOpacity
               style={styles.signupBtn}
-              onPress={() => navigation.navigate('Signup')}>
+              onPress={() => navigation.navigate('MembershipBenefits')}>
               <Text style={styles.signupBtnText}>Register New Member</Text>
             </TouchableOpacity>
           </View>
