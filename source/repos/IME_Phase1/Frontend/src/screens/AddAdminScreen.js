@@ -20,16 +20,17 @@ import { clubService } from '../services/clubService';
 //     (e.g. "3,7,12")
 //   • Uploads the picked profile photo directly to /File/upload-profile-photo
 //     right after signup succeeds, using the new memberId
+//   • Occupation + Educational Qualification fields (same shape as SignupScreen)
 // ─────────────────────────────────────────────────────────────────────────
 const AdminSignupScreen = ({
   navigation,
   route
 }) => {
-    const hideClubSelection =
-  route?.params?.hideClubSelection || false;
+  const hideClubSelection =
+    route?.params?.hideClubSelection || false;
 
-const presetClub =
-  route?.params?.presetClub || null;
+  const presetClub =
+    route?.params?.presetClub || null;
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', confirmPassword: '',
     contactNumber: '', address: '', gender: '', age: '',
@@ -47,29 +48,46 @@ const presetClub =
 
   // ── Location state ─────────────────────────────────────────────────────
   const [countries, setCountries] = useState([]);
-  const [states, setStates]       = useState([]);
-  const [clubs, setClubs]         = useState([]);
+  const [states, setStates] = useState([]);
+  const [clubs, setClubs] = useState([]);
 
   const [countryModal, setCountryModal] = useState(false);
-  const [stateModal, setStateModal]     = useState(false);
-  const [clubModal, setClubModal]       = useState(false);
+  const [stateModal, setStateModal] = useState(false);
+  const [clubModal, setClubModal] = useState(false);
 
   const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
-  const [selectedState, setSelectedState]     = useState(null); // { stateId, stateName }
-  const [selectedClubs, setSelectedClubs]     = useState([]);   // [{ clubId, clubName }, ...] — MULTIPLE
+  const [selectedState, setSelectedState] = useState(null); // { stateId, stateName }
+  const [selectedClubs, setSelectedClubs] = useState([]);   // [{ clubId, clubName }, ...] — MULTIPLE
 
   const [statesLoading, setStatesLoading] = useState(false);
-  const [clubsLoading, setClubsLoading]   = useState(false);
-useEffect(() => {
-  if (hideClubSelection && presetClub) {
-    setSelectedClubs([
-      {
-        clubId: presetClub.clubId,
-        clubName: presetClub.clubName,
-      },
-    ]);
-  }
-}, [hideClubSelection, presetClub]);
+  const [clubsLoading, setClubsLoading] = useState(false);
+
+  // ── Occupation state ───────────────────────────────────────────────────────
+  const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
+  const [occupation, setOccupation] = useState('');
+  const [occupationMenuVisible, setOccupationMenuVisible] = useState(false);
+  const [occupationMenuWidth, setOccupationMenuWidth] = useState(0);
+
+  // ── Occupation Details state (shown for Employed / Self Employed) ─────────
+  const [occupationDetails, setOccupationDetails] = useState(''); // free-text: role, company/business, etc.
+
+  // ── Educational Qualification state (always shown once occupation chosen) ─
+  const [qualification, setQualification] = useState(''); // free-text
+
+  // Derived visibility flags — recompute on every render, no refresh needed
+  const showOccupationDetails = occupation === 'Employed' || occupation === 'Self Employed';
+  const showEducationSection = occupation === 'Employed' || occupation === 'Self Employed' || occupation === 'Unemployed';
+
+  useEffect(() => {
+    if (hideClubSelection && presetClub) {
+      setSelectedClubs([
+        {
+          clubId: presetClub.clubId,
+          clubName: presetClub.clubName,
+        },
+      ]);
+    }
+  }, [hideClubSelection, presetClub]);
   useEffect(() => { loadCountries(); }, []);
 
   const loadCountries = async () => {
@@ -122,6 +140,21 @@ useEffect(() => {
     });
   };
 
+  // Clears whatever is no longer relevant when the occupation selection changes,
+  // so stale data from a previous choice never gets silently submitted.
+  const handleOccupationSelect = (value) => {
+    setOccupation(value);
+    setOccupationMenuVisible(false);
+    if (value !== 'Employed' && value !== 'Self Employed') {
+      setOccupationDetails('');
+    }
+    setErrors((prev) => ({
+      ...prev,
+      occupation: undefined,
+      occupationDetails: undefined,
+    }));
+  };
+
   const updateField = (field, value) => {
     let v = value;
     if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
@@ -161,6 +194,19 @@ useEffect(() => {
     if (!selectedCountry) e.country = 'Required';
     if (!selectedState) e.state = 'Required';
     if (!hideClubSelection && selectedClubs.length === 0) e.clubs = 'Select at least one club';
+
+    // ── Occupation ──
+    if (!occupation) e.occupation = 'Required';
+
+    if (showOccupationDetails) {
+      if (!occupationDetails) e.occupationDetails = 'Required';
+    }
+
+    // ── Educational Qualification ──
+    if (showEducationSection) {
+      if (!qualification) e.qualification = 'Required';
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -186,7 +232,7 @@ useEffect(() => {
   // succeeds and we have a real memberId to attach the photo to.
   const uploadProfilePhoto = async (memberId, photoUri) => {
     try {
-        debugger;
+      debugger;
       const formData = new FormData();
       formData.append('file', {
         uri: photoUri,
@@ -213,22 +259,25 @@ useEffect(() => {
     setLoading(true);
     try {
       const payload = {
-        fullName:      formData.fullName,
-        email:         formData.email,
-        password:      formData.password,
+        fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
         contactNumber: formData.contactNumber,
-        address:       formData.address,
-        gender:        formData.gender,
-        age:           parseInt(formData.age),
-        dateOfBirth:   formData.dateOfBirth,
+        address: formData.address,
+        gender: formData.gender,
+        age: parseInt(formData.age),
+        dateOfBirth: formData.dateOfBirth,
         designationId: formData.designationId,
-        countryId:     selectedCountry?.countryId ?? null,
-        stateId:       selectedState?.stateId ?? null,
+        countryId: selectedCountry?.countryId ?? null,
+        stateId: selectedState?.stateId ?? null,
         // Comma-separated list of every club this admin manages, e.g. "3,7,12"
         // (a single club still works fine, it'll just be one id with no comma)
-        clubId:        selectedClubs.map((c) => c.clubId).join(',')??null,
+        clubId: selectedClubs.map((c) => c.clubId).join(',') ?? null,
         // 1 = Admin (see backend SignupRequestDTO.RoleId)
-        roleId:        1,
+        roleId: 1,
+        occupation,
+        ...(showOccupationDetails && { occupationDetails }),
+        ...(showEducationSection && { qualification }),
       };
 
       const response = await api.post('/Auth/signup', payload);
@@ -237,7 +286,7 @@ useEffect(() => {
       if (res.success) {
         // No payment step to defer to here, so push the photo now.
         if (profilePhoto && res.data?.memberId) {
-            debugger;
+          debugger;
           const uploaded = await uploadProfilePhoto(res.data.memberId, profilePhoto.uri);
           if (!uploaded) {
             console.warn('Profile photo upload did not succeed for member', res.data.memberId);
@@ -246,36 +295,36 @@ useEffect(() => {
 
         const clubNames = selectedClubs?.map(c => c.clubName).join(', ');
 
-  const newMember = {
-    memberId: res.data.memberId,
-    fullName: formData.fullName,
-  };
+        const newMember = {
+          memberId: res.data.memberId,
+          fullName: formData.fullName,
+        };
 
-  Alert.alert(
-    'Admin Created',
-    clubNames
-      ? `${formData.fullName} has been registered as an admin for ${clubNames}.`
-      : `${formData.fullName} has been registered as an admin.`,
-    [
-      {
-        text: 'OK',
-        onPress: () => {
-          navigation.navigate({
-            name: 'ClubForm',
-            params: {
-              newAdminMember: newMember,
+        Alert.alert(
+          'Admin Created',
+          clubNames
+            ? `${formData.fullName} has been registered as an admin for ${clubNames}.`
+            : `${formData.fullName} has been registered as an admin.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                navigation.navigate({
+                  name: 'ClubForm',
+                  params: {
+                    newAdminMember: newMember,
+                  },
+                  merge: true,
+                });
+              },
             },
-            merge: true,
-          });
-        },
-      },
-    ]
-  );
-} else {
+          ]
+        );
+      } else {
         Alert.alert('Registration Failed', res.message);
       }
     } catch (e) {
-      const status    = e?.response?.status;
+      const status = e?.response?.status;
       const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
       Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
     } finally {
@@ -363,40 +412,40 @@ useEffect(() => {
 
         {/* ── Clubs (MULTI-SELECT — an admin can manage more than one club) ── */}
         {!hideClubSelection && (
-  <>
-    <TouchableOpacity
-      onPress={() =>
-        selectedState
-          ? setClubModal(true)
-          : Alert.alert('Select state first')
-      }
-      activeOpacity={0.8}
-    >
-      <View pointerEvents="none">
-        <TextInput
-          label={clubsLoading ? 'Loading clubs…' : 'Clubs *'}
-          value={selectedClubs.map(c => c.clubName).join(', ')}
-          mode="outlined"
-          theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB"
-          activeOutlineColor="#1976D2"
-          style={[
-            styles.input,
-            !selectedState && { opacity: 0.5 },
-          ]}
-          editable={false}
-          multiline
-        />
-      </View>
-    </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              onPress={() =>
+                selectedState
+                  ? setClubModal(true)
+                  : Alert.alert('Select state first')
+              }
+              activeOpacity={0.8}
+            >
+              <View pointerEvents="none">
+                <TextInput
+                  label={clubsLoading ? 'Loading clubs…' : 'Clubs *'}
+                  value={selectedClubs.map(c => c.clubName).join(', ')}
+                  mode="outlined"
+                  theme={{ roundness: 10 }}
+                  outlineColor="#BBDEFB"
+                  activeOutlineColor="#1976D2"
+                  style={[
+                    styles.input,
+                    !selectedState && { opacity: 0.5 },
+                  ]}
+                  editable={false}
+                  multiline
+                />
+              </View>
+            </TouchableOpacity>
 
-    {errors.clubs && (
-      <Text style={styles.error}>
-        {errors.clubs}
-      </Text>
-    )}
-  </>
-)}
+            {errors.clubs && (
+              <Text style={styles.error}>
+                {errors.clubs}
+              </Text>
+            )}
+          </>
+        )}
 
         <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
           <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
@@ -441,6 +490,57 @@ useEffect(() => {
           keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
+
+        {/* ── Occupation ── */}
+        <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
+          <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
+            contentStyle={{ width: occupationMenuWidth }}
+            anchor={
+              <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                <View pointerEvents="none">
+                  <TextInput label="Occupation *" value={occupation} mode="outlined"
+                    theme={{ roundness: 10 }}
+                    outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
+                    activeOutlineColor="#1976D2"
+                    style={styles.input} editable={false} />
+                </View>
+              </TouchableOpacity>
+            }>
+            {OCCUPATION_OPTIONS.map((opt) => (
+              <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+            ))}
+          </Menu>
+        </View>
+        {errors.occupation && <Text style={styles.error}>{errors.occupation}</Text>}
+
+        {/* ── Occupation Details (Employed / Self Employed only) ── */}
+        {showOccupationDetails && (
+          <View style={styles.sectionBox}>
+            <Text style={styles.sectionTitle}>Occupation Details</Text>
+            <TextInput
+              label="Occupation Details *"
+              value={occupationDetails}
+              onChangeText={setOccupationDetails}
+              multiline mode="outlined" theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+            {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
+          </View>
+        )}
+
+        {/* ── Educational Qualification (shown for any occupation once selected) ── */}
+        {showEducationSection && (
+          <View style={styles.sectionBox}>
+            <Text style={styles.sectionTitle}>Educational Qualification</Text>
+            <TextInput
+              label="Educational Qualification *"
+              value={qualification}
+              placeholder="e.g., Diploma-Civil Engineering"
+              onChangeText={setQualification}
+              mode="outlined" theme={{ roundness: 10 }}
+              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+            {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
+          </View>
+        )}
 
         {/* Profile Photo */}
         <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
@@ -567,42 +667,45 @@ useEffect(() => {
 };
 
 const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#fff' },
-  content:        { padding: 20 },
-  header:         { alignItems: 'center', marginBottom: 25 },
-  title:          { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
-  subtitle:       { fontSize: 14, color: '#666', marginTop: 5 },
-  card:           { width: '100%' },
-  input:          { marginBottom: 10, borderRadius: 10 },
-  button:         { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
-  linkButton:     { marginTop: 10 },
-  error:          { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
-  helper:         { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { padding: 20 },
+  header: { alignItems: 'center', marginBottom: 25 },
+  title: { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
+  subtitle: { fontSize: 14, color: '#666', marginTop: 5 },
+  card: { width: '100%' },
+  input: { marginBottom: 10, borderRadius: 10 },
+  button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
+  linkButton: { marginTop: 10 },
+  error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
+  helper: { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
+  // Occupation / Education sections
+  sectionBox: { backgroundColor: '#F7F9FC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E3EAF5' },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F', marginBottom: 10 },
   // Profile Photo
-  photoLabel:         { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
-  photoPickerRow:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
-  photoPreview:       { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
-  photoPlaceholder:   { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
+  photoLabel: { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
+  photoPickerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
+  photoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
+  photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
   photoPlaceholderIcon: { fontSize: 28 },
-  photoPickerText:    { marginLeft: 14, flex: 1 },
-  photoPickerTitle:   { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
-  photoPickerHint:    { fontSize: 12, color: '#888', marginTop: 2 },
+  photoPickerText: { marginLeft: 14, flex: 1 },
+  photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
+  photoPickerHint: { fontSize: 12, color: '#888', marginTop: 2 },
   // Picker modals
-  pickerOverlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  pickerSheet:         { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  pickerTitle:         { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  pickerItem:          { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  pickerItemRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
-  pickerItemActive:    { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
-  pickerItemText:      { fontSize: 15, color: '#111' },
-  pickerItemTextActive:{ color: '#1E3A5F', fontWeight: '700' },
-  checkMark:           { fontSize: 16, color: 'transparent', width: 20, textAlign: 'right' },
-  checkMarkActive:      { color: '#1976D2', fontWeight: '700' },
-  pickerEmpty:         { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  pickerCancel:        { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerCancelText:    { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-  pickerDone:          { marginTop: 12, backgroundColor: '#1E3A5F', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerDoneText:      { fontSize: 15, color: '#fff', fontWeight: '700' },
+  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+  pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+  pickerItemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
+  pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
+  pickerItemText: { fontSize: 15, color: '#111' },
+  pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
+  checkMark: { fontSize: 16, color: 'transparent', width: 20, textAlign: 'right' },
+  checkMarkActive: { color: '#1976D2', fontWeight: '700' },
+  pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
+  pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+  pickerDone: { marginTop: 12, backgroundColor: '#1E3A5F', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+  pickerDoneText: { fontSize: 15, color: '#fff', fontWeight: '700' },
 });
 
 export default AdminSignupScreen;
