@@ -680,46 +680,5 @@ const AdminSignupScreen = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  content: { padding: 20 },
-  header: { alignItems: 'center', marginBottom: 25 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
-  subtitle: { fontSize: 14, color: '#666', marginTop: 5 },
-  card: { width: '100%' },
-  input: { marginBottom: 10, borderRadius: 10 },
-  button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
-  linkButton: { marginTop: 10 },
-  error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
-  helper: { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
-  // Occupation / Education sections
-  sectionBox: { backgroundColor: '#F7F9FC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E3EAF5' },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F', marginBottom: 10 },
-  // Profile Photo
-  photoLabel: { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
-  photoPickerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
-  photoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
-  photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
-  photoPlaceholderIcon: { fontSize: 28 },
-  photoPickerText: { marginLeft: 14, flex: 1 },
-  photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
-  photoPickerHint: { fontSize: 12, color: '#888', marginTop: 2 },
-  // Picker modals
-  pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  pickerItemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
-  pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
-  pickerItemText: { fontSize: 15, color: '#111' },
-  pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
-  checkMark: { fontSize: 16, color: 'transparent', width: 20, textAlign: 'right' },
-  checkMarkActive: { color: '#1976D2', fontWeight: '700' },
-  pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-  pickerDone: { marginTop: 12, backgroundColor: '#1E3A5F', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerDoneText: { fontSize: 15, color: '#fff', fontWeight: '700' },
-});
 
 export default AdminSignupScreen;
