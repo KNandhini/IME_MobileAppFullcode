@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Image, Modal, ActivityIndicator,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { activityService } from '../services/activityService';
 import api from '../utils/api';
+import { ActivityDetailScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -191,72 +189,6 @@ const ActivityDetailScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#F0F4F8' },
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F4F8' },
-  errorText: { fontSize: 15, color: '#888' },
 
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn:   { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-
-  body: { padding: 20, paddingBottom: 40, alignItems: 'center' },
-
-  badge: {
-    alignSelf: 'flex-start', backgroundColor: '#FEF9EC', borderRadius: 6,
-    paddingHorizontal: 8, paddingVertical: 3, marginBottom: 10,
-  },
-  badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-
-  title: {
-    width: '100%',
-    fontSize: 20, fontWeight: '800', color: NAVY,
-    textAlign: 'left', marginBottom: 12,
-  },
-  goldDivider: {
-    width: 56, height: 3, backgroundColor: GOLD,
-    borderRadius: 2, marginBottom: 16,
-  },
-
-  metaWrap: { width: '100%', marginBottom: 20 },
-  metaRow: {
-    flexDirection: 'row', alignItems: 'center',
-    marginBottom: 10,
-  },
-  metaText: { color: '#334155', fontSize: 14, marginLeft: 8, fontWeight: '500' },
-
-  descCard: {
-    width: '100%', backgroundColor: '#fff',
-    borderRadius: 12, padding: 16, marginBottom: 20,
-    elevation: 2, shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
-  },
-  descLabel: { fontSize: 11, fontWeight: '700', color: GOLD, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
-  descText:  { fontSize: 14, color: '#334155', lineHeight: 22 },
-
-  attachSection: { width: '100%', marginBottom: 20 },
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
-  noAttach: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-
-  attachImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 12,
-    backgroundColor: '#fff',
-  },
-  attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
-
-  viewerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8, zIndex: 10 },
-  viewerImage: { width: '100%', height: '80%' },
-});
 
 export default ActivityDetailScreen;

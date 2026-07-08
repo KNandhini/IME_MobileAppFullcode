@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, Alert,
-  TouchableOpacity, Modal, Image, FlatList,
-} from 'react-native';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList } from 'react-native';
 import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
+import { AddAdminScreenStyles as styles } from './screenStyles';
 
 // ─────────────────────────────────────────────────────────────────────────
 // AdminSignupScreen
@@ -141,6 +139,18 @@ useEffect(() => {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  };
+
+  const calculateAge = (dateOfBirth) => {
+    const todayDate = new Date();
+    let age = todayDate.getFullYear() - dateOfBirth.getFullYear();
+    const monthDiff = todayDate.getMonth() - dateOfBirth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && todayDate.getDate() < dateOfBirth.getDate())) {
+      age -= 1;
+    }
+
+    return String(Math.max(age, 0));
   };
 
   const validate = () => {
@@ -432,14 +442,18 @@ useEffect(() => {
               setShowDatePicker(false);
               if (event.type === 'set' && date) {
                 setSelectedDate(date);
-                updateField('dateOfBirth', formatDate(date));
+                setFormData((prev) => ({
+                  ...prev,
+                  dateOfBirth: formatDate(date),
+                  age: calculateAge(date),
+                }));
               }
             }} />
         )}
 
-        <TextInput label="Age *" value={formData.age} onChangeText={(t) => updateField('age', t)}
+        <TextInput label="Age *" value={formData.age}
           keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
         {/* Profile Photo */}
@@ -566,43 +580,6 @@ useEffect(() => {
   );
 };
 
-const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: '#fff' },
-  content:        { padding: 20 },
-  header:         { alignItems: 'center', marginBottom: 25 },
-  title:          { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
-  subtitle:       { fontSize: 14, color: '#666', marginTop: 5 },
-  card:           { width: '100%' },
-  input:          { marginBottom: 10, borderRadius: 10 },
-  button:         { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
-  linkButton:     { marginTop: 10 },
-  error:          { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
-  helper:         { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
-  // Profile Photo
-  photoLabel:         { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
-  photoPickerRow:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
-  photoPreview:       { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
-  photoPlaceholder:   { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
-  photoPlaceholderIcon: { fontSize: 28 },
-  photoPickerText:    { marginLeft: 14, flex: 1 },
-  photoPickerTitle:   { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
-  photoPickerHint:    { fontSize: 12, color: '#888', marginTop: 2 },
-  // Picker modals
-  pickerOverlay:       { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  pickerSheet:         { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-  pickerTitle:         { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
-  pickerItem:          { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-  pickerItemRow:       { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
-  pickerItemActive:    { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
-  pickerItemText:      { fontSize: 15, color: '#111' },
-  pickerItemTextActive:{ color: '#1E3A5F', fontWeight: '700' },
-  checkMark:           { fontSize: 16, color: 'transparent', width: 20, textAlign: 'right' },
-  checkMarkActive:      { color: '#1976D2', fontWeight: '700' },
-  pickerEmpty:         { textAlign: 'center', color: '#888', paddingVertical: 24 },
-  pickerCancel:        { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerCancelText:    { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-  pickerDone:          { marginTop: 12, backgroundColor: '#1E3A5F', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-  pickerDoneText:      { fontSize: 15, color: '#fff', fontWeight: '700' },
-});
+
 
 export default AdminSignupScreen;

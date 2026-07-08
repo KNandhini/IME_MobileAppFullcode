@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
+import { View, Text, StatusBar, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { PresentationScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -410,26 +411,6 @@ const PresentationScreen = ({ navigation }) => (
   </View>
 );
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0d1f33' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight ?? 0) + 4,
-    paddingBottom: 12,
-    paddingHorizontal: 16,
-  },
-  backBtn: {
-    width: 40, height: 40,
-    alignItems: 'center', justifyContent: 'center',
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-  },
-  headerTitle: {
-    color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.5,
-  },
-});
+
 
 export default PresentationScreen;

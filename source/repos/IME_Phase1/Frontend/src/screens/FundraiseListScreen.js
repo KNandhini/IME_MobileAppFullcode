@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  View, Text, FlatList, StyleSheet, TouchableOpacity,
-  Alert, Animated, Image, ActivityIndicator, RefreshControl,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, Animated, Image, ActivityIndicator, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fundraiseService } from '../services/fundraiseService';
 import api from '../utils/api'; // ✅ ADDED — needed to build API_BASE like AchievementDetailScreen
+import { FundraiseListScreenStyles as styles, FundraiseListScreenAv as av, FundraiseListScreenPb as pb } from './screenStyles';
 
 const API_BASE_URL = 'http://10.0.2.2:51150/api';
  //const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
@@ -378,61 +376,7 @@ const FundraiseListScreen = ({ navigation, route }) => {
 export default FundraiseListScreen;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = StyleSheet.create({
-  container:      { flex: 1, backgroundColor: BG },
-  listContent:    { padding: 14, paddingBottom: 90 },
 
-  summaryStrip:   { flexDirection: 'row', backgroundColor: '#fff', marginHorizontal: 14, marginTop: 8, borderRadius: 14, padding: 14, elevation: 4, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, marginBottom: 6 },
-  summaryItem:    { flex: 1, alignItems: 'center' },
-  summaryVal:     { fontSize: 15, fontWeight: '800', color: PRIMARY },
-  summaryLabel:   { fontSize: 11, color: '#888', marginTop: 2 },
-  summaryDivider: { width: 1, backgroundColor: '#E8ECF4' },
 
-  card:           { backgroundColor: CARD_BG, borderRadius: 16, marginBottom: 14, padding: 16, elevation: 3, shadowColor: '#1E3A5F', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
-  cardTop:        { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
-  cardTopInfo:    { flex: 1, marginLeft: 12 },
-  titleRow:       { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 },
-  fundTitle:      { flex: 1, fontSize: 15, fontWeight: '700', color: '#1A2540', marginRight: 8 },
-  badge:          { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4 },
-  badgeDot:       { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
-  badgeText:      { fontSize: 11, fontWeight: '700' },
-  metaRow:        { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
-  metaName:       { fontSize: 12, color: '#888' },
-  categoryChip:   { backgroundColor: '#EEF2FF', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  categoryText:   { fontSize: 11, color: '#4361EE', fontWeight: '600' },
 
-  amountRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
-  amountLabel:    { fontSize: 11, color: '#999', marginBottom: 2 },
-  amountValue:    { fontSize: 15, fontWeight: '700', color: SUCCESS },
-  pctBubble:      { backgroundColor: '#EEF5FF', borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  pctText:        { fontSize: 13, fontWeight: '800', color: ACCENT },
 
-  divider:        { height: 1, backgroundColor: '#F0F3FA', marginVertical: 12 },
-  actionRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  actionBtn:      { padding: 4 },
-  actionView:     { fontSize: 13, color: '#888', fontWeight: '500' },
-
-  footerWrap:     { paddingVertical: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
-  footerText:     { fontSize: 12, color: '#aaa' },
-
-  emptyWrap:      { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 40 },
-  emptyIcon:      { fontSize: 52, marginBottom: 16 },
-  emptyTitle:     { fontSize: 20, fontWeight: '700', color: PRIMARY, marginBottom: 8 },
-  emptySubtitle:  { fontSize: 14, color: '#888', textAlign: 'center', lineHeight: 21 },
-  emptyBtn:       { marginTop: 24, backgroundColor: PRIMARY, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13 },
-  emptyBtnText:   { color: '#fff', fontWeight: '700', fontSize: 15 },
-
-  fab:            { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText:        { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-});
-
-const av = StyleSheet.create({
-  img:      { width: 58, height: 58, borderRadius: 14, backgroundColor: '#E8ECF4', borderWidth: 1.5, borderColor: '#DDE3EF' },
-  fallback: { width: 58, height: 58, borderRadius: 14, backgroundColor: '#D6E4F7', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#B8CEE8' },
-  initials: { fontSize: 20, fontWeight: '800', color: PRIMARY },
-});
-
-const pb = StyleSheet.create({
-  track: { height: 7, backgroundColor: '#EEF2F8', borderRadius: 99, overflow: 'hidden', marginTop: 8 },
-  fill:  { height: '100%', borderRadius: 99 },
-});

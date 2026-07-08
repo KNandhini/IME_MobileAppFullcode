@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, ActivityIndicator, Image, TextInput, Platform,
-} from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import { BASE_URL } from '../utils/api';
+import { MemberEditScreenStyles as styles } from './screenStyles';
 
 const GENDERS = ['Male', 'Female', 'Other'];
 
@@ -349,83 +347,6 @@ const Field = ({ label, children }) => (
   </View>
 );
 
-const styles = StyleSheet.create({
-  root:    { flex: 1, backgroundColor: '#f5f5f5' },
-  content: { padding: 16, paddingBottom: 40 },
-  center:  { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  // Photo
-  photoSection:    { alignItems: 'center', marginBottom: 20 },
-  photo:           { width: 100, height: 100, borderRadius: 50, borderWidth: 3, borderColor: '#1E3A5F' },
-  photoPlaceholder:{ width: 100, height: 100, borderRadius: 50, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center' },
-  photoInitial:    { fontSize: 38, color: '#fff', fontWeight: '700' },
-  cameraOverlay: {
-    position: 'absolute', bottom: 0, right: 0,
-    backgroundColor: '#D4A017', borderRadius: 14,
-    width: 28, height: 28, justifyContent: 'center', alignItems: 'center',
-  },
-  cameraIcon:  { fontSize: 14 },
-  photoHint:   { marginTop: 8, fontSize: 12, color: '#888' },
-
-  // Read-only
-  readOnlyBox:   { backgroundColor: '#fff', borderRadius: 12, padding: 14, marginBottom: 16, elevation: 1 },
-  readOnlyLabel: { fontSize: 11, color: '#999', textTransform: 'uppercase', letterSpacing: 0.5 },
-  readOnlyValue: { fontSize: 14, color: '#333', fontWeight: '600', marginTop: 2 },
-
-  // Form
-  field:  { marginBottom: 14 },
-  label:  { fontSize: 12, color: '#555', fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.4 },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    paddingHorizontal: 14,
-    paddingVertical: Platform.OS === 'ios' ? 14 : 10,
-    fontSize: 15,
-    color: '#222',
-  },
-  multiline: { minHeight: 80, paddingTop: 12 },
-
-  // Gender dropdown
-  dropdown:          { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  dropdownSelected:  { fontSize: 15, color: '#222' },
-  dropdownPlaceholder:{ fontSize: 15, color: '#aaa' },
-  dropdownArrow:     { fontSize: 12, color: '#888' },
-  dropdownMenu:      { backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#ddd', marginTop: 4, overflow: 'hidden' },
-  dropdownItem:      { paddingVertical: 12, paddingHorizontal: 16 },
-  dropdownItemText:  { fontSize: 15, color: '#333' },
-  dropdownItemActive:{ color: '#1E3A5F', fontWeight: '700' },
-
-  // Action buttons row
-  buttonRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 10,
-  },
-
-  // Clear button
-  clearBtn: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#1E3A5F',
-  },
-  clearBtnText: { color: '#1E3A5F', fontSize: 16, fontWeight: '700' },
-
-  // Save button
-  saveBtn: {
-    flex: 1,
-    backgroundColor: '#1E3A5F',
-    borderRadius: 12,
-    paddingVertical: 15,
-    alignItems: 'center',
-  },
-  saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText:     { color: '#fff', fontSize: 16, fontWeight: '700' },
-});
 
 export default MemberEditScreen;

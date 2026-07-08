@@ -2,12 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import {
-  View, Text, StyleSheet, FlatList, RefreshControl,
-  Image, TouchableOpacity, ScrollView, ActivityIndicator,
-  Modal, TextInput, Platform,
-  KeyboardAvoidingView, Animated, Alert, StatusBar,
-} from 'react-native';
+import { View, Text, FlatList, RefreshControl, Image, TouchableOpacity, ScrollView, ActivityIndicator, Modal, TextInput, Platform, KeyboardAvoidingView, Animated, Alert, StatusBar } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { supportService } from '../services/supportService';
 import { memberService } from '../services/memberService';
@@ -20,6 +15,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';  // ✅ add this
 import api from '../utils/api';
+import { SupportScreenDd as dd, SupportScreenDp as dp, SupportScreenFld as fld, SupportScreenInp as inp, SupportScreenAtt as att, SupportScreenFs as fs, SupportScreenS as s } from './screenStyles';
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -148,28 +144,7 @@ function Dropdown({ label, options, value, onChange, placeholder = 'Select…', 
   );
 }
 
-const dd = StyleSheet.create({
-  wrapper: { marginBottom: 20 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
-  trigger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: '#E2E8F0' },
-  triggerError: { borderColor: '#EF4444' },
-  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder: { color: '#CBD5E1' },
-  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
 
-  // Sheet modal
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, height: '65%', paddingBottom: 30 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-  option: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  optionActive: { backgroundColor: '#EFF6FF' },
-  optionText: { flex: 1, fontSize: 15, color: '#334155' },
-  optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
-  tick: { fontSize: 14, color: '#1D4ED8', fontWeight: '700' },
-});
 
 // ── Date Picker Field ─────────────────────────────────────────────────────────
 function DatePickerField({ label, required, value, onChange, error }) {
@@ -229,32 +204,7 @@ function DatePickerField({ label, required, value, onChange, error }) {
   );
 }
 
-const dp = StyleSheet.create({
-  wrapper: { marginBottom: 20 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
-  req: { color: '#EF4444' },
-  trigger: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, borderWidth: 1.5, borderColor: '#E2E8F0' },
-  triggerError: { borderColor: '#EF4444' },
-  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder: { color: '#CBD5E1' },
-  icon: { fontSize: 16 },
-  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 30 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetDone: { fontSize: 15, color: '#2563EB', fontWeight: '700' },
-  input: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: '#1E293B',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-  },
-});
+
 
 // ── Field wrapper ─────────────────────────────────────────────────────────────
 function Field({ label, required, children, error, hint, charCount, maxChars }) {
@@ -277,16 +227,7 @@ function Field({ label, required, children, error, hint, charCount, maxChars }) 
     </View>
   );
 }
-const fld = StyleSheet.create({
-  wrapper: { marginBottom: 20 },
-  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6 },
-  req: { color: '#EF4444' },
-  counter: { fontSize: 11, color: '#94A3B8', fontWeight: '500' },
-  counterOver: { color: '#EF4444' },
-  hint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
-  error: { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
-});
+
 
 // ── Styled TextInput ──────────────────────────────────────────────────────────
 function StyledInput({ hasError, multiline, style, ...props }) {
@@ -309,12 +250,7 @@ function StyledInput({ hasError, multiline, style, ...props }) {
     />
   );
 }
-const inp = StyleSheet.create({
-  base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
-  focused: { borderColor: '#3B82F6', backgroundColor: '#fff' },
-  errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
-  multiline: { height: 130, paddingTop: 14 },
-});
+
 
 // ── Attachment pill ───────────────────────────────────────────────────────────
 function AttachmentPill({ name, onRemove }) {
@@ -329,12 +265,7 @@ function AttachmentPill({ name, onRemove }) {
     </View>
   );
 }
-const att = StyleSheet.create({
-  pill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#EFF6FF', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 7, marginRight: 8, marginBottom: 8, maxWidth: 170, borderWidth: 1, borderColor: '#BFDBFE' },
-  icon: { fontSize: 14, marginRight: 5 },
-  name: { flex: 1, fontSize: 12, color: '#1D4ED8', fontWeight: '500' },
-  remove: { fontSize: 12, color: '#EF4444', marginLeft: 6, fontWeight: '800' },
-});
+
 
 // ── Full-screen Add Support Form ──────────────────────────────────────────────
 function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembers = [], preloadedMembersLoading = false }) {
@@ -911,38 +842,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   );
 }
 
-const fs = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#1E3A5F' },
-  navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: (StatusBar.currentHeight ?? 0) + 12, backgroundColor: '#1E3A5F' },
-  navSideBtn: { minWidth: 64, paddingHorizontal: 4, paddingVertical: 4 },
-  navCenter: { flex: 1, alignItems: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  navCancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  navSubmitText: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
-  accentBar: { height: 3, backgroundColor: '#D4A017', opacity: 0.3 },
-  scroll: { flex: 1, backgroundColor: '#FAFBFC' },
-  scrollContent: { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 52 },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6 },
 
-  // Grid-style attachment area
-  attachGrid: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center' },
-  gridThumb: { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  gridImg: { width: '100%', height: '100%' },
-  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon: { fontSize: 24 },
-  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  gridRemove: { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  gridAddBtn: { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-  gridAddIcon: { fontSize: 22, marginBottom: 2 },
-  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-
-  // File viewer
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-});
 
 // ── Support Card ──────────────────────────────────────────────────────────────
 function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
@@ -1334,61 +1234,3 @@ export default function SupportScreen({ navigation }) {
 }
 
 // ── Styles ────────────────────────────────────────────────────────────────────
-const s = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#F7F9FC' },
-
-  headerBar: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#1E3A5F' },
-  fab: { position: 'absolute', bottom: 24, right: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100 },
-  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
-  loadingOverlayText: { color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '600' },
-
-  tabBar: { backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-  tabBarContent: { paddingHorizontal: 10 },
-  tab: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2.5, borderBottomColor: 'transparent' },
-  tabActive: { borderBottomColor: '#2563EB' },
-  tabLabel: { fontSize: 13, fontWeight: '500', color: '#A0AEC0' },
-  tabLabelActive: { color: '#2563EB', fontWeight: '700' },
-
-  content: { flex: 1 },
-  tabPanel: { flex: 1 },
-  list: { padding: 16, paddingBottom: 40 },
-
-  card: { backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16, shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  photo: { width: 52, height: 52, borderRadius: 26, marginRight: 14 },
-  photoPlaceholder: { width: 52, height: 52, borderRadius: 26, marginRight: 14, alignItems: 'center', justifyContent: 'center' },
-  photoPlaceholderText: { color: '#fff', fontSize: 20, fontWeight: '800' },
-  textContainer: { flex: 1 },
-  titleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
-  title: { fontSize: 15, fontWeight: '700', color: '#1A202C', flex: 1 },
-  badge: { backgroundColor: '#EBF4FF', borderRadius: 6, paddingHorizontal: 7, paddingVertical: 2, marginLeft: 6 },
-  badgeText: { fontSize: 10, color: '#2B6CB0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  personName: { fontSize: 13, fontWeight: '500', color: '#4A5568', marginBottom: 4 },
-  description: { fontSize: 13, color: '#718096', lineHeight: 18 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-  amount: { fontSize: 13, fontWeight: '700', color: '#276749' },
-  company: { fontSize: 11, color: '#A0AEC0', backgroundColor: '#F7FAFC', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 6 },
-  date: { fontSize: 11, color: '#A0AEC0' },
-
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#A0AEC0' },
-  loadingText: { color: '#718096', marginTop: 10, fontSize: 14 },
-  cardActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  editBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#BFDBFE' },
-  deleteBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6, borderWidth: 0.5, borderColor: '#FECACA' },
-  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
-
-  iconBotton: {
-    marginLeft: 8,
-  },
-  // Add this new one:
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-});

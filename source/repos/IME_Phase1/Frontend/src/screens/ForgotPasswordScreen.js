@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { authService } from '../services/authService';
+import { ForgotPasswordScreenStyles as styles } from './screenStyles';
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -147,40 +148,6 @@ const ForgotPasswordScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#2196F3',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  form: {
-    width: '100%',
-  },
-  input: {
-    marginBottom: 16,
-  },
-  button: {
-    marginTop: 10,
-    paddingVertical: 8,
-  },
-  linkButton: {
-    marginTop: 20,
-  },
-});
+
 
 export default ForgotPasswordScreen;

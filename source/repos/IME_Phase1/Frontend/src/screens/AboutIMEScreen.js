@@ -1,12 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import {
-    View, Text, StyleSheet, ScrollView, Animated,
-    StatusBar, TouchableOpacity, SafeAreaView,
-} from 'react-native';
+import { View, Text, ScrollView, Animated, StatusBar, TouchableOpacity, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Accordion, SubAccordion, NumberedItem, BulletItem } from '../components/Accordion';
 import IMELogo from '../components/IMELogo';
+import { AboutIMEScreenStyles as styles } from './screenStyles';
 
 
 const NAVY = '#003366';
@@ -261,40 +259,6 @@ const AboutIMEScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: BG },
 
-    banner: {
-        alignItems: 'center',
-        paddingTop: 14,
-        paddingBottom: 20,
-        borderBottomLeftRadius: 24,
-        borderBottomRightRadius: 24,
-    },
-    backBtn: {
-        position: 'absolute', top: 14, left: 14, zIndex: 10,
-        width: 36, height: 36, borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        alignItems: 'center', justifyContent: 'center',
-    },
-    bannerTitle: {
-        color: '#fff', fontSize: 18, fontWeight: '800',
-        marginTop: 8, letterSpacing: 0.3,
-    },
-
-    scrollContent: { padding: 16, paddingBottom: 30 },
-
-    paragraph: { fontSize: 13.5, color: '#334155', lineHeight: 21 },
-    docCard: {
-        backgroundColor: BG, borderRadius: 10, padding: 14,
-        borderWidth: 1, borderColor: '#E2E8F0',
-    },
-    docLabel: { fontSize: 12, fontWeight: '800', color: ROYAL, marginBottom: 4, letterSpacing: 0.5 },
-
-    footer: { alignItems: 'center', marginTop: 20, paddingHorizontal: 10 },
-    footerTitle: { color: NAVY, fontSize: 13, fontWeight: '800', textAlign: 'center' },
-    footerTagline: { color: GOLD, fontSize: 12, fontWeight: '600', marginTop: 4, textAlign: 'center' },
-    footerCopy: { color: '#94A3B8', fontSize: 11, marginTop: 8 },
-});
 
 export default AboutIMEScreen;
