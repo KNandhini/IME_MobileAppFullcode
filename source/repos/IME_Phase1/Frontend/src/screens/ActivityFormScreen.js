@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
 import { BASE_URL } from '../utils/api';
 import { ActivityFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ─── Build a displayable URL from a stored FilePath ───────────────────────
 // Mirrors buildPhotoUrl in AchievementFormScreen — handles backslashes from
@@ -308,7 +309,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
         : await activityService.create(payload);
 
       if (!res.success) {
-        Alert.alert('Error', res.message || 'Operation failed.');
+        Alert.alert('Error', getSafeErrorMessage(res));
         setSaving(false);
         return;
       }

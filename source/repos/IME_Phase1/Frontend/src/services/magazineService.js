@@ -1,5 +1,6 @@
 // services/magazineService.js
 import api, { BASE_URL } from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const magazineService = {
@@ -9,7 +10,7 @@ export const magazineService = {
       return response.data;
     } catch (error) {
       console.error('getAll magazines error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'magazineService' });
     }
   },
 
@@ -19,7 +20,7 @@ export const magazineService = {
       return response.data;
     } catch (error) {
       console.error('getById magazine error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'magazineService' });
     }
   },
 
@@ -54,7 +55,7 @@ export const magazineService = {
       return response.data;
     } catch (error) {
       console.error('delete magazine error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'magazineService' });
     }
   },
 
@@ -64,7 +65,7 @@ export const magazineService = {
       return response.data;
     } catch (error) {
       console.error('getAttachments error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'magazineService' });
     }
   },
 
@@ -98,7 +99,7 @@ export const magazineService = {
       return response.data;
     } catch (error) {
       console.error('deleteAttachment error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'magazineService' });
     }
   },
   // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.

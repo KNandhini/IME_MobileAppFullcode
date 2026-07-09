@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 
 export const registrationService = {
   // Register for an activity
@@ -11,7 +12,7 @@ export const registrationService = {
       return response.data;
     } catch (error) {
       console.error('Register activity error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'registrationService' });
     }
   },
 
@@ -22,7 +23,7 @@ export const registrationService = {
       return response.data;
     } catch (error) {
       console.error('Cancel registration error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'registrationService' });
     }
   },
 
@@ -33,7 +34,7 @@ export const registrationService = {
       return response.data;
     } catch (error) {
       console.error('Get registrations error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'registrationService' });
     }
   },
 
@@ -44,7 +45,7 @@ export const registrationService = {
       return response.data;
     } catch (error) {
       console.error('Check registration error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'registrationService' });
     }
   },
 
@@ -55,7 +56,8 @@ export const registrationService = {
       return response.data;
     } catch (error) {
       console.error('Get participants error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'registrationService' });
     }
   },
 };
+

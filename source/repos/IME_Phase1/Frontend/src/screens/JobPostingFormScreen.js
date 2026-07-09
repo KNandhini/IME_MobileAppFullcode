@@ -13,17 +13,8 @@ import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { JobPostingFormScreenChip as chip, JobPostingFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
-const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
-
-const toPublicUrl = (filePath) => {
-  if (!filePath) return null;
-  if (filePath.startsWith('http')) return filePath;
-  const idx = filePath.indexOf('Uploads\\');
-  if (idx === -1) return filePath;
-  const relative = filePath.substring(idx).replace(/\\/g, '/');
-  return `${API_BASE}/${relative}`;
-};
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -220,7 +211,7 @@ const [currentClubId, setCurrentClubId]     = useState(null);
       }
 
       if (!res?.success) {
-        Alert.alert('Error', res?.message || 'Failed to save job posting.');
+        Alert.alert('Error', getSafeErrorMessage(res));
         return;
       }
 
@@ -240,8 +231,7 @@ const [currentClubId, setCurrentClubId]     = useState(null);
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      debugger;
-      Alert.alert('Error', e.message || 'Something went wrong.');
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }

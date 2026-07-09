@@ -16,6 +16,7 @@ import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';  // ✅ add this
 import api from '../utils/api';
 import { SupportScreenDd as dd, SupportScreenDp as dp, SupportScreenFld as fld, SupportScreenInp as inp, SupportScreenAtt as att, SupportScreenFs as fs, SupportScreenS as s } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -1166,7 +1167,7 @@ export default function SupportScreen({ navigation }) {
         const feedContent = `Support: ${formData.title}${formData.clubName ? ` – ${formData.clubName}` : ''}${formData.description ? `\n${formData.description}` : ''}`;
         feedService.createPost(feedContent).catch((e) => console.error('Feed post failed:', e));
       } else {
-        Alert.alert('Error', res?.message ?? 'Failed to save support.');
+        Alert.alert('Error', getSafeErrorMessage(res));
       }
     } catch (e) {
       console.error('Submit error:', e);

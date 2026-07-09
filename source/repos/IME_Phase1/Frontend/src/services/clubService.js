@@ -1,4 +1,5 @@
 import api, { BASE_URL } from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 //const BASE_URL = 'http://10.0.2.2:51150/api';
 export const clubService = {
@@ -11,7 +12,7 @@ export const clubService = {
       return response.data;
     } catch (error) {
       console.error('Get all clubs error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -21,7 +22,7 @@ export const clubService = {
       return response.data;
     } catch (error) {
       console.error('Get club error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -31,7 +32,7 @@ export const clubService = {
       return response.data;
     } catch (error) {
       console.error('Create club error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -41,7 +42,7 @@ export const clubService = {
       return response.data;
     } catch (error) {
       console.error('Update club error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -87,7 +88,7 @@ debugger;
 
   } catch (error) {
     console.error('Upload logo error:', error);
-    return { success: false, message: error.message };
+    return toSafeServiceError(error, { source: 'clubService' });
   }
 },
 
@@ -97,7 +98,7 @@ debugger;
       return response.data;
     } catch (error) {
       console.error('Delete club error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -107,7 +108,7 @@ debugger;
       return response.data;
     } catch (error) {
       console.error('Get next club code error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -117,7 +118,7 @@ debugger;
       return response.data;
     } catch (error) {
       console.error('Get countries error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
 
@@ -127,7 +128,7 @@ debugger;
       return response.data;
     } catch (error) {
       console.error('Get states error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'clubService' });
     }
   },
  updateClubByMemberId: async (memberIds, clubId) => {
@@ -145,3 +146,4 @@ debugger;
   }
 },
 };
+
