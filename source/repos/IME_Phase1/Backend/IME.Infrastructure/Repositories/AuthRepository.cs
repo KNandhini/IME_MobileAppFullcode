@@ -75,6 +75,7 @@ public class AuthRepository : IAuthRepository
                 MembershipStatus = reader.IsDBNull(reader.GetOrdinal("MembershipStatus")) ? null : reader.GetString(reader.GetOrdinal("MembershipStatus")),
                 GraceExpiryDate  = reader.IsDBNull(reader.GetOrdinal("GraceExpiryDate"))  ? null : reader.GetDateTime(reader.GetOrdinal("GraceExpiryDate")),
                 LoginStatus      = reader.IsDBNull(reader.GetOrdinal("LoginStatus"))       ? null : reader.GetString(reader.GetOrdinal("LoginStatus")),
+                Occupation = reader.IsDBNull(reader.GetOrdinal("Occupation")) ? null : reader.GetString(reader.GetOrdinal("Occupation")),
                 ClubId           = authClubId.ToString(),
             };
         }

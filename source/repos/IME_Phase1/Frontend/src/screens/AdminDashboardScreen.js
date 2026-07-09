@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, StatusBar } from 'react-native';
 import { Card, Title } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
-import { AdminDashboardScreenStyles as styles } from './screenStyles';
+import { AdminDashboardScreenStyles as styles } from './screenStyles.js';
 
 const ADMIN_MENU = [
   { title: 'Activity',           route: 'Activities',        icon: '📅', params: {} },

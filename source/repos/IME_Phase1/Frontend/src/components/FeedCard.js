@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Image, Dimensions,
+  ScrollView, Image, Dimensions, TextInput, ActivityIndicator,
 } from 'react-native';
 import api from '../utils/api';
 
@@ -161,6 +161,97 @@ const FeedCard = ({ item, navigation }) => {
   const hasCarousel = isPost && item.mediaItems && item.mediaItems.length > 0;
   const hasSingle = !isPost && item.hasImage && item.imagePath;
 
+  // ── Like / Comment state ──────────────────────────────────────────
+  // NOTE: likes/comments are only wired up for Post-type items today,
+  // since tbl_PostInteractions.PostId references tbl_Posts. Activity/
+  // News/Circular items will just have inert Like/Comment buttons.
+  const [isLiked, setIsLiked] = useState(!!item.isLikedByViewer);
+  const [likeCount, setLikeCount] = useState(item.likeCount ?? item.likes ?? 0);
+  const [likeBusy, setLikeBusy] = useState(false);
+
+  const [commentCount, setCommentCount] = useState(item.commentCount ?? item.comments ?? 0);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
+
+  // ── Toggle like on/off (optimistic, reconciled with server response) ──
+  const handleToggleLike = useCallback(async () => {
+    if (!isPost || likeBusy) return;
+
+    const prevLiked = isLiked;
+    const prevCount = likeCount;
+
+    setLikeBusy(true);
+    setIsLiked(!prevLiked);
+    setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
+
+    try {
+      const res = await api.post(`/feed/post/${item.id}/like`);
+      const body = res.data;
+      if (body?.success && body.data) {
+        setIsLiked(!!body.data.isLikedByViewer);
+        setLikeCount(body.data.likeCount ?? 0);
+      } else {
+        // revert optimistic update on failure
+        setIsLiked(prevLiked);
+        setLikeCount(prevCount);
+      }
+    } catch (e) {
+      setIsLiked(prevLiked);
+      setLikeCount(prevCount);
+    } finally {
+      setLikeBusy(false);
+    }
+  }, [isPost, isLiked, likeCount, likeBusy, item.id]);
+
+  // ── Load comments the first time the thread is opened ─────────────
+  const loadComments = useCallback(async () => {
+    setLoadingComments(true);
+    try {
+      const res = await api.get(`/feed/post/${item.id}/comments`);
+      if (res.data?.success) {
+        setComments(res.data.data || []);
+      }
+    } catch (e) {
+      // leave comments empty; user can retry by collapsing/expanding again
+    } finally {
+      setLoadingComments(false);
+    }
+  }, [item.id]);
+
+  const handleToggleComments = useCallback(() => {
+    if (!isPost) return;
+    setShowComments((prev) => {
+      const next = !prev;
+      if (next && comments.length === 0) {
+        loadComments();
+      }
+      return next;
+    });
+  }, [isPost, comments.length, loadComments]);
+
+  // ── Post a new comment ─────────────────────────────────────────────
+  const handleSendComment = useCallback(async () => {
+    const trimmed = commentText.trim();
+    if (!trimmed || postingComment) return;
+
+    setPostingComment(true);
+    try {
+      const res = await api.post(`/feed/post/${item.id}/comment`, { commentDetails: trimmed });
+      if (res.data?.success && res.data.data) {
+        setComments((prev) => [...prev, res.data.data]);
+        setCommentCount((prev) => prev + 1);
+        setCommentText('');
+      }
+    } catch (e) {
+      // could surface a toast/snackbar here
+    } finally {
+      setPostingComment(false);
+    }
+  }, [commentText, postingComment, item.id]);
+
   return (
     <View style={styles.card}>
 
@@ -212,8 +303,10 @@ const FeedCard = ({ item, navigation }) => {
 
       {/* ── Stats Row ── */}
       <View style={styles.statsRow}>
-        <Text style={styles.statsText}>❤️ {item.likes ?? 0} likes</Text>
-        <Text style={styles.statsText}>{item.comments ?? 0} comments</Text>
+        <Text style={styles.statsText}>❤️ {likeCount} likes</Text>
+        <TouchableOpacity onPress={handleToggleComments} activeOpacity={0.7} disabled={!isPost}>
+          <Text style={styles.statsText}>{commentCount} comments</Text>
+        </TouchableOpacity>
       </View>
 
       {/* ── Divider ── */}
@@ -221,15 +314,88 @@ const FeedCard = ({ item, navigation }) => {
 
       {/* ── Action Buttons ── */}
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          activeOpacity={0.7}
+          onPress={handleToggleLike}
+          disabled={!isPost || likeBusy}
+        >
           <Text style={styles.actionIcon}>👍</Text>
-          <Text style={styles.actionLabel}>Like</Text>
+          <Text style={[styles.actionLabel, isLiked && styles.actionLabelActive]}>
+            {isLiked ? 'Liked' : 'Like'}
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.actionBtn}
+          activeOpacity={0.7}
+          onPress={handleToggleComments}
+          disabled={!isPost}
+        >
           <Text style={styles.actionIcon}>💬</Text>
-          <Text style={styles.actionLabel}>Comment</Text>
+          <Text style={[styles.actionLabel, showComments && styles.actionLabelActive]}>Comment</Text>
         </TouchableOpacity>
       </View>
+
+      {/* ── Comments thread (Post-type only) ── */}
+      {isPost && showComments && (
+        <View style={styles.commentsSection}>
+          {loadingComments ? (
+            <View style={styles.commentsLoadingRow}>
+              <ActivityIndicator size="small" color="#1E3A5F" />
+              <Text style={styles.commentsLoadingText}>Loading comments...</Text>
+            </View>
+          ) : comments.length === 0 ? (
+            <Text style={styles.noCommentsText}>No comments yet. Be the first to comment.</Text>
+          ) : (
+            comments.map((c) => (
+              <View key={c.interactionId} style={styles.commentRow}>
+                <View
+                  style={[
+                    styles.commentAvatar,
+                    { backgroundColor: AVATAR_COLORS[(c.memberId || 0) % AVATAR_COLORS.length] },
+                  ]}
+                >
+                  <Text style={styles.commentAvatarLetter}>
+                    {(c.memberName || 'M').charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.commentBubble}>
+                  <Text style={styles.commentName}>{c.memberName}</Text>
+                  <Text style={styles.commentText}>{c.commentDetails}</Text>
+                  <Text style={styles.commentTime}>{getTimeAgo(c.createdDate)}</Text>
+                </View>
+              </View>
+            ))
+          )}
+
+          <View style={styles.commentInputRow}>
+            <TextInput
+              style={styles.commentInput}
+              placeholder="Write a comment..."
+              placeholderTextColor="#999"
+              value={commentText}
+              onChangeText={setCommentText}
+              multiline
+              editable={!postingComment}
+            />
+            <TouchableOpacity
+              style={[
+                styles.commentSendBtn,
+                (!commentText.trim() || postingComment) && styles.commentSendBtnDisabled,
+              ]}
+              onPress={handleSendComment}
+              disabled={!commentText.trim() || postingComment}
+              activeOpacity={0.7}
+            >
+              {postingComment ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text style={styles.commentSendText}>Send</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
     </View>
   );
@@ -310,6 +476,47 @@ const styles = StyleSheet.create({
   actionBtn: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 6 },
   actionIcon: { fontSize: 16, marginRight: 5 },
   actionLabel: { fontSize: 13, color: '#555', fontWeight: '600' },
+  actionLabelActive: { color: '#1E3A5F', fontWeight: '700' },
+
+  // Comments thread
+  commentsSection: {
+    paddingHorizontal: 14,
+    paddingTop: 4,
+    paddingBottom: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  commentsLoadingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
+  commentsLoadingText: { fontSize: 12, color: '#999', marginLeft: 8 },
+  noCommentsText: { fontSize: 12, color: '#aaa', fontStyle: 'italic', paddingVertical: 10 },
+  commentRow: { flexDirection: 'row', marginTop: 10 },
+  commentAvatar: {
+    width: 30, height: 30, borderRadius: 15,
+    justifyContent: 'center', alignItems: 'center', marginRight: 8,
+  },
+  commentAvatarLetter: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  commentBubble: {
+    flex: 1, backgroundColor: '#F5F5F7', borderRadius: 12,
+    paddingHorizontal: 12, paddingVertical: 8,
+  },
+  commentName: { fontSize: 12, fontWeight: '700', color: '#1E3A5F', marginBottom: 2 },
+  commentText: { fontSize: 13, color: '#333', lineHeight: 18 },
+  commentTime: { fontSize: 10, color: '#999', marginTop: 4 },
+  commentInputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12 },
+  commentInput: {
+    flex: 1,
+    backgroundColor: '#F5F5F7',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    fontSize: 13,
+    color: '#1a1a1a',
+    maxHeight: 90,
+    marginRight: 8,
+  },
+  commentSendBtn: { backgroundColor: '#1E3A5F', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 9 },
+  commentSendBtnDisabled: { backgroundColor: '#B0BEC5' },
+  commentSendText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 });
 
 export default FeedCard;

@@ -1,10 +1,12 @@
-import React, { useCallback, useState, createContext } from 'react';
+import React, { useCallback, useState, useEffect, createContext } from 'react';
 import { ActivityIndicator, View, Text, StyleSheet } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Screens
 import AnimatedSplashScreen from '../screens/AnimatedSplashScreen';
@@ -139,6 +141,35 @@ const AuthStack = () => (
 
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
+  const [restricted, setRestricted] = useState(false);
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const checkOccupation = async () => {
+      try {
+        const raw = await AsyncStorage.getItem('userData');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed?.occupation === 'Unemployed') {
+            setRestricted(true);
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to read userData for occupation check:', e);
+      } finally {
+        setChecked(true);
+      }
+    };
+    checkOccupation();
+  }, []);
+
+  if (!checked) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E3A5F' }}>
+        <ActivityIndicator size="large" color="#D4A017" />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -162,87 +193,149 @@ const MainTabs = () => {
           },
         }}
       >
-        <Tab.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 22 }}>🏠</Text>
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
-              </View>
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="SupportTab"
-          component={SupportScreen}
-          options={{
-            title: 'Support Services',
-            headerStyle: { backgroundColor: '#1E3A5F' },
-            headerTintColor: '#fff',
-            headerTitleStyle: { fontWeight: '700' },
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 22 }}>🤝</Text>
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Support</Text>
-              </View>
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="FundTab"
-          component={FundScreen}
-          options={{
-            title: 'IME Fund',
-            headerStyle: { backgroundColor: '#1E3A5F' },
-            headerTintColor: '#fff',
-            headerTitleStyle: { fontWeight: '700' },
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 22 }}>💰</Text>
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Fund</Text>
-              </View>
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="AchievementsTab"
-          component={AchievementsScreen}
-          options={{
-            title: 'Hall of Fame',
-            headerStyle: { backgroundColor: '#1E3A5F' },
-            headerTintColor: '#fff',
-            headerTitleStyle: { fontWeight: '700' },
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 22 }}>🏆</Text>
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Achievements</Text>
-              </View>
-            ),
-          }}
-        />
-        <Tab.Screen
-          name="ChatsTab"
-          component={ChatsListScreen}
-          options={{
-            title: 'Chats',
-            headerStyle: { backgroundColor: '#1E3A5F' },
-            headerTintColor: '#fff',
-            headerTitleStyle: { fontWeight: '700' },
-            headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Text style={{ fontSize: 22 }}>📩</Text>
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
-              </View>
-            ),
-          }}
-        />
+        {restricted ? (
+          <>
+            <Tab.Screen
+              name="MyPostTab"
+              component={HomeScreen}
+              options={{
+                headerShown: false,
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                   <Text style={{ fontSize: 22 }}>🏠</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Posts</Text>
+                  </View>
+                ),
+              }}
+            />
+             <Tab.Screen
+      name="JobsTab"
+      component={JobPostingListScreen}
+      options={{
+        headerShown: false,
+        tabBarIcon: ({ color, focused }) => (
+          <View style={{ alignItems: 'center' }}>
+            <Text style={{ fontSize: 22 }}>💼</Text>
+            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Jobs</Text>
+          </View>
+        ),
+      }}
+    />
+            <Tab.Screen
+              name="SupportTab"
+              component={SupportScreen}
+              options={{
+                title: 'Support Services',
+                headerStyle: { backgroundColor: '#1E3A5F' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>🤝</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Support</Text>
+                  </View>
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="FundTab"
+              component={FundScreen}
+              options={{
+                title: 'IME Fund',
+                headerStyle: { backgroundColor: '#1E3A5F' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>💰</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Fund</Text>
+                  </View>
+                ),
+              }}
+            />
+            
+          </>
+        ) : (
+          <>
+            <Tab.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{
+                headerShown: false,
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>🏠</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
+                  </View>
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="SupportTab"
+              component={SupportScreen}
+              options={{
+                title: 'Support Services',
+                headerStyle: { backgroundColor: '#1E3A5F' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>🤝</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Support</Text>
+                  </View>
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="FundTab"
+              component={FundScreen}
+              options={{
+                title: 'IME Fund',
+                headerStyle: { backgroundColor: '#1E3A5F' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>💰</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Fund</Text>
+                  </View>
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="AchievementsTab"
+              component={AchievementsScreen}
+              options={{
+                title: 'Hall of Fame',
+                headerStyle: { backgroundColor: '#1E3A5F' },
+                headerTintColor: '#fff',
+                headerTitleStyle: { fontWeight: '700' },
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>🏆</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Achievements</Text>
+                  </View>
+                ),
+              }}
+            />
+            <Tab.Screen
+              name="ChatsTab"
+              component={ChatsListScreen}
+              options={{
+                title: 'Chats',
+                headerShown: false,
+                tabBarIcon: ({ color, focused }) => (
+                  <View style={{ alignItems: 'center' }}>
+                    <Text style={{ fontSize: 22 }}>📩</Text>
+                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
+                  </View>
+                ),
+              }}
+            />
+          </>
+        )}
       </Tab.Navigator>
 
-      {/* Blue bar behind phone navigation buttons */}
       <View style={{ height: insets.bottom, backgroundColor: '#1E3A5F' }} />
     </View>
   );
