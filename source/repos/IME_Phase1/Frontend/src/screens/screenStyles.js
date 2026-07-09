@@ -942,8 +942,25 @@ const _AchievementFormScreenStyleBundle = (() => {
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
-  ...Common.lightbox,
-  
+      viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+      viewerImage: { width: '100%', height: '80%' },
+      viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+      viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+    }),
+  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage: { width: '100%', height: '80%' },
+  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  navbar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: NAVY,
+    paddingTop: (StatusBar.currentHeight || 0) + 6,
+    paddingBottom: 12, paddingHorizontal: 12,
+  },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
 }),
   };
 })();
