@@ -942,11 +942,17 @@ const _AchievementFormScreenStyleBundle = (() => {
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
+      saveBtn: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+      },
+      saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+
       viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
       viewerImage: { width: '100%', height: '80%' },
       viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
       viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    }),
+    
   viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
   viewerImage: { width: '100%', height: '80%' },
   viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
