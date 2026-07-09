@@ -3,6 +3,7 @@ import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityInd
 import DateTimePicker from '@react-native-community/datetimepicker';
 import api from '../utils/api';
 import { SetAnnualFeeScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const formatDate = (date) => {
   if (!date) return '';
@@ -68,10 +69,10 @@ const SetAnnualFeeScreen = () => {
         setEffectiveFrom(null);
         fetchCurrentFee();
       } else {
-        Alert.alert('Error', res.data.message || 'Failed to set fee.');
+        Alert.alert('Error', getSafeErrorMessage(res.data));
       }
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.message || e.message);
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }

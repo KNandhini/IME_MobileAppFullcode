@@ -2,8 +2,12 @@ import api from '../utils/api';
 
 export const fundraiseService = {
 
-  getAll: async (pageNumber = 1, pageSize = 10) => {
-  const response = await api.get(`/Fundraise?pageNumber=${pageNumber}&pageSize=${pageSize}`);
+  getAll: async (pageNumber = 1, pageSize = 10, type = null) => {
+  let url = `/Fundraise?pageNumber=${pageNumber}&pageSize=${pageSize}`;
+  if (type) {
+    url += `&type=${type}`;
+  }
+  const response = await api.get(url);
   return response.data;
 },
   getById: async (id) => {

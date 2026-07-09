@@ -23,8 +23,8 @@
       "package": "org.ime.app",
       "versionCode": 3,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo_transparent.png",
-        "backgroundColor": "#003366"
+        "foregroundImage": "./assets/logo_transparent.png"
+        
       },
       "permissions": [
         "READ_EXTERNAL_STORAGE",

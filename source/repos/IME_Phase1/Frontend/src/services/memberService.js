@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 
 export const memberService = {
   getProfile: async (memberId) => {
@@ -8,7 +9,7 @@ export const memberService = {
       return response.data;
     } catch (error) {
       console.error('Get profile error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
   getMembersByClub: async (clubId, pageNumber = 1, pageSize = 200) => {
@@ -27,7 +28,7 @@ export const memberService = {
     } catch (error) {
       debugger;
       console.error('Update profile error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
 
@@ -37,7 +38,7 @@ export const memberService = {
       return response.data;
     } catch (error) {
       console.error('Change password error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
 
@@ -47,7 +48,7 @@ export const memberService = {
       return response.data;
     } catch (error) {
       console.error('Get payment history error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
 
@@ -62,7 +63,7 @@ export const memberService = {
     } catch (error) {
       debugger;
       console.error('Get all members error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
 getMemberPhotosByIds: async (memberIds = []) => {
@@ -75,7 +76,7 @@ getMemberPhotosByIds: async (memberIds = []) => {
     return response.data;
   } catch (error) {
     console.error('Get member photos by ids error:', error);
-    return { success: false, message: error.message };
+    return toSafeServiceError(error, { source: 'memberService' });
   }
 },
   approveMember: async (memberId) => {
@@ -93,7 +94,7 @@ getMemberPhotosByIds: async (memberIds = []) => {
     return response.data;
   } catch (error) {
     console.error('Approve member error:', error);
-    return { success: false, message: error.message };
+    return toSafeServiceError(error, { source: 'memberService' });
   }
 },
 
@@ -114,7 +115,7 @@ getMemberPhotosByIds: async (memberIds = []) => {
     return response.data;
   } catch (error) {
     console.error('Reject member error:', error);
-    return { success: false, message: error.message };
+    return toSafeServiceError(error, { source: 'memberService' });
   }
 },
 
@@ -126,7 +127,7 @@ getMemberPhotosByIds: async (memberIds = []) => {
     } catch (error) {
       debugger;
       console.error('Delete member error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
 
@@ -137,7 +138,8 @@ getMemberPhotosByIds: async (memberIds = []) => {
       return response.data;
     } catch (error) {
       console.error('Search members error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'memberService' });
     }
   },
 };
+

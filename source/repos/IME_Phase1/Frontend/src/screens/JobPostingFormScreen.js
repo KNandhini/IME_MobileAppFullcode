@@ -11,7 +11,9 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { jobPostingService } from '../services/jobpostingService';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../utils/api';
 import { JobPostingFormScreenChip as chip, JobPostingFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -45,11 +47,11 @@ function ChipSelector({ label, options, value, onChange }) {
 const JobPostingFormScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
   const isEdit = !!item;
+  console.log(item,"edit");
   const { user } = useAuth();
 
   const [currentUserName, setCurrentUserName] = useState('');
-  const [currentClubId, setCurrentClubId]     = useState(null);
-
+const [currentClubId, setCurrentClubId]     = useState(null);  
   // Form fields
   const [jobTitle,                 setJobTitle]                 = useState(item?.jobTitle || '');
   const [companyName,              setCompanyName]              = useState(item?.companyName || '');
@@ -170,6 +172,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
 
   // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = async () => {
+    debugger;
     if (!jobTitle.trim())    { Alert.alert('Validation', 'Job Title is required.'); return; }
     if (!companyName.trim()) { Alert.alert('Validation', 'Company Name is required.'); return; }
     if (!location.trim())    { Alert.alert('Validation', 'Location is required.'); return; }
@@ -198,6 +201,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         res      = await jobPostingService.update(item.jobPostingId, { ...payload, modifiedBy: currentUserName });
         recordId = item.jobPostingId;
       } else {
+        debugger;
         res      = await jobPostingService.create({
           ...payload,
           clubId: Number(currentClubId),
@@ -207,13 +211,14 @@ const JobPostingFormScreen = ({ route, navigation }) => {
       }
 
       if (!res?.success) {
-        Alert.alert('Error', res?.message || 'Failed to save job posting.');
+        Alert.alert('Error', getSafeErrorMessage(res));
         return;
       }
 
       // Upload new attachments one-by-one (same as AchievementFormScreen)
       for (const file of attachments) {
         try {
+          debugger;
           const fd = new FormData();
           fd.append('files', { uri: file.uri, name: file.fileName, type: file.mimeType });
           await jobPostingService.uploadAttachments(recordId, fd);
@@ -226,7 +231,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      Alert.alert('Error', e.message || 'Something went wrong.');
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -238,13 +243,17 @@ const JobPostingFormScreen = ({ route, navigation }) => {
     <View style={styles.root}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEdit ? 'Edit Job Posting' : 'Add Job Posting'}</Text>
-        <View style={{ width: 36 }} />
-      </View>
+      <View style={styles.navbar}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
+    <Text style={styles.cancelText}>Cancel</Text>
+  </TouchableOpacity>
+  <Text style={styles.navTitle}>{isEdit ? 'Edit Job Posting' : 'Add Job Posting'}</Text>
+  <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
+    {loading
+      ? <ActivityIndicator size="small" color={GOLD} />
+      : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
+  </TouchableOpacity>
+</View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
@@ -304,25 +313,27 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         {/* ── Attachments (same grid as AchievementFormScreen) ── */}
         <Text style={styles.attachLabel}>ATTACHMENTS</Text>
         <View style={styles.attachGrid}>
-          {existingAttachments.map((a) => {
-            const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-            return (
-              <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
-                <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-                  if (isImage) setFileViewer({ visible: true, uri: a.filePath });
-                  else Linking.openURL(a.filePath);
-                }}>
-                  {isImage ? (
-                    <Image source={{ uri: a.filePath }} style={styles.gridImg} resizeMode="cover" />
-                  ) : (
-                    <View style={styles.gridDoc}>
-                      <Text style={styles.gridDocIcon}>📄</Text>
-                      <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.gridRemove} onPress={() => {
+         {existingAttachments.map((a) => {
+  const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+    a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+  const url = toPublicUrl(a.filePath);
+  return (
+    <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
+      <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+        if (isImage) setFileViewer({ visible: true, uri: url });
+        else Linking.openURL(url);
+      }}>
+        {isImage ? (
+          <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+        ) : (
+          <View style={styles.gridDoc}>
+            <Text style={styles.gridDocIcon}>📄</Text>
+            <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      {/* ...remove button unchanged... */}
+      <TouchableOpacity style={styles.gridRemove} onPress={() => {
                   Alert.alert('Delete', `Delete "${a.fileName}"?`, [
                     { text: 'Cancel', style: 'cancel' },
                     {
@@ -336,10 +347,10 @@ const JobPostingFormScreen = ({ route, navigation }) => {
                   ]);
                 }}>
                   <Text style={styles.gridRemoveText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            );
-          })}
+                </TouchableOpacity>   
+                 </View>
+  );
+})}
 
           {attachments.map((a, i) => (
             <View key={`new-${i}`} style={styles.gridThumb}>
@@ -372,7 +383,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         </View>
         <Text style={styles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
 
-        {/* ── Save button ── */}
+        {/* ── Save button ── 
         <TouchableOpacity
           style={[styles.saveBtn, loading && { opacity: 0.7 }]}
           onPress={handleSave} disabled={loading} activeOpacity={0.85}
@@ -385,7 +396,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
               <Text style={styles.saveBtnText}>{isEdit ? 'Update Job Posting' : 'Post Job'}</Text>
             </>
           )}
-        </TouchableOpacity>
+        </TouchableOpacity>*/}
       </ScrollView>
 
       {/* ── Image viewer modal ── */}

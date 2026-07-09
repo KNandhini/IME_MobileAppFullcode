@@ -4,6 +4,7 @@
 // ══════════════════════════════════════════════════════════════════
 
 import api from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 
 export const lawBotService = {
   ask: async (question) => {
@@ -12,7 +13,7 @@ export const lawBotService = {
       return response.data;
     } catch (error) {
       console.error('LawBot service error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'lawbotService' });
     }
   },
 };

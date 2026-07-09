@@ -1,5 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { configureErrorHandler, handleError } from './errorHandler';
 
 // ── Update with your actual backend URL ───────────────────────
 // For local development use your machine IP (not localhost):
@@ -12,6 +13,7 @@ const API_BASE_URL = 'http://10.0.2.2:51150/api';
 //const API_BASE_URL ='https://prasath-001-site1.ftempurl.com/api';
 //const API_BASE_URL = 'http://10.0.2.2:51150/api';
 export const BASE_URL = API_BASE_URL.replace(/\/api$/, '');
+configureErrorHandler({ endpoint: `${API_BASE_URL}/log-error` });
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -41,6 +43,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    error.safeMessage = handleError(error, {
+      endpoint: error.config?.url,
+      method: error.config?.method?.toUpperCase?.(),
+      source: 'api',
+    });
+
     if (error.response?.status === 401) {
       await AsyncStorage.removeItem('authToken');
       await AsyncStorage.removeItem('userData');

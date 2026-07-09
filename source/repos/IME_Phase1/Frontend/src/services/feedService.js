@@ -1,4 +1,5 @@
 import api, { BASE_URL } from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const feedService = {
@@ -18,7 +19,7 @@ export const feedService = {
       return response.data;
     } catch (error) {
       console.error('getMemberFeed error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'feedService' });
     }
   },*/
   getMemberFeed: async (memberId, pageNumber = 1, pageSize = 10) => {
@@ -46,7 +47,7 @@ export const feedService = {
     return response.data;
   } catch (error) {
     console.error('getMemberFeed error:', error);
-    return { success: false, message: error.message };
+    return toSafeServiceError(error, { source: 'feedService' });
   }
 },
 
@@ -94,3 +95,4 @@ export const feedService = {
   return response.data;
 },
 };
+
