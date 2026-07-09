@@ -4,6 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../utils/api';
 import { localBodyService } from '../services/localBodyService';
 import { CorpDetailsScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
@@ -185,7 +186,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
       setTabData(p => ({ ...p, [tab]: obj }));
     } catch (err) {
       console.error(`[Detail] ${tab}:`, err.message);
-      setTabError(p => ({ ...p, [tab]: err.message }));
+      setTabError(p => ({ ...p, [tab]: getSafeErrorMessage(err) }));
     } finally {
       setTabLoading(p => ({ ...p, [tab]: false }));
     }

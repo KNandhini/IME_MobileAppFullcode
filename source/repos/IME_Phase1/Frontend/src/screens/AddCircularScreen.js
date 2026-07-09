@@ -8,6 +8,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { AddCircularScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -165,7 +166,7 @@ console.log(editData,"editData");
         Alert.alert('Success', editData ? 'Updated successfully.' : 'Created successfully.');
         navigation.goBack();
       } else {
-        Alert.alert('Error', response?.message || 'Failed to save.');
+        Alert.alert('Error', getSafeErrorMessage(response));
       }
     } catch (e) {
       console.error('Save error:', e);

@@ -7,6 +7,7 @@ import IMELogo from '../components/IMELogo';
 import WelcomeCard from '../components/WelcomeCard';
 import { SplashFadeContext } from '../navigation/AppNavigator';
 import { LoginScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const { width } = Dimensions.get('window');
 const NAVY = '#1E3A5F';
@@ -71,7 +72,7 @@ const LoginScreen = ({ navigation }) => {
             ],
           );
         } else {
-          Alert.alert('Login Failed', response.message || 'Invalid credentials');
+          Alert.alert('Login Failed', getSafeErrorMessage(response));
         }
       }
     } catch {

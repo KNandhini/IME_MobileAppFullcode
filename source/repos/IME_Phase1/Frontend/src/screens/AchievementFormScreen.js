@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -328,7 +329,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
         recordId = res?.data?.achievementId ?? res?.data?.AchievementId;
       }
 
-      if (!res?.success) { Alert.alert('Error', res?.message || 'Failed to save achievement.'); return; }
+      if (!res?.success) { Alert.alert('Error', getSafeErrorMessage(res)); return; }
 
       for (const file of attachments) {
         try {
@@ -345,7 +346,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
       Alert.alert('Success', isEdit ? 'Achievement updated!' : 'Achievement added!',
         [{ text: 'OK', onPress: () => navigation.goBack() }]);
     } catch (e) {
-      Alert.alert('Error', e.message || 'Something went wrong.');
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }

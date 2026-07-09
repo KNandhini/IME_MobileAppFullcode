@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MemberManagementScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ── same helper used in AchievementsScreen ────────────────────────────────────
 const blobToDataUri = (blob) => {
@@ -54,7 +55,7 @@ const MemberManagementScreen = ({ navigation }) => {
       // Step 3: Call profile API to get clubId
       const profileResponse = await memberService.getProfile(memberId);
       if (!profileResponse.success) {
-        Alert.alert('Error', profileResponse.message || 'Failed to get member profile');
+        Alert.alert('Error', getSafeErrorMessage(profileResponse));
         return;
       }
       debugger;
@@ -105,10 +106,10 @@ const MemberManagementScreen = ({ navigation }) => {
         setPhotoMap(map);
         setMembers(memberList);
       } else {
-        Alert.alert('Error', response.message || 'Failed to load members');
+        Alert.alert('Error', getSafeErrorMessage(response));
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to load members: ' + (error?.message || ''));
+      Alert.alert('Error', getSafeErrorMessage(error));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -164,7 +165,7 @@ const MemberManagementScreen = ({ navigation }) => {
                 Alert.alert('Success', 'Member deleted');
                 loadMembers();
               } else {
-                Alert.alert('Error', response.message || 'Failed to delete member');
+                Alert.alert('Error', getSafeErrorMessage(response));
               }
             } catch {
               Alert.alert('Error', 'Failed to delete member');

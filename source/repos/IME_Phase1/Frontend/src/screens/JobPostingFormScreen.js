@@ -12,6 +12,7 @@ import { jobPostingService } from '../services/jobpostingService';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { JobPostingFormScreenChip as chip, JobPostingFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -207,7 +208,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
       }
 
       if (!res?.success) {
-        Alert.alert('Error', res?.message || 'Failed to save job posting.');
+        Alert.alert('Error', getSafeErrorMessage(res));
         return;
       }
 
@@ -226,7 +227,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
     } catch (e) {
-      Alert.alert('Error', e.message || 'Something went wrong.');
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }

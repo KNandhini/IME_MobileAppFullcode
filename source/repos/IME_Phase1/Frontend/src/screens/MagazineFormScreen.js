@@ -9,6 +9,7 @@ import { magazineService } from '../services/magazineService';
 
 import api from '../utils/api';
 import { MagazineFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -124,14 +125,14 @@ const MagazineFormScreen = ({ route, navigation }) => {
       : await magazineService.createWithMedia(formData);
 
     if (!res?.success) {
-      Alert.alert('Error', res?.message || 'Failed to save magazine.');
+      Alert.alert('Error', getSafeErrorMessage(res));
       return;
     }
 
     Alert.alert('Success', isEdit ? 'Magazine updated!' : 'Magazine added!',
       [{ text: 'OK', onPress: () => navigation.goBack() }]);
   } catch (e) {
-    Alert.alert('Error', e.message || 'Something went wrong.');
+    Alert.alert('Error', getSafeErrorMessage(e));
   } finally {
     setLoading(false);
   }

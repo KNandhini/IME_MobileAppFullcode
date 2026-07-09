@@ -10,6 +10,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { clubService } from '../services/clubService';
 import api from '../utils/api';
 import { MunicipalMapScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
@@ -1359,7 +1360,7 @@ const MunicipalMapScreen = ({ navigation }) => {
       setItems(augmented);
       setLevel(LEVEL_STATE);
     } catch (e) {
-      Alert.alert('Error', `Failed to load states: ${e.message}`);
+      Alert.alert('Error', getSafeErrorMessage(e));
       setItems([]);
     } finally {
       setLoading(false);
@@ -1411,7 +1412,7 @@ const MunicipalMapScreen = ({ navigation }) => {
           return;
         }
       } catch (e) {
-        Alert.alert('Error', `Unable to load data: ${e.message}`);
+        Alert.alert('Error', getSafeErrorMessage(e));
       } finally {
         setLoading(false);
       }

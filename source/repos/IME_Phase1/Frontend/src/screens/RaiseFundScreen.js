@@ -10,6 +10,7 @@ import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { RaiseFundScreenS as s } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
@@ -130,14 +131,14 @@ function openRazorpay(){
     rzp.on('payment.failed',function(r){
       window.ReactNativeWebView.postMessage(JSON.stringify({
         type  :'PAYMENT_FAILED',
-        error : r.error.description || 'Payment failed',
+        status: r.error.code || null,
       }));
     });
     rzp.open();
   }catch(e){
     document.getElementById('loader').style.display='none';
     document.getElementById('errorBox').style.display='block';
-    window.ReactNativeWebView.postMessage(JSON.stringify({type:'PAYMENT_FAILED',error:e.message}));
+    window.ReactNativeWebView.postMessage(JSON.stringify({type:'PAYMENT_FAILED',status: null}));
   }
 }
 window.onload=function(){loadRazorpay();};
@@ -432,7 +433,7 @@ export default function RaiseFundScreen({ route, navigation }) {
 
       } else if (data.type === 'PAYMENT_FAILED') {
         setShowWebView(false);
-        Alert.alert('Payment Failed', data.error || 'Something went wrong. Please try again.');
+        Alert.alert('Payment Failed', getSafeErrorMessage(data));
 
       } else if (data.type === 'SCRIPT_LOAD_FAILED') {
         console.log('Razorpay script failed — user can retry inside WebView');
@@ -588,3 +589,4 @@ export default function RaiseFundScreen({ route, navigation }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
+
