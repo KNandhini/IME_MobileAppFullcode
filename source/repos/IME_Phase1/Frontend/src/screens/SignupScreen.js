@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList } from 'react-native';
-import { TextInput, Button, Menu, Checkbox } from 'react-native-paper';
+import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
 import { SignupScreenStyles as styles } from './screenStyles';
-//import { Modal, FlatList } from 'react-native'; // Modal already imported, just ensure FlatList is there
-const SignupScreen = ({ navigation }) => {
+
+const SignupScreen = ({ navigation, route }) => {
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', confirmPassword: '',
     contactNumber: '', address: '', gender: '', age: '',
@@ -23,10 +23,6 @@ const SignupScreen = ({ navigation }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const [welcomeVisible, setWelcomeVisible] = useState(true);
-  const [termsVisible, setTermsVisible] = useState(false);
-  const [termsAccepted, setTermsAccepted] = useState(false);
-  const [pendingPaymentParams, setPendingPaymentParams] = useState(null);
   const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
   // ── Location state ─────────────────────────────────────────────────────────
@@ -63,9 +59,12 @@ const SignupScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchFee();
-    loadCountries(); // ✅ ADD THIS
+    loadCountries();
   }, []);
 
+  // Fee is still needed here (feeAmount is included in the payment params sent
+  // to RegistrationPayment) even though the fee is now *displayed* on the
+  // Membership Benefits screen, not here.
   const fetchFee = async () => {
     try {
       const res = await api.get('/payment/latest-fee');
@@ -236,18 +235,10 @@ const SignupScreen = ({ navigation }) => {
     ...(showEducationSection && { qualification }),
   });
 
-  const showTermsAndConditions = () => {
-    setPendingPaymentParams(null);
-    setTermsAccepted(false);
-    setTermsVisible(true);
-  };
-
-  const handleTermsContinue = async () => {
-    if (!termsAccepted) {
-      Alert.alert('Terms Required', 'Please agree to the terms and conditions to continue.');
-      return;
-    }
-
+  // Was previously gated behind the in-screen Terms modal's "Agree & Continue".
+  // Terms are now accepted on the Membership Benefits screen before the user
+  // ever reaches this form, so this fires directly off the Register button.
+  const submitRegistration = async () => {
     setLoading(true);
     try {
       const response = await api.post('/Auth/signup', buildSignupPayload());
@@ -257,7 +248,7 @@ const SignupScreen = ({ navigation }) => {
         const paymentParams = {
           userId: res.data.userId,
           memberId: res.data.memberId,
-          feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
+          feeAmount: currentFee ? parseFloat(currentFee.amount) : (route?.params?.feeAmount ?? 0),
           memberName: formData.fullName,
           memberEmail: formData.email,
           memberPassword: formData.password,
@@ -270,10 +261,6 @@ const SignupScreen = ({ navigation }) => {
           memberId: res.data.memberId,
           paymentParams,
         }));
-
-        setPendingPaymentParams(paymentParams);
-        setTermsVisible(false);
-        setTermsAccepted(false);
 
         Alert.alert(
           'Registration Successful! 🎉',
@@ -302,113 +289,22 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
-  const handleTermsClose = () => {
-    setTermsVisible(false);
-    setTermsAccepted(false);
-  };
-
   const handleSignup = async () => {
     if (!validate()) return;
-    showTermsAndConditions();
+    // Guard against reaching this screen without going through the Membership
+    // Benefits terms-acceptance step (e.g. deep link, back-navigation edge case).
+    if (!route?.params?.termsAccepted) {
+      Alert.alert(
+        'Terms Required',
+        'Please review and accept the terms & conditions on the Membership Benefits page before registering.',
+      );
+      return;
+    }
+    await submitRegistration();
   };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-
-      {/* Welcome Modal */}
-      <Modal visible={welcomeVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Welcome to IME</Text>
-            <Text style={styles.modalSubtitle}>Member Registration</Text>
-            <Text style={styles.modalBody}>
-              Complete the registration form to join the IME community. You can pay the annual membership fee now or within 3 days of registration.
-            </Text>
-            {currentFee ? (
-              <View style={styles.feeBox}>
-                <Text style={styles.feeLabel}>Annual Membership Fee</Text>
-                <Text style={styles.feeAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
-                <Text style={styles.feeNote}>Complete payment within 3 days</Text>
-              </View>
-            ) : (
-              <Text style={styles.noFee}>No fee currently set. Contact admin.</Text>
-            )}
-            <TouchableOpacity style={styles.proceedBtn} onPress={() => setWelcomeVisible(false)}>
-              <Text style={styles.proceedBtnText}>Start Registration</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-              <Text style={styles.backLink}>Already a member? Login</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Terms & Conditions Modal */}
-      <Modal visible={termsVisible} transparent animationType="slide" onRequestClose={() => setTermsVisible(false)}>
-        <View style={styles.termsOverlay}>
-          <View style={styles.termsSheet}>
-            <View style={styles.termsHeader}>
-              <Text style={styles.termsTitle}>Terms & Conditions</Text>
-              <TouchableOpacity
-                style={styles.termsCloseButton}
-                onPress={handleTermsClose}
-                accessibilityRole="button"
-                accessibilityLabel="Close terms and conditions"
-              >
-                <Text style={styles.termsCloseText}>X</Text>
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.termsSubtitle}>Please review before payment</Text>
-
-            <ScrollView style={styles.termsContent} showsVerticalScrollIndicator>
-              <Text style={styles.termsText}>
-                By continuing, you confirm that the details submitted during registration are accurate and belong to you.
-              </Text>
-              <Text style={styles.termsText}>
-                Membership activation is subject to successful payment verification and approval by the IME administration.
-              </Text>
-              <Text style={styles.termsText}>
-                The annual membership fee is non-transferable. Payment status and receipts will be maintained in your member account.
-              </Text>
-              <Text style={styles.termsText}>
-                You agree to follow IME member guidelines and understand that misuse of the account may lead to restricted access.
-              </Text>
-            </ScrollView>
-
-            <TouchableOpacity
-              style={styles.termsCheckRow}
-              onPress={() => setTermsAccepted((value) => !value)}
-              activeOpacity={0.8}
-            >
-              <View pointerEvents="none">
-                <Checkbox
-                  status={termsAccepted ? 'checked' : 'unchecked'}
-                  color="#1E3A5F"
-                />
-              </View>
-              <Text style={styles.termsCheckText}>I agree to the terms and conditions</Text>
-            </TouchableOpacity>
-
-            <Button
-              mode="contained"
-              onPress={handleTermsContinue}
-              disabled={!termsAccepted || loading}
-              loading={loading}
-              style={[styles.button, !termsAccepted && styles.disabledButton]}
-              labelStyle={{ fontSize: 16 }}
-            >
-              Agree & Continue
-            </Button>
-            <Button mode="text" onPress={() => setTermsVisible(false)} style={styles.linkButton}>
-              Back to Registration
-            </Button>
-          </View>
-        </View>
-      </Modal>
-
-      <View style={styles.header}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join IME Membership</Text>
-      </View>
 
       <View style={styles.card}>
         <TextInput label="Full Name *" value={formData.fullName} onChangeText={(t) => updateField('fullName', t)}
@@ -722,8 +618,4 @@ const SignupScreen = ({ navigation }) => {
   );
 };
 
-
-
 export default SignupScreen;
-
-
