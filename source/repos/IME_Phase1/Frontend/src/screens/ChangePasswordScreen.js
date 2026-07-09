@@ -4,6 +4,7 @@ import { TextInput, Card } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import { ChangePasswordScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -29,7 +30,7 @@ const ChangePasswordScreen = ({ navigation }) => {
         Alert.alert('Success', 'Password changed successfully.', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
-      } else { Alert.alert('Error', res.message || 'Failed to change password.'); }
+      } else { Alert.alert('Error', getSafeErrorMessage(res)); }
     } catch (e) { Alert.alert('Error', 'An error occurred.'); }
     finally { setLoading(false); }
   };

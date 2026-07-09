@@ -5,6 +5,7 @@ import { Button, Card, RadioButton, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { paymentService } from '../services/paymentService';
 import { PaymentScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 const HARDCODED_AMOUNT = 2500;
@@ -223,7 +224,7 @@ const PaymentScreen = ({ navigation }) => {
               rzp.on('payment.failed', function(response) {
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   type: 'PAYMENT_FAILED',
-                  error: response.error.description || 'Payment failed',
+                  status: response.error.code || null,
                 }));
               });
               rzp.open();
@@ -232,7 +233,7 @@ const PaymentScreen = ({ navigation }) => {
               document.getElementById('errorBox').style.display = 'block';
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'PAYMENT_FAILED',
-                error: e.message,
+                status: null,
               }));
             }
           }
@@ -277,7 +278,7 @@ const PaymentScreen = ({ navigation }) => {
 
       } else if (data.type === 'PAYMENT_FAILED') {
         setShowWebView(false);
-        Alert.alert('Payment Failed', data.error || 'Something went wrong. Try again.');
+        Alert.alert('Payment Failed', getSafeErrorMessage(data));
 
       } else if (data.type === 'SCRIPT_LOAD_FAILED') {
         // ✅ Don't close WebView — let user retry from inside

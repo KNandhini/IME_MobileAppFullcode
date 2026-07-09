@@ -7,6 +7,7 @@ import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
 import api from '../utils/api';
 import { ClubFormScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 //import AdminSignupScreen from '../screens/AddAdminScreen';
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
@@ -488,7 +489,7 @@ useEffect(() => {
 
     if (!res.success) {
       setSaving(false);
-      Alert.alert('Error', res.message || 'Something went wrong.');
+      Alert.alert('Error', getSafeErrorMessage(res));
       return;
     }
 

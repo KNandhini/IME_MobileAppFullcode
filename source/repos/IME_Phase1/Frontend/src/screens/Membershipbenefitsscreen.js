@@ -1,12 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-    View, Text, StyleSheet, ScrollView, Animated,
+    View, Text, ScrollView, Animated,
     StatusBar, TouchableOpacity, SafeAreaView, Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Checkbox } from 'react-native-paper';
 import IMELogo from '../components/IMELogo';
+import api from '../utils/api';
+import { MembershipBenefitsScreenStyles as styles } from './screenStyles';
 
 const { width } = Dimensions.get('window');
 
@@ -40,18 +42,39 @@ const BENEFITS = [
 const MembershipBenefitsScreen = ({ navigation }) => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(24)).current;
-    const [agreed, setAgreed] = useState(false);
+
+    // Single combined acceptance for Welcome Message + Membership Benefits +
+    // Terms & Conditions, all of which are now rendered inline on this page.
+    const [accepted, setAccepted] = useState(false);
+    const [currentFee, setCurrentFee] = useState(null);
 
     useEffect(() => {
         Animated.parallel([
             Animated.timing(fadeAnim, { toValue: 1, duration: 550, useNativeDriver: true }),
             Animated.timing(slideAnim, { toValue: 0, duration: 550, useNativeDriver: true }),
         ]).start();
+        fetchFee();
     }, []);
 
+    const fetchFee = async () => {
+        try {
+            const res = await api.get('/payment/latest-fee');
+            if (res.data.success) setCurrentFee(res.data.data);
+        } catch (e) {
+            console.warn('Fee fetch failed:', e.message);
+        }
+    };
+
+    // No signup API call happens here — the form fields don't exist yet at
+    // this stage. We just carry the acceptance + fee forward as route params
+    // so SignupScreen can trust that terms were already accepted, then show
+    // the payment screen once registration itself succeeds.
     const handleContinue = () => {
-        if (!agreed) return;
-        navigation.navigate('Signup');
+        if (!accepted) return;
+        navigation.navigate('Signup', {
+            termsAccepted: true,
+            feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
+        });
     };
 
     return (
@@ -119,44 +142,80 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                         </View>
                     </View>
 
-                    {/* ── Why Join IME ── */}
-                    <View style={styles.whySection}>
-                        <View style={styles.whyCard}>
-                            <View style={styles.whyQuoteMark}>
-                                <MaterialCommunityIcons name="format-quote-open" size={22} color={GOLD} />
-                            </View>
-                            <Text style={styles.whyText}>
-                                IME connects municipal engineers, promotes technical
-                                excellence, supports lifelong learning, and contributes to
-                                building smarter, sustainable cities across India.
+                    {/* ── Terms & Conditions (moved in from SignupScreen's Terms Modal, now inline) ── */}
+                    <View style={styles.section}>
+                        <Text style={styles.eyebrow}>BEFORE YOU CONTINUE</Text>
+                        <Text style={styles.sectionTitle}>Terms & Conditions</Text>
+                        <View style={styles.termsCard}>
+                            <Text style={styles.termsText}>
+                                By continuing, you confirm that the details submitted during registration are accurate and belong to you.
                             </Text>
-                            <View style={styles.whyGoldRule} />
-                            <Text style={styles.whyAttribution}>Institution of Municipal Engineers, India</Text>
+                            <Text style={styles.termsText}>
+                                Membership activation is subject to successful payment verification and approval by the IME administration.
+                            </Text>
+                            <Text style={styles.termsText}>
+                                The annual membership fee is non-transferable. Payment status and receipts will be maintained in your member account.
+                            </Text>
+                            <Text style={[styles.termsText, { marginBottom: 0 }]}>
+                                You agree to follow IME member guidelines and understand that misuse of the account may lead to restricted access.
+                            </Text>
                         </View>
                     </View>
 
-                    {/* ── Commitment ── */}
+                    {/* ── Registration Fee — practical info placed right before the CTA,
+                        instead of a standalone "Welcome to IME" section ── */}
+                    <View style={styles.section}>
+                        <Text style={styles.eyebrow}>REGISTRATION FEE</Text>
+                        {currentFee ? (
+                            <View style={styles.feeCard}>
+                                <View style={styles.feeIconWrap}>
+                                    <MaterialCommunityIcons name="cash-check" size={26} color={NAVY} />
+                                </View>
+                                <View style={styles.feeCardBody}>
+                                    <Text style={styles.feeCardLabel}>ANNUAL MEMBERSHIP FEE</Text>
+                                    <Text style={styles.feeCardAmount}>
+                                        <Text style={styles.feeCardCurrency}>₹</Text>
+                                        {parseFloat(currentFee.amount).toFixed(2)}
+                                    </Text>
+                                    <View style={styles.feeCardBadge}>
+                                        <MaterialCommunityIcons name="clock-outline" size={12} color={NAVY} />
+                                        <Text style={styles.feeCardBadgeText}>Payable now or within 3 days</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.feeCard}>
+                                <Text style={styles.noFee}>No fee currently set. Contact admin.</Text>
+                            </View>
+                        )}
+                    </View>
+
+                    {/* ── Acceptance ── */}
                     <View style={styles.section}>
                         <TouchableOpacity
                             style={styles.commitCard}
                             activeOpacity={0.85}
-                            onPress={() => setAgreed((v) => !v)}>
+                            onPress={() => setAccepted((v) => !v)}>
                             <View pointerEvents="none">
-                                <Checkbox status={agreed ? 'checked' : 'unchecked'} color={NAVY} />
+                                <Checkbox status={accepted ? 'checked' : 'unchecked'} color={NAVY} />
                             </View>
                             <Text style={styles.commitText}>
-                                I have read and understood the membership benefits and wish
-                                to continue with my membership registration.
+                                I have read and agree to the Membership Benefits and
+                                Terms & Conditions.
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.continueBtn, !agreed && styles.continueBtnDisabled]}
+                            style={[styles.continueBtn, !accepted && styles.continueBtnDisabled]}
                             activeOpacity={0.85}
-                            disabled={!agreed}
+                            disabled={!accepted}
                             onPress={handleContinue}>
                             <Text style={styles.continueBtnText}>Continue to Registration</Text>
                             <MaterialCommunityIcons name="arrow-right" size={18} color="#fff" />
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                            <Text style={styles.backLink}>Already a member? Login</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -170,119 +229,6 @@ const MembershipBenefitsScreen = ({ navigation }) => {
     );
 };
 
-const styles = StyleSheet.create({
-    root: { flex: 1, backgroundColor: BG },
-    scrollContent: { paddingBottom: 36 },
 
-    // Hero
-    hero: {
-        alignItems: 'center',
-        paddingTop: 22,
-        paddingBottom: 46,
-        paddingHorizontal: 24,
-        borderBottomLeftRadius: 28,
-        borderBottomRightRadius: 28,
-        overflow: 'hidden',
-    },
-    backBtn: {
-        position: 'absolute', top: 18, left: 18, zIndex: 10,
-        width: 34, height: 34, borderRadius: 17,
-        backgroundColor: 'rgba(255,255,255,0.14)',
-        alignItems: 'center', justifyContent: 'center',
-    },
-    heroRing1: {
-        position: 'absolute', top: -60, right: -50,
-        width: 180, height: 180, borderRadius: 90,
-        borderWidth: 1, borderColor: 'rgba(212,160,23,0.18)',
-    },
-    heroRing2: {
-        position: 'absolute', bottom: -70, left: -60,
-        width: 200, height: 200, borderRadius: 100,
-        borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
-    },
-    heroTitle: {
-        color: '#fff', fontSize: 22, fontWeight: '800',
-        marginTop: 16, textAlign: 'center', letterSpacing: 0.2,
-    },
-    heroSubtitle: {
-        color: 'rgba(255,255,255,0.78)', fontSize: 13, lineHeight: 20,
-        textAlign: 'center', marginTop: 10, maxWidth: width - 80,
-    },
-    divider: {
-        flexDirection: 'row', alignItems: 'center', marginTop: 18, gap: 8,
-    },
-    dividerLine: { width: 44, height: 1, backgroundColor: 'rgba(212,160,23,0.55)' },
-    dividerDiamond: {
-        width: 7, height: 7, backgroundColor: GOLD,
-        transform: [{ rotate: '45deg' }], borderRadius: 1,
-    },
-
-    // Seal badge
-    sealWrap: { alignItems: 'center', marginTop: -34, marginBottom: 8 },
-    seal: {
-        width: 64, height: 64, borderRadius: 32,
-        backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center',
-        borderWidth: 2, borderColor: GOLD,
-        shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 3 },
-        elevation: 5,
-    },
-    sealText: {
-        marginTop: 8, fontSize: 11.5, fontWeight: '700', color: NAVY,
-        letterSpacing: 0.3,
-    },
-
-    // Sections
-    section: { paddingHorizontal: 20, marginTop: 22 },
-    eyebrow: { fontSize: 11, fontWeight: '800', color: GOLD, letterSpacing: 1.4 },
-    sectionTitle: { fontSize: 19, fontWeight: '800', color: NAVY, marginTop: 4, marginBottom: 14 },
-
-    benefitsList: { gap: 12 },
-    benefitCard: {
-        flexDirection: 'row', backgroundColor: '#fff', borderRadius: 18,
-        padding: 14, alignItems: 'flex-start', gap: 12,
-        shadowColor: '#0F2A4A', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 4 },
-        elevation: 2, borderWidth: 1, borderColor: '#EEF1F6',
-    },
-    benefitIconWrap: {
-        width: 44, height: 44, borderRadius: 14,
-        backgroundColor: '#EAF0F8', alignItems: 'center', justifyContent: 'center',
-    },
-    benefitTextWrap: { flex: 1 },
-    benefitTitle: { fontSize: 14, fontWeight: '700', color: NAVY, marginBottom: 3 },
-    benefitBlurb: { fontSize: 12.5, color: MUTED, lineHeight: 18 },
-
-    // Why Join IME
-    whySection: { paddingHorizontal: 20, marginTop: 26 },
-    whyCard: {
-        backgroundColor: NAVY_DEEP, borderRadius: 20, padding: 22,
-        borderLeftWidth: 4, borderLeftColor: GOLD,
-    },
-    whyQuoteMark: { marginBottom: 8 },
-    whyText: { color: '#F1F5F9', fontSize: 14.5, lineHeight: 23, fontWeight: '500' },
-    whyGoldRule: { width: 36, height: 2, backgroundColor: GOLD, marginTop: 16, marginBottom: 8 },
-    whyAttribution: { color: 'rgba(255,255,255,0.6)', fontSize: 11.5, fontWeight: '600' },
-
-    // Commitment
-    commitCard: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-        borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#E2E8F0',
-        marginBottom: 14,
-    },
-    commitText: { flex: 1, fontSize: 13, color: INK, lineHeight: 19, fontWeight: '500' },
-
-    continueBtn: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-        backgroundColor: NAVY, borderRadius: 14, paddingVertical: 15,
-        shadowColor: NAVY, shadowOpacity: 0.25, shadowRadius: 10, shadowOffset: { width: 0, height: 5 },
-        elevation: 3,
-    },
-    continueBtnDisabled: { backgroundColor: '#9CA9B8', shadowOpacity: 0 },
-    continueBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-
-    footerNote: {
-        textAlign: 'center', fontSize: 11.5, color: '#94A3B8',
-        marginTop: 18, paddingHorizontal: 40, lineHeight: 17,
-    },
-});
 
 export default MembershipBenefitsScreen;

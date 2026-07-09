@@ -9,6 +9,7 @@ import { Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 import { ProfileEditScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
 
@@ -192,7 +193,7 @@ const ProfileEditScreen = ({ navigation }) => {
 
       // ── Show API error message if upload failed ──
       if (!json.success) {
-        Alert.alert('Photo Upload Failed', json.message || 'Failed to upload profile photo.');
+        Alert.alert('Photo Upload Failed', getSafeErrorMessage(json));
         return false;
       }
 
@@ -335,10 +336,10 @@ const ProfileEditScreen = ({ navigation }) => {
            { text: 'OK', onPress: () => navigation.goBack() },
          ]);
        } else {
-         Alert.alert('Failed', res.message || 'Update failed.');
+         Alert.alert('Failed', getSafeErrorMessage(res));
        }
      } catch (e) {
-       Alert.alert('Error', e?.message || 'An error occurred.');
+       Alert.alert('Error', getSafeErrorMessage(e));
      } finally {
        setSaving(false);
      }
@@ -385,10 +386,10 @@ const ProfileEditScreen = ({ navigation }) => {
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
-        Alert.alert('Failed', res.message || 'Update failed.');
+        Alert.alert('Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
-      Alert.alert('Error', e?.message || 'An error occurred.');
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setSaving(false);
     }
@@ -777,3 +778,4 @@ const ProfileEditScreen = ({ navigation }) => {
 
 
 export default ProfileEditScreen;
+

@@ -7,6 +7,8 @@ import { chatService } from '../services/chatService';
 import { memberService } from '../services/memberService';
 import api from '../utils/api';
 import { UserProfileScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
+
 const PAGE_SIZE = 10;
 
 const UserProfileScreen = ({ navigation, route }) => {
@@ -147,7 +149,7 @@ const UserProfileScreen = ({ navigation, route }) => {
       if (res.success) {
         setPosts(prev => prev.filter(p => p.id !== postId));
       } else {
-        Alert.alert('Error', res.message || 'Could not delete the post.');
+        Alert.alert('Error', getSafeErrorMessage(res));
       }
     } catch (_) {
       Alert.alert('Error', 'Could not connect to server.');
