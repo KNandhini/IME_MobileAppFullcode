@@ -18,16 +18,16 @@ const UserProfileScreen = ({ navigation, route }) => {
   // Only an Admin sees the delete icon on someone else's posts
   const isAdmin = user?.roleId === 1 || user?.roleName === 'Admin';
 
-  const [posts,         setPosts]         = useState([]);
-  const [page,          setPage]          = useState(1);
-  const [hasMore,       setHasMore]       = useState(true);
-  const [loadingMore,   setLoadingMore]   = useState(false);
-  const [refreshing,    setRefreshing]    = useState(false);
-  const [initialLoad,   setInitialLoad]   = useState(true);
-  const [chatLoading,   setChatLoading]   = useState(false);
-  const [deletingId,    setDeletingId]    = useState(null);
-  const [profilePhoto,  setProfilePhoto]  = useState(null);
-  const [clubName,      setClubName]      = useState(null);
+  const [posts, setPosts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [clubName, setClubName] = useState(null);
 
   // ── Base URL for media images, same pattern as ProfileScreen ──
   const baseUrl = api.defaults.baseURL.replace('/api', '');
@@ -114,8 +114,8 @@ const UserProfileScreen = ({ navigation, route }) => {
       const res = await chatService.getOrCreateConversation(memberId);
       if (res.success && res.data?.conversationId) {
         navigation.navigate('Chat', {
-          conversationId:   res.data.conversationId,
-          otherMemberName:  memberName,
+          conversationId: res.data.conversationId,
+          otherMemberName: memberName,
           otherMemberEmail: email,
         });
       }
@@ -159,7 +159,7 @@ const UserProfileScreen = ({ navigation, route }) => {
   };
 
   const avatarColor = '#1E3A5F';
-  const initial     = (memberName || 'M').charAt(0).toUpperCase();
+  const initial = (memberName || 'M').charAt(0).toUpperCase();
 
   const renderHeader = () => (
     <View style={styles.profileCard}>
@@ -215,7 +215,7 @@ const UserProfileScreen = ({ navigation, route }) => {
 
   // ── Single post card: avatar/name/time row, caption, full-width image, delete (admin only), footer ──
   const renderPost = ({ item }) => {
-    const media      = item.mediaItems || [];
+    const media = item.mediaItems || [];
     const firstImage = media.find(m => m.mediaType === 'image') || media[0];
 
     return (
@@ -237,18 +237,18 @@ const UserProfileScreen = ({ navigation, route }) => {
               <Text style={styles.metaTime}>{formatTimeAgo(item.postedDate)}</Text>
             </View>
           </View>
-{item.isSameClub === true && (
-  <TouchableOpacity
-    style={styles.deleteBtn}
-    onPress={() => confirmDelete(item.id)}
-    disabled={deletingId === item.id}
-    activeOpacity={0.7}
-  >
-    {deletingId === item.id
-      ? <ActivityIndicator size="small" color="#C0392B" />
-      : <Text style={styles.deleteIcon}>🗑️</Text>}
-  </TouchableOpacity>
-)}
+          {item.isSameClub === true && (
+            <TouchableOpacity
+              style={styles.deleteBtn}
+              onPress={() => confirmDelete(item.id)}
+              disabled={deletingId === item.id}
+              activeOpacity={0.7}
+            >
+              {deletingId === item.id
+                ? <ActivityIndicator size="small" color="#C0392B" />
+                : <Text style={styles.deleteIcon}>🗑️</Text>}
+            </TouchableOpacity>
+          )}
         </View>
 
         {!!item.description && <Text style={styles.cardBody}>{item.description}</Text>}
