@@ -1,4 +1,6 @@
 import { Dimensions, Platform, StatusBar, StyleSheet } from 'react-native';
+import { COLORS, SPACING, RADIUS, FONT, SHADOW } from './theme';
+import * as Common from './common';
 
 export const CommonScreenStyles = {
   center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -62,15 +64,15 @@ export const AboutIMEScreenStyles = (() => {
 
 // AboutScreen
 export const AboutScreenStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
   return createScreenStyles({
@@ -333,9 +335,9 @@ export const AboutScreenStyles = (() => {
 
 // AchievementDetailScreen
 export const AchievementDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
   root: { flex: 1, backgroundColor: '#F0F4F8' },
@@ -412,21 +414,16 @@ attachImage: {
   },
   downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
-  viewerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-  viewerImage: { width: '100%', height: '80%' },
+  ...Common.lightboxSimple(),
 });
 })();
 
 // AchievementFormScreen
 const _AchievementFormScreenStyleBundle = (() => {
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return {
     AchievementFormScreenDrop: createScreenStyles({
@@ -451,17 +448,21 @@ const _AchievementFormScreenStyleBundle = (() => {
   optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
   optionText: { fontSize: 15, color: '#334155', flex: 1 },
   optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
+  
 }),
     AchievementFormScreenStyles: createScreenStyles({
   root: { flex: 1, backgroundColor: '#F7F9FC' },
-  header: {
+ root: { flex: 1, backgroundColor: '#F7F9FC' },
+  navbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: NAVY,
     paddingTop: (StatusBar.currentHeight || 0) + 6,
     paddingBottom: 12, paddingHorizontal: 12,
   },
-  headerBtn: { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
   body: { padding: 18, paddingBottom: 40 },
 
   roleLoadingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingVertical: 14 },
@@ -514,17 +515,15 @@ const _AchievementFormScreenStyleBundle = (() => {
   gridAddIcon: { fontSize: 22, marginBottom: 2 },
   gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
   attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
-
+  
   saveBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ...Common.lightbox,
+  
 }),
   };
 })();
@@ -533,9 +532,9 @@ export const AchievementFormScreenStyles = _AchievementFormScreenStyleBundle.Ach
 
 // AchievementsScreen
 export const AchievementsScreenS = (() => {
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
   safe: { flex: 1, backgroundColor: '#F7F9FC' },
@@ -610,21 +609,16 @@ export const AchievementsScreenS = (() => {
   },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
   emptyText: { fontSize: 14, color: '#A0AEC0' },
-  fab: {
-    position: 'absolute', right: 20, bottom: 24,
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: NAVY, alignItems: 'center',
-    justifyContent: 'center', elevation: 4, zIndex: 100,
-  },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab: Common.fab({ zIndex: 100 }),
+  fabText: Common.fabText,
 });
 })();
 
 // ActivitiesScreen
 export const ActivitiesScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -656,16 +650,16 @@ export const ActivitiesScreenStyles = (() => {
   emptyText: { fontSize: 16, color: '#94A3B8', fontWeight: '600' },
   emptyHint: { fontSize: 13, color: '#CBD5E1', marginTop: 8 },
 
-  fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab: Common.fab(),
+  fabText: Common.fabText,
 });
 })();
 
 // ActivityDetailScreen
 export const ActivityDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -728,12 +722,7 @@ export const ActivityDetailScreenStyles = (() => {
   },
   attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
 
-  viewerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8, zIndex: 10 },
-  viewerImage: { width: '100%', height: '80%' },
+  ...Common.lightboxSimple({ zIndex: 10 }),
 });
 })();
 
@@ -876,9 +865,9 @@ export const AddAdminScreenStyles = (() => {
 
 // AddCircularScreen
 export const AddCircularScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -946,10 +935,7 @@ export const AddCircularScreenStyles = (() => {
   thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
   thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
   attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-  viewerOverlay  : { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage    : { width: '100%', height: '80%' },
-  viewerClose    : { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ...Common.lightbox,
 });
 })();
 
@@ -1207,9 +1193,9 @@ export const ChatsListScreenStyles = (() => {
 
 // CircularDetailScreen
 export const CircularDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1248,17 +1234,15 @@ export const CircularDetailScreenStyles = (() => {
   downloadBtn:   { flexDirection: 'row', alignItems: 'center', backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10 },
   downloadText:  { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8, flex: 1 },
 
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
-  viewerClose:   { position: 'absolute', top: 40, right: 20, padding: 8 },
-  viewerImage:   { width: '100%', height: '80%' },
+  ...Common.lightboxSimple(),
 });
 })();
 
 // CircularScreen
 export const CircularScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1310,8 +1294,8 @@ export const CircularScreenStyles = (() => {
   emptyText:      { fontSize: 16, color: '#999' },
 
   /* FAB */
-  fab:     { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab: Common.fab(),
+  fabText: Common.fabText,
 });
 })();
 
@@ -1448,8 +1432,8 @@ export const ClubListScreenStyles = (() => {
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyText: { fontSize: 15, color: '#888' },
 
-  fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab: Common.fab(),
+  fabText: Common.fabText,
 });
 })();
 
@@ -1469,15 +1453,15 @@ export const ContentViewerScreenStyles = (() => {
 
 // CorpDetailsScreen
 export const CorpDetailsScreenStyles = (() => {
-  const BG = '#F0F4F8';
+  const BG = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   const GREEN = '#2D9B6F';
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
-  const CRIMSON = '#C0392B';
+  const CRIMSON = COLORS.crimson;
 
 
   return createScreenStyles({
@@ -1811,12 +1795,13 @@ export const CreateFundScreenS = (() => {
     shadowOffset: { width: 0, height: 4 }, elevation: 6,
   },
   submitText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+  
 });
 })();
 
 // CreatePostScreen
 export const CreatePostScreenStyles = (() => {
-  const BLUE  = '#1E3A5F';
+  const BLUE = COLORS.navy;
 
   const LIGHT = '#EAF1FA';
 
@@ -1997,11 +1982,11 @@ export const CreatePostScreenStyles = (() => {
 
 // DemoScreen
 export const DemoScreenStyles = (() => {
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
   const { width: W, height: H } = Dimensions.get('window');
 
-  const NAVY  = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
   root: { flex: 1 },
@@ -2311,16 +2296,16 @@ export const FeedScreenVw = _FeedScreenStyleBundle.FeedScreenVw;
 
 // FeesDetails
 export const FeesDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -2454,11 +2439,11 @@ export const FundScreenStyles = (() => {
 const _FundraiseListScreenStyleBundle = (() => {
   const BG       = '#F0F4FA';
 
-  const PRIMARY  = '#1E3A5F';
+  const PRIMARY = COLORS.navy;
 
-  const CARD_BG  = '#FFFFFF';
+  const CARD_BG = COLORS.white;
 
-  const SUCCESS  = '#27AE60';
+  const SUCCESS = COLORS.success;
 
   const ACCENT   = '#2E86DE';
 
@@ -2507,8 +2492,10 @@ const _FundraiseListScreenStyleBundle = (() => {
   emptyBtn:       { marginTop: 24, backgroundColor: PRIMARY, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13 },
   emptyBtnText:   { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  fab:            { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-  fabText:        { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab: Common.fab(),
+  fabText: Common.fabText,
+  statusBadge: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6 },
+
 }),
     FundraiseListScreenAv: createScreenStyles({
   img:      { width: 58, height: 58, borderRadius: 14, backgroundColor: '#E8ECF4', borderWidth: 1.5, borderColor: '#DDE3EF' },
@@ -2530,11 +2517,11 @@ const _FundraiseViewScreenStyleBundle = (() => {
   const BG      = '#F0F4FA';
 
 
-  const PRIMARY = '#1E3A5F';
+  const PRIMARY = COLORS.navy;
 
-  const SUCCESS = '#27AE60';
+  const SUCCESS = COLORS.success;
 
-  const DANGER  = '#E74C3C';
+  const DANGER = COLORS.dangerAlt;
 
   return {
     FundraiseViewScreenStyles: createScreenStyles({
@@ -2665,16 +2652,16 @@ export const FundraiseViewScreenPb = _FundraiseViewScreenStyleBundle.FundraiseVi
 
 // GovernanceDetails
 export const GovernanceDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -2718,16 +2705,16 @@ export const GovernanceDetailsStyles = (() => {
 
 // HistoryDetails
 export const HistoryDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -2841,9 +2828,9 @@ export const HomeScreenStyles = (() => {
 
 // JobPostingDetailScreen
 export const JobPostingDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -2914,18 +2901,13 @@ export const JobPostingDetailScreenStyles = (() => {
   },
   downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
-  viewerOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-  viewerImage: { width: '100%', height: '80%' },
+  ...Common.lightboxSimple(),
 });
 })();
 
 // JobPostingFormScreen
 const _JobPostingFormScreenStyleBundle = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return {
     JobPostingFormScreenChip: createScreenStyles({
@@ -2994,13 +2976,7 @@ const _JobPostingFormScreenStyleBundle = (() => {
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage:   { width: '100%', height: '80%' },
-  viewerClose:   {
-    position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10,
-  },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ...Common.lightbox,
 }),
   };
 })();
@@ -3009,9 +2985,9 @@ export const JobPostingFormScreenStyles = _JobPostingFormScreenStyleBundle.JobPo
 
 // JobPostingListScreen
 export const JobPostingListScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3067,12 +3043,12 @@ export const JobPostingListScreenStyles = (() => {
 export const LawBotScreenStyles = (() => {
   const BG    = '#F0F2F5';
 
-  const NAVY  = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   const WHITE = '#ffffff';
 
 
-  const GOLD  = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
   safe: { flex: 1, backgroundColor: BG },
@@ -3204,9 +3180,9 @@ export const LawBotScreenStyles = (() => {
 
 // LoginScreen
 export const LoginScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3314,9 +3290,9 @@ export const LoginScreenStyles = (() => {
 
 // MagazineDetailScreen
 export const MagazineDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3431,7 +3407,7 @@ export const MagazineDetailScreenStyles = (() => {
 
 // MagazineFormScreen
 export const MagazineFormScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
   root: { flex: 1, backgroundColor: '#F7F9FC' },
@@ -3484,21 +3460,15 @@ export const MagazineFormScreenStyles = (() => {
     backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
   },
   saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: {
-    position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10,
-  },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ...Common.lightbox,
 });
 })();
 
 // MagazinesScreen
 export const MagazinesScreenS = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3530,11 +3500,8 @@ export const MagazinesScreenS = (() => {
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
   emptyText: { fontSize: 14, color: '#A0AEC0' },
-  fab: {
-    position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18,
-    backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100,
-  },
-  fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
+  fab: Common.fab({ zIndex: 100 }),
+  fabText: Common.fabText,
   actionContainer: {
   position: 'absolute',
   top: 12,
@@ -3859,16 +3826,16 @@ export const MemberManagementScreenStyles = (() => {
 
 // MembershipDetails
 export const MembershipDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -3919,12 +3886,12 @@ export const MembershipDetailsStyles = (() => {
 
 // MunicipalMapScreen
 export const MunicipalMapScreenStyles = (() => {
-  const BG   = '#F0F4F8';
+  const BG = COLORS.bg;
 
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
   root: { flex: 1, backgroundColor: BG },
@@ -4364,16 +4331,16 @@ export const NotificationsScreenStyles = (() => {
 
 // Objectivesdetailsscreen
 export const ObjectivesdetailsscreenStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -4961,7 +4928,7 @@ export const PodcastDetailScreenStyles = (() => {
 
 // PresentationScreen
 export const PresentationScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
   root: { flex: 1, backgroundColor: '#0d1f33' },
@@ -5038,9 +5005,9 @@ export const ProfileEditScreenStyles = (() => {
 
 // ProfileScreen
 export const ProfileScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -5417,10 +5384,7 @@ export const SupportDetailScreenStyles = (() => {
   thumbDocIcon: { fontSize: 28 },
   thumbDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 4 },
 
-  viewerOverlay:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage:     { width: '100%', height: '80%' },
-  viewerClose:     { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ...Common.lightbox,
 });
 })();
 
@@ -5524,10 +5488,7 @@ const _SupportScreenStyleBundle = (() => {
   gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
 
   // File viewer
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  ...Common.lightbox,
 }),
     SupportScreenS: createScreenStyles({
   safe: { flex: 1, backgroundColor: '#F7F9FC' },
@@ -5721,5 +5682,3 @@ export const UserProfileScreenStyles = (() => {
   emptyText: { fontSize: 15, color: '#888' },
 });
 })();
-
-
