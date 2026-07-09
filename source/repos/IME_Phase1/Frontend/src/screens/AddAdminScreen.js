@@ -332,28 +332,6 @@ const AdminSignupScreen = ({
           ]
         );
       } else {
-        Alert.alert('Registration Failed', res.message);
-  Alert.alert(
-    'Admin Created',
-    clubNames
-      ? `${formData.fullName} has been registered as an admin for ${clubNames}.`
-      : `${formData.fullName} has been registered as an admin.`,
-    [
-      {
-        text: 'OK',
-        onPress: () => {
-          navigation.navigate({
-            name: 'ClubForm',
-            params: {
-              newAdminMember: newMember,
-            },
-            merge: true,
-          });
-        },
-      },
-    ]
-  );
-} else {
         Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
