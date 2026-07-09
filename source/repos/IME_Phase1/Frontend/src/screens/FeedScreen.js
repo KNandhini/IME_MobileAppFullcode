@@ -8,6 +8,7 @@ import * as Sharing from "expo-sharing";
 import { fundraiseService } from "../services/fundraiseService";
 import api from "../utils/api";
 import { FeedScreenS as s, FeedScreenAv as av, FeedScreenPb as pb, FeedScreenMs as ms, FeedScreenCard as card, FeedScreenVw as vw } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 //const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
 const API_BASE_URL = "http://10.0.2.2:51150/api";
 const { width }    = Dimensions.get("window");
@@ -309,7 +310,7 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
         });
       }
     } catch (e) {
-      Alert.alert("Error", "Failed to download document: " + e.message);
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setDownloadingPath(null);
     }
@@ -725,7 +726,7 @@ export default function FeedScreen({ navigation }) {
       if (Array.isArray(res)) setPosts(res);
       else if (res?.success) setPosts(res.data || []);
       else if (Array.isArray(res?.data)) setPosts(res.data);
-      else setError(res?.message || "Failed to load");
+      else setError(getSafeErrorMessage(res));
     } catch {
       setError("Network error. Pull to refresh.");
     } finally {
@@ -798,7 +799,6 @@ export default function FeedScreen({ navigation }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-
 
 
 

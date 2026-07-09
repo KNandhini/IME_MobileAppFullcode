@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 
 export const municipalCorpService = {
   getDistricts: async (stateId) => {
@@ -7,7 +8,7 @@ export const municipalCorpService = {
       return response.data;
     } catch (error) {
       console.error('Get districts error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'municipalCorpService' });
     }
   },
 
@@ -17,7 +18,7 @@ export const municipalCorpService = {
       return response.data;
     } catch (error) {
       console.error('Get corps by district error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'municipalCorpService' });
     }
   },
 
@@ -27,7 +28,7 @@ export const municipalCorpService = {
       return response.data;
     } catch (error) {
       console.error('Get corps by state error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'municipalCorpService' });
     }
   },
 
@@ -37,7 +38,8 @@ export const municipalCorpService = {
       return response.data;
     } catch (error) {
       console.error('Get corp by id error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'municipalCorpService' });
     }
   },
 };
+

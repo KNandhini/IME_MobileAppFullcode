@@ -1,4 +1,5 @@
 import api, { BASE_URL } from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Reads the JWT from the parsed userData object in AsyncStorage

@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { feedService } from '../services/feedService';
 import { CreatePostScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const MAX_MEDIA = 10;
 
@@ -78,23 +79,11 @@ const CreatePostScreen = ({ navigation }) => {
       if (res.success) {
         navigation.goBack();
       } else {
-        Alert.alert('Failed', res.message || 'Could not create post. Please try again.');
+        Alert.alert('Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
       debugger;
-      const status    = e?.response?.status;
-      const serverMsg = e?.response?.data?.message
-                     || e?.response?.data?.title
-                     || (typeof e?.response?.data === 'string' ? e.response.data : null)
-                     || e?.message
-                     || 'Unknown error';
-      const detail = e?.response?.data?.errors
-        ? '\n' + JSON.stringify(e.response.data.errors, null, 2)
-        : '';
-      Alert.alert(
-        `Error${status ? ` (${status})` : ''}`,
-        (typeof serverMsg === 'string' ? serverMsg : JSON.stringify(serverMsg)) + detail,
-      );
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setPosting(false);
     }

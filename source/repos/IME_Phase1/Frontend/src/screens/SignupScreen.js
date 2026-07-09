@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
 import { SignupScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 //import { Modal, FlatList } from 'react-native'; // Modal already imported, just ensure FlatList is there
 const SignupScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -291,12 +292,12 @@ const SignupScreen = ({ navigation }) => {
           ],
         );
       } else {
-        Alert.alert('Registration Failed', res.message);
+        Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
       const status = e?.response?.status;
       const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
-      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }

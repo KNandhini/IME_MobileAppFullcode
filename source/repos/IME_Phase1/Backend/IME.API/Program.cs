@@ -1,3 +1,4 @@
+using IME.API.Middleware;
 using IME.Core.Interfaces;
 using IME.Infrastructure.Data;
 using IME.Infrastructure.Repositories;
@@ -9,9 +10,23 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Events;
 using System.Text;
 
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.File(
+        path: "logs/error-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -185,6 +200,7 @@ if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 //app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
+app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseStaticFiles(); // ✅ FIRST
 app.UseStaticFiles(new StaticFileOptions
 {
@@ -207,3 +223,4 @@ if (!Directory.Exists(uploadsPath))
 
 
 app.Run();
+

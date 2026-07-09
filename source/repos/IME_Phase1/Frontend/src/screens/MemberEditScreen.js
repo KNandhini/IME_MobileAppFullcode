@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import { BASE_URL } from '../utils/api';
 import { MemberEditScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const GENDERS = ['Male', 'Female', 'Other'];
 
@@ -69,7 +70,7 @@ const MemberEditScreen = ({ route, navigation }) => {
             setResolvedPhotoUri(uri);
           }
         } else {
-          Alert.alert('Error', res.message || 'Failed to load member');
+          Alert.alert('Error', getSafeErrorMessage(res));
           navigation.goBack();
         }
       } catch {
@@ -161,10 +162,10 @@ const MemberEditScreen = ({ route, navigation }) => {
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
       } else {
-        Alert.alert('Error', res.message || 'Failed to update member.');
+        Alert.alert('Error', getSafeErrorMessage(res));
       }
     } catch (e) {
-      Alert.alert('Error', e?.message || 'Something went wrong.');
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setSaving(false);
     }
