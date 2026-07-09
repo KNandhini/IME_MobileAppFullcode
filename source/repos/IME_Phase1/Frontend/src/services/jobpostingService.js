@@ -78,6 +78,7 @@ export const jobPostingService = {
   },
 
   create: async (jobPostingData) => {
+    debugger;
     const response = await api.post('/jobpostings', jobPostingData);
     return response.data;
   },
@@ -93,11 +94,12 @@ export const jobPostingService = {
   },
 
   // ── DELETE job posting ────────────────────────────────────
-  delete: async (jobPostingId) => {
-    const response = await api.delete(`/jobpostings/${jobPostingId}`);
-    return response.data;
-  },
-
+ delete: async (jobPostingId, modifiedBy) => {
+  const response = await api.delete(`/jobpostings/${jobPostingId}`, {
+    params: { modifiedBy },
+  });
+  return response.data;
+},
   // ── GET attachments for a job posting ─────────────────────
   getAttachments: async (jobPostingId) => {
     const token = await getToken();
@@ -114,6 +116,7 @@ export const jobPostingService = {
 
   // ── DELETE a single attachment ────────────────────────────
   deleteAttachment: async (attachmentId) => {
+    debugger;
     const response = await api.delete(`/jobpostings/attachments/${attachmentId}`);
     return response.data;
   },

@@ -12,7 +12,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class JobPostingsController : ControllerBase
 {
     private readonly IJobPostingRepository _jobPostingRepository;
@@ -32,8 +32,13 @@ public class JobPostingsController : ControllerBase
     // ── helper: build full URL from relative upload path ─────
     private string BuildFileUrl(string? relativePath)
     {
-        if (string.IsNullOrEmpty(relativePath)) return string.Empty;
-        return $"{Request.Scheme}://{Request.Host}/uploads/{relativePath.Replace('\\', '/')}";
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return string.Empty;
+
+        return Path.Combine(
+            Directory.GetCurrentDirectory(),
+            relativePath.Replace('/', Path.DirectorySeparatorChar)
+                        .Replace('\\', Path.DirectorySeparatorChar));
     }
 
     // ── helper: userId from JWT ───────────────────────────────
@@ -171,11 +176,11 @@ public class JobPostingsController : ControllerBase
         SaveJobPostingUpdateAsync(id, request);
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
+    public async Task<ActionResult<ApiResponse<object>>> Delete(int id , string modifiedBy)
     {
         try
         {
-            var success = await _jobPostingRepository.DeleteJobPostingAsync(id);
+            var success = await _jobPostingRepository.DeleteJobPostingAsync(id, modifiedBy);
             return Ok(new ApiResponse<object>
             {
                 Success = success,
@@ -238,10 +243,16 @@ public class JobPostingsController : ControllerBase
                 if (!AllowedAttachmentTypes.Contains(ext)) continue;
 
                 var filePath = await _fileStorageService.SaveFileAsync(
-                    file.OpenReadStream(), "JobPostings", id, file.FileName);
+     file.OpenReadStream(), "JobPostings", id, file.FileName);
+
+                // Get full physical path
+                var fullFilePath = _fileStorageService.GetFullPath(filePath);
 
                 var att = await _jobPostingRepository.AddJobPostingAttachmentAsync(
-                    id, file.FileName, filePath, userId);
+                    id,
+                    file.FileName,
+                    fullFilePath,
+                    userId);
 
                 att.FilePath = BuildFileUrl(att.FilePath);
                 saved.Add(att);
