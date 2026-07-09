@@ -7,6 +7,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import api from '../utils/api';
 import { MagazineDetailScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -115,7 +116,7 @@ console.log(userData,"user");
         Alert.alert("Error", "Could not post your message. Try again.");
       }
     } catch (e) {
-      Alert.alert("Error", e.message);
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setSending(false);
     }
@@ -198,7 +199,7 @@ console.log(userData,"user");
         await Sharing.shareAsync(tempUri);
       }
     } catch (e) {
-      Alert.alert("Error", e.message);
+      Alert.alert('Error', getSafeErrorMessage(e));
     }
   };
 

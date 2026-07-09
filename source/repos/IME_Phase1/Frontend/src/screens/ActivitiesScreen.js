@@ -5,6 +5,7 @@ import { activityService } from '../services/activityService';
 import { useAuth } from '../context/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivitiesScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
@@ -50,7 +51,7 @@ const ActivitiesScreen = ({ navigation }) => {
             if (res.success) {
               setActivities(p => p.filter(a => a.activityId !== activityId));
             } else {
-              Alert.alert('Error', res.message || 'Failed to delete.');
+              Alert.alert('Error', getSafeErrorMessage(res));
             }
           } catch { Alert.alert('Error', 'Failed to delete activity.'); }
         },

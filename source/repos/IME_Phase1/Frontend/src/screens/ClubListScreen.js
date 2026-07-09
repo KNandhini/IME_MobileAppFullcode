@@ -6,6 +6,7 @@ import { clubService } from '../services/clubService';
 import api from '../utils/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ClubListScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
 // strip the trailing "/api" so we get the plain server root to prefix
@@ -87,7 +88,7 @@ export default function ClubListScreen({ navigation }) {
               Alert.alert('Deleted', 'Club deleted successfully.');
               loadClubs();
             } else {
-              Alert.alert('Error', res.message || 'Failed to delete');
+              Alert.alert('Error', getSafeErrorMessage(res));
             }
           },
         },

@@ -1,4 +1,5 @@
 import api from '../utils/api';
+import { toSafeServiceError } from '../utils/errorHandler';
 
 export const chatService = {
   getOrCreateConversation: async (otherMemberId) => {
@@ -7,7 +8,7 @@ export const chatService = {
       return response.data;
     } catch (error) {
       console.error('getOrCreateConversation error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'chatService' });
     }
   },
 
@@ -19,7 +20,7 @@ export const chatService = {
       return response.data;
     } catch (error) {
       console.error('getMessages error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'chatService' });
     }
   },
 
@@ -32,7 +33,7 @@ export const chatService = {
       return response.data;
     } catch (error) {
       console.error('sendMessage error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'chatService' });
     }
   },
 
@@ -42,7 +43,8 @@ export const chatService = {
       return response.data;
     } catch (error) {
       console.error('getConversations error:', error);
-      return { success: false, message: error.message };
+      return toSafeServiceError(error, { source: 'chatService' });
     }
   },
 };
+

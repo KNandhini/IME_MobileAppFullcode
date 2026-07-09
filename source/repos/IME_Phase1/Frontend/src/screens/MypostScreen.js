@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { feedService } from '../services/feedService';
 import api from '../utils/api';
 import { MypostScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const PAGE_SIZE = 10;
 
@@ -82,7 +83,7 @@ const MyPostScreen = ({ navigation }) => {
       if (res.success) {
         setPosts(prev => prev.filter(p => p.id !== postId));
       } else {
-        Alert.alert('Error', res.message || 'Could not delete the post.');
+        Alert.alert('Error', getSafeErrorMessage(res));
       }
     } catch (e) {
       Alert.alert('Error', 'Could not connect to server.');

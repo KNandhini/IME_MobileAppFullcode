@@ -11,14 +11,14 @@ public interface IJobPostingRepository
     Task<JobPostingDetailDTO?> GetJobPostingByIdAsync(int jobPostingId);
     Task<int> CreateJobPostingAsync(JobPosting jobPosting);
     Task<bool> UpdateJobPostingAsync(JobPosting jobPosting);
-    Task<bool> DeleteJobPostingAsync(int jobPostingId);
+    Task<bool> DeleteJobPostingAsync(int jobPostingId, string modifiedBy);
     Task<List<AttachmentDTO>> GetJobPostingAttachmentsAsync(int jobPostingId);
 
     Task<AttachmentDTO> AddJobPostingAttachmentAsync(
                                      int jobPostingId,
                                      string fileName,
                                      string filePath,
-                                     int uploadedBy);
+                                     long fileSize);
 
     Task<bool> DeleteJobPostingAttachmentAsync(int attachmentId);
 }

@@ -3,6 +3,7 @@ import { View, Text, Alert } from 'react-native';
 import { TextInput, Button } from 'react-native-paper';
 import { authService } from '../services/authService';
 import { ForgotPasswordScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -27,7 +28,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         setUserId(response.data.userId);
         setStep(2);
       } else {
-        Alert.alert('Validation Failed', response.message);
+        Alert.alert('Validation Failed', getSafeErrorMessage(response));
       }
     } catch (error) {
       Alert.alert('Error', 'An error occurred');
@@ -56,7 +57,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
           { text: 'OK', onPress: () => navigation.navigate('Login') },
         ]);
       } else {
-        Alert.alert('Failed', response.message);
+        Alert.alert('Failed', getSafeErrorMessage(response));
       }
     } catch (error) {
       Alert.alert('Error', 'An error occurred');
