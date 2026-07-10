@@ -211,33 +211,33 @@ public class FeedRepository : IFeedRepository
 
     // ── Like / Comment ──────────────────────────────────────────────
 
-    public async Task<LikeToggleResultDTO> ToggleLikeAsync(int postId, int memberId)
+    public async Task<LikeToggleResultDTO> ToggleLikeAsync(string itemType, int itemId, int memberId)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_ToggleLike", connection);
-        command.Parameters.AddWithValue("@PostId", postId);
+        command.Parameters.AddWithValue("@ItemType", itemType);
+        command.Parameters.AddWithValue("@ItemId", itemId);
         command.Parameters.AddWithValue("@MemberId", memberId);
 
         var result = new LikeToggleResultDTO();
 
         using var reader = await command.ExecuteReaderAsync();
 
-        // First result set: IsLikedByViewer
         if (await reader.ReadAsync())
             result.IsLikedByViewer = reader.GetBoolean(reader.GetOrdinal("IsLikedByViewer"));
 
-        // Second result set: LikeCount
         if (await reader.NextResultAsync() && await reader.ReadAsync())
             result.LikeCount = reader.GetInt32(reader.GetOrdinal("LikeCount"));
 
         return result;
     }
 
-    public async Task<PostCommentDTO> AddCommentAsync(int postId, int memberId, string commentDetails)
+    public async Task<PostCommentDTO> AddCommentAsync(string itemType, int itemId, int memberId, string commentDetails)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_AddComment", connection);
-        command.Parameters.AddWithValue("@PostId", postId);
+        command.Parameters.AddWithValue("@ItemType", itemType);
+        command.Parameters.AddWithValue("@ItemId", itemId);
         command.Parameters.AddWithValue("@MemberId", memberId);
         command.Parameters.AddWithValue("@CommentDetails", commentDetails);
 
@@ -245,13 +245,13 @@ public class FeedRepository : IFeedRepository
 
         using var reader = await command.ExecuteReaderAsync();
 
-        // First result set: the newly created comment row
         if (await reader.ReadAsync())
         {
             comment = new PostCommentDTO
             {
                 InteractionId = reader.GetInt32(reader.GetOrdinal("InteractionId")),
-                PostId = reader.GetInt32(reader.GetOrdinal("PostId")),
+                ItemId = reader.GetInt32(reader.GetOrdinal("ItemId")),
+                ItemType = reader.GetString(reader.GetOrdinal("ItemType")),
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
                 MemberName = reader.IsDBNull(reader.GetOrdinal("MemberName")) ? "Member" : reader.GetString(reader.GetOrdinal("MemberName")),
                 CommentDetails = reader.IsDBNull(reader.GetOrdinal("CommentDetails")) ? string.Empty : reader.GetString(reader.GetOrdinal("CommentDetails")),
@@ -259,20 +259,17 @@ public class FeedRepository : IFeedRepository
             };
         }
 
-        // Second result set: fresh CommentCount — not needed by the caller directly
-        // today (the client just appends the new comment locally), but reading it
-        // off keeps the reader consistent if you want to surface it later.
-
         return comment ?? throw new InvalidOperationException("Failed to create comment.");
     }
 
-    public async Task<List<PostCommentDTO>> GetPostCommentsAsync(int postId)
+    public async Task<List<PostCommentDTO>> GetPostCommentsAsync(string itemType, int itemId)
     {
         var comments = new List<PostCommentDTO>();
 
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_GetPostComments", connection);
-        command.Parameters.AddWithValue("@PostId", postId);
+        command.Parameters.AddWithValue("@ItemType", itemType);
+        command.Parameters.AddWithValue("@ItemId", itemId);
 
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -280,7 +277,8 @@ public class FeedRepository : IFeedRepository
             comments.Add(new PostCommentDTO
             {
                 InteractionId = reader.GetInt32(reader.GetOrdinal("InteractionId")),
-                PostId = reader.GetInt32(reader.GetOrdinal("PostId")),
+                ItemId = reader.GetInt32(reader.GetOrdinal("ItemId")),
+                ItemType = reader.GetString(reader.GetOrdinal("ItemType")),
                 MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
                 MemberName = reader.IsDBNull(reader.GetOrdinal("MemberName")) ? "Member" : reader.GetString(reader.GetOrdinal("MemberName")),
                 CommentDetails = reader.IsDBNull(reader.GetOrdinal("CommentDetails")) ? string.Empty : reader.GetString(reader.GetOrdinal("CommentDetails")),
@@ -291,38 +289,47 @@ public class FeedRepository : IFeedRepository
         return comments;
     }
 
-    // Bulk-fetches LikeCount / CommentCount / IsLikedByViewer for every
-    // Post-type item on the current page in a single extra round trip —
-    // same @PostIds CSV pattern as the media step above — then stamps the
-    // values onto each FeedItemDTO in place.
+    // Now runs across ALL feed item types on the page (Post/Activity/News/Circular),
+    // not just Posts — matches results back by the (ItemType, ItemId) pair.
     private async Task AttachInteractionCountsAsync(
         System.Data.SqlClient.SqlConnection connection,
         List<FeedItemDTO> items,
         int? viewerUserId)
     {
-        var postIds = items.Where(i => i.Type == "Post").Select(i => i.Id).ToList();
-        if (postIds.Count == 0) return;
+        if (items.Count == 0) return;
 
-        var postIdsCsv = string.Join(",", postIds);
+        var table = new System.Data.DataTable();
+        table.Columns.Add("ItemType", typeof(string));
+        table.Columns.Add("ItemId", typeof(int));
+        foreach (var item in items)
+            table.Rows.Add(item.Type, item.Id);
+
         using var countsCmd = _dbContext.CreateStoredProcCommand("sp_GetPostInteractionCounts", connection);
-        countsCmd.Parameters.AddWithValue("@PostIds", postIdsCsv);
+
+        var itemsParam = new System.Data.SqlClient.SqlParameter("@Items", System.Data.SqlDbType.Structured)
+        {
+            TypeName = "dbo.ItemKeyList",
+            Value = table,
+        };
+        countsCmd.Parameters.Add(itemsParam);
         countsCmd.Parameters.AddWithValue("@ViewerId", (object?)viewerUserId ?? DBNull.Value);
 
-        var countsMap = new Dictionary<int, (int Likes, int Comments, bool Liked)>();
+        var countsMap = new Dictionary<(string Type, int Id), (int Likes, int Comments, bool Liked)>();
         using var reader = await countsCmd.ExecuteReaderAsync();
         while (await reader.ReadAsync())
         {
-            var pid = reader.GetInt32(reader.GetOrdinal("PostId"));
-            countsMap[pid] = (
+            var type = reader.GetString(reader.GetOrdinal("ItemType"));
+            var id = reader.GetInt32(reader.GetOrdinal("ItemId"));
+            countsMap[(type, id)] = (
                 reader.GetInt32(reader.GetOrdinal("LikeCount")),
                 reader.GetInt32(reader.GetOrdinal("CommentCount")),
                 reader.GetInt32(reader.GetOrdinal("IsLikedByViewer")) == 1
             );
         }
 
-        foreach (var item in items.Where(i => i.Type == "Post"))
+        foreach (var item in items)
         {
-            if (countsMap.TryGetValue(item.Id, out var c))
+            if (countsMap.TryGetValue((item.Type, item.Id), out var c))
             {
                 item.LikeCount = c.Likes;
                 item.CommentCount = c.Comments;
