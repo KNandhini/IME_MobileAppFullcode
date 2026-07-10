@@ -3351,7 +3351,7 @@ export const JobPostingDetailScreenStyles = (() => {
 // JobPostingFormScreen
 const _JobPostingFormScreenStyleBundle = (() => {
   const NAVY = COLORS.navy;
-
+const GOLD = COLORS.gold; 
   return {
     JobPostingFormScreenChip: createScreenStyles({
       wrapper: { marginBottom: 14 },
@@ -3362,62 +3362,65 @@ const _JobPostingFormScreenStyleBundle = (() => {
       chipText: { color: NAVY, fontSize: 13, fontWeight: '600' },
       chipTextActive: { color: '#fff' },
     }),
-    JobPostingFormScreenStyles: createScreenStyles({
-      root: { flex: 1, backgroundColor: '#F7F9FC' },
-      header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        backgroundColor: NAVY,
-        paddingTop: (StatusBar.currentHeight || 0) + 6,
-        paddingBottom: 12, paddingHorizontal: 12,
-      },
-      headerBtn: { padding: 6, borderRadius: 20 },
-      headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-      body: { padding: 18, paddingBottom: 40 },
+ JobPostingFormScreenStyles: createScreenStyles({
+  root: { flex: 1, backgroundColor: '#F7F9FC' },
+  navbar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: NAVY,
+    paddingTop: (StatusBar.currentHeight || 0) + 6,
+    paddingBottom: 12, paddingHorizontal: 12,
+  },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
 
-      input: { marginBottom: 14, backgroundColor: '#fff' },
+  body: { padding: 18, paddingBottom: 40 },
 
-      dateField: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-        borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
-        borderWidth: 1, borderColor: '#BBDEFB',
-      },
-      dateText: { flex: 1, marginLeft: 10 },
-      dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-      dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
+  input: { marginBottom: 14, backgroundColor: '#fff' },
 
-      attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-      attachGrid: {
-        flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-        borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-        alignItems: 'center', marginBottom: 6,
-      },
-      gridThumb: {
-        width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-        backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-      },
-      gridImg: { width: '100%', height: '100%' },
-      gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-      gridDocIcon: { fontSize: 24 },
-      gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-      gridRemove: {
-        position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-        borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-      },
-      gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-      gridAddBtn: {
-        width: 80, height: 80, borderRadius: 10, margin: 4,
-        borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-        alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-      },
-      gridAddIcon: { fontSize: 22, marginBottom: 2 },
-      gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-      attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+  dateField: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
+    borderWidth: 1, borderColor: '#BBDEFB',
+  },
+  dateText: { flex: 1, marginLeft: 10 },
+  dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
+  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
 
-      saveBtn: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-      },
-      saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+  attachGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+    alignItems: 'center', marginBottom: 6,
+  },
+  gridThumb: {
+    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+  },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon: { fontSize: 24 },
+  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridRemove: {
+    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+  },
+  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  gridAddBtn: {
+    width: 80, height: 80, borderRadius: 10, margin: 4,
+    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+  },
+  gridAddIcon: { fontSize: 22, marginBottom: 2 },
+  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+
+  saveBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+  },
+  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
   ...Common.lightbox,
 }),
