@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -120,6 +120,7 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
 // ── Main Screen ───────────────────────────────────────────────────────────────
 const AchievementsScreen = ({ navigation }) => {
   const [achievements, setAchievements] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [photoMap, setPhotoMap] = useState({});
   const [userRole, setUserRole] = useState(null);  // ← ADD
@@ -181,6 +182,7 @@ const AchievementsScreen = ({ navigation }) => {
     } catch (e) {
       console.error('Achievements load error:', e);
     } finally {
+      setLoading(false);
       setRefreshing(false);
     }
   };
@@ -220,7 +222,12 @@ const AchievementsScreen = ({ navigation }) => {
     <SafeAreaView style={s.safe}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
-      {achievements.length === 0 && !refreshing ? (
+      {loading ? (
+        <View style={s.centered}>
+          <ActivityIndicator size="large" color={GOLD} />
+          <Text style={s.loadingText}>Loading achievements...</Text>
+        </View>
+      ) : achievements.length === 0 && !refreshing ? (
         <View style={s.centered}>
           <MaterialCommunityIcons name="trophy-outline" size={56} color="#CBD5E1" />
           <Text style={s.emptyTitle}>No achievements yet</Text>
