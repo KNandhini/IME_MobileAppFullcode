@@ -41,9 +41,15 @@ const getTimeAgo = (dateString) => {
   if (!dateString) return '';
 
   const postDate = new Date(dateString);
-  const diff = Math.floor((Date.now() - postDate.getTime()) / 1000);
+  let diff = Math.floor((Date.now() - postDate.getTime()) / 1000);
 
-  // Future dates
+  // Tolerate small clock skew between server and device (and network/render
+  // latency for something that was JUST created) — treat anything within
+  // 2 minutes "in the future" as effectively now, instead of misreading it
+  // as a genuinely future-dated item.
+  if (diff < 0 && diff > -120) diff = 0;
+
+  // Future dates (beyond the tolerance above)
   if (diff < 0) {
     return postDate.toLocaleDateString('en-IN', {
       day: 'numeric',
@@ -76,6 +82,29 @@ const getTimeAgo = (dateString) => {
 
   const years = Math.floor(diff / 31536000);
   return `${years}y ago`;
+};
+
+// Formats as d/m/yyyy in the en-IN locale, e.g. 10/7/2026
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  const d = new Date(dateString);
+  return d.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'numeric',
+    year: 'numeric',
+  });
+};
+
+// Combines the relative label with the actual date, e.g. "Just now · 10/7/2026".
+// getTimeAgo only returns a raw formatted date (no "ago"/"Just now") for the
+// rare genuinely-future case beyond the clock-skew tolerance — in that case
+// don't append formatDate again, or the date would show twice.
+const getCommentTimestamp = (dateString) => {
+  if (!dateString) return '';
+  const relative = getTimeAgo(dateString);
+  const isAlreadyFullDate = relative !== 'Just now' && !relative.includes('ago');
+  if (isAlreadyFullDate) return relative;
+  return `${relative} · ${formatDate(dateString)}`;
 };
 
 // ── Media carousel for Post-type items ────────────────────────────────────────
@@ -157,14 +186,18 @@ const FeedCard = ({ item, navigation }) => {
   const typeMeta = TYPE_LABELS[item.type] || { label: item.type || '', icon: '📌' };
   const timeAgo = getTimeAgo(item.postedDate);
 
+  // itemType/itemId are what the interaction endpoints key off of now —
+  // likes/comments work on Post, Activity, News, and Circular alike.
+  const itemType = item.type;
+  const itemId = item.id;
+
   const isPost = item.type === 'Post';
   const hasCarousel = isPost && item.mediaItems && item.mediaItems.length > 0;
   const hasSingle = !isPost && item.hasImage && item.imagePath;
 
   // ── Like / Comment state ──────────────────────────────────────────
-  // NOTE: likes/comments are only wired up for Post-type items today,
-  // since tbl_PostInteractions.PostId references tbl_Posts. Activity/
-  // News/Circular items will just have inert Like/Comment buttons.
+  // Now wired up for every feed item type (Post/Activity/News/Circular) —
+  // tbl_PostInteractions keys off (ItemType, ItemId) instead of a Posts-only FK.
   const [isLiked, setIsLiked] = useState(!!item.isLikedByViewer);
   const [likeCount, setLikeCount] = useState(item.likeCount ?? item.likes ?? 0);
   const [likeBusy, setLikeBusy] = useState(false);
@@ -178,7 +211,7 @@ const FeedCard = ({ item, navigation }) => {
 
   // ── Toggle like on/off (optimistic, reconciled with server response) ──
   const handleToggleLike = useCallback(async () => {
-    if (!isPost || likeBusy) return;
+    if (likeBusy) return;
 
     const prevLiked = isLiked;
     const prevCount = likeCount;
@@ -188,7 +221,7 @@ const FeedCard = ({ item, navigation }) => {
     setLikeCount(prevLiked ? Math.max(0, prevCount - 1) : prevCount + 1);
 
     try {
-      const res = await api.post(`/feed/post/${item.id}/like`);
+      const res = await api.post(`/feed/${itemType}/${itemId}/like`);
       const body = res.data;
       if (body?.success && body.data) {
         setIsLiked(!!body.data.isLikedByViewer);
@@ -204,13 +237,13 @@ const FeedCard = ({ item, navigation }) => {
     } finally {
       setLikeBusy(false);
     }
-  }, [isPost, isLiked, likeCount, likeBusy, item.id]);
+  }, [isLiked, likeCount, likeBusy, itemType, itemId]);
 
   // ── Load comments the first time the thread is opened ─────────────
   const loadComments = useCallback(async () => {
     setLoadingComments(true);
     try {
-      const res = await api.get(`/feed/post/${item.id}/comments`);
+      const res = await api.get(`/feed/${itemType}/${itemId}/comments`);
       if (res.data?.success) {
         setComments(res.data.data || []);
       }
@@ -219,10 +252,9 @@ const FeedCard = ({ item, navigation }) => {
     } finally {
       setLoadingComments(false);
     }
-  }, [item.id]);
+  }, [itemType, itemId]);
 
   const handleToggleComments = useCallback(() => {
-    if (!isPost) return;
     setShowComments((prev) => {
       const next = !prev;
       if (next && comments.length === 0) {
@@ -230,7 +262,7 @@ const FeedCard = ({ item, navigation }) => {
       }
       return next;
     });
-  }, [isPost, comments.length, loadComments]);
+  }, [comments.length, loadComments]);
 
   // ── Post a new comment ─────────────────────────────────────────────
   const handleSendComment = useCallback(async () => {
@@ -239,7 +271,7 @@ const FeedCard = ({ item, navigation }) => {
 
     setPostingComment(true);
     try {
-      const res = await api.post(`/feed/post/${item.id}/comment`, { commentDetails: trimmed });
+      const res = await api.post(`/feed/${itemType}/${itemId}/comment`, { commentDetails: trimmed });
       if (res.data?.success && res.data.data) {
         setComments((prev) => [...prev, res.data.data]);
         setCommentCount((prev) => prev + 1);
@@ -250,7 +282,7 @@ const FeedCard = ({ item, navigation }) => {
     } finally {
       setPostingComment(false);
     }
-  }, [commentText, postingComment, item.id]);
+  }, [commentText, postingComment, itemType, itemId]);
 
   return (
     <View style={styles.card}>
@@ -304,7 +336,7 @@ const FeedCard = ({ item, navigation }) => {
       {/* ── Stats Row ── */}
       <View style={styles.statsRow}>
         <Text style={styles.statsText}>❤️ {likeCount} likes</Text>
-        <TouchableOpacity onPress={handleToggleComments} activeOpacity={0.7} disabled={!isPost}>
+        <TouchableOpacity onPress={handleToggleComments} activeOpacity={0.7}>
           <Text style={styles.statsText}>{commentCount} comments</Text>
         </TouchableOpacity>
       </View>
@@ -318,7 +350,7 @@ const FeedCard = ({ item, navigation }) => {
           style={styles.actionBtn}
           activeOpacity={0.7}
           onPress={handleToggleLike}
-          disabled={!isPost || likeBusy}
+          disabled={likeBusy}
         >
           <Text style={styles.actionIcon}>👍</Text>
           <Text style={[styles.actionLabel, isLiked && styles.actionLabelActive]}>
@@ -329,15 +361,14 @@ const FeedCard = ({ item, navigation }) => {
           style={styles.actionBtn}
           activeOpacity={0.7}
           onPress={handleToggleComments}
-          disabled={!isPost}
         >
           <Text style={styles.actionIcon}>💬</Text>
           <Text style={[styles.actionLabel, showComments && styles.actionLabelActive]}>Comment</Text>
         </TouchableOpacity>
       </View>
 
-      {/* ── Comments thread (Post-type only) ── */}
-      {isPost && showComments && (
+      {/* ── Comments thread (all feed item types) ── */}
+      {showComments && (
         <View style={styles.commentsSection}>
           {loadingComments ? (
             <View style={styles.commentsLoadingRow}>
@@ -360,9 +391,11 @@ const FeedCard = ({ item, navigation }) => {
                   </Text>
                 </View>
                 <View style={styles.commentBubble}>
-                  <Text style={styles.commentName}>{c.memberName}</Text>
+                  <View style={styles.commentHeaderRow}>
+                    <Text style={styles.commentName}>{c.memberName}</Text>
+                    <Text style={styles.commentTime}>{getCommentTimestamp(c.createdDate)}</Text>
+                  </View>
                   <Text style={styles.commentText}>{c.commentDetails}</Text>
-                  <Text style={styles.commentTime}>{getTimeAgo(c.createdDate)}</Text>
                 </View>
               </View>
             ))
@@ -499,9 +532,15 @@ const styles = StyleSheet.create({
     flex: 1, backgroundColor: '#F5F5F7', borderRadius: 12,
     paddingHorizontal: 12, paddingVertical: 8,
   },
-  commentName: { fontSize: 12, fontWeight: '700', color: '#1E3A5F', marginBottom: 2 },
+  commentHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 2,
+  },
+  commentName: { fontSize: 12, fontWeight: '700', color: '#1E3A5F' },
   commentText: { fontSize: 13, color: '#333', lineHeight: 18 },
-  commentTime: { fontSize: 10, color: '#999', marginTop: 4 },
+  commentTime: { fontSize: 10, color: '#999', marginLeft: 8 },
   commentInputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12 },
   commentInput: {
     flex: 1,

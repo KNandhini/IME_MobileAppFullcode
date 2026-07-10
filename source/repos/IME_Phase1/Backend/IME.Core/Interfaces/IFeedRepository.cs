@@ -9,10 +9,8 @@ public interface IFeedRepository
 
     // ?? New: delete a post (and its media) owned by memberId ??
     Task<(bool Success, List<string> DeletedFilePaths)> DeletePostAsync(int postId, int memberId);
-    Task<LikeToggleResultDTO> ToggleLikeAsync(int postId, int memberId);
-
-    Task<PostCommentDTO> AddCommentAsync(int postId, int memberId, string commentDetails);
-
-    Task<List<PostCommentDTO>> GetPostCommentsAsync(int postId);
+    Task<LikeToggleResultDTO> ToggleLikeAsync(string itemType, int itemId, int memberId);
+    Task<PostCommentDTO> AddCommentAsync(string itemType, int itemId, int memberId, string commentDetails);
+    Task<List<PostCommentDTO>> GetPostCommentsAsync(string itemType, int itemId);
 
 }
