@@ -47,15 +47,11 @@ public class CreatePostDTO
 public class PostCommentDTO
 {
     public int InteractionId { get; set; }
-
-    public int PostId { get; set; }
-
+    public int ItemId { get; set; }        
+    public string ItemType { get; set; } = "Post"; 
     public int MemberId { get; set; }
-
     public string MemberName { get; set; } = string.Empty;
-
     public string CommentDetails { get; set; } = string.Empty;
-
     public DateTime CreatedDate { get; set; }
 }
 public class PostInteraction
