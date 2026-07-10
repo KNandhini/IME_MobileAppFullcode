@@ -1056,6 +1056,7 @@ export const AchievementsScreenS = (() => {
     flex: 1, justifyContent: 'center',
     alignItems: 'center', paddingVertical: 60,
   },
+  loadingText: { fontSize: 14, color: '#64748B', fontWeight: '600', marginTop: 12 },
   emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
   emptyText: { fontSize: 14, color: '#A0AEC0' },
   fab: Common.fab({ zIndex: 100 }),
