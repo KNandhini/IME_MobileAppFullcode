@@ -771,6 +771,12 @@ export const AchievementDetailScreenStyles = (() => {
     headerBtn: { padding: 6, borderRadius: 20 },
     headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
 
+    loadingContainer: {
+      flex: 1, alignItems: 'center', justifyContent: 'center',
+      padding: 24,
+    },
+    loadingText: { marginTop: 12, color: '#64748B', fontSize: 14, fontWeight: '600' },
+
     body: { padding: 20, paddingBottom: 40, alignItems: 'center' },
 
     heroSection: { position: 'relative', marginBottom: 14, marginTop: 8 },
@@ -3364,14 +3370,18 @@ const _JobPostingFormScreenStyleBundle = (() => {
     }),
     JobPostingFormScreenStyles: createScreenStyles({
       root: { flex: 1, backgroundColor: '#F7F9FC' },
-      header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        backgroundColor: NAVY,
-        paddingTop: (StatusBar.currentHeight || 0) + 6,
-        paddingBottom: 12, paddingHorizontal: 12,
-      },
-      headerBtn: { padding: 6, borderRadius: 20 },
-      headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+      // header: {
+      //   flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      //   backgroundColor: NAVY,
+      //   paddingTop: (StatusBar.currentHeight || 0) + 6,
+      //   paddingBottom: 12, paddingHorizontal: 12,
+      // },
+      // headerBtn: { padding: 6, borderRadius: 20 },
+      // headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+      navSide: { minWidth: 64, paddingHorizontal: 4 },
+      navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+      cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+      saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
       body: { padding: 18, paddingBottom: 40 },
 
       input: { marginBottom: 14, backgroundColor: '#fff' },
