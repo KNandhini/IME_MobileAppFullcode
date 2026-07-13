@@ -369,21 +369,21 @@ const AchievementFormScreen = ({ route, navigation }) => {
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       <View style={styles.navbar}>
-  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
-    <Text style={styles.cancelText}>Cancel</Text>
-  </TouchableOpacity>
-  <Text style={styles.navTitle}>{isEdit ? 'Edit Achievement' : 'Add Achievement'}</Text>
-  <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
-    {loading
-      ? <ActivityIndicator size="small" color={GOLD} />
-      : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{isEdit ? 'Edit Achievement' : 'Add Achievement'}</Text>
+        <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
+          {loading
+            ? <ActivityIndicator size="small" color={GOLD} />
+            : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
+        </TouchableOpacity>
+      </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
         {/* ── Member avatar (shown for both roles) ── */}
-        
+
 
         {/* ── Member field ── */}
         {!roleResolved ? (
