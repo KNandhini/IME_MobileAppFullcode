@@ -253,6 +253,66 @@ public class FeedController : ControllerBase
         }
     }
 
+    // ── POST /api/feed/post/{postId}/like ─────────────────
+    // ── POST /api/feed/{itemType}/{itemId}/like ─────────────────
+    [HttpPost("{itemType}/{itemId:int}/like")]
+    public async Task<ActionResult<ApiResponse<LikeToggleResultDTO>>> ToggleLike(string itemType, int itemId)
+    {
+        try
+        {
+            var memberIdClaim = User.FindFirst("MemberId")?.Value
+                             ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(memberIdClaim, out var memberId) || memberId <= 0)
+                return Ok(new ApiResponse<LikeToggleResultDTO> { Success = false, Message = "Member not found in token." });
+
+            var result = await _feedRepository.ToggleLikeAsync(itemType, itemId, memberId);
+            return Ok(new ApiResponse<LikeToggleResultDTO> { Success = true, Data = result });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<LikeToggleResultDTO> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+    // ── POST /api/feed/{itemType}/{itemId}/comment ──────────────
+    [HttpPost("{itemType}/{itemId:int}/comment")]
+    public async Task<ActionResult<ApiResponse<PostCommentDTO>>> AddComment(string itemType, int itemId, [FromBody] AddCommentRequestDTO request)
+    {
+        try
+        {
+            var memberIdClaim = User.FindFirst("MemberId")?.Value
+                             ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(memberIdClaim, out var memberId) || memberId <= 0)
+                return Ok(new ApiResponse<PostCommentDTO> { Success = false, Message = "Member not found in token." });
+
+            if (string.IsNullOrWhiteSpace(request?.CommentDetails))
+                return Ok(new ApiResponse<PostCommentDTO> { Success = false, Message = "Comment cannot be empty." });
+
+            var comment = await _feedRepository.AddCommentAsync(itemType, itemId, memberId, request.CommentDetails.Trim());
+            return Ok(new ApiResponse<PostCommentDTO> { Success = true, Data = comment });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<PostCommentDTO> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+    // ── GET /api/feed/{itemType}/{itemId}/comments ──────────────
+    [HttpGet("{itemType}/{itemId:int}/comments")]
+    public async Task<ActionResult<ApiResponse<List<PostCommentDTO>>>> GetPostComments(string itemType, int itemId)
+    {
+        try
+        {
+            var comments = await _feedRepository.GetPostCommentsAsync(itemType, itemId);
+            return Ok(new ApiResponse<List<PostCommentDTO>> { Success = true, Data = comments });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<PostCommentDTO>> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
     // ── Helpers ───────────────────────────────────────────
     private IME.Infrastructure.Data.DatabaseContext GetDbContext()
     {

@@ -32,7 +32,7 @@ const JobPostingListScreen = ({ navigation }) => {
   const [clubId,     setClubId]     = useState(null);
   const [clubName,   setClubName]   = useState('');
 const [currentUserName, setCurrentUserName] = useState('');
-
+const [isUnemployed, setIsUnemployed] = useState(false);
 
   // ── Bootstrap club info from AsyncStorage (same pattern as AchievementFormScreen) ──
   const getClubId = async () => {
@@ -41,6 +41,7 @@ const [currentUserName, setCurrentUserName] = useState('');
   const parsed = JSON.parse(raw);
   setClubName(parsed.clubName || '');
   setCurrentUserName(parsed.fullName || parsed.name || '');
+  setIsUnemployed(parsed?.occupation?.toLowerCase() === 'unemployed');
   return parsed.clubId || null;
 };
 
@@ -127,22 +128,24 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
       <View style={styles.cardBody}>
         <View style={styles.cardHeaderRow}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{item.jobTitle}</Text>
-          <View style={styles.actionRow}>
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={(e) => { e.stopPropagation(); handleEdit(item); }}
-            >
-              <MaterialCommunityIcons name="pencil-outline" size={18} color={NAVY} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={(e) => { e.stopPropagation(); handleDelete(item); }}
-            >
-              <MaterialCommunityIcons name="delete-outline" size={18} color="#EF4444" />
-            </TouchableOpacity>
-          </View>
-        </View>
+  <Text style={styles.cardTitle} numberOfLines={1}>{item.jobTitle}</Text>
+  {!isUnemployed && (
+    <View style={styles.actionRow}>
+      <TouchableOpacity
+        style={styles.iconBtn}
+        onPress={(e) => { e.stopPropagation(); handleEdit(item); }}
+      >
+        <MaterialCommunityIcons name="pencil-outline" size={18} color={NAVY} />
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.iconBtn}
+        onPress={(e) => { e.stopPropagation(); handleDelete(item); }}
+      >
+        <MaterialCommunityIcons name="delete-outline" size={18} color="#EF4444" />
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
 
         <Text style={styles.cardCompany}>{item.companyName}</Text>
 
@@ -217,9 +220,11 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
       )}
 
       {/* Floating add button */}
-      <TouchableOpacity style={styles.fab} onPress={handleAdd} activeOpacity={0.85}>
-        <MaterialCommunityIcons name="plus" size={30} color={NAVY} />
-      </TouchableOpacity>
+      {!isUnemployed && (
+  <TouchableOpacity style={styles.fab} onPress={handleAdd} activeOpacity={0.85}>
+    <MaterialCommunityIcons name="plus" size={30} color={NAVY} />
+  </TouchableOpacity>
+)}
     </View>
   );
 };

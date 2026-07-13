@@ -56,9 +56,9 @@ const AboutIMEScreen = ({ navigation }) => {
 
             {/* Top banner */}
             <LinearGradient colors={[NAVY, ROYAL]} style={styles.banner}>
-                <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+                {/*<TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
                     <MaterialIcons name="arrow-back" size={22} color="#fff" />
-                </TouchableOpacity>
+                </TouchableOpacity>*/}
                 <IMELogo size="small" animated={false} />
                 <Text style={styles.bannerTitle}>Institutional Profile (India)</Text>
             </LinearGradient>

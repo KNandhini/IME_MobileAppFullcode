@@ -21,7 +21,7 @@
     },
     "android": {
       "package": "org.ime.app",
-      "versionCode": 3,
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo_transparent.png"
         

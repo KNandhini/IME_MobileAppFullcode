@@ -18,4 +18,5 @@ public class User
     public DateTime? GraceExpiryDate { get; set; }
     public string? LoginStatus { get; set; }   // OK | PENDING_PAYMENT | GRACE_EXPIRED
     public string? ClubId { get; set; }
+    public string? Occupation { get; set; }
 }

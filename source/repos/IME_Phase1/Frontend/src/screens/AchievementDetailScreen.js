@@ -1,5 +1,5 @@
 import React, { useEffect,useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
@@ -22,13 +22,15 @@ const AchievementDetailScreen = ({ route, navigation }) => {
  // const { item } = route.params || {};
  const { item, memberPhoto } = route.params || {};
   const [imgViewer, setImgViewer] = useState(null);
-const [attachments, setAttachments] = useState([]);
-  if (!item) return null;
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-  loadAttachments();
-}, []);
+    loadAttachments();
+  }, [item?.achievementId]);
 
 const loadAttachments = async () => {
+  setLoading(true);
   try {
     const res = await achievementService.getAttachments(
       item.achievementId
@@ -41,8 +43,12 @@ const loadAttachments = async () => {
     }
   } catch (err) {
     console.log('ATTACHMENT ERROR', err);
+  } finally {
+    setLoading(false);
   }
 };
+
+  if (!item) return null;
 
   const dateStr = item.achievementDate
     ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
@@ -65,6 +71,12 @@ const loadAttachments = async () => {
         <View style={{ width: 36 }} />
       </View>
 
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={GOLD} />
+          <Text style={styles.loadingText}>Loading achievement...</Text>
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
         {/* Member circular photo */}
@@ -167,6 +179,7 @@ const loadAttachments = async () => {
   })}
 </View>
       </ScrollView>
+      )}
 
       {/* Image viewer modal */}
       <Modal visible={!!imgViewer} transparent animationType="fade" onRequestClose={() => setImgViewer(null)}>
