@@ -164,7 +164,7 @@ const PaymentHistoryScreen = () => {
 
   if (loading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer,{ backgroundColor: '#fff' }]}>
         <ActivityIndicator size="large" color="#2196F3" />
       </View>
     );
@@ -176,7 +176,8 @@ const PaymentHistoryScreen = () => {
         placeholder="Search payments..."
         onChangeText={setSearchQuery}
         value={searchQuery}
-        style={styles.searchBar}
+        style={[styles.searchBar,{ backgroundColor: '#fff' }]}
+
       />
 
       {filteredPayments.length === 0 ? (

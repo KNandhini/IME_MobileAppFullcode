@@ -84,6 +84,7 @@ function Dropdown({ label, options, value, onChange, placeholder = 'Select…', 
   const selected = options.find((o) => o.value === value);
 
   return (
+    
     <View style={dd.wrapper}>
       <Text style={dd.label}>{label}</Text>
 
@@ -568,7 +569,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   return (
     <Modal visible={visible} animationType="none" transparent={false} statusBarTranslucent onRequestClose={handleClose}>
       <StatusBar barStyle="light-content" backgroundColor="#1E3A5F" />
-      <SafeAreaView style={fs.safe}>
+       <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
         <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
           {/* ── Navigation Bar with Cancel / Add buttons ── */}
@@ -1187,7 +1188,7 @@ export default function SupportScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={s.safe}>
+     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { circularService } from '../services/circularService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -117,22 +117,26 @@ const CircularScreen = ({ navigation }) => {
 );
 
   return (
-    <View style={styles.container}>
-      {circulars.length === 0 && !loading ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No circulars available</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={circulars}
-          renderItem={renderCircular}
-          keyExtractor={(item) => item.circularId.toString()}
-          contentContainerStyle={styles.list}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
-      )}
+  <View style={styles.container}>
+    {loading && circulars.length === 0 ? (
+      <View style={styles.emptyContainer}>
+        <ActivityIndicator size="large" color={NAVY} />
+      </View>
+    ) : circulars.length === 0 ? (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No circulars available</Text>
+      </View>
+    ) : (
+      <FlatList
+        data={circulars}
+        renderItem={renderCircular}
+        keyExtractor={(item) => item.circularId.toString()}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      />
+    )}
 
       {isAdmin && (
         <TouchableOpacity
