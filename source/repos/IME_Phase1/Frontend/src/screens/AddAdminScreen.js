@@ -6,7 +6,6 @@ import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
 import { AddAdminScreenStyles as styles } from './screenStyles';
-import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ─────────────────────────────────────────────────────────────────────────
 // AdminSignupScreen
@@ -333,33 +332,11 @@ const AdminSignupScreen = ({
         );
       } else {
         Alert.alert('Registration Failed', res.message);
-  Alert.alert(
-    'Admin Created',
-    clubNames
-      ? `${formData.fullName} has been registered as an admin for ${clubNames}.`
-      : `${formData.fullName} has been registered as an admin.`,
-    [
-      {
-        text: 'OK',
-        onPress: () => {
-          navigation.navigate({
-            name: 'ClubForm',
-            params: {
-              newAdminMember: newMember,
-            },
-            merge: true,
-          });
-        },
-      },
-    ]
-  );
-} else {
-        Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
       const status = e?.response?.status;
       const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
-      Alert.alert('Error', getSafeErrorMessage(e));
+      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
     } finally {
       setLoading(false);
     }
