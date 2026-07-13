@@ -361,7 +361,7 @@ const AdminSignupScreen = ({
     } catch (e) {
       const status = e?.response?.status;
       const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
-      Alert.alert('Error', getSafeErrorMessage(e));
+      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
     } finally {
       setLoading(false);
     }
