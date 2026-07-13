@@ -79,27 +79,27 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
   // =========================
 
   hero: {
-    alignItems: 'center',
-    paddingTop: 22,
-    paddingBottom: 46,
-    paddingHorizontal: 24,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-    overflow: 'hidden',
-  },
+  alignItems: 'center',
+  paddingTop: (StatusBar.currentHeight || 0) + 22,
+  paddingBottom: 46,
+  paddingHorizontal: 24,
+  borderBottomLeftRadius: 28,
+  borderBottomRightRadius: 28,
+  overflow: 'hidden',
+},
 
-  backBtn: {
-    position: 'absolute',
-    top: 18,
-    left: 18,
-    zIndex: 10,
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+backBtn: {
+  position: 'absolute',
+  top: (StatusBar.currentHeight || 0) + 22,
+  left: 18,
+  zIndex: 10,
+  width: 34,
+  height: 34,
+  borderRadius: 17,
+  backgroundColor: 'rgba(255,255,255,0.14)',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
 
   heroRing1: {
     position: 'absolute',
@@ -494,6 +494,8 @@ export const AboutScreenStyles = (() => {
 
   const GREY = COLORS.grey;
 
+ const { width: SCREEN_WIDTH } = Dimensions.get('window');
+  const isTablet = SCREEN_WIDTH >= 600; // adjust breakpoint as needed
 
   return createScreenStyles({
     root: {
@@ -707,26 +709,30 @@ export const AboutScreenStyles = (() => {
       marginBottom: 18,
       textAlign: 'center',
     },
-    contactRow: {
-      flexDirection: 'row',
-      gap: 12,
-    },
+   contactRow: isTablet
+      ? { flexDirection: 'row', gap: 12 }
+      : { flexDirection: 'column', gap: 10, width: '100%' },
+
     contactBtn: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       backgroundColor: NAVY,
-      paddingVertical: 10,
+      paddingVertical: isTablet ? 10 : 12,
       paddingHorizontal: 14,
       borderRadius: 8,
-      gap: 6,
+      gap: isTablet ? 6 : 8,
+      ...(isTablet ? {} : { width: '100%' }),
     },
+
     contactBtnIcon: {
       fontSize: 14,
     },
     contactBtnText: {
       color: WHITE,
-      fontSize: 12,
+      fontSize: isTablet ? 12 : 13,
       fontWeight: '600',
+      textAlign: 'center',
     },
     // Footer
     footer: {
@@ -1193,7 +1199,7 @@ export const ActivityFormScreenStyles = (() => {
     navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
 
     container: { flex: 1, backgroundColor: '#f5f5f5' },
-    card: { margin: 12, elevation: 2 },
+    card: { margin: 12, elevation: 2 ,backgroundColor: '#fff' },
     sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
     input: { marginBottom: 10, backgroundColor: '#fff' },
 
@@ -1273,42 +1279,130 @@ export const ActivityFormScreenStyles = (() => {
 
 // AddAdminScreen
 export const AddAdminScreenStyles = (() => {
+  const NAVY = COLORS.navy;
+  const GOLD = COLORS.gold;
+
   return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#fff' },
-    content: { padding: 20 },
-    header: { alignItems: 'center', marginBottom: 25 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
-    subtitle: { fontSize: 14, color: '#666', marginTop: 5 },
-    card: { width: '100%' },
-    input: { marginBottom: 10, borderRadius: 10 },
-    button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
+    // ── Screen — navy covers the entire screen, not just the header ──
+    container: { flex: 1, backgroundColor: '#fff'},
+    //content: { padding: 20,  },
+content: { padding: 20,  paddingBottom: 40 },
+    // ── Header — same navy as container, no separate background block ──
+    header: {
+      backgroundColor: NAVY,
+      paddingTop: (StatusBar.currentHeight || 0) + 20,
+      paddingBottom: 20,
+      paddingHorizontal: 20,
+      alignItems: 'center',
+    },
+    headerBackBtn: {
+      position: 'absolute',
+      top: (StatusBar.currentHeight || 0) + 14,
+      left: 16,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 10,
+    },
+    headerTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
+    headerSubtitle: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 6, textAlign: 'center' },
+
+    // ── Card — floats on the navy background with visible padding/margin ──
+    /*card: {
+      width: '100%',
+      backgroundColor: '#fff',
+      //borderRadius: 16,
+      padding: 18,
+      elevation: 4,
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+    },
+*/
+    // ── Inputs ──
+    input: {
+      marginBottom: 10,
+      borderRadius: 10,
+      backgroundColor: '#fff',
+    },
+
+    // ── Buttons ──
+    button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: NAVY },
     linkButton: { marginTop: 10 },
-    error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
-    helper: { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
-    // Profile Photo
-    photoLabel: { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
-    photoPickerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
+
+    // ── Error / helper text ──
+    error: { color: '#D9534F', fontSize: 12, marginBottom: 8, marginLeft: 5 },
+    helper: { fontSize: 12, color: '#64748B', marginBottom: 8, marginLeft: 5 },
+
+    // ── Section groups ──
+    sectionBox: { marginTop: 4, marginBottom: 8 },
+    sectionTitle: { fontSize: 14, fontWeight: '700', color: NAVY, marginBottom: 8 },
+
+    // ── Profile Photo ──
+    photoLabel: { fontSize: 14, fontWeight: '600', color: NAVY, marginBottom: 8, marginTop: 4 },
+    photoPickerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#F0F4FF',
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 16,
+      borderWidth: 1,
+      borderColor: '#BBDEFB',
+      borderStyle: 'dashed',
+    },
     photoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
-    photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
+    photoPlaceholder: {
+      width: 60, height: 60, borderRadius: 30,
+      backgroundColor: '#BBDEFB',
+      justifyContent: 'center', alignItems: 'center',
+    },
     photoPlaceholderIcon: { fontSize: 28 },
     photoPickerText: { marginLeft: 14, flex: 1 },
-    photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
+    photoPickerTitle: { fontSize: 14, fontWeight: '600', color: NAVY },
     photoPickerHint: { fontSize: 12, color: '#888', marginTop: 2 },
-    // Picker modals
+
+    // ── Picker modals ──
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-    pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-    pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+    pickerSheet: {
+      backgroundColor: '#fff',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+    },
+    pickerTitle: { fontSize: 17, fontWeight: '700', color: NAVY, marginBottom: 12 },
     pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-    pickerItemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 4 },
+    pickerItemRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: 4,
+    },
     pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
     pickerItemText: { fontSize: 15, color: '#111' },
-    pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
+    pickerItemTextActive: { color: NAVY, fontWeight: '700' },
     checkMark: { fontSize: 16, color: 'transparent', width: 20, textAlign: 'right' },
     checkMarkActive: { color: '#1976D2', fontWeight: '700' },
     pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
-    pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-    pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
-    pickerDone: { marginTop: 12, backgroundColor: '#1E3A5F', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
+    pickerCancel: {
+      marginTop: 12,
+      backgroundColor: '#F0F2F5',
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    pickerCancelText: { fontSize: 15, color: NAVY, fontWeight: '600' },
+    pickerDone: {
+      marginTop: 12,
+      backgroundColor: NAVY,
+      borderRadius: 10,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
     pickerDoneText: { fontSize: 15, color: '#fff', fontWeight: '700' },
   });
 })();
@@ -3861,16 +3955,19 @@ export const MagazineDetailScreenStyles = (() => {
 // MagazineFormScreen
 export const MagazineFormScreenStyles = (() => {
   const NAVY = COLORS.navy;
-
+ const GOLD = COLORS.gold;
   return createScreenStyles({
   root: { flex: 1, backgroundColor: '#F7F9FC' },
-  header: {
+   navbar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
+    backgroundColor: NAVY,
+    paddingTop: (StatusBar.currentHeight || 0) + 6,
     paddingBottom: 12, paddingHorizontal: 12,
   },
-  headerBtn: { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
   body: { padding: 18, paddingBottom: 40 },
   input: { marginBottom: 14, backgroundColor: '#fff' },
   dateField: {
@@ -5495,7 +5592,7 @@ export const ProfileScreenStyles = (() => {
     name: { fontSize: 22, fontWeight: 'bold', color: '#fff', marginTop: 12 },
     email: { fontSize: 13, color: '#fff', opacity: 0.85, marginTop: 4 },
 
-    card: { margin: 15, elevation: 2 },
+    card: { margin: 15, elevation: 2 ,  backgroundColor: '#fff', },
     sectionTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12, color: NAVY },
     infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
     label: { fontSize: 14, color: '#666' },
@@ -5671,30 +5768,87 @@ export const SetAnnualFeeScreenStyles = (() => {
 })();
 
 // SignupScreen
+// SignupScreen
 export const SignupScreenStyles = (() => {
   return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#fff' },
-    content: { padding: 20 },
-    header: { alignItems: 'center', marginBottom: 25 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#1976D2' },
-    subtitle: { fontSize: 14, color: '#666', marginTop: 5 },
-    input: { marginBottom: 10, borderRadius: 10 },
+    container: { flex: 1, backgroundColor: '#F5F7FA' },
+    content: { padding: 20, paddingBottom: 40 },
+
+    // ── Header ──
+    header: {
+     backgroundColor: '#1E3A5F',
+      paddingTop: (StatusBar.currentHeight || 0) + 20,
+      paddingBottom: 26,
+      paddingHorizontal: 20,
+      //borderBottomLeftRadius: 24,
+     // borderBottomRightRadius: 24,
+      alignItems: 'center',
+    },
+    /*card: {
+      width: '100%',
+      backgroundColor: '#fff',
+      borderRadius: 14,
+      padding: 16,
+      elevation: 2,
+      shadowColor: '#000',
+      shadowOpacity: 0.06,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
+    },*/
+
+    headerBackBtn: {
+      position: 'absolute',
+      top: (StatusBar.currentHeight || 0) + 14,
+      left: 16,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: 'rgba(255,255,255,0.15)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 10,
+    },
+    headerTitle: { color: '#fff', fontSize: 22, fontWeight: '800' },
+    headerSubtitle: { color: 'rgba(255,255,255,0.75)', fontSize: 13, marginTop: 6, textAlign: 'center' },
+
+    // ── Card + Field wrapper ──
+    
+    fieldCard: {
+  backgroundColor: '#fff',
+  borderRadius: 12,
+  marginBottom: 12,
+  elevation: 2,
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.06,
+  shadowRadius: 4,
+  overflow: 'hidden',
+},
+
+    input: { backgroundColor: '#fff' },
     button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
     linkButton: { marginTop: 10 },
     error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
     helper: { fontSize: 12, color: '#555', marginBottom: 8, marginLeft: 5 },
+
     // Occupation / Education sections
     sectionBox: { backgroundColor: '#F7F9FC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E3EAF5' },
     sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F', marginBottom: 10 },
+
     // Profile Photo
     photoLabel: { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
-    photoPickerRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 12, padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed' },
+    photoPickerRow: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12,
+      padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed',
+      elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 3,
+    },
     photoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#ddd' },
     photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
     photoPlaceholderIcon: { fontSize: 28 },
     photoPickerText: { marginLeft: 14, flex: 1 },
     photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
     photoPickerHint: { fontSize: 12, color: '#888', marginTop: 2 },
+
     // Welcome Modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
     modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 28, width: '100%', alignItems: 'center' },
@@ -5709,6 +5863,7 @@ export const SignupScreenStyles = (() => {
     proceedBtn: { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
     proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
     backLink: { color: '#1976D2', fontSize: 14 },
+
     // Terms & Conditions
     termsOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
     termsSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '88%' },
@@ -5722,6 +5877,7 @@ export const SignupScreenStyles = (() => {
     termsCheckRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 2 },
     termsCheckText: { flex: 1, fontSize: 14, color: '#1E3A5F', fontWeight: '600' },
     disabledButton: { backgroundColor: '#9CA9B8' },
+
     // Picker modals
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },

@@ -141,7 +141,7 @@ const handleEdit = (item) => {
   };
 
   return (
-    <SafeAreaView style={s.safe}>
+        <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       {magazines.length === 0 && !refreshing ? (

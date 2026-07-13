@@ -98,6 +98,7 @@ const AuthStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
+      //headerBackVisible: false,
       // Same fix as MainStack — no white flash before Login paints.
       cardStyle: { backgroundColor: '#1E3A5F' },
     }}

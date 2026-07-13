@@ -7,6 +7,7 @@ import { memberService } from '../services/memberService';
 import api from '../utils/api';
 import { ProfileScreenStyles as styles } from './screenStyles';
 
+
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -115,6 +116,7 @@ const ProfileScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('ProfileEdit')}
           style={styles.button}
           buttonColor={NAVY}
+           textColor={GOLD}
         >
           Edit Profile
         </Button>
@@ -122,6 +124,7 @@ const ProfileScreen = ({ navigation }) => {
           mode="outlined"
           onPress={() => navigation.navigate('PaymentHistory')}
           style={styles.button}
+           textColor={GOLD}
         >
           Payment History
         </Button>
@@ -129,6 +132,8 @@ const ProfileScreen = ({ navigation }) => {
           mode="outlined"
           onPress={() => navigation.navigate('ChangePassword')}
           style={styles.button}
+           textColor={GOLD}
+
         >
           Change Password
         </Button>
@@ -136,6 +141,7 @@ const ProfileScreen = ({ navigation }) => {
           mode="outlined"
           onPress={() => navigation.navigate('MyPost')}
           style={styles.button}
+           textColor={GOLD}
         >
           My Post
         </Button>
@@ -143,7 +149,8 @@ const ProfileScreen = ({ navigation }) => {
           mode="contained"
           onPress={handleLogout}
           style={[styles.button, styles.logoutButton]}
-          buttonColor="#f44336"
+          buttonColor="#f80511"
+          textColor={"#fff"}
         >
           Logout
         </Button>

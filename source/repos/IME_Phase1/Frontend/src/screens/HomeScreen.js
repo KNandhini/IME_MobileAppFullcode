@@ -22,7 +22,7 @@ const HomeScreen = ({ navigation }) => {
   const [menuVisible, setMenuVisible] = useState(false);
   const paymentPopupShown = useRef(false);
 const [restricted, setRestricted] = useState(false);
-
+const [isMember, setIsMember] = useState(false);
 useEffect(() => {
   const checkOccupation = async () => {
     try {
@@ -31,6 +31,9 @@ useEffect(() => {
         const parsed = JSON.parse(raw);
         if (parsed?.occupation?.toLowerCase() === 'unemployed') {
           setRestricted(true);
+        }
+         if (parsed?.roleName === 'Member') {
+          setIsMember(true);
         }
       }
     } catch (e) {
@@ -257,6 +260,9 @@ useEffect(() => {
       <Menu.Item title="🏢  Organisation" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Organisation'); }} />
       <Menu.Item title="📰  Magazine" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Magazines'); }} />
     </>
+  )}
+  {isMember && (
+    <Menu.Item title="💼  Job Postings" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('JobPostingList'); }} />
   )}
   <Menu.Item title="ℹ️  About IME" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
   <View style={styles.menuSep} />

@@ -170,13 +170,13 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
         <View style={styles.cardFooter}>
           <Text style={[styles.closingText, isClosed(item.vacancyClosingDate) && styles.closedText]}>
-            {isClosed(item.vacancyClosingDate) ? '⛔ Closed' : '📅 Closes '}
-            {item.vacancyClosingDate
-              ? new Date(item.vacancyClosingDate).toLocaleDateString('en-IN', {
-                  day: '2-digit', month: 'short', year: 'numeric',
-                })
-              : ''}
-          </Text>
+  {isClosed(item.vacancyClosingDate) ? '⛔ Closed ' : '📅 Closes '}
+  {item.vacancyClosingDate
+    ? new Date(item.vacancyClosingDate).toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric',
+      })
+    : ''}
+</Text>
         </View>
       </View>
     </TouchableOpacity>

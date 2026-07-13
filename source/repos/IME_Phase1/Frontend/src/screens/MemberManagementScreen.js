@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, RefreshControl, Alert, Image, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, RefreshControl, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Card, IconButton, Searchbar, Chip, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
@@ -273,7 +273,7 @@ const MemberManagementScreen = ({ navigation }) => {
         placeholder="Search members..."
         onChangeText={setSearchQuery}
         value={searchQuery}
-        style={styles.searchBar}
+        style={[styles.searchBar,{ backgroundColor: '#fff' }]}
       />
 
       <View style={styles.filters}>
@@ -289,18 +289,26 @@ const MemberManagementScreen = ({ navigation }) => {
         ))}
       </View>
 
-      <FlatList
-        data={filteredMembers}
-        renderItem={renderMember}
-        keyExtractor={(item) => item.memberId.toString()}
-        contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No members found</Text>
-          </View>
-        }
-      />
+      {loading && filteredMembers.length === 0 ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#1E3A5F" />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredMembers}
+          renderItem={renderMember}
+          keyExtractor={(item) => item.memberId.toString()}
+          contentContainerStyle={styles.list}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            !loading && (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No members found</Text>
+              </View>
+            )
+          }
+        />
+      )}
 
       {/* ── Add Admin ── opens AdminSignupScreen (register this route in your navigator) */}
       <FAB

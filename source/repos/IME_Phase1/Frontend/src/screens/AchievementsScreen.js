@@ -219,7 +219,7 @@ const AchievementsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={s.safe}>
+        <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       {loading ? (

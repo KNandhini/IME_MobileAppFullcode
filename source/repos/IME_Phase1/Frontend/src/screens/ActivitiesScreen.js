@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivitiesScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
-
+import { ActivityIndicator } from 'react-native';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -128,7 +128,13 @@ const ActivitiesScreen = ({ navigation }) => {
   );
 
   return (
-    <View style={styles.container}>
+   
+  <View style={styles.container}>
+    {loading && activities.length === 0 ? (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" color={NAVY} />
+      </View>
+    ) : (
       <FlatList
         data={activities}
         renderItem={renderItem}
@@ -148,14 +154,14 @@ const ActivitiesScreen = ({ navigation }) => {
           )
         }
       />
-      {isAdmin && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => navigation.navigate('ActivityForm')}>
-          <Text style={styles.fabText}>+</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+    )}
+    {isAdmin && (
+      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('ActivityForm')}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
+    )}
+  </View>
+
   );
 };
 

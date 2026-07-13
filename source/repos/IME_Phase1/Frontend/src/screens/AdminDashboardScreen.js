@@ -6,7 +6,7 @@ import { AdminDashboardScreenStyles as styles } from './screenStyles.js';
 
 const ADMIN_MENU = [
   { title: 'Activity',           route: 'Activities',        icon: '📅', params: {} },
-  { title: 'Member Management', route: 'MemberManagement', icon: '👥', params: {} },
+  { title: 'Members', route: 'MemberManagement', icon: '👥', params: {} },
   { title: 'Payment Reports',   route: null,               icon: '📊', params: {} },
   { title: 'GO & Circulars',    route: 'Circular',         icon: '📋', params: {} },
   { title: 'Achievements',      route: 'Achievements',     icon: '🏆', params: {} },
