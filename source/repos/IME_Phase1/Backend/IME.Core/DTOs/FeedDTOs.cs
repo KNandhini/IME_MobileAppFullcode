@@ -25,6 +25,11 @@ public class FeedItemDTO
     public int               Comments    { get; set; }
     public int? ClubId { get; set; }
     public bool IsSameClub { get; set; }
+    public int LikeCount { get; set; }
+
+    public int CommentCount { get; set; }
+
+    public bool IsLikedByViewer { get; set; }
 }
 
 public class FeedResponseDTO
@@ -38,4 +43,47 @@ public class FeedResponseDTO
 public class CreatePostDTO
 {
     public string? Content { get; set; }
+}
+public class PostCommentDTO
+{
+    public int InteractionId { get; set; }
+    public int ItemId { get; set; }        
+    public string ItemType { get; set; } = "Post"; 
+    public int MemberId { get; set; }
+    public string MemberName { get; set; } = string.Empty;
+    public string CommentDetails { get; set; } = string.Empty;
+    public DateTime CreatedDate { get; set; }
+}
+public class PostInteraction
+{
+    public int InteractionId { get; set; }
+
+    public int PostId { get; set; }
+
+    public int MemberId { get; set; }
+
+    public bool IsLike { get; set; }
+
+    public bool IsComment { get; set; }
+
+    public string? CommentDetails { get; set; }
+
+    public DateTime CreatedDate { get; set; }
+
+    public int CreatedBy { get; set; }
+
+    public DateTime? UpdatedDate { get; set; }
+
+    public int? UpdatedBy { get; set; }
+}
+public class LikeToggleResultDTO
+{
+    public bool IsLikedByViewer { get; set; }
+
+    public int LikeCount { get; set; }
+}
+// ?? POST /api/feed/post/{postId}/comment ??????????????
+public class AddCommentRequestDTO
+{
+    public string? CommentDetails { get; set; }
 }

@@ -283,6 +283,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null, type: null });
   //const [imgError, setImgError] = useState(false);
+ // const [canManageSupport, setCanManageSupport] = useState(false);
   // Form state uses DB column names directly
   const [form, setForm] = useState({
     //  personName            : null,   // FK → member
@@ -846,7 +847,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 
 
 // ── Support Card ──────────────────────────────────────────────────────────────
-function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
+function SupportCard({ item, userRole, onEdit, onDelete, onPress ,canManageSupport,}) {
   const [imgError, setImgError] = useState(false);
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
@@ -857,7 +858,7 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress }) {
           <Text style={s.badgeText}>{item.categoryName}</Text>
         </View>
 
-        {userRole === 'Admin' && (
+        {userRole === 'Admin' && canManageSupport && (
           <View style={s.cardActions}>
             <TouchableOpacity onPress={() => onEdit(item)} style={s.iconBotton}>
               <MaterialCommunityIcons
@@ -932,7 +933,7 @@ function categoryColor(id) {
 }
 
 // ── Tab Content ───────────────────────────────────────────────────────────────
-function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation }) {
+function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation, canManageSupport, }) {
   const [supportList, setSupportList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -1035,13 +1036,19 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
     <FlatList
       data={supportList}
       renderItem={({ item }) => (
-        <SupportCard
-          item={item}
-          userRole={userRole}
-          onEdit={onEdit}
-          onDelete={handleDelete}
-          onPress={() => navigation?.navigate('SupportDetail', { supportId: item.supportId, item })}
-        />
+       <SupportCard
+    item={item}
+    userRole={userRole}
+    canManageSupport={canManageSupport}
+    onEdit={onEdit}
+    onDelete={handleDelete}
+    onPress={() =>
+        navigation?.navigate('SupportDetail', {
+            supportId: item.supportId,
+            item,
+        })
+    }
+/>
       )}
       keyExtractor={(item) => item.supportId?.toString() ?? Math.random().toString()}
       contentContainerStyle={s.list}
@@ -1064,10 +1071,30 @@ export default function SupportScreen({ navigation }) {
   const [submitting, setSubmitting] = useState(false);
   const [memberList, setMemberList] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
+  const [canManageSupport, setCanManageSupport] = useState(false);
+  
   const loadUserRole = async () => {
-    const role = await getUserRole();
-    setUserRole(role);
-  };
+  const role = await getUserRole();
+  setUserRole(role);
+
+  try {
+    const raw = await AsyncStorage.getItem('userData');
+
+    if (raw) {
+      const userData = JSON.parse(raw);
+
+      // Hide Edit/Delete/FAB if occupation is Unemployed
+      const occupation = (userData.occupation || "").trim().toLowerCase();
+
+      setCanManageSupport(occupation !== "unemployed");
+    } else {
+      setCanManageSupport(false);
+    }
+  } catch (e) {
+    console.log(e);
+    setCanManageSupport(false);
+  }
+};
 
   const loadMemberList = async () => {
     setMembersLoading(true);
@@ -1186,18 +1213,19 @@ export default function SupportScreen({ navigation }) {
       <View style={s.content}>
         {categories.map((cat, index) => (
           <View key={cat.categoryId} style={[s.tabPanel, { display: activeIndex === index ? 'flex' : 'none' }]}>
-            <SupportTabContent
-              categoryId={cat.categoryId}
-              isActive={activeIndex === index}
-              refresh={activeIndex === index ? refreshSignal : 0}
-              userRole={userRole}
-              setRefreshSignal={setRefreshSignal}
-              navigation={navigation}
-              onEdit={(item) => {
-                setEditItem(item);
-                setFormVisible(true);
-              }}
-            />
+           <SupportTabContent
+    categoryId={cat.categoryId}
+    isActive={activeIndex === index}
+    refresh={activeIndex === index ? refreshSignal : 0}
+    userRole={userRole}
+    canManageSupport={canManageSupport}
+    setRefreshSignal={setRefreshSignal}
+    navigation={navigation}
+    onEdit={(item) => {
+        setEditItem(item);
+        setFormVisible(true);
+    }}
+/>
           </View>
         ))}
       </View>
@@ -1216,7 +1244,7 @@ export default function SupportScreen({ navigation }) {
       />
 
       {/* ── FAB — Material Design bottom-right ── */}
-      {userRole === 'Admin' && (
+      {userRole === 'Admin' && canManageSupport && (
         <TouchableOpacity style={s.fab} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
           <Text style={s.fabText}>+</Text>
         </TouchableOpacity>

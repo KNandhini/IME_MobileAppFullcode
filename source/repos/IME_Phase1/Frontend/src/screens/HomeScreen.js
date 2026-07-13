@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import FeedCard from '../components/FeedCard';
 import { feedService } from '../services/feedService';
 import { HomeScreenStyles as styles } from './screenStyles';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const PAGE_SIZE = 10;
 
 const HomeScreen = ({ navigation }) => {
@@ -21,7 +21,24 @@ const HomeScreen = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [menuVisible, setMenuVisible] = useState(false);
   const paymentPopupShown = useRef(false);
+const [restricted, setRestricted] = useState(false);
 
+useEffect(() => {
+  const checkOccupation = async () => {
+    try {
+      const raw = await AsyncStorage.getItem('userData');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.occupation?.toLowerCase() === 'unemployed') {
+          setRestricted(true);
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to check occupation:', e);
+    }
+  };
+  checkOccupation();
+}, []);
   // ── Payment pending popup (once per session, driven by server roleId/membershipStatus/graceExpiryDate) ──
   useEffect(() => {
     if (paymentPopupShown.current) return;
@@ -221,26 +238,30 @@ const HomeScreen = ({ navigation }) => {
             <Text style={styles.iconBtnText}>🔔</Text>
           </TouchableOpacity>
 
-          <Menu
-            visible={menuVisible}
-            onDismiss={() => setMenuVisible(false)}
-            contentStyle={styles.menuContent}
-            anchor={
-              <TouchableOpacity style={styles.iconBtn} onPress={() => setMenuVisible(true)} activeOpacity={0.75}>
-                <Text style={styles.kebabIcon}>⋮</Text>
-              </TouchableOpacity>
-            }
-          >
-            <Menu.Item title="👤  My Profile" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Profile'); }} />
-            {user?.roleName === 'Admin' && (
-              <Menu.Item title="⚙️  Admin Dashboard" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('AdminDashboard'); }} />
-            )}
-            <Menu.Item title="🏢  Organisation" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Organisation'); }} />
-<Menu.Item title="📰  Magazine" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Magazines'); }} />         
-     <Menu.Item  title="ℹ️  About IME"   titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
-            <View style={styles.menuSep} />
-            <Menu.Item title="🚪  Logout" titleStyle={[styles.menuItemText, { color: '#C0392B' }]} onPress={handleLogout} />
-          </Menu>
+         <Menu
+  visible={menuVisible}
+  onDismiss={() => setMenuVisible(false)}
+  contentStyle={styles.menuContent}
+  anchor={
+    <TouchableOpacity style={styles.iconBtn} onPress={() => setMenuVisible(true)} activeOpacity={0.75}>
+      <Text style={styles.kebabIcon}>⋮</Text>
+    </TouchableOpacity>
+  }
+>
+  <Menu.Item title="👤  My Profile" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Profile'); }} />
+  {!restricted && user?.roleName === 'Admin' && (
+    <Menu.Item title="⚙️  Admin Dashboard" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('AdminDashboard'); }} />
+  )}
+  {!restricted && (
+    <>
+      <Menu.Item title="🏢  Organisation" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Organisation'); }} />
+      <Menu.Item title="📰  Magazine" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('Magazines'); }} />
+    </>
+  )}
+  <Menu.Item title="ℹ️  About IME" titleStyle={styles.menuItemText} onPress={() => { setMenuVisible(false); navigation.navigate('About'); }} />
+  <View style={styles.menuSep} />
+  <Menu.Item title="🚪  Logout" titleStyle={[styles.menuItemText, { color: '#C0392B' }]} onPress={handleLogout} />
+</Menu>
         </View>
       </View>
     );

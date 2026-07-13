@@ -331,7 +331,7 @@ const AdminSignupScreen = ({
           ]
         );
       } else {
-        Alert.alert('Registration Failed', res.message);
+        Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
       const status = e?.response?.status;

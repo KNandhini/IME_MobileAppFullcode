@@ -1,4 +1,6 @@
 import { Dimensions, Platform, StatusBar, StyleSheet } from 'react-native';
+import { COLORS, SPACING, RADIUS, FONT, SHADOW } from './theme';
+import * as Common from './common';
 
 
 const { width } = Dimensions.get('window');
@@ -482,15 +484,15 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
 });
 // AboutScreen
 export const AboutScreenStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
   return createScreenStyles({
@@ -753,9 +755,9 @@ export const AboutScreenStyles = (() => {
 
 // AchievementDetailScreen
 export const AchievementDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: '#F0F4F8' },
@@ -768,6 +770,12 @@ export const AchievementDetailScreenStyles = (() => {
     },
     headerBtn: { padding: 6, borderRadius: 20 },
     headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+
+    loadingContainer: {
+      flex: 1, alignItems: 'center', justifyContent: 'center',
+      padding: 24,
+    },
+    loadingText: { marginTop: 12, color: '#64748B', fontSize: 14, fontWeight: '600' },
 
     body: { padding: 20, paddingBottom: 40, alignItems: 'center' },
 
@@ -832,57 +840,56 @@ export const AchievementDetailScreenStyles = (() => {
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
-    viewerOverlay: {
-      flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-      alignItems: 'center', justifyContent: 'center',
-    },
-    viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-    viewerImage: { width: '100%', height: '80%' },
-  });
+  ...Common.lightboxSimple(),
+});
 })();
 
 // AchievementFormScreen
 const _AchievementFormScreenStyleBundle = (() => {
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return {
     AchievementFormScreenDrop: createScreenStyles({
-      wrapper: { marginBottom: 14 },
-      label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
-      trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
-      triggerError: { borderColor: '#EF4444' },
-      triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-      placeholder: { color: '#CBD5E1' },
-      chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-      errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
-      overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-      sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
-      sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-      sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-      sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-      option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-      optionActive: { backgroundColor: '#EFF6FF' },
-      optionRow: { flexDirection: 'row', alignItems: 'center' },
-      optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
-      optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-      optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
-      optionText: { fontSize: 15, color: '#334155', flex: 1 },
-      optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
-    }),
+  wrapper: { marginBottom: 14 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
+  trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
+  triggerError: { borderColor: '#EF4444' },
+  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
+  placeholder: { color: '#CBD5E1' },
+  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
+  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
+  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
+  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
+  option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
+  optionActive: { backgroundColor: '#EFF6FF' },
+  optionRow: { flexDirection: 'row', alignItems: 'center' },
+  optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
+  optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+  optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  optionText: { fontSize: 15, color: '#334155', flex: 1 },
+  optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
+  
+}),
     AchievementFormScreenStyles: createScreenStyles({
-      root: { flex: 1, backgroundColor: '#F7F9FC' },
-      header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        backgroundColor: NAVY,
-        paddingTop: (StatusBar.currentHeight || 0) + 6,
-        paddingBottom: 12, paddingHorizontal: 12,
-      },
-      headerBtn: { padding: 6, borderRadius: 20 },
-      headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-      body: { padding: 18, paddingBottom: 40 },
+  root: { flex: 1, backgroundColor: '#F7F9FC' },
+ root: { flex: 1, backgroundColor: '#F7F9FC' },
+  navbar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: NAVY,
+    paddingTop: (StatusBar.currentHeight || 0) + 6,
+    paddingBottom: 12, paddingHorizontal: 12,
+  },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+  body: { padding: 18, paddingBottom: 40 },
 
       roleLoadingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingVertical: 14 },
       roleLoadingText: { marginLeft: 8, fontSize: 14, color: '#94A3B8' },
@@ -907,33 +914,39 @@ const _AchievementFormScreenStyleBundle = (() => {
       dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
       dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
 
-      attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-      attachGrid: {
-        flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-        borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-        alignItems: 'center', marginBottom: 6,
-      },
-      gridThumb: {
-        width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-        backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-      },
-      gridImg: { width: '100%', height: '100%' },
-      gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-      gridDocIcon: { fontSize: 24 },
-      gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-      gridRemove: {
-        position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-        borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-      },
-      gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-      gridAddBtn: {
-        width: 80, height: 80, borderRadius: 10, margin: 4,
-        borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-        alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-      },
-      gridAddIcon: { fontSize: 22, marginBottom: 2 },
-      gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-      attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+  attachGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+    alignItems: 'center', marginBottom: 6,
+  },
+  gridThumb: {
+    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+  },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon: { fontSize: 24 },
+  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridRemove: {
+    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+  },
+  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  gridAddBtn: {
+    width: 80, height: 80, borderRadius: 10, margin: 4,
+    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+  },
+  gridAddIcon: { fontSize: 22, marginBottom: 2 },
+  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+  
+  saveBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+  },
+  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
       saveBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -945,7 +958,22 @@ const _AchievementFormScreenStyleBundle = (() => {
       viewerImage: { width: '100%', height: '80%' },
       viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
       viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    }),
+    
+  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+  viewerImage: { width: '100%', height: '80%' },
+  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  navbar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: NAVY,
+    paddingTop: (StatusBar.currentHeight || 0) + 6,
+    paddingBottom: 12, paddingHorizontal: 12,
+  },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+}),
   };
 })();
 export const AchievementFormScreenDrop = _AchievementFormScreenStyleBundle.AchievementFormScreenDrop;
@@ -953,98 +981,94 @@ export const AchievementFormScreenStyles = _AchievementFormScreenStyleBundle.Ach
 
 // AchievementsScreen
 export const AchievementsScreenS = (() => {
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
-    safe: { flex: 1, backgroundColor: '#F7F9FC' },
-    list: { padding: 16, paddingBottom: 90 },
-    card: {
-      backgroundColor: '#fff',
-      borderRadius: 16,
-      marginBottom: 12,
-      padding: 16,
-      shadowColor: '#1A202C',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06,
-      shadowRadius: 8,
-      elevation: 2,
-    },
-    cardTopRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 10,
-    },
-    badge: {
-      backgroundColor: '#FEF9EC',
-      borderRadius: 6,
-      paddingHorizontal: 8,
-      paddingVertical: 3,
-    },
-    badgeText: {
-      fontSize: 10,
-      color: '#B7791F',
-      fontWeight: '700',
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
-    cardActions: { flexDirection: 'row', gap: 8 },
-    editBtn: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 6,
-      borderWidth: 0.5,
-      borderColor: '#BFDBFE',
-    },
-    deleteBtn: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-      borderRadius: 6,
-      borderWidth: 0.5,
-      borderColor: '#FECACA',
-    },
-    editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-    deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
-    cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-    photo: {
-      width: 52, height: 52, borderRadius: 26,
-      marginRight: 14, borderWidth: 2, borderColor: GOLD,
-    },
-    photoPlaceholder: {
-      width: 52, height: 52, borderRadius: 26,
-      marginRight: 14, alignItems: 'center', justifyContent: 'center',
-      borderWidth: 2, borderColor: GOLD,
-    },
-    photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
-    textContainer: { flex: 1 },
-    memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-    achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
-    description: { fontSize: 13, color: '#718096', lineHeight: 18 },
-    metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-    date: { fontSize: 11, color: '#A0AEC0' },
-    centered: {
-      flex: 1, justifyContent: 'center',
-      alignItems: 'center', paddingVertical: 60,
-    },
-    emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-    emptyText: { fontSize: 14, color: '#A0AEC0' },
-    fab: {
-      position: 'absolute', right: 20, bottom: 24,
-      width: 36, height: 36, borderRadius: 18,
-      backgroundColor: NAVY, alignItems: 'center',
-      justifyContent: 'center', elevation: 4, zIndex: 100,
-    },
-    fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  });
+  safe: { flex: 1, backgroundColor: '#F7F9FC' },
+  list: { padding: 16, paddingBottom: 90 },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    marginBottom: 12,
+    padding: 16,
+    shadowColor: '#1A202C',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  badge: {
+    backgroundColor: '#FEF9EC',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 10,
+    color: '#B7791F',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  cardActions: { flexDirection: 'row', gap: 8 },
+  editBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: '#BFDBFE',
+  },
+  deleteBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 0.5,
+    borderColor: '#FECACA',
+  },
+  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  photo: {
+    width: 52, height: 52, borderRadius: 26,
+    marginRight: 14, borderWidth: 2, borderColor: GOLD,
+  },
+  photoPlaceholder: {
+    width: 52, height: 52, borderRadius: 26,
+    marginRight: 14, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: GOLD,
+  },
+  photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  textContainer: { flex: 1 },
+  memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
+  achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
+  description: { fontSize: 13, color: '#718096', lineHeight: 18 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
+  date: { fontSize: 11, color: '#A0AEC0' },
+  centered: {
+    flex: 1, justifyContent: 'center',
+    alignItems: 'center', paddingVertical: 60,
+  },
+  loadingText: { fontSize: 14, color: '#64748B', fontWeight: '600', marginTop: 12 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
+  emptyText: { fontSize: 14, color: '#A0AEC0' },
+  fab: Common.fab({ zIndex: 100 }),
+  fabText: Common.fabText,
+});
 })();
 
 // ActivitiesScreen
 export const ActivitiesScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1076,16 +1100,16 @@ export const ActivitiesScreenStyles = (() => {
     emptyText: { fontSize: 16, color: '#94A3B8', fontWeight: '600' },
     emptyHint: { fontSize: 13, color: '#CBD5E1', marginTop: 8 },
 
-    fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-    fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  });
+  fab: Common.fab(),
+  fabText: Common.fabText,
+});
 })();
 
 // ActivityDetailScreen
 export const ActivityDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1148,13 +1172,8 @@ export const ActivityDetailScreenStyles = (() => {
     },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
 
-    viewerOverlay: {
-      flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-      alignItems: 'center', justifyContent: 'center',
-    },
-    viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8, zIndex: 10 },
-    viewerImage: { width: '100%', height: '80%' },
-  });
+  ...Common.lightboxSimple({ zIndex: 10 }),
+});
 })();
 
 // ActivityFormScreen
@@ -1296,9 +1315,9 @@ export const AddAdminScreenStyles = (() => {
 
 // AddCircularScreen
 export const AddCircularScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1354,23 +1373,20 @@ export const AddCircularScreenStyles = (() => {
     radioSubSelected: { color: '#6B9CC7' },
     radioIcon: { fontSize: 20, marginLeft: 8 },
 
-    attachGrid: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
-    thumb: { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-    thumbImg: { width: '100%', height: '100%' },
-    thumbDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-    thumbIcon: { fontSize: 24 },
-    thumbName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-    thumbRemove: { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-    thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-    thumbAdd: { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-    thumbAddIcon: { fontSize: 22, marginBottom: 2 },
-    thumbAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-    attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-    viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-    viewerImage: { width: '100%', height: '80%' },
-    viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-    viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  });
+  attachGrid     : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
+  thumb          : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  thumbImg       : { width: '100%', height: '100%' },
+  thumbDoc       : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  thumbIcon      : { fontSize: 24 },
+  thumbName      : { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  thumbRemove    : { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+  thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  thumbAdd       : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
+  thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
+  ...Common.lightbox,
+});
 })();
 
 // AdminDashboardScreen
@@ -1627,9 +1643,9 @@ export const ChatsListScreenStyles = (() => {
 
 // CircularDetailScreen
 export const CircularDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1668,17 +1684,15 @@ export const CircularDetailScreenStyles = (() => {
     downloadBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10 },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8, flex: 1 },
 
-    viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
-    viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-    viewerImage: { width: '100%', height: '80%' },
-  });
+  ...Common.lightboxSimple(),
+});
 })();
 
 // CircularScreen
 export const CircularScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -1729,10 +1743,10 @@ export const CircularScreenStyles = (() => {
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyText: { fontSize: 16, color: '#999' },
 
-    /* FAB */
-    fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-    fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  });
+  /* FAB */
+  fab: Common.fab(),
+  fabText: Common.fabText,
+});
 })();
 
 // ClubFormScreen
@@ -1868,9 +1882,9 @@ export const ClubListScreenStyles = (() => {
     emptyIcon: { fontSize: 48, marginBottom: 12 },
     emptyText: { fontSize: 15, color: '#888' },
 
-    fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4 },
-    fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  });
+  fab: Common.fab(),
+  fabText: Common.fabText,
+});
 })();
 
 // ContentViewerScreen
@@ -1889,15 +1903,15 @@ export const ContentViewerScreenStyles = (() => {
 
 // CorpDetailsScreen
 export const CorpDetailsScreenStyles = (() => {
-  const BG = '#F0F4F8';
+  const BG = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   const GREEN = '#2D9B6F';
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
-  const CRIMSON = '#C0392B';
+  const CRIMSON = COLORS.crimson;
 
 
   return createScreenStyles({
@@ -2218,25 +2232,26 @@ export const CreateFundScreenS = (() => {
     sheetItemText: { fontSize: 15, color: "#333" },
     sheetItemTextActive: { color: C.teal, fontWeight: "600" },
 
-    // Submit
-    submitWrap: { marginHorizontal: 14, marginTop: 14 },
-    uploadSummary: {
-      backgroundColor: C.amber + "22", borderRadius: 10,
-      padding: 10, marginBottom: 10, alignItems: "center",
-    },
-    uploadSummaryText: { color: C.amber, fontSize: 12, fontWeight: "600" },
-    submitBtn: {
-      backgroundColor: C.navy, borderRadius: 14, padding: 17, alignItems: "center",
-      shadowColor: C.navy, shadowOpacity: 0.35, shadowRadius: 8,
-      shadowOffset: { width: 0, height: 4 }, elevation: 6,
-    },
-    submitText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
-  });
+  // Submit
+  submitWrap:        { marginHorizontal: 14, marginTop: 14 },
+  uploadSummary: {
+    backgroundColor: C.amber + "22", borderRadius: 10,
+    padding: 10, marginBottom: 10, alignItems: "center",
+  },
+  uploadSummaryText: { color: C.amber, fontSize: 12, fontWeight: "600" },
+  submitBtn: {
+    backgroundColor: C.navy, borderRadius: 14, padding: 17, alignItems: "center",
+    shadowColor: C.navy, shadowOpacity: 0.35, shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 }, elevation: 6,
+  },
+  submitText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+  
+});
 })();
 
 // CreatePostScreen
 export const CreatePostScreenStyles = (() => {
-  const BLUE = '#1E3A5F';
+  const BLUE = COLORS.navy;
 
   const LIGHT = '#EAF1FA';
 
@@ -2417,11 +2432,11 @@ export const CreatePostScreenStyles = (() => {
 
 // DemoScreen
 export const DemoScreenStyles = (() => {
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
   const { width: W, height: H } = Dimensions.get('window');
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
     root: { flex: 1 },
@@ -2731,16 +2746,16 @@ export const FeedScreenVw = _FeedScreenStyleBundle.FeedScreenVw;
 
 // FeesDetails
 export const FeesDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -2874,11 +2889,11 @@ export const FundScreenStyles = (() => {
 const _FundraiseListScreenStyleBundle = (() => {
   const BG = '#F0F4FA';
 
-  const PRIMARY = '#1E3A5F';
+  const PRIMARY = COLORS.navy;
 
-  const CARD_BG = '#FFFFFF';
+  const CARD_BG = COLORS.white;
 
-  const SUCCESS = '#27AE60';
+  const SUCCESS = COLORS.success;
 
   const ACCENT = '#2E86DE';
 
@@ -2927,9 +2942,11 @@ const _FundraiseListScreenStyleBundle = (() => {
       emptyBtn: { marginTop: 24, backgroundColor: PRIMARY, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13 },
       emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-      fab: { position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: PRIMARY, alignItems: 'center', justifyContent: 'center', elevation: 4 },
-      fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-    }),
+  fab: Common.fab(),
+  fabText: Common.fabText,
+  statusBadge: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6 },
+
+}),
     FundraiseListScreenAv: createScreenStyles({
       img: { width: 58, height: 58, borderRadius: 14, backgroundColor: '#E8ECF4', borderWidth: 1.5, borderColor: '#DDE3EF' },
       fallback: { width: 58, height: 58, borderRadius: 14, backgroundColor: '#D6E4F7', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#B8CEE8' },
@@ -2950,11 +2967,11 @@ const _FundraiseViewScreenStyleBundle = (() => {
   const BG = '#F0F4FA';
 
 
-  const PRIMARY = '#1E3A5F';
+  const PRIMARY = COLORS.navy;
 
-  const SUCCESS = '#27AE60';
+  const SUCCESS = COLORS.success;
 
-  const DANGER = '#E74C3C';
+  const DANGER = COLORS.dangerAlt;
 
   return {
     FundraiseViewScreenStyles: createScreenStyles({
@@ -3085,16 +3102,16 @@ export const FundraiseViewScreenPb = _FundraiseViewScreenStyleBundle.FundraiseVi
 
 // GovernanceDetails
 export const GovernanceDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -3138,16 +3155,16 @@ export const GovernanceDetailsStyles = (() => {
 
 // HistoryDetails
 export const HistoryDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -3261,9 +3278,9 @@ export const HomeScreenStyles = (() => {
 
 // JobPostingDetailScreen
 export const JobPostingDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3334,19 +3351,14 @@ export const JobPostingDetailScreenStyles = (() => {
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
-    viewerOverlay: {
-      flex: 1, backgroundColor: 'rgba(0,0,0,0.92)',
-      alignItems: 'center', justifyContent: 'center',
-    },
-    viewerClose: { position: 'absolute', top: 40, right: 20, padding: 8 },
-    viewerImage: { width: '100%', height: '80%' },
-  });
+  ...Common.lightboxSimple(),
+});
 })();
 
 // JobPostingFormScreen
 const _JobPostingFormScreenStyleBundle = (() => {
-  const NAVY = '#1E3A5F';
-
+  const NAVY = COLORS.navy;
+const GOLD = COLORS.gold; 
   return {
     JobPostingFormScreenChip: createScreenStyles({
       wrapper: { marginBottom: 14 },
@@ -3357,71 +3369,68 @@ const _JobPostingFormScreenStyleBundle = (() => {
       chipText: { color: NAVY, fontSize: 13, fontWeight: '600' },
       chipTextActive: { color: '#fff' },
     }),
-    JobPostingFormScreenStyles: createScreenStyles({
-      root: { flex: 1, backgroundColor: '#F7F9FC' },
-      header: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        backgroundColor: NAVY,
-        paddingTop: (StatusBar.currentHeight || 0) + 6,
-        paddingBottom: 12, paddingHorizontal: 12,
-      },
-      headerBtn: { padding: 6, borderRadius: 20 },
-      headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-      body: { padding: 18, paddingBottom: 40 },
+ JobPostingFormScreenStyles: createScreenStyles({
+  root: { flex: 1, backgroundColor: '#F7F9FC' },
+  navbar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: NAVY,
+    paddingTop: (StatusBar.currentHeight || 0) + 6,
+    paddingBottom: 12, paddingHorizontal: 12,
+  },
+  navSide: { minWidth: 64, paddingHorizontal: 4 },
+  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
 
-      input: { marginBottom: 14, backgroundColor: '#fff' },
+  body: { padding: 18, paddingBottom: 40 },
 
-      dateField: {
-        flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-        borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
-        borderWidth: 1, borderColor: '#BBDEFB',
-      },
-      dateText: { flex: 1, marginLeft: 10 },
-      dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-      dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
+  input: { marginBottom: 14, backgroundColor: '#fff' },
 
-      attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-      attachGrid: {
-        flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-        borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-        alignItems: 'center', marginBottom: 6,
-      },
-      gridThumb: {
-        width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-        backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-      },
-      gridImg: { width: '100%', height: '100%' },
-      gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-      gridDocIcon: { fontSize: 24 },
-      gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-      gridRemove: {
-        position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-        borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-      },
-      gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-      gridAddBtn: {
-        width: 80, height: 80, borderRadius: 10, margin: 4,
-        borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-        alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-      },
-      gridAddIcon: { fontSize: 22, marginBottom: 2 },
-      gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-      attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+  dateField: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
+    borderWidth: 1, borderColor: '#BBDEFB',
+  },
+  dateText: { flex: 1, marginLeft: 10 },
+  dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
+  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
 
-      saveBtn: {
-        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-        backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-      },
-      saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+  attachGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+    alignItems: 'center', marginBottom: 6,
+  },
+  gridThumb: {
+    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+  },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon: { fontSize: 24 },
+  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridRemove: {
+    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+  },
+  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  gridAddBtn: {
+    width: 80, height: 80, borderRadius: 10, margin: 4,
+    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+  },
+  gridAddIcon: { fontSize: 22, marginBottom: 2 },
+  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
 
-      viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-      viewerImage: { width: '100%', height: '80%' },
-      viewerClose: {
-        position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)',
-        borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10,
-      },
-      viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    }),
+  saveBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+  },
+  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+
+  ...Common.lightbox,
+}),
   };
 })();
 export const JobPostingFormScreenChip = _JobPostingFormScreenStyleBundle.JobPostingFormScreenChip;
@@ -3429,9 +3438,9 @@ export const JobPostingFormScreenStyles = _JobPostingFormScreenStyleBundle.JobPo
 
 // JobPostingListScreen
 export const JobPostingListScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3487,12 +3496,12 @@ export const JobPostingListScreenStyles = (() => {
 export const LawBotScreenStyles = (() => {
   const BG = '#F0F2F5';
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   const WHITE = '#ffffff';
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     safe: { flex: 1, backgroundColor: BG },
@@ -3624,9 +3633,9 @@ export const LawBotScreenStyles = (() => {
 
 // LoginScreen
 export const LoginScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3734,9 +3743,9 @@ export const LoginScreenStyles = (() => {
 
 // MagazineDetailScreen
 export const MagazineDetailScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -3851,117 +3860,108 @@ export const MagazineDetailScreenStyles = (() => {
 
 // MagazineFormScreen
 export const MagazineFormScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
-    root: { flex: 1, backgroundColor: '#F7F9FC' },
-    header: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
-      paddingBottom: 12, paddingHorizontal: 12,
-    },
-    headerBtn: { padding: 6, borderRadius: 20 },
-    headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-    body: { padding: 18, paddingBottom: 40 },
-    input: { marginBottom: 14, backgroundColor: '#fff' },
-    dateField: {
-      flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-      borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
-      borderWidth: 1, borderColor: '#BBDEFB',
-    },
-    dateText: { flex: 1, marginLeft: 10 },
-    dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-    dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
-    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-    attachGrid: {
-      flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-      borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-      alignItems: 'center', marginBottom: 6,
-    },
-    gridThumb: {
-      width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-      backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-    },
-    gridImg: { width: '100%', height: '100%' },
-    gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-    gridDocIcon: { fontSize: 24 },
-    gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-    gridRemove: {
-      position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-      borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-    },
-    gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-    gridAddBtn: {
-      width: 80, height: 80, borderRadius: 10, margin: 4,
-      borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-      alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-    },
-    gridAddIcon: { fontSize: 22, marginBottom: 2 },
-    gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-    attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
-    saveBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-      backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-    },
-    saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
-    viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-    viewerImage: { width: '100%', height: '80%' },
-    viewerClose: {
-      position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)',
-      borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10,
-    },
-    viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  });
+  root: { flex: 1, backgroundColor: '#F7F9FC' },
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
+    paddingBottom: 12, paddingHorizontal: 12,
+  },
+  headerBtn: { padding: 6, borderRadius: 20 },
+  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+  body: { padding: 18, paddingBottom: 40 },
+  input: { marginBottom: 14, backgroundColor: '#fff' },
+  dateField: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+    borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
+    borderWidth: 1, borderColor: '#BBDEFB',
+  },
+  dateText: { flex: 1, marginLeft: 10 },
+  dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
+  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
+  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+  attachGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+    alignItems: 'center', marginBottom: 6,
+  },
+  gridThumb: {
+    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+  },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+  gridDocIcon: { fontSize: 24 },
+  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+  gridRemove: {
+    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+  },
+  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  gridAddBtn: {
+    width: 80, height: 80, borderRadius: 10, margin: 4,
+    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+  },
+  gridAddIcon: { fontSize: 22, marginBottom: 2 },
+  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+  saveBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+  },
+  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  ...Common.lightbox,
+});
 })();
 
 // MagazinesScreen
 export const MagazinesScreenS = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
-    safe: { flex: 1, backgroundColor: '#F7F9FC' },
-    list: { padding: 16, paddingBottom: 90 },
-    card: {
-      backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16,
-      shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
-    },
-    cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-    badge: { backgroundColor: '#FEF9EC', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-    badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-    iconBotton: { padding: 4 },
-    cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-    cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
-    coverPlaceholder: {
-      width: 52, height: 68, borderRadius: 6, marginRight: 14,
-      backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
-    },
-    textContainer: { flex: 1 },
-    title: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-    issue: { fontSize: 12, color: GOLD, fontWeight: '600', marginBottom: 2 },
-    author: { fontSize: 13, color: '#718096', marginBottom: 4 },
-    metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 8 },
-    categoryPill: { backgroundColor: '#EFF6FF', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-    categoryText: { fontSize: 10, color: '#2563EB', fontWeight: '600' },
-    date: { fontSize: 11, color: '#A0AEC0' },
-    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-    emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-    emptyText: { fontSize: 14, color: '#A0AEC0' },
-    fab: {
-      position: 'absolute', right: 20, bottom: 24, width: 36, height: 36, borderRadius: 18,
-      backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100,
-    },
-    fabText: { color: GOLD, fontSize: 24, fontWeight: '700', lineHeight: 28 },
-    actionContainer: {
-      position: 'absolute',
-      top: 12,
-      right: 12,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
+  safe: { flex: 1, backgroundColor: '#F7F9FC' },
+  list: { padding: 16, paddingBottom: 90 },
+  card: {
+    backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16,
+    shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+  },
+  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  badge: { backgroundColor: '#FEF9EC', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  iconBotton: { padding: 4 },
+  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+  cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
+  coverPlaceholder: {
+    width: 52, height: 68, borderRadius: 6, marginRight: 14,
+    backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
+  },
+  textContainer: { flex: 1 },
+  title: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
+  issue: { fontSize: 12, color: GOLD, fontWeight: '600', marginBottom: 2 },
+  author: { fontSize: 13, color: '#718096', marginBottom: 4 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 8 },
+  categoryPill: { backgroundColor: '#EFF6FF', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+  categoryText: { fontSize: 10, color: '#2563EB', fontWeight: '600' },
+  date: { fontSize: 11, color: '#A0AEC0' },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
+  emptyText: { fontSize: 14, color: '#A0AEC0' },
+  fab: Common.fab({ zIndex: 100 }),
+  fabText: Common.fabText,
+  actionContainer: {
+  position: 'absolute',
+  top: 12,
+  right: 12,
+  flexDirection: 'row',
+  alignItems: 'center',
+},
 
     iconButton: {
       padding: 4,
@@ -4279,16 +4279,16 @@ export const MemberManagementScreenStyles = (() => {
 
 // MembershipDetails
 export const MembershipDetailsStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -4339,12 +4339,12 @@ export const MembershipDetailsStyles = (() => {
 
 // MunicipalMapScreen
 export const MunicipalMapScreenStyles = (() => {
-  const BG = '#F0F4F8';
+  const BG = COLORS.bg;
 
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: BG },
@@ -4784,16 +4784,16 @@ export const NotificationsScreenStyles = (() => {
 
 // Objectivesdetailsscreen
 export const ObjectivesdetailsscreenStyles = (() => {
-  const LIGHT = '#F0F4F8';
+  const LIGHT = COLORS.bg;
 
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const WHITE = '#FFFFFF';
+  const WHITE = COLORS.white;
 
-  const GREY = '#6B7A8D';
+  const GREY = COLORS.grey;
 
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
@@ -5381,7 +5381,7 @@ export const PodcastDetailScreenStyles = (() => {
 
 // PresentationScreen
 export const PresentationScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: '#0d1f33' },
@@ -5458,9 +5458,9 @@ export const ProfileEditScreenStyles = (() => {
 
 // ProfileScreen
 export const ProfileScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
+  const NAVY = COLORS.navy;
 
-  const GOLD = '#D4A017';
+  const GOLD = COLORS.gold;
 
 
   return createScreenStyles({
@@ -5837,11 +5837,8 @@ export const SupportDetailScreenStyles = (() => {
     thumbDocIcon: { fontSize: 28 },
     thumbDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 4 },
 
-    viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-    viewerImage: { width: '100%', height: '80%' },
-    viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-    viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  });
+  ...Common.lightbox,
+});
 })();
 
 // SupportScreen
@@ -5943,12 +5940,9 @@ const _SupportScreenStyleBundle = (() => {
       gridAddIcon: { fontSize: 22, marginBottom: 2 },
       gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
 
-      // File viewer
-      viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-      viewerImage: { width: '100%', height: '80%' },
-      viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-      viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    }),
+  // File viewer
+  ...Common.lightbox,
+}),
     SupportScreenS: createScreenStyles({
       safe: { flex: 1, backgroundColor: '#F7F9FC' },
 
@@ -6136,10 +6130,8 @@ export const UserProfileScreenStyles = (() => {
 
     centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5' },
 
-    emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-    emptyIcon: { fontSize: 40, marginBottom: 10 },
-    emptyText: { fontSize: 15, color: '#888' },
-  });
+  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
+  emptyIcon: { fontSize: 40, marginBottom: 10 },
+  emptyText: { fontSize: 15, color: '#888' },
+});
 })();
-
-
