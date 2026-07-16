@@ -19,6 +19,7 @@ node_modules/
 # Expo
 .expo/
 .expo-shared/
+/android/
 
 # Logs
 *.log
