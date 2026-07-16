@@ -4,13 +4,14 @@
     "slug": "imeapp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo_transparent.png",
+    "icon": "./assets/icon.png",
     "scheme": "imeapp",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo_transparent.png",
-      "resizeMode": "contain"
+      "image": "./assets/splash-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF6EA"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -21,10 +22,10 @@
     },
     "android": {
       "package": "org.ime.app",
-      "versionCode": 1,
+      "versionCode": 3,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo_transparent.png"
-        
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundColor": "#FFFFFF"
       },
       "permissions": [
         "READ_EXTERNAL_STORAGE",
@@ -34,7 +35,14 @@
     },
     "plugins": [
       "expo-font",
-      "expo-splash-screen",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-logo.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FBF6EA"
+        }
+      ],
       "@react-native-community/datetimepicker"
     ],
     "extra": {
