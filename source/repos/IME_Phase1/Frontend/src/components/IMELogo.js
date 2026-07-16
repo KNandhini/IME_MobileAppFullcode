@@ -30,9 +30,18 @@ const IMELogo = ({ size = 'large', animated = true }) => {
 
       {!isSmall && (
         <>
-          <Text style={styles.orgName}>Institute of Municipal Engineering</Text>
-          <Text style={styles.systemName}>Municipal Engineering Management System</Text>
-          <Text style={styles.govLine}>Government of Tamil Nadu</Text>
+          <Text style={styles.orgName}>
+            Institute of Municipal Engineers
+          </Text>
+
+          <Text style={styles.systemName}>
+            Professional Management Platform
+          </Text>
+
+          <Text style={styles.govLine}>
+            One Community. One Vision. Better Cities.
+          </Text>
+
         </>
       )}
 
