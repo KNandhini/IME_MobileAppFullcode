@@ -12,9 +12,9 @@ import { Audio } from 'expo-av';
 import { AnimatedSplashScreenStyles as styles } from './screenStyles';
 
 const COLORS = {
-  top: '#F4F6F8',
-  middle: '#E8EDF3',
-  bottom: '#D8E1EA',
+    top: '#F4F6F8',
+    middle: '#E8EDF3',
+    bottom: '#D8E1EA',
 };
 
 const SPARKLE_COUNT = 20;
@@ -91,7 +91,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                 });
 
                 const { sound } = await Audio.Sound.createAsync(
-                    require('../../assets/audio/splash-theme.mp3'),
+                    require('../assets/audio/splash-theme.mp3'),
                     { shouldPlay: true, volume: 1.0 },
                 );
 
