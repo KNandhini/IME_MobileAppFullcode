@@ -43,8 +43,13 @@ const LoginScreen = ({ navigation }) => {
   }, [startFadeIn]);
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill all fields');
+    if (!email.trim()) {
+      Alert.alert('Validation', 'Please enter your email address.');
+      return;
+    }
+
+    if (!password.trim()) {
+      Alert.alert('Validation', 'Please enter your password.');
       return;
     }
     setLoading(true);
@@ -72,7 +77,10 @@ const LoginScreen = ({ navigation }) => {
             ],
           );
         } else {
-          Alert.alert('Login Failed', getSafeErrorMessage(response));
+          Alert.alert(
+            'Login Failed',
+            response.message || 'Invalid email or password'
+          );
         }
       }
     } catch {

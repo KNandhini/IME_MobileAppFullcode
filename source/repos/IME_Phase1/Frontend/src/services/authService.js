@@ -22,7 +22,20 @@ export const authService = {
       return { success: !!(res.success !== false && token), data, message: res.message };
     } catch (error) {
       debugger;
-      throw error;
+
+      if (error.response) {
+        return {
+          success: false,
+          message: error.response.data?.message || "Invalid email or password",
+          data: error.response.data?.data || null,
+        };
+      }
+
+      return {
+        success: false,
+        message: error.message || "Something went wrong",
+        data: null,
+      };
     }
   },
 

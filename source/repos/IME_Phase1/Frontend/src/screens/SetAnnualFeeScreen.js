@@ -20,6 +20,7 @@ const SetAnnualFeeScreen = () => {
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     fetchCurrentFee();
@@ -38,14 +39,16 @@ const SetAnnualFeeScreen = () => {
   };
 
   const handleSubmit = async () => {
+    const e = {};
     if (!amount || isNaN(parseFloat(amount)) || parseFloat(amount) <= 0) {
-      Alert.alert('Validation Error', 'Please enter a valid fee amount.');
-      return;
+      e.amount = 'Please enter a valid fee amount.';
     }
     if (!effectiveFrom) {
-      Alert.alert('Validation Error', 'Please select Effective From date.');
-      return;
+      e.effectiveFrom = 'Please select Effective From date.';
     }
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
+
     Alert.alert(
       'Confirm',
       `Set annual membership fee to ₹${amount} effective from ${formatDate(effectiveFrom)}?`,
@@ -101,22 +104,24 @@ const SetAnnualFeeScreen = () => {
       <View style={styles.form}>
         <Text style={styles.sectionTitle}>Set New Annual Fee</Text>
 
-        <Text style={styles.label}>Fee Amount (₹)</Text>
+        <Text style={styles.label}>Fee Amount (₹) *</Text>
         <TextInput
           style={styles.input}
           placeholder="e.g. 1500"
           keyboardType="decimal-pad"
           value={amount}
-          onChangeText={setAmount}
+          onChangeText={(t) => { setAmount(t); if (errors.amount) setErrors(p => ({ ...p, amount: null })); }}
         />
+        {errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
 
-        <Text style={styles.label}>Effective From</Text>
-        <TouchableOpacity style={styles.dateInput} onPress={() => setShowFromPicker(true)}>
+        <Text style={styles.label}>Effective From *</Text>
+        <TouchableOpacity style={styles.dateInput} onPress={() => { setShowFromPicker(true); if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null })); }}>
           <Text style={effectiveFrom ? styles.dateText : styles.datePlaceholder}>
             {effectiveFrom ? formatDate(effectiveFrom) : 'Select date'}
           </Text>
           <Text style={styles.calendarIcon}>📅</Text>
         </TouchableOpacity>
+        {errors.effectiveFrom && <Text style={styles.error}>{errors.effectiveFrom}</Text>}
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 
-const GOLD = '#D4A017';
+const GOLD = '#D4AF37'; // Government Gold — aligned with theme.js accent
 
 const IMELogo = ({ size = 'large', animated = true }) => {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -15,21 +15,28 @@ const IMELogo = ({ size = 'large', animated = true }) => {
   }, []);
 
   const isSmall = size === 'small';
-  const logoSize = isSmall ? 74 : 130;
+  const logoSize = isSmall ? 74 : 96;
+  const circleSize = isSmall ? 88 : 132;
 
   return (
     <Animated.View style={[styles.container, { opacity }]}>
-      <Image
-        source={require('../../assets/logo_transparent.png')}
-        style={{ width: logoSize, height: logoSize, marginBottom: 10 }}
-        resizeMode="contain"
-      />
+      <View style={[styles.circle, { width: circleSize, height: circleSize, borderRadius: circleSize / 2 }]}>
+        <Image
+          source={require('../../assets/logo-clean.png')}
+          style={{ width: logoSize, height: logoSize }}
+          resizeMode="contain"
+        />
+      </View>
 
-      <Text style={[styles.acronym, { fontSize: isSmall ? 14 : 22 }]}>IME</Text>
+      {!isSmall && (
+        <>
+          <Text style={styles.orgName}>Institute of Municipal Engineering</Text>
+          <Text style={styles.systemName}>Municipal Engineering Management System</Text>
+          <Text style={styles.govLine}>Government of Tamil Nadu</Text>
+        </>
+      )}
 
-      <Text style={[styles.fullName, { fontSize: isSmall ? 9 : 12 }]}>
-        Institute of Municipal Engineers
-      </Text>
+      {isSmall && <Text style={styles.acronym}>IME</Text>}
     </Animated.View>
   );
 };
@@ -39,15 +46,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  circle: {
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    shadowColor: '#0A1E33',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    elevation: 5,
+  },
   acronym: {
     color: GOLD,
     fontWeight: '900',
     letterSpacing: 4,
-    marginBottom: 2,
+    fontSize: 14,
+    marginTop: 2,
   },
-  fullName: {
-    color: 'rgba(255,255,255,0.9)',
-    fontWeight: '600',
+  orgName: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 16,
+    letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  systemName: {
+    color: 'rgba(255,255,255,0.88)',
+    fontWeight: '500',
+    fontSize: 11.5,
+    marginTop: 3,
+    textAlign: 'center',
+  },
+  govLine: {
+    color: GOLD,
+    fontWeight: '700',
+    fontSize: 11,
+    marginTop: 6,
     letterSpacing: 0.5,
     textAlign: 'center',
   },

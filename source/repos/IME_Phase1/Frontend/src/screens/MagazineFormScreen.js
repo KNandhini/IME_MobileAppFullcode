@@ -29,6 +29,7 @@ const MagazineFormScreen = ({ route, navigation }) => {
   const isEdit = !!item;
 
   const [title, setTitle] = useState(item?.title || '');
+  const [errors, setErrors] = useState({});
   const [description, setDescription] = useState(item?.description || '');
   const [issueNumber, setIssueNumber] = useState(item?.issueNumber || '');
   const [authorName, setAuthorName] = useState(item?.authorName || '');
@@ -104,7 +105,10 @@ const MagazineFormScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-  if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
+  const e = {};
+  if (!title.trim()) e.title = 'Title is required.';
+  setErrors(e);
+  if (Object.keys(e).length > 0) return;
 
   setLoading(true);
   try {
@@ -161,12 +165,13 @@ const totalAttachments = existingAttachments.length + attachments.length;
         <TextInput
           label="Magazine Title *"
           value={title}
-          onChangeText={setTitle}
+          onChangeText={(t) => { setTitle(t); if (errors.title) setErrors(p => ({ ...p, title: null })); }}
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
           style={styles.input}
         />
+        {errors.title && <Text style={styles.error}>{errors.title}</Text>}
 
         <TextInput
           label="Description"
