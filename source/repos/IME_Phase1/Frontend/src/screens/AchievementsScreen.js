@@ -9,7 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';  // ← ADD
 import { BASE_URL } from '../utils/api';                                // ← ADD
 import { AchievementsScreenS as s } from './screenStyles';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 const AVATAR_COLORS = ['#1E3A5F', '#D4A017', '#27AE60', '#8E44AD', '#E67E22', '#2980B9'];
@@ -125,7 +125,7 @@ const AchievementsScreen = ({ navigation }) => {
   const [photoMap, setPhotoMap] = useState({});
   const [userRole, setUserRole] = useState(null);  // ← ADD
   const { user } = useAuth();
-
+const insets = useSafeAreaInsets();
   // ── Load role once on mount ───────────────────────────────────────────────
   useEffect(() => {                                                     // ← ADD
     const loadRole = async () => {
@@ -219,7 +219,7 @@ const AchievementsScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={s.safe}>
+        <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       {loading ? (
@@ -269,7 +269,7 @@ const AchievementsScreen = ({ navigation }) => {
       {/* FAB — Admin only */}
       {userRole === 'Admin' && (                        // ← ADD
         <TouchableOpacity
-          style={s.fab}
+          style={[s.fab,, { bottom: 24 + insets.bottom }]}
           onPress={() => navigation.navigate('AchievementForm')}
           activeOpacity={0.85}
         >

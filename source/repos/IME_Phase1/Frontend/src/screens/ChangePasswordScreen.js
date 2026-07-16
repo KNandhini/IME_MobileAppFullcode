@@ -52,7 +52,7 @@ const ChangePasswordScreen = ({ navigation }) => {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView style={styles.container}>
-          <Card style={[styles.card, { marginBottom: 32 }]}>
+          <Card style={[styles.card, { marginBottom: 32 },{ backgroundColor: '#fff' }]}>
             <Card.Content>
               <Text style={styles.title}>Change Password</Text>
               <Text style={styles.subtitle}>Please enter your current and new password.</Text>

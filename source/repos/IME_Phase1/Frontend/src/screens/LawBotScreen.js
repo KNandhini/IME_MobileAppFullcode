@@ -5,11 +5,12 @@
  */
 
 import React, { useState, useRef, useCallback } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar, SafeAreaView } from 'react-native';
+import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import { LawBotScreenStyles as styles } from './screenStyles';
-
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+//import {  StatusBar,} from 'react-native';
 // ── Suggested quick questions ──────────────────────────────────
 const SUGGESTIONS = [
   'What is the 74th Amendment?',
@@ -61,7 +62,7 @@ const MessageBubble = React.memo(({ item }) => {
 // ── Main Screen ────────────────────────────────────────────────
 const LawBotScreen = ({ navigation }) => {
   const { user } = useAuth();
-
+const insets = useSafeAreaInsets();
   const [messages,  setMessages]  = useState([
     {
       id: '0',
@@ -97,7 +98,6 @@ const LawBotScreen = ({ navigation }) => {
   }, []);
 
   const sendQuestion = useCallback(async (question) => {
-    debugger;
     const q = (question || inputText).trim();
     if (!q || loading) return;
 
@@ -107,9 +107,7 @@ const LawBotScreen = ({ navigation }) => {
     setLoading(true);
 
     try {
-        debugger;
       const response = await api.post('/lawbot/ask', { question: q });
-      debugger;
       const data = response.data;
 
       if (data?.success && data?.answer) {
@@ -141,10 +139,13 @@ const LawBotScreen = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+    <StatusBar
+  backgroundColor="#1E3A5F"
+  barStyle="light-content"
+  translucent={false}
+/>
 
-      {/* ── Header ── */}
-      <View style={styles.header}>
+    <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
@@ -161,7 +162,17 @@ const LawBotScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* ── Messages ── */}
+      
+
+      {/* ── Typing indicator + Suggestions + Input bar ──
+          All grouped inside one KeyboardAvoidingView so they move
+          together above the keyboard, always in this stacked order:
+          typing indicator → suggestions (quick questions) → input bar. */}
+      <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+>
+  {/* ── Messages ── */}
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -170,42 +181,38 @@ const LawBotScreen = ({ navigation }) => {
         contentContainerStyle={styles.messageList}
         showsVerticalScrollIndicator={false}
         onContentSizeChange={scrollToBottom}
+        style={{ flex: 1 }}
       />
-
-      {/* ── Typing indicator ── */}
-      {loading && (
-        <View style={styles.typingRow}>
-          <View style={styles.botAvatar}>
-            <Text style={styles.botAvatarText}>⚖</Text>
+        {/* ── Typing indicator ── */}
+        {loading && (
+          <View style={styles.typingRow}>
+            <View style={styles.botAvatar}>
+              <Text style={styles.botAvatarText}>⚖</Text>
+            </View>
+            <View style={styles.typingBubble}>
+              <ActivityIndicator size="small" color="#1E3A5F" />
+              <Text style={styles.typingText}>Searching the law book…</Text>
+            </View>
           </View>
-          <View style={styles.typingBubble}>
-            <ActivityIndicator size="small" color="#1E3A5F" />
-            <Text style={styles.typingText}>Searching the law book…</Text>
+        )}
+
+        {/* ── Suggestions ── */}
+        {showSuggestions && (
+          <View style={styles.suggWrap}>
+            <Text style={styles.suggLabel}>💡 Quick Questions</Text>
+            <FlatList
+              data={SUGGESTIONS}
+              keyExtractor={item => item}
+              renderItem={renderSuggestion}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggList}
+            />
           </View>
-        </View>
-      )}
+        )}
 
-      {/* ── Suggestions ── */}
-      {showSuggestions && (
-        <View style={styles.suggWrap}>
-          <Text style={styles.suggLabel}>💡 Quick Questions</Text>
-          <FlatList
-            data={SUGGESTIONS}
-            keyExtractor={item => item}
-            renderItem={renderSuggestion}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.suggList}
-          />
-        </View>
-      )}
-
-      {/* ── Input bar ── */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-      >
-        <View style={styles.inputBar}>
+        {/* ── Input bar ── */}
+       <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 8) + 8 }]}>
           <TextInput
             style={styles.textInput}
             value={inputText}
@@ -239,12 +246,5 @@ function formatNow() {
     hour: '2-digit', minute: '2-digit', hour12: true,
   });
 }
-
-const NAVY  = '#1E3A5F';
-const GOLD  = '#D4A017';
-const BG    = '#F0F2F5';
-const WHITE = '#ffffff';
-
-
 
 export default LawBotScreen;

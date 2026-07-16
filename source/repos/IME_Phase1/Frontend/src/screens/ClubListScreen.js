@@ -6,8 +6,7 @@ import { clubService } from '../services/clubService';
 import api from '../utils/api';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ClubListScreenStyles as styles } from './screenStyles';
-import { getSafeErrorMessage } from '../utils/errorHandler';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // api.defaults.baseURL is usually something like "http://host:port/api"
 // strip the trailing "/api" so we get the plain server root to prefix
 // the raw disk-style paths ("Uploads\Clubs-11\xyz.jpeg") that come back
@@ -35,7 +34,7 @@ export default function ClubListScreen({ navigation }) {
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
+const insets = useSafeAreaInsets();
   useFocusEffect(useCallback(() => { loadClubs(); }, []));
 
   const loadClubs = async (isRefresh = false) => {
@@ -88,7 +87,7 @@ export default function ClubListScreen({ navigation }) {
               Alert.alert('Deleted', 'Club deleted successfully.');
               loadClubs();
             } else {
-              Alert.alert('Error', getSafeErrorMessage(res));
+              Alert.alert('Error', res.message || 'Failed to delete');
             }
           },
         },
@@ -154,7 +153,7 @@ export default function ClubListScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
+      <View style={[styles.centered,{ backgroundColor: '#fff' }]}>
         <ActivityIndicator size="large" color="#1E3A5F" />
       </View>
     );
@@ -162,13 +161,13 @@ export default function ClubListScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Searchbar
-        placeholder="Search clubs..."
-        value={search}
-        onChangeText={handleSearch}
-        style={styles.searchbar}
-        inputStyle={{ fontSize: 14 }}
-      />
+     <Searchbar
+  placeholder="Search clubs..."
+  value={search}
+  onChangeText={handleSearch}
+  style={[styles.searchbar, { backgroundColor: '#fff' }]}
+  inputStyle={{ fontSize: 14 }}
+/>
 
       <View style={styles.filterRow}>
         {FILTERS.map(f => (
@@ -199,7 +198,7 @@ export default function ClubListScreen({ navigation }) {
       />
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab,{ bottom: 10 + insets.bottom }]}
         onPress={() => navigation.navigate('ClubForm', {})}
         activeOpacity={0.85}
       >

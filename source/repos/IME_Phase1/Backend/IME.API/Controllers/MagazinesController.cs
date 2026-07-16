@@ -14,7 +14,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
+[Authorize]
 public class MagazinesController : ControllerBase
 {
     private readonly IMagazineRepository _magazineRepository;
