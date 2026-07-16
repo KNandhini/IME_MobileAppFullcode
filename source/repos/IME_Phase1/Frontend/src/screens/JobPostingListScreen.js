@@ -9,7 +9,7 @@ import { jobPostingService } from '../services/jobpostingService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { JobPostingListScreenStyles as styles } from './screenStyles';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
 const toPublicUrl = (filePath) => {
@@ -25,7 +25,7 @@ const GOLD = '#D4A017';
 
 const JobPostingListScreen = ({ navigation }) => {
   const { user } = useAuth();
-
+const insets = useSafeAreaInsets();
   const [jobs,       setJobs]       = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -170,13 +170,13 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
         <View style={styles.cardFooter}>
           <Text style={[styles.closingText, isClosed(item.vacancyClosingDate) && styles.closedText]}>
-            {isClosed(item.vacancyClosingDate) ? '⛔ Closed' : '📅 Closes '}
-            {item.vacancyClosingDate
-              ? new Date(item.vacancyClosingDate).toLocaleDateString('en-IN', {
-                  day: '2-digit', month: 'short', year: 'numeric',
-                })
-              : ''}
-          </Text>
+  {isClosed(item.vacancyClosingDate) ? '⛔ Closed ' : '📅 Closes '}
+  {item.vacancyClosingDate
+    ? new Date(item.vacancyClosingDate).toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric',
+      })
+    : ''}
+</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -221,8 +221,8 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
       {/* Floating add button */}
       {!isUnemployed && (
-  <TouchableOpacity style={styles.fab} onPress={handleAdd} activeOpacity={0.85}>
-    <MaterialCommunityIcons name="plus" size={30} color={NAVY} />
+  <TouchableOpacity style={[styles.fab,{ bottom: 24 + insets.bottom }]} onPress={handleAdd} activeOpacity={0.85}>
+    <MaterialCommunityIcons name="plus" size={30} color={GOLD} />
   </TouchableOpacity>
 )}
     </View>

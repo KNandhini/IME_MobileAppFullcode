@@ -76,7 +76,7 @@ import MagazineDetailScreen from '../screens/MagazineDetailScreen';
 import MagazineFormScreen from '../screens/MagazineFormScreen';
 import MembershipBenefitsScreen from '../screens/Membershipbenefitsscreen';
 
-
+import PaymentReportsScreen from '../screens/Paymentreportsscreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -98,6 +98,7 @@ const AuthStack = () => (
   <Stack.Navigator
     screenOptions={{
       headerShown: false,
+      //headerBackVisible: false,
       // Same fix as MainStack — no white flash before Login paints.
       cardStyle: { backgroundColor: '#1E3A5F' },
     }}
@@ -436,6 +437,7 @@ const MainStack = () => (
     <Stack.Screen name="Magazines" component={MagazinesScreen} options={{ title: 'Magazines' }} />
     <Stack.Screen name="MagazineForm" component={MagazineFormScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} options={{ headerShown: false }} />
+ <Stack.Screen name="PaymentReports" component={PaymentReportsScreen} />
   </Stack.Navigator>
 );
 

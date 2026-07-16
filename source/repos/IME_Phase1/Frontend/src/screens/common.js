@@ -60,11 +60,12 @@ export const formNavbar = {
 /* ---------------------------------------------------------------------- */
 /* Floating action button (36x36 navy circle, gold "+")                   */
 /* ---------------------------------------------------------------------- */
-export function fab(extra = {}) {
+// in common.js — accept a bottom inset param
+export function fab(extra = {}, bottomInset = 0) {
   return {
     position: 'absolute',
     right: 20,
-    bottom: 24,
+    bottom: 24 + bottomInset,
     width: 36,
     height: 36,
     borderRadius: 18,

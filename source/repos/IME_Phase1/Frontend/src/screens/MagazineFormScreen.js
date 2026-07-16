@@ -11,7 +11,7 @@ import api from '../utils/api';
 import { MagazineFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
-const NAVY = '#1E3A5F';
+const NAVY = '#2b3139';
 const GOLD = '#D4A017';
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
@@ -147,11 +147,17 @@ const totalAttachments = existingAttachments.length + attachments.length;
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEdit ? 'Edit Magazine' : 'Add Magazine'}</Text>
-        <View style={{ width: 36 }} />
+       <View style={styles.navbar}>
+  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
+    <Text style={styles.cancelText}>Cancel</Text>
+  </TouchableOpacity>
+  <Text style={styles.navTitle}>{isEdit ? 'Edit Magazine' : 'Add Magazine'}</Text>
+  <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
+    {loading
+      ? <ActivityIndicator size="small" color={GOLD} />
+      : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
+  </TouchableOpacity>
+</View>
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
@@ -296,18 +302,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
 </View>
         <Text style={styles.attachHint}>PDF, JPG, PNG, Word · Max 50 MB each</Text>
 
-        <TouchableOpacity
-          style={[styles.saveBtn, loading && { opacity: 0.7 }]}
-          onPress={handleSave} disabled={loading} activeOpacity={0.85}
-        >
-          {loading
-            ? <ActivityIndicator color="#fff" />
-            : <>
-                <MaterialCommunityIcons name="check" size={20} color="#fff" />
-                <Text style={styles.saveBtnText}>Save Magazine</Text>
-              </>
-          }
-        </TouchableOpacity>
+       
 
       </ScrollView>
 

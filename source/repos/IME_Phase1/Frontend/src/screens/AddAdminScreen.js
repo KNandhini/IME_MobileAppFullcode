@@ -6,6 +6,31 @@ import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
 import { AddAdminScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
+import { COLORS } from './theme'; // ← adjust this path to wherever COLORS actually lives
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+// Local color constants — GOLD/NAVY are only defined inside the
+// AddAdminScreenStyles closure, so the component needs its own copy.
+const NAVY = COLORS.navy;
+const GOLD = COLORS.gold;
+
+// Forces every TextInput on this screen to stay light-themed regardless of
+// the device's dark mode setting. Without this, react-native-paper falls
+// back to its dark theme (black fields, low-contrast borders/text) even
+// though outlineColor/activeOutlineColor are set — those two props only
+// control the outline, not the fill/text/placeholder colors.
+const INPUT_THEME = {
+  roundness: 10,
+  colors: {
+    background: '#fff',
+    surface: '#fff',
+    text: '#1a1a1a',
+    onSurface: '#1a1a1a',
+    placeholder: '#94A3B8',
+    primary: '#1976D2',
+  },
+};
 
 // ─────────────────────────────────────────────────────────────────────────
 // AdminSignupScreen
@@ -343,23 +368,30 @@ const AdminSignupScreen = ({
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
       <View style={styles.header}>
-        <Text style={styles.title}>Add Admin</Text>
-        <Text style={styles.subtitle}>Register a new club administrator</Text>
-      </View>
+            {navigation?.canGoBack?.() && (
+              <TouchableOpacity style={styles.headerBackBtn} onPress={() => navigation.goBack()}>
+                <MaterialCommunityIcons name="arrow-left" size={20} color="#fff" />
+              </TouchableOpacity>
+            )}
+            <Text style={styles.headerTitle}>Create Account</Text>
+            <Text style={styles.headerSubtitle}>Join IME to access member benefits</Text>
+          </View>
 
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+   
       <View style={styles.card}>
         <TextInput label="Full Name *" value={formData.fullName} onChangeText={(t) => updateField('fullName', t)}
-          mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+          mode="outlined" theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.fullName && <Text style={styles.error}>{errors.fullName}</Text>}
 
         <TextInput label="Email *" value={formData.email} onChangeText={(t) => updateField('email', t)}
-          mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
+          mode="outlined" theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
         <TextInput label="Password *" value={formData.password} onChangeText={(t) => updateField('password', t)}
-          secureTextEntry={!showPassword} mode="outlined" theme={{ roundness: 10 }}
+          secureTextEntry={!showPassword} mode="outlined" theme={INPUT_THEME}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
           right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
           style={styles.input} />
@@ -367,19 +399,19 @@ const AdminSignupScreen = ({
         {errors.password && <Text style={styles.error}>{errors.password}</Text>}
 
         <TextInput label="Confirm Password *" value={formData.confirmPassword} onChangeText={(t) => updateField('confirmPassword', t)}
-          secureTextEntry={!showConfirmPassword} mode="outlined" theme={{ roundness: 10 }}
+          secureTextEntry={!showConfirmPassword} mode="outlined" theme={INPUT_THEME}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
           right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
           style={styles.input} />
         {errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
 
         <TextInput label="Contact Number *" value={formData.contactNumber} onChangeText={(t) => updateField('contactNumber', t)}
-          keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
+          keyboardType="numeric" mode="outlined" theme={INPUT_THEME}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.contactNumber && <Text style={styles.error}>{errors.contactNumber}</Text>}
 
         <TextInput label="Address *" value={formData.address} onChangeText={(t) => updateField('address', t)}
-          multiline mode="outlined" theme={{ roundness: 10 }}
+          multiline mode="outlined" theme={INPUT_THEME}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
         {errors.address && <Text style={styles.error}>{errors.address}</Text>}
 
@@ -390,7 +422,7 @@ const AdminSignupScreen = ({
               label="Country *"
               value={selectedCountry?.countryName || ''}
               mode="outlined"
-              theme={{ roundness: 10 }}
+              theme={INPUT_THEME}
               outlineColor="#BBDEFB"
               activeOutlineColor="#1976D2"
               style={styles.input}
@@ -410,7 +442,7 @@ const AdminSignupScreen = ({
               label={statesLoading ? 'Loading states…' : 'State *'}
               value={selectedState?.stateName || ''}
               mode="outlined"
-              theme={{ roundness: 10 }}
+              theme={INPUT_THEME}
               outlineColor="#BBDEFB"
               activeOutlineColor="#1976D2"
               style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
@@ -436,7 +468,7 @@ const AdminSignupScreen = ({
                   label={clubsLoading ? 'Loading clubs…' : 'Clubs *'}
                   value={selectedClubs.map(c => c.clubName).join(', ')}
                   mode="outlined"
-                  theme={{ roundness: 10 }}
+                  theme={INPUT_THEME}
                   outlineColor="#BBDEFB"
                   activeOutlineColor="#1976D2"
                   style={[
@@ -464,7 +496,7 @@ const AdminSignupScreen = ({
               <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
                 <View pointerEvents="none">
                   <TextInput label="Gender *" value={formData.gender} mode="outlined"
-                    theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
+                    theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
                     style={styles.input} editable={false} />
                 </View>
               </TouchableOpacity>
@@ -479,7 +511,7 @@ const AdminSignupScreen = ({
         <TouchableOpacity onPress={() => setShowDatePicker(true)}>
           <View pointerEvents="none">
             <TextInput label="Date of Birth *" value={formData.dateOfBirth} mode="outlined"
-              theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
+              theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
               style={styles.input} editable={false} />
           </View>
         </TouchableOpacity>
@@ -501,7 +533,7 @@ const AdminSignupScreen = ({
         )}
 
         <TextInput label="Age *" value={formData.age}
-          keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
+          keyboardType="numeric" mode="outlined" theme={INPUT_THEME}
           outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
         {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
@@ -513,7 +545,7 @@ const AdminSignupScreen = ({
               <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
                 <View pointerEvents="none">
                   <TextInput label="Occupation *" value={occupation} mode="outlined"
-                    theme={{ roundness: 10 }}
+                    theme={INPUT_THEME}
                     outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
                     activeOutlineColor="#1976D2"
                     style={styles.input} editable={false} />
@@ -535,7 +567,7 @@ const AdminSignupScreen = ({
               label="Occupation Details *"
               value={occupationDetails}
               onChangeText={setOccupationDetails}
-              multiline mode="outlined" theme={{ roundness: 10 }}
+              multiline mode="outlined" theme={INPUT_THEME}
               outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
             {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
           </View>
@@ -550,7 +582,7 @@ const AdminSignupScreen = ({
               value={qualification}
               placeholder="e.g., Diploma-Civil Engineering"
               onChangeText={setQualification}
-              mode="outlined" theme={{ roundness: 10 }}
+              mode="outlined" theme={INPUT_THEME}
               outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
             {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
           </View>
@@ -574,12 +606,24 @@ const AdminSignupScreen = ({
           </View>
         </TouchableOpacity>
 
-        <Button mode="contained" onPress={handleSignup} loading={loading} style={styles.button} labelStyle={{ fontSize: 16 }}>
+        <Button
+          mode="contained"
+          onPress={handleSignup}
+          loading={loading}
+          style={styles.button}
+          labelStyle={{ fontSize: 16 }}
+          textColor={GOLD}
+        >
           Create Admin
         </Button>
       </View>
 
-      <Button mode="text" onPress={() => navigation.goBack()} style={styles.linkButton}>
+      <Button
+        mode="text"
+        onPress={() => navigation.goBack()}
+        style={styles.linkButton}
+        textColor={GOLD}
+      >
         Cancel
       </Button>
 
@@ -677,6 +721,7 @@ const AdminSignupScreen = ({
         </View>
       </Modal>
     </ScrollView>
+    </View>
   );
 };
 

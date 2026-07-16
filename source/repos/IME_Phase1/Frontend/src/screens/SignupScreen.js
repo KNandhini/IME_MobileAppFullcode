@@ -4,10 +4,14 @@ import { TextInput, Button, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
 import { SignupScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+
+// ── Small wrapper: gives every field its own white elevated card ──
+const Field = ({ children }) => <View style={styles.fieldCard}>{children}</View>;
 
 const SignupScreen = ({ navigation, route }) => {
   const [formData, setFormData] = useState({
@@ -26,7 +30,6 @@ const SignupScreen = ({ navigation, route }) => {
 
   const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
-  // ── Location state ─────────────────────────────────────────────────────────
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [clubs, setClubs] = useState([]);
@@ -35,26 +38,21 @@ const SignupScreen = ({ navigation, route }) => {
   const [stateModal, setStateModal] = useState(false);
   const [clubModal, setClubModal] = useState(false);
 
-  const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
-  const [selectedState, setSelectedState] = useState(null); // { stateId, stateName }
-  const [selectedClub, setSelectedClub] = useState(null); // { clubId, clubName }
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedState, setSelectedState] = useState(null);
+  const [selectedClub, setSelectedClub] = useState(null);
 
   const [statesLoading, setStatesLoading] = useState(false);
   const [clubsLoading, setClubsLoading] = useState(false);
 
-  // ── Occupation state ───────────────────────────────────────────────────────
   const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
   const [occupation, setOccupation] = useState('');
   const [occupationMenuVisible, setOccupationMenuVisible] = useState(false);
   const [occupationMenuWidth, setOccupationMenuWidth] = useState(0);
 
-  // ── Occupation Details state (shown for Employed / Self Employed) ─────────
-  const [occupationDetails, setOccupationDetails] = useState(''); // free-text: role, company/business, etc.
+  const [occupationDetails, setOccupationDetails] = useState('');
+  const [qualification, setQualification] = useState('');
 
-  // ── Educational Qualification state (always shown once occupation chosen) ─
-  const [qualification, setQualification] = useState(''); // free-text
-
-  // Derived visibility flags — recompute on every render, no refresh needed
   const showOccupationDetails = occupation === 'Employed' || occupation === 'Self Employed';
   const showEducationSection = occupation === 'Employed' || occupation === 'Self Employed' || occupation === 'Unemployed';
 
@@ -63,9 +61,6 @@ const SignupScreen = ({ navigation, route }) => {
     loadCountries();
   }, []);
 
-  // Fee is still needed here (feeAmount is included in the payment params sent
-  // to RegistrationPayment) even though the fee is now *displayed* on the
-  // Membership Benefits screen, not here.
   const fetchFee = async () => {
     try {
       const res = await api.get('/payment/latest-fee');
@@ -116,8 +111,6 @@ const SignupScreen = ({ navigation, route }) => {
     }
   };
 
-  // Clears whatever is no longer relevant when the occupation selection changes,
-  // so stale data from a previous choice never gets silently submitted.
   const handleOccupationSelect = (value) => {
     setOccupation(value);
     setOccupationMenuVisible(false);
@@ -147,7 +140,6 @@ const SignupScreen = ({ navigation, route }) => {
     }
     else if (field === 'age') v = value.replace(/[^0-9]/g, '').slice(0, 3);
     else if (field === 'address') v = value.replace(/[^A-Za-z0-9\s,./-]/g, '').slice(0, 250);
-    //else if (field === 'place') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 50);
     setFormData((prev) => ({ ...prev, [field]: v }));
   };
 
@@ -192,19 +184,16 @@ const SignupScreen = ({ navigation, route }) => {
     if (!formData.address) e.address = 'Required';
     if (!formData.gender) e.gender = 'Required';
     if (!formData.age) e.age = 'Required';
-    //if (!formData.place) e.place = 'Required';
     if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
-    if (!selectedCountry) e.country = 'Required';       // ✅ NEW
-    if (!selectedState) e.state = 'Required';       // ✅ NEW
+    if (!selectedCountry) e.country = 'Required';
+    if (!selectedState) e.state = 'Required';
     if (!selectedClub) e.club = 'Please select a club';
-    // ── Occupation ──
     if (!occupation) e.occupation = 'Required';
 
     if (showOccupationDetails) {
       if (!occupationDetails) e.occupationDetails = 'Required';
     }
 
-    // ── Educational Qualification ──
     if (showEducationSection) {
       if (!qualification) e.qualification = 'Required';
     }
@@ -249,9 +238,6 @@ const SignupScreen = ({ navigation, route }) => {
     ...(showEducationSection && { qualification }),
   });
 
-  // Was previously gated behind the in-screen Terms modal's "Agree & Continue".
-  // Terms are now accepted on the Membership Benefits screen before the user
-  // ever reaches this form, so this fires directly off the Register button.
   const submitRegistration = async () => {
     setLoading(true);
     try {
@@ -295,8 +281,6 @@ const SignupScreen = ({ navigation, route }) => {
         Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
-      const status = e?.response?.status;
-      const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
       Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
@@ -305,8 +289,6 @@ const SignupScreen = ({ navigation, route }) => {
 
   const handleSignup = async () => {
     if (!validate()) return;
-    // Guard against reaching this screen without going through the Membership
-    // Benefits terms-acceptance step (e.g. deep link, back-navigation edge case).
     if (!route?.params?.termsAccepted) {
       Alert.alert(
         'Terms Required',
@@ -318,340 +300,392 @@ const SignupScreen = ({ navigation, route }) => {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
+      {/* ── Header ── */}
+      <View style={styles.header}>
+        {navigation?.canGoBack?.() && (
+          <TouchableOpacity style={styles.headerBackBtn} onPress={() => navigation.goBack()}>
+            <MaterialCommunityIcons name="arrow-left" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+        <Text style={styles.headerTitle}>Create Account</Text>
+        <Text style={styles.headerSubtitle}>Join IME to access member benefits</Text>
+      </View>
 
-      <View style={styles.card}>
-        <TextInput label="Full Name *" value={formData.fullName} onChangeText={(t) => updateField('fullName', t)}
-          mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.fullName && <Text style={styles.error}>{errors.fullName}</Text>}
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-        <TextInput label="Email *" value={formData.email} onChangeText={(t) => updateField('email', t)}
-          mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+        <View style={styles.card}>
+          <Field>
+            <TextInput label="Full Name *" value={formData.fullName} onChangeText={(t) => updateField('fullName', t)}
+              mode="outlined" theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+          </Field>
+          {errors.fullName && <Text style={styles.error}>{errors.fullName}</Text>}
 
-        <TextInput label="Password *" value={formData.password} onChangeText={(t) => updateField('password', t)}
-          secureTextEntry={!showPassword} mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-          right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
-          style={styles.input} />
-        <Text style={styles.helper}>Min 6 chars, include number & special character</Text>
-        {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+          <Field>
+            <TextInput label="Email *" value={formData.email} onChangeText={(t) => updateField('email', t)}
+              mode="outlined" theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+          </Field>
+          {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
-        <TextInput label="Confirm Password *" value={formData.confirmPassword} onChangeText={(t) => updateField('confirmPassword', t)}
-          secureTextEntry={!showConfirmPassword} mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-          right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
-          style={styles.input} />
-        {errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
-        <TextInput
+          <Field>
+            <TextInput label="Password *" value={formData.password} onChangeText={(t) => updateField('password', t)}
+              secureTextEntry={!showPassword} mode="outlined" theme={{ roundness: 12 }}
+              outlineColor="transparent" activeOutlineColor="#1976D2"
+              right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
+              style={styles.input} />
+          </Field>
+          <Text style={styles.helper}>Min 6 chars, include number & special character</Text>
+          {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+
+          <Field>
+            <TextInput label="Confirm Password *" value={formData.confirmPassword} onChangeText={(t) => updateField('confirmPassword', t)}
+              secureTextEntry={!showConfirmPassword} mode="outlined" theme={{ roundness: 12 }}
+              outlineColor="transparent" activeOutlineColor="#1976D2"
+              right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
+              style={styles.input} />
+          </Field>
+          {errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
+          <Field>
+            <TextInput
           label="Contact Number *"
           value={formData.contactNumber}
           onChangeText={(t) => updateField('contactNumber', t)}
-          keyboardType="number-pad"
+              keyboardType="number-pad"
           maxLength={10}
           autoComplete="tel"
           textContentType="telephoneNumber"
           mode="outlined"
-          theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB"
+          theme={{ roundness: 12 }}
+              outlineColor="transparent"
           activeOutlineColor="#1976D2"
           style={styles.input}
         />
-
+          </Field>
+  
         {errors.contactNumber && (
           <Text style={styles.error}>
             {errors.contactNumber}
           </Text>
         )}
 
-        <TextInput label="Address *" value={formData.address} onChangeText={(t) => updateField('address', t)}
-          multiline mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.address && <Text style={styles.error}>{errors.address}</Text>}
-        {/* ── Address Line (kept) ── */}
-        {/* ── Country ── */}
-        <TouchableOpacity onPress={() => setCountryModal(true)}>
-          <View pointerEvents="none">
-            <TextInput
-              label="Country *"
-              value={selectedCountry?.countryName || ''}
-              mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
-              style={styles.input}
-              editable={false}
-            />
-          </View>
-        </TouchableOpacity>
-        {errors.country && <Text style={styles.error}>{errors.country}</Text>}
+          <Field>
+            <TextInput label="Address *" value={formData.address} onChangeText={(t) => updateField('address', t)}
+              multiline mode="outlined" theme={{ roundness: 12 }}
+              outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+          </Field>
+          {errors.address && <Text style={styles.error}>{errors.address}</Text>}
 
-        {/* ── State ── */}
-        <TouchableOpacity
-          onPress={() => selectedCountry ? setStateModal(true) : Alert.alert('Select country first')}
-          activeOpacity={0.8}
-        >
-          <View pointerEvents="none">
-            <TextInput
-              label={statesLoading ? 'Loading states…' : 'State *'}
-              value={selectedState?.stateName || ''}
-              mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
-              style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
-              editable={false}
-            />
-          </View>
-        </TouchableOpacity>
-        {errors.state && <Text style={styles.error}>{errors.state}</Text>}
+          {/* ── Country ── */}
+          <TouchableOpacity onPress={() => setCountryModal(true)}>
+            <View pointerEvents="none">
+              <Field>
+                <TextInput
+                  label="Country *"
+                  value={selectedCountry?.countryName || ''}
+                  mode="outlined"
+                  theme={{ roundness: 12 }}
+                  outlineColor="transparent"
+                  activeOutlineColor="#1976D2"
+                  style={styles.input}
+                  editable={false}
+                />
+              </Field>
+            </View>
+          </TouchableOpacity>
+          {errors.country && <Text style={styles.error}>{errors.country}</Text>}
 
-        {/* ── Club (optional, filtered by state) ── */}
-        <TouchableOpacity
-          onPress={() => selectedState ? setClubModal(true) : Alert.alert('Select state first')}
-          activeOpacity={0.8}
-        >
-          <View pointerEvents="none">
-            <TextInput
-              label={clubsLoading ? 'Loading clubs…' : 'Club *'}
-              value={selectedClub?.clubName || ''}
-              mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
-              style={[styles.input, !selectedState && { opacity: 0.5 }]}
-              editable={false}
-            />
-          </View>
-        </TouchableOpacity>
-        {errors.club && (
+          {/* ── State ── */}
+          <TouchableOpacity
+            onPress={() => selectedCountry ? setStateModal(true) : Alert.alert('Select country first')}
+            activeOpacity={0.8}
+          >
+            <View pointerEvents="none">
+              <Field>
+                <TextInput
+                  label={statesLoading ? 'Loading states…' : 'State *'}
+                  value={selectedState?.stateName || ''}
+                  mode="outlined"
+                  theme={{ roundness: 12 }}
+                  outlineColor="transparent"
+                  activeOutlineColor="#1976D2"
+                  style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
+                  editable={false}
+                />
+              </Field>
+            </View>
+          </TouchableOpacity>
+          {errors.state && <Text style={styles.error}>{errors.state}</Text>}
+
+          {/* ── Club (optional, filtered by state) ── */}
+          <TouchableOpacity
+            onPress={() => selectedState ? setClubModal(true) : Alert.alert('Select state first')}
+            activeOpacity={0.8}
+          >
+            <View pointerEvents="none">
+              <Field>
+                <TextInput
+                  label={clubsLoading ? 'Loading clubs…' : 'Club *'}
+                  value={selectedClub?.clubName || ''}
+                  mode="outlined"
+                  theme={{ roundness: 12 }}
+                  outlineColor="transparent"
+                  activeOutlineColor="#1976D2"
+                  style={[styles.input, !selectedState && { opacity: 0.5 }]}
+                  editable={false}
+                />
+              </Field>
+            </View>
+          </TouchableOpacity>
+
+          {errors.club && (
           <Text style={styles.error}>{errors.club}</Text>
         )}
         <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
-          <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
-            contentStyle={{ width: menuWidth }}
-            anchor={
-              <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
-                <View pointerEvents="none">
-                  <TextInput label="Gender *" value={formData.gender} mode="outlined"
-                    theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-                    style={styles.input} editable={false} />
-                </View>
-              </TouchableOpacity>
-            }>
-            <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
-            <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
-            <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
-          </Menu>
-        </View>
-        {errors.gender && <Text style={styles.error}>{errors.gender}</Text>}
-
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <View pointerEvents="none">
-            <TextInput label="Date of Birth *" value={formData.dateOfBirth} mode="outlined"
-              theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-              style={styles.input} editable={false} />
+            <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
+              contentStyle={{ width: menuWidth }}
+              anchor={
+                <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
+                  <View pointerEvents="none">
+                    <Field>
+                      <TextInput label="Gender *" value={formData.gender} mode="outlined"
+                        theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2"
+                        style={styles.input} editable={false} />
+                    </Field>
+                  </View>
+                </TouchableOpacity>
+              }>
+              <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
+              <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
+              <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
+            </Menu>
           </View>
-        </TouchableOpacity>
-        {errors.dateOfBirth && <Text style={styles.error}>{errors.dateOfBirth}</Text>}
-        {showDatePicker && (
-          <DateTimePicker value={selectedDate || new Date()} mode="date" display="default"
-            minimumDate={minDate} maximumDate={today}
-            onChange={(event, date) => {
-              setShowDatePicker(false);
-              if (event.type === 'set' && date) {
-                setSelectedDate(date);
-                setFormData((prev) => ({
-                  ...prev,
-                  dateOfBirth: formatDate(date),
-                  age: calculateAge(date),
-                }));
-              }
-            }} />
-        )}
+          {errors.gender && <Text style={styles.error}>{errors.gender}</Text>}
 
-        <TextInput label="Age *" value={formData.age}
-          keyboardType="numeric" mode="outlined" theme={{ roundness: 10 }}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
-        {errors.age && <Text style={styles.error}>{errors.age}</Text>}
+          <TouchableOpacity onPress={() => setShowDatePicker(true)}>
+            <View pointerEvents="none">
+              <Field>
+                <TextInput label="Date of Birth *" value={formData.dateOfBirth} mode="outlined"
+                  theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2"
+                  style={styles.input} editable={false} />
+              </Field>
+            </View>
+          </TouchableOpacity>
+          {errors.dateOfBirth && <Text style={styles.error}>{errors.dateOfBirth}</Text>}
+          {showDatePicker && (
+            <DateTimePicker value={selectedDate || new Date()} mode="date" display="default"
+              minimumDate={minDate} maximumDate={today}
+              onChange={(event, date) => {
+                setShowDatePicker(false);
+                if (event.type === 'set' && date) {
+                  setSelectedDate(date);
+                  setFormData((prev) => ({
+                    ...prev,
+                    dateOfBirth: formatDate(date),
+                    age: calculateAge(date),
+                  }));
+                }
+              }} />
+          )}
 
-        {/* <TextInput label="Place *" value={formData.place} onChangeText={(t) => updateField('place', t)}
-          mode="outlined" theme={{ roundness: 10 }} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.place && <Text style={styles.error}>{errors.place}</Text>}*/}
+          <Field>
+            <TextInput label="Age *" value={formData.age}
+              keyboardType="numeric" mode="outlined" theme={{ roundness: 12 }}
+              outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
+          </Field>
+          {errors.age && <Text style={styles.error}>{errors.age}</Text>}
 
-        {/* ── Occupation ── */}
-        <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
-          <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
-            contentStyle={{ width: occupationMenuWidth }}
-            anchor={
-              <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
-                <View pointerEvents="none">
-                  <TextInput label="Occupation *" value={occupation} mode="outlined"
-                    theme={{ roundness: 10 }}
-                    outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
-                    activeOutlineColor="#1976D2"
-                    style={styles.input} editable={false} />
-                </View>
-              </TouchableOpacity>
-            }>
-            {OCCUPATION_OPTIONS.map((opt) => (
-              <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
-            ))}
-          </Menu>
-        </View>
-        {errors.occupation && <Text style={styles.error}>{errors.occupation}</Text>}
-
-        {/* ── Occupation Details (Employed / Self Employed only) ── */}
-        {showOccupationDetails && (
-          <View style={styles.sectionBox}>
-            <Text style={styles.sectionTitle}>Occupation Details</Text>
-            <TextInput
-              label="Occupation Details *"
-              value={occupationDetails}
-              onChangeText={setOccupationDetails}
-              multiline mode="outlined" theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-            {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
+          {/* ── Occupation ── */}
+          <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
+            <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
+              contentStyle={{ width: occupationMenuWidth }}
+              anchor={
+                <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                  <View pointerEvents="none">
+                    <Field>
+                      <TextInput label="Occupation *" value={occupation} mode="outlined"
+                        theme={{ roundness: 12 }}
+                        outlineColor="transparent"
+                        activeOutlineColor="#1976D2"
+                        style={styles.input} editable={false} />
+                    </Field>
+                  </View>
+                </TouchableOpacity>
+              }>
+              {OCCUPATION_OPTIONS.map((opt) => (
+                <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+              ))}
+            </Menu>
           </View>
-        )}
+          {errors.occupation && <Text style={styles.error}>{errors.occupation}</Text>}
 
-        {/* ── Educational Qualification (shown for any occupation once selected) ── */}
-        {showEducationSection && (
-          <View style={styles.sectionBox}>
-            <Text style={styles.sectionTitle}>Educational Qualification</Text>
-            <TextInput
-              label="Educational Qualification *"
-              value={qualification}
-              placeholder="e.g., Diploma-Civil Engineering"
-              onChangeText={setQualification}
-              mode="outlined" theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-            {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
-          </View>
-        )}
-
-        {/* Profile Photo */}
-        <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
-        <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
-          {profilePhoto ? (
-            <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderIcon}>👤</Text>
+          {/* ── Occupation Details (Employed / Self Employed only) ── */}
+          {showOccupationDetails && (
+            <View style={styles.sectionBox}>
+              <Text style={styles.sectionTitle}>Occupation Details</Text>
+              <Field>
+                <TextInput
+                  label="Occupation Details *"
+                  value={occupationDetails}
+                  onChangeText={setOccupationDetails}
+                  multiline mode="outlined" theme={{ roundness: 12 }}
+                  outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+              </Field>
+              {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
             </View>
           )}
-          <View style={styles.photoPickerText}>
-            <Text style={styles.photoPickerTitle}>
-              {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
-            </Text>
-            <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
-          </View>
-        </TouchableOpacity>
 
-        <Button mode="contained" onPress={handleSignup} loading={loading} style={styles.button} labelStyle={{ fontSize: 16 }}>
-          Register
-        </Button>
-      </View>
+          {/* ── Educational Qualification (shown for any occupation once selected) ── */}
+          {showEducationSection && (
+            <View style={styles.sectionBox}>
+              <Text style={styles.sectionTitle}>Educational Qualification</Text>
+              <Field>
+                <TextInput
+                  label="Educational Qualification *"
+                  value={qualification}
+                  placeholder="e.g., Diploma-Civil Engineering"
+                  onChangeText={setQualification}
+                  mode="outlined" theme={{ roundness: 12 }}
+                  outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+              </Field>
+              {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
+            </View>
+          )}
 
-      <Button mode="text" onPress={() => navigation.navigate('Login')} style={styles.linkButton}>
-        Already have an account? Login
-      </Button>
-      {/* ── Country Modal ── */}
-      <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select Country</Text>
-            <FlatList
-              data={countries}
-              keyExtractor={item => String(item.countryId)}
-              style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.pickerItem}
-                  onPress={() => {
-                    setSelectedCountry(item);
-                    setCountryModal(false);
-                    loadStates(item.countryId);
-                  }}
-                >
-                  <Text style={styles.pickerItemText}>{item.countryName}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
-            />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Profile Photo */}
+          <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
+          <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
+            {profilePhoto ? (
+              <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Text style={styles.photoPlaceholderIcon}>👤</Text>
+              </View>
+            )}
+            <View style={styles.photoPickerText}>
+              <Text style={styles.photoPickerTitle}>
+                {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
+              </Text>
+              <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
+            </View>
+          </TouchableOpacity>
+
+          <Button
+  mode="contained"
+  onPress={handleSignup}
+  loading={loading}
+  style={styles.button}
+  labelStyle={styles.buttonLabel}
+>
+  Register
+</Button>
         </View>
-      </Modal>
 
-      {/* ── State Modal ── */}
-      <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select State</Text>
-            <FlatList
-              data={states}
-              keyExtractor={item => String(item.stateId)}
-              style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.pickerItem}
-                  onPress={() => {
-                    setSelectedState(item);
-                    setStateModal(false);
-                    loadClubsByState(item.stateId);
-                  }}
-                >
-                  <Text style={styles.pickerItemText}>{item.stateName}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
-            />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setStateModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
+        <Button
+  mode="text"
+  onPress={() => navigation.navigate('Login')}
+  style={styles.linkButton}
+  labelStyle={styles.linkButtonLabel}
+>
+  Already have an account? Login
+</Button>
+
+        {/* ── Country Modal ── */}
+        <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
+          <View style={styles.pickerOverlay}>
+            <View style={styles.pickerSheet}>
+              <Text style={styles.pickerTitle}>Select Country</Text>
+              <FlatList
+                data={countries}
+                keyExtractor={item => String(item.countryId)}
+                style={{ maxHeight: 380 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      setSelectedCountry(item);
+                      setCountryModal(false);
+                      loadStates(item.countryId);
+                    }}
+                  >
+                    <Text style={styles.pickerItemText}>{item.countryName}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
+              />
+              <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryModal(false)}>
+                <Text style={styles.pickerCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* ── Club Modal ── */}
-      <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select Club</Text>
-            <FlatList
-              data={clubs}
-              keyExtractor={item => String(item.clubId)}
-              style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.pickerItem, selectedClub?.clubId === item.clubId && styles.pickerItemActive]}
-                  onPress={() => {
-                    setSelectedClub(item);
-                    setClubModal(false);
+        {/* ── State Modal ── */}
+        <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
+          <View style={styles.pickerOverlay}>
+            <View style={styles.pickerSheet}>
+              <Text style={styles.pickerTitle}>Select State</Text>
+              <FlatList
+                data={states}
+                keyExtractor={item => String(item.stateId)}
+                style={{ maxHeight: 380 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      setSelectedState(item);
+                      setStateModal(false);
+                      loadClubsByState(item.stateId);
+                    }}
+                  >
+                    <Text style={styles.pickerItemText}>{item.stateName}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
+              />
+              <TouchableOpacity style={styles.pickerCancel} onPress={() => setStateModal(false)}>
+                <Text style={styles.pickerCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
+        {/* ── Club Modal ── */}
+        <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
+          <View style={styles.pickerOverlay}>
+            <View style={styles.pickerSheet}>
+              <Text style={styles.pickerTitle}>Select Club</Text>
+              <FlatList
+                data={clubs}
+                keyExtractor={item => String(item.clubId)}
+                style={{ maxHeight: 380 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.pickerItem, selectedClub?.clubId === item.clubId && styles.pickerItemActive]}
+                    onPress={() => {
+                      setSelectedClub(item);
+                      setClubModal(false);
+  
                     setErrors(prev => ({
                       ...prev,
                       club: undefined,
                     }));
                   }}
-                >
-                  <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
-                    {item.clubName}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
-            />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
+                  >
+                    <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
+                      {item.clubName}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
+              />
+              <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
+                <Text style={styles.pickerCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
+    </View>
   );
 };
 

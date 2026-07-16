@@ -3,17 +3,32 @@ import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView
 import { useAuth } from '../context/AuthContext';
 import { chatService } from '../services/chatService';
 import { ChatScreenStyles as styles } from './screenStyles';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const POLL_INTERVAL_MS = 3000;
 
 const ChatScreen = ({ navigation, route }) => {
-  const { conversationId, otherMemberName } = route.params || {};
+  const {
+    conversationId:   initialConversationId,
+    otherMemberName,
+    otherMemberEmail,
+    otherMemberId,
+  } = route.params || {};
   const { user } = useAuth();
+
+  // ✅ Hooks must be called INSIDE the component body, never at module top-level.
+  const insets = useSafeAreaInsets();
+  const bottomPad = Math.max(insets.bottom, 8) + 8;
+
+  // Local, mutable copy — becomes a real id once the conversation is created
+  // (brand-new chats start with conversationId === null).
+  const [conversationId, setConversationId] = useState(initialConversationId || null);
 
   const [messages,    setMessages]    = useState([]);
   const [inputText,   setInputText]   = useState('');
   const [sending,     setSending]     = useState(false);
-  const [initialLoad, setInitialLoad] = useState(true);
+  // Only show the spinner if we actually have a conversation to fetch.
+  const [initialLoad, setInitialLoad] = useState(!!initialConversationId);
 
   const flatListRef  = useRef(null);
   const pollTimerRef = useRef(null);
@@ -22,8 +37,15 @@ const ChatScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     isMounted.current = true;
-    loadMessages(true);
 
+    // Brand-new chat — nothing exists yet, don't call the API.
+    if (!conversationId) {
+      setMessages([]);
+      setInitialLoad(false);
+      return () => { isMounted.current = false; };
+    }
+
+    loadMessages(true);
     pollTimerRef.current = setInterval(pollNewMessages, POLL_INTERVAL_MS);
 
     return () => {
@@ -33,6 +55,7 @@ const ChatScreen = ({ navigation, route }) => {
   }, [conversationId]);
 
   const loadMessages = async (isInitial = false) => {
+    if (!conversationId) return; // guard: no conversation to fetch yet
     try {
       const res = await chatService.getMessages(conversationId, 1, 100);
       if (!isMounted.current) return;
@@ -51,6 +74,7 @@ const ChatScreen = ({ navigation, route }) => {
   };
 
   const pollNewMessages = async () => {
+    if (!conversationId) return; // guard: no conversation to poll yet
     try {
       const res = await chatService.getMessages(conversationId, 1, 100);
       if (!isMounted.current) return;
@@ -70,50 +94,73 @@ const ChatScreen = ({ navigation, route }) => {
   };
 
   const handleSend = async () => {
-    const text = inputText.trim();
-    if (!text || sending) return;
+    debugger;
+  const text = inputText.trim();
+  if (!text || sending) return;
 
-    setInputText('');
-    setSending(true);
+  setInputText('');
+  setSending(true);
 
-    const clientTime = new Date().toISOString();
+  const clientTime = new Date().toISOString();
 
-    // Optimistic update with client local time
-    const tempId = Date.now() * -1;
-    const optimistic = {
-      messageId:      tempId,
-      conversationId,
-      senderId:       user?.memberId ?? 0,
-      senderName:     user?.fullName ?? 'Me',
-      messageText:    text,
-      sentDate:       clientTime,
-      isRead:         false,
-      isOwn:          true,
-    };
-    setMessages(prev => [...prev, optimistic]);
-    setTimeout(() => scrollToBottom(), 50);
+  // Optimistic update with client local time
+  const tempId = Date.now() * -1;
+  const optimistic = {
+    messageId:      tempId,
+    conversationId,
+    senderId:       user?.memberId ?? 0,
+    senderName:     user?.fullName ?? 'Me',
+    messageText:    text,
+    sentDate:       clientTime,
+    isRead:         false,
+    isOwn:          true,
+  };
+  setMessages(prev => [...prev, optimistic]);
+  setTimeout(() => scrollToBottom(), 50);
 
-    try {
-      const res = await chatService.sendMessage(conversationId, text, clientTime);
-      if (res.success) {
-        // Replace optimistic message with real one
-        setMessages(prev =>
-          prev.map(m =>
-            m.messageId === tempId
-              ? { ...m, messageId: res.data?.messageId ?? tempId, sentDate: res.data?.sentDate ?? m.sentDate }
-              : m
-          )
-        );
-        latestIdRef.current = res.data?.messageId ?? latestIdRef.current;
-      } else {
-        // Remove failed optimistic message
-        setMessages(prev => prev.filter(m => m.messageId !== tempId));
+  try {
+    debugger;
+    let activeConversationId = conversationId;
+
+    // First message of a brand-new chat -> get-or-create the conversation now.
+    if (!activeConversationId) {
+      if (!otherMemberId) {
+        throw new Error('Missing otherMemberId — cannot start conversation');
       }
-    } catch (_) {
-      setMessages(prev => prev.filter(m => m.messageId !== tempId));
-    } finally {
-      setSending(false);
+      const createRes = await chatService.getOrCreateConversation(otherMemberId);
+      if (!createRes.success || !createRes.data?.conversationId) {
+        throw new Error('Could not start conversation');
+      }
+      activeConversationId = createRes.data.conversationId;
+      setConversationId(activeConversationId);
     }
+
+    const res = await chatService.sendMessage(activeConversationId, text, clientTime);
+    if (res.success) {
+      // Replace optimistic message with real one
+      setMessages(prev =>
+        prev.map(m =>
+          m.messageId === tempId
+            ? { ...m, messageId: res.data?.messageId ?? tempId, sentDate: res.data?.sentDate ?? m.sentDate }
+            : m
+        )
+      );
+      latestIdRef.current = res.data?.messageId ?? latestIdRef.current;
+    } else {
+      // Remove failed optimistic message
+      setMessages(prev => prev.filter(m => m.messageId !== tempId));
+    }
+  } catch (_) {
+    setMessages(prev => prev.filter(m => m.messageId !== tempId));
+  } finally {
+    setSending(false);
+  }
+};
+
+  const formatTime = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr + (dateStr.endsWith('Z') ? '' : 'Z'));
+    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
   };
 
   const renderMessage = useCallback(({ item }) => {
@@ -134,14 +181,9 @@ const ChatScreen = ({ navigation, route }) => {
     );
   }, []);
 
-  const formatTime = (dateStr) => {
-    if (!dateStr) return '';
-    const d = new Date(dateStr + (dateStr.endsWith('Z') ? '' : 'Z'));
-    return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-  };
-
   return (
-    <View style={styles.container}>
+    // SafeAreaView (default edges) — matches the working LawBotScreen/Chat.js pattern.
+    <SafeAreaView style={styles.container}>
       <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
       {/* Header */}
@@ -159,34 +201,38 @@ const ChatScreen = ({ navigation, route }) => {
         </View>
       </View>
 
-      {/* Messages */}
-      {initialLoad ? (
-        <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#1E3A5F" />
-        </View>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          keyExtractor={(item) => String(item.messageId)}
-          renderItem={renderMessage}
-          contentContainerStyle={styles.messageList}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={scrollToBottom}
-          ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              <Text style={styles.emptyText}>Say hello! 👋</Text>
-            </View>
-          }
-        />
-      )}
-
-      {/* Input bar */}
+      {/* Messages + input bar share one KeyboardAvoidingView so they move
+          together above the keyboard, same as LawBotScreen/Chat.js. */}
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={styles.inputBar}>
+        {initialLoad ? (
+          <View style={styles.centerBox}>
+            <ActivityIndicator size="large" color="#1E3A5F" />
+          </View>
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            keyExtractor={(item) => String(item.messageId)}
+            renderItem={renderMessage}
+            contentContainerStyle={styles.messageList}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={scrollToBottom}
+            style={{ flex: 1 }}
+            ListEmptyComponent={
+              <View style={styles.emptyWrap}>
+                <Text style={styles.emptyText}>
+                  {conversationId ? 'Say hello! 👋' : 'Say hello to start the conversation'}
+                </Text>
+              </View>
+            }
+          />
+        )}
+
+        {/* Input bar */}
+        <View style={[styles.inputBar, { paddingBottom: bottomPad }]}>
           <TextInput
             style={styles.textInput}
             value={inputText}
@@ -213,10 +259,8 @@ const ChatScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 };
-
-
 
 export default ChatScreen;
