@@ -29,27 +29,29 @@ const toPublicUrl = (filePath) => {
 };
 
 const VISIBILITY_OPTIONS = [
-  { value: 'Public(All Clubs)',  label: 'Public',  sub: 'All Clubs' },
+  { value: 'Public(All Clubs)', label: 'Public', sub: 'All Clubs' },
   { value: 'Private(This Club Only)', label: 'Private', sub: 'This Club Only' },
 ];
 
 const AddCircularScreen = ({ route, navigation }) => {
   const editData = route.params?.item;
-console.log(editData,"editData");
-  const [title,          setTitle]          = useState(editData?.title          || '');
-  const [description,    setDescription]    = useState(editData?.description    || '');
+  if (editData) {
+    console.log('Edit Data:', editData);
+  }
+  const [title, setTitle] = useState(editData?.title || '');
+  const [description, setDescription] = useState(editData?.description || '');
   const [circularNumber, setCircularNumber] = useState(editData?.circularNumber || '');
- // const [visibility,     setVisibility]     = useState(editData?.visibility     || 'All');
-  const [publishDate,    setPublishDate]    = useState(
+  // const [visibility,     setVisibility]     = useState(editData?.visibility     || 'All');
+  const [publishDate, setPublishDate] = useState(
     editData?.publishDate ? new Date(editData.publishDate) : new Date()
   );
-  const [visibility,          setVisibility]          = useState(editData?.visibility || 'Public(All Clubs)');
-  const [showPicker,          setShowPicker]          = useState(false);
-  const [saving,              setSaving]              = useState(false);
-  const [attachments,         setAttachments]         = useState([]);
+  const [visibility, setVisibility] = useState(editData?.visibility || 'Public(All Clubs)');
+  const [showPicker, setShowPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
-  const [fileViewer,          setFileViewer]          = useState({ visible: false, uri: null });
-
+  const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
+  const [errors, setErrors] = useState({});
   const formatDate = (date) => {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -89,7 +91,7 @@ console.log(editData,"editData");
         onPress: async () => {
           const result = await DocumentPicker.getDocumentAsync({
             type: ['application/pdf', 'application/msword',
-                   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
             copyToCacheDirectory: true,
             multiple: true,
           });
@@ -150,7 +152,17 @@ console.log(editData,"editData");
 
   const saveCircular = async () => {
     if (saving) return;
-    if (!title.trim()) { Alert.alert('Validation', 'Title is required.'); return; }
+    const validationErrors = {};
+
+    if (!title.trim()) {
+      validationErrors.title = 'Title is required';
+    }
+
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
     try {
       setSaving(true);
       const payload = {
@@ -198,11 +210,25 @@ console.log(editData,"editData");
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
 
           <Text style={styles.label}>Title *</Text>
+
           <TextInput
-            style={styles.input} value={title} onChangeText={setTitle}
-            placeholder="Enter title" placeholderTextColor="#CBD5E1"
+            style={styles.input}
+            value={title}
+            onChangeText={(text) => {
+              setTitle(text);
+
+              setErrors(prev => ({
+                ...prev,
+                title: '',
+              }));
+            }}
+            placeholder="Enter title"
+            placeholderTextColor="#CBD5E1"
           />
 
+          {errors.title ? (
+            <Text style={styles.error}>{errors.title}</Text>
+          ) : null}
           <Text style={styles.label}>Description</Text>
           <TextInput
             style={[styles.input, { height: 100, textAlignVertical: 'top', paddingTop: 12 }]}
@@ -279,7 +305,7 @@ console.log(editData,"editData");
             {existingAttachments.map((a) => {
               const uri = a.filePath;
               const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+                a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
               return (
                 <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
                   <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(uri, isImage ? 'image' : 'file')}>

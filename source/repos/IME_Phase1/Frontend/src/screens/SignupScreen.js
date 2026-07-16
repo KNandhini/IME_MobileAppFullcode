@@ -128,7 +128,16 @@ const SignupScreen = ({ navigation, route }) => {
     let v = value;
     if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
     else if (field === 'email') v = value.slice(0, 100);
-    else if (field === 'contactNumber') v = value.replace(/[^0-9]/g, '').slice(0, 10);
+    else if (field === 'contactNumber') {
+      v = value.replace(/[^0-9]/g, '');
+
+      // First digit cannot be 0 or 1
+      if (v.length === 1 && (v.startsWith('0') || v.startsWith('1'))) {
+        return;
+      }
+
+      v = v.slice(0, 10);
+    }
     else if (field === 'age') v = value.replace(/[^0-9]/g, '').slice(0, 3);
     else if (field === 'address') v = value.replace(/[^A-Za-z0-9\s,./-]/g, '').slice(0, 250);
     setFormData((prev) => ({ ...prev, [field]: v }));
@@ -166,15 +175,19 @@ const SignupScreen = ({ navigation, route }) => {
     else if (!/^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,}$/.test(formData.password)) e.password = 'Min 6 chars, 1 number & 1 special char';
     if (!formData.confirmPassword) e.confirmPassword = 'Required';
     else if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Passwords do not match';
-    if (!formData.contactNumber) e.contactNumber = 'Required';
-    else if (!/^[0-9]{10}$/.test(formData.contactNumber)) e.contactNumber = 'Must be 10 digits';
+    if (!formData.contactNumber.trim()) {
+      e.contactNumber = 'Contact number is required';
+    } else if (!/^[2-9][0-9]{9}$/.test(formData.contactNumber)) {
+      e.contactNumber =
+        'Please enter a valid 10-digit mobile number. It cannot start with 0 or 1.';
+    }
     if (!formData.address) e.address = 'Required';
     if (!formData.gender) e.gender = 'Required';
     if (!formData.age) e.age = 'Required';
     if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
     if (!selectedCountry) e.country = 'Required';
     if (!selectedState) e.state = 'Required';
-
+    if (!selectedClub) e.club = 'Please select a club';
     if (!occupation) e.occupation = 'Required';
 
     if (showOccupationDetails) {
@@ -332,13 +345,28 @@ const SignupScreen = ({ navigation, route }) => {
               style={styles.input} />
           </Field>
           {errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
-
           <Field>
-            <TextInput label="Contact Number *" value={formData.contactNumber} onChangeText={(t) => updateField('contactNumber', t)}
-              keyboardType="numeric" mode="outlined" theme={{ roundness: 12 }}
-              outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+            <TextInput
+          label="Contact Number *"
+          value={formData.contactNumber}
+          onChangeText={(t) => updateField('contactNumber', t)}
+              keyboardType="number-pad"
+          maxLength={10}
+          autoComplete="tel"
+          textContentType="telephoneNumber"
+          mode="outlined"
+          theme={{ roundness: 12 }}
+              outlineColor="transparent"
+          activeOutlineColor="#1976D2"
+          style={styles.input}
+        />
           </Field>
-          {errors.contactNumber && <Text style={styles.error}>{errors.contactNumber}</Text>}
+  
+        {errors.contactNumber && (
+          <Text style={styles.error}>
+            {errors.contactNumber}
+          </Text>
+        )}
 
           <Field>
             <TextInput label="Address *" value={formData.address} onChangeText={(t) => updateField('address', t)}
@@ -409,7 +437,10 @@ const SignupScreen = ({ navigation, route }) => {
             </View>
           </TouchableOpacity>
 
-          <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
+          {errors.club && (
+          <Text style={styles.error}>{errors.club}</Text>
+        )}
+        <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
             <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
               contentStyle={{ width: menuWidth }}
               anchor={
@@ -633,7 +664,12 @@ const SignupScreen = ({ navigation, route }) => {
                     onPress={() => {
                       setSelectedClub(item);
                       setClubModal(false);
-                    }}
+  
+                    setErrors(prev => ({
+                      ...prev,
+                      club: undefined,
+                    }));
+                  }}
                   >
                     <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
                       {item.clubName}
