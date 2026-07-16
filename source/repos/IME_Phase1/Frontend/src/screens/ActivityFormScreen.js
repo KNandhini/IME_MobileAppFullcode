@@ -113,6 +113,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
     visibility: 'Public(All Clubs)',
   });
   const [activityDate, setActivityDate] = useState(null);
+  const [errors, setErrors] = useState({});
   const [registrationDeadline, setRegistrationDeadline] = useState(null);
 
   useEffect(() => {
@@ -173,7 +174,10 @@ const ActivityFormScreen = ({ route, navigation }) => {
     }
   };
 
-  const update = (field, value) => setFormData((p) => ({ ...p, [field]: value }));
+  const update = (field, value) => {
+    setFormData((p) => ({ ...p, [field]: value }));
+    setErrors((p) => (p[field] ? { ...p, [field]: null } : p));
+  };
 
   const handlePickAttachment = async () => {
     const totalCount = existingAttachments.length + attachments.length;
@@ -276,18 +280,13 @@ const ActivityFormScreen = ({ route, navigation }) => {
   };
 
   const handleSave = async () => {
-    if (
-      !formData.activityName.trim() ||
-      !formData.description.trim() ||
-      !formData.venue.trim()
-    ) {
-      Alert.alert('Error', 'Activity name, description and venue are required.');
-      return;
-    }
-    if (!activityDate) {
-      Alert.alert('Error', 'Activity date is required.');
-      return;
-    }
+    const e = {};
+    if (!formData.activityName.trim()) e.activityName = 'Title is required.';
+    if (!formData.description.trim())  e.description  = 'Description is required.';
+    if (!formData.venue.trim())        e.venue        = 'Venue is required.';
+    if (!activityDate)                 e.activityDate = 'Activity date is required.';
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
 
     setSaving(true);
     try {
@@ -386,6 +385,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
                 activeOutlineColor={NAVY}
                 style={styles.input}
               />
+              {errors.activityName && <Text style={styles.error}>{errors.activityName}</Text>}
               <TextInput
                 label="Description *"
                 value={formData.description}
@@ -398,6 +398,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
                 activeOutlineColor={NAVY}
                 style={styles.input}
               />
+              {errors.description && <Text style={styles.error}>{errors.description}</Text>}
               <TextInput
                 label="Venue *"
                 value={formData.venue}
@@ -408,6 +409,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
                 outlineColor="#BBDEFB"
                 activeOutlineColor={NAVY}
               />
+              {errors.venue && <Text style={styles.error}>{errors.venue}</Text>}
               <TextInput
                 label="Coordinator"
                 value={formData.coordinator}
@@ -449,9 +451,10 @@ const ActivityFormScreen = ({ route, navigation }) => {
               <DateField
                 label="Activity Date *"
                 value={activityDate}
-                onChange={setActivityDate}
+                onChange={(d) => { setActivityDate(d); if (errors.activityDate) setErrors(p => ({ ...p, activityDate: null })); }}
 
               />
+              {errors.activityDate && <Text style={styles.error}>{errors.activityDate}</Text>}
               <DateField
                 label="Registration Deadline"
                 value={registrationDeadline}

@@ -148,7 +148,7 @@ function SectionHeader({ icon, title, subtitle }) {
 }
 
 // ─── Field ────────────────────────────────────────────────────────────────────
-function Field({ label, required, children }) {
+function Field({ label, required, children, error }) {
   return (
     <View style={s.field}>
       <Text style={s.fieldLabel}>
@@ -156,6 +156,7 @@ function Field({ label, required, children }) {
         {required ? <Text style={{ color: C.red }}> *</Text> : null}
       </Text>
       {children}
+      {error ? <Text style={s.error}>{error}</Text> : null}
     </View>
   );
 }
@@ -207,6 +208,7 @@ export default function CreateFundScreen() {
   const [showStart,  setShowStart]  = useState(false);
   const [showEnd,    setShowEnd]    = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [errors,     setErrors]     = useState({});
 
   // ── Populate on edit ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -247,12 +249,14 @@ export default function CreateFundScreen() {
   }, []);
 
   // ── Helpers ───────────────────────────────────────────────────────────────
-  const set = (key, value) =>
+  const set = (key, value) => {
     setForm(prev => {
       const u = { ...prev, [key]: value };
       if (key === "targetAmount") u.balanceAmount = value;
       return u;
     });
+    setErrors(prev => (prev[key] ? { ...prev, [key]: null } : prev));
+  };
 
   // ── Pick multiple photos ──────────────────────────────────────────────────
   const pickPhotos = async () => {
@@ -362,21 +366,23 @@ export default function CreateFundScreen() {
 
   // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
-    if (!form.fullName.trim())          return "Full Name is required";
-    if (!form.fundTitle.trim())         return "Fund Title is required";
-    if (!form.targetAmount)             return "Target Amount is required";
+    const e = {};
+    if (!form.fullName.trim())          e.fullName = "Full Name is required";
+    if (!form.fundTitle.trim())         e.fundTitle = "Fund Title is required";
+    if (!form.targetAmount)             e.targetAmount = "Target Amount is required";
     if (
       form.minimumAmount &&
       Number(form.minimumAmount) > Number(form.targetAmount)
-    )                                   return "Minimum Amount cannot exceed Target Amount";
-    if (!bank.accountHolderName.trim()) return "Account Holder Name is required";
-    return null;
+    )                                   e.minimumAmount = "Minimum Amount cannot exceed Target Amount";
+    if (!bank.accountHolderName.trim()) e.accountHolderName = "Account Holder Name is required";
+    return e;
   };
 
   // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async () => {
     const err = validate();
-    if (err) return Alert.alert("Validation", err);
+    setErrors(err);
+    if (Object.keys(err).length > 0) return;
 
     setSubmitting(true);
     try {
@@ -487,7 +493,7 @@ export default function CreateFundScreen() {
           subtitle="Who needs support?"
         />
 
-        <Field label="Full Name" required>
+        <Field label="Full Name" required error={errors.fullName}>
           <TextInput
             style={s.input}
             placeholder="Enter full name"
@@ -567,7 +573,7 @@ export default function CreateFundScreen() {
           subtitle="Campaign information"
         />
 
-        <Field label="Fund Title" required>
+        <Field label="Fund Title" required error={errors.fundTitle}>
           <TextInput
             style={s.input}
             placeholder="Give your fund a clear title"
@@ -602,7 +608,7 @@ export default function CreateFundScreen() {
           />
         </Field>
 
-        <Field label="Target Amount (₹)" required>
+        <Field label="Target Amount (₹)" required error={errors.targetAmount}>
           <TextInput
             style={s.input}
             placeholder="0.00"
@@ -865,12 +871,12 @@ export default function CreateFundScreen() {
           subtitle="For fund transfer"
         />
 
-        <Field label="Account Holder Name" required>
+        <Field label="Account Holder Name" required error={errors.accountHolderName}>
           <TextInput
             style={s.input}
             placeholder="Name as per bank"
             value={bank.accountHolderName}
-            onChangeText={v => setBank(p => ({ ...p, accountHolderName: v }))}
+            onChangeText={v => { setBank(p => ({ ...p, accountHolderName: v })); setErrors(p => (p.accountHolderName ? { ...p, accountHolderName: null } : p)); }}
           />
         </Field>
 

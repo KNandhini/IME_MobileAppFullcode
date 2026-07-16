@@ -68,6 +68,7 @@ const [currentClubId, setCurrentClubId]     = useState(null);
   );
   const [showDate,    setShowDate]    = useState(false);
   const [loading,     setLoading]     = useState(false);
+  const [errors,      setErrors]      = useState({});
 
   // Attachments
   const [attachments,         setAttachments]         = useState([]);          // new (not yet uploaded)
@@ -172,11 +173,13 @@ const [currentClubId, setCurrentClubId]     = useState(null);
 
   // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = async () => {
-    debugger;
-    if (!jobTitle.trim())    { Alert.alert('Validation', 'Job Title is required.'); return; }
-    if (!companyName.trim()) { Alert.alert('Validation', 'Company Name is required.'); return; }
-    if (!location.trim())    { Alert.alert('Validation', 'Location is required.'); return; }
-    if (!contactInfo.trim()) { Alert.alert('Validation', 'Contact info is required.'); return; }
+    const e = {};
+    if (!jobTitle.trim())    e.jobTitle    = 'Job Title is required.';
+    if (!companyName.trim()) e.companyName = 'Company Name is required.';
+    if (!location.trim())    e.location    = 'Location is required.';
+    if (!contactInfo.trim()) e.contactInfo = 'Contact info is required.';
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
 
     setLoading(true);
     try {
@@ -258,14 +261,17 @@ const [currentClubId, setCurrentClubId]     = useState(null);
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
         {/* ── Fields ── */}
-        <TextInput label="Job Title *" value={jobTitle} onChangeText={setJobTitle}
+        <TextInput label="Job Title *" value={jobTitle} onChangeText={(t) => { setJobTitle(t); if (errors.jobTitle) setErrors(p => ({ ...p, jobTitle: null })); }}
           mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
+        {errors.jobTitle && <Text style={styles.error}>{errors.jobTitle}</Text>}
 
-        <TextInput label="Company Name *" value={companyName} onChangeText={setCompanyName}
+        <TextInput label="Company Name *" value={companyName} onChangeText={(t) => { setCompanyName(t); if (errors.companyName) setErrors(p => ({ ...p, companyName: null })); }}
           mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
+        {errors.companyName && <Text style={styles.error}>{errors.companyName}</Text>}
 
-        <TextInput label="Location *" value={location} onChangeText={setLocation}
+        <TextInput label="Location *" value={location} onChangeText={(t) => { setLocation(t); if (errors.location) setErrors(p => ({ ...p, location: null })); }}
           mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
+        {errors.location && <Text style={styles.error}>{errors.location}</Text>}
 
         <ChipSelector label="Employment Type *" options={EMPLOYMENT_TYPES}
           value={employmentType} onChange={setEmploymentType} />
@@ -289,8 +295,9 @@ const [currentClubId, setCurrentClubId]     = useState(null);
           mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY}
           style={styles.input} placeholder="e.g. 6–8 LPA" />
 
-        <TextInput label="If Interested, Please Contact *" value={contactInfo} onChangeText={setContactInfo}
+        <TextInput label="If Interested, Please Contact *" value={contactInfo} onChangeText={(t) => { setContactInfo(t); if (errors.contactInfo) setErrors(p => ({ ...p, contactInfo: null })); }}
           mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
+        {errors.contactInfo && <Text style={styles.error}>{errors.contactInfo}</Text>}
 
         {/* ── Vacancy Closing Date ── */}
         <TouchableOpacity style={styles.dateField} onPress={() => setShowDate(true)} activeOpacity={0.8}>

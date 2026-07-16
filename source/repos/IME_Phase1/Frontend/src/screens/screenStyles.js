@@ -840,8 +840,8 @@ export const AchievementDetailScreenStyles = (() => {
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
-  ...Common.lightboxSimple(),
-});
+    ...Common.lightboxSimple(),
+  });
 })();
 
 // AchievementFormScreen
@@ -853,43 +853,43 @@ const _AchievementFormScreenStyleBundle = (() => {
 
   return {
     AchievementFormScreenDrop: createScreenStyles({
-  wrapper: { marginBottom: 14 },
-  label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
-  trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
-  triggerError: { borderColor: '#EF4444' },
-  triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
-  placeholder: { color: '#CBD5E1' },
-  chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
-  errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
-  overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
-  sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
-  sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
-  sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
-  sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
-  option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
-  optionActive: { backgroundColor: '#EFF6FF' },
-  optionRow: { flexDirection: 'row', alignItems: 'center' },
-  optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
-  optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
-  optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  optionText: { fontSize: 15, color: '#334155', flex: 1 },
-  optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
-  
-}),
+      wrapper: { marginBottom: 14 },
+      label: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.6 },
+      trigger: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 4, paddingHorizontal: 14, paddingVertical: 14, borderWidth: 1, borderColor: '#BBDEFB' },
+      triggerError: { borderColor: '#EF4444' },
+      triggerText: { flex: 1, fontSize: 15, color: '#1E293B', fontWeight: '500' },
+      placeholder: { color: '#CBD5E1' },
+      chevron: { fontSize: 10, color: '#94A3B8', marginLeft: 8 },
+      errorText: { fontSize: 11, color: '#EF4444', marginTop: 4 },
+      overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)' },
+      sheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '60%', paddingBottom: 30 },
+      sheetHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' },
+      sheetTitle: { fontSize: 16, fontWeight: '700', color: '#0F172A' },
+      sheetClose: { fontSize: 18, color: '#94A3B8', fontWeight: '700' },
+      option: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F8FAFC' },
+      optionActive: { backgroundColor: '#EFF6FF' },
+      optionRow: { flexDirection: 'row', alignItems: 'center' },
+      optionPhoto: { width: 36, height: 36, borderRadius: 18, marginRight: 12, borderWidth: 1.5, borderColor: GOLD },
+      optionPhotoPlaceholder: { width: 36, height: 36, borderRadius: 18, marginRight: 12, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center' },
+      optionInitials: { color: '#fff', fontSize: 12, fontWeight: '700' },
+      optionText: { fontSize: 15, color: '#334155', flex: 1 },
+      optionTextActive: { color: '#1D4ED8', fontWeight: '600' },
+
+    }),
     AchievementFormScreenStyles: createScreenStyles({
-  root: { flex: 1, backgroundColor: '#F7F9FC' },
- root: { flex: 1, backgroundColor: '#F7F9FC' },
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  navSide: { minWidth: 64, paddingHorizontal: 4 },
-  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
-  body: { padding: 18, paddingBottom: 40 },
+      root: { flex: 1, backgroundColor: '#F7F9FC' },
+      root: { flex: 1, backgroundColor: '#F7F9FC' },
+      navbar: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        backgroundColor: NAVY,
+        paddingTop: (StatusBar.currentHeight || 0) + 6,
+        paddingBottom: 12, paddingHorizontal: 12,
+      },
+      navSide: { minWidth: 64, paddingHorizontal: 4 },
+      navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+      cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+      saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+      body: { padding: 18, paddingBottom: 40 },
 
       roleLoadingRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, paddingVertical: 14 },
       roleLoadingText: { marginLeft: 8, fontSize: 14, color: '#94A3B8' },
@@ -904,7 +904,12 @@ const _AchievementFormScreenStyleBundle = (() => {
 
       input: { marginBottom: 14, backgroundColor: '#fff' },
       inputReadOnly: { marginBottom: 14, backgroundColor: '#F1F5F9' },
-
+      error: {
+        color: 'red',
+        fontSize: 12,
+        marginBottom: 8,
+        marginLeft: 5,
+      },
       dateField: {
         flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
         borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
@@ -914,39 +919,39 @@ const _AchievementFormScreenStyleBundle = (() => {
       dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
       dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
 
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-  attachGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-    alignItems: 'center', marginBottom: 6,
-  },
-  gridThumb: {
-    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-  },
-  gridImg: { width: '100%', height: '100%' },
-  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon: { fontSize: 24 },
-  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  gridRemove: {
-    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-  },
-  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  gridAddBtn: {
-    width: 80, height: 80, borderRadius: 10, margin: 4,
-    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-  },
-  gridAddIcon: { fontSize: 22, marginBottom: 2 },
-  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
-  
-  saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-  },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+      attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+      attachGrid: {
+        flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+        borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+        alignItems: 'center', marginBottom: 6,
+      },
+      gridThumb: {
+        width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+        backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+      },
+      gridImg: { width: '100%', height: '100%' },
+      gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+      gridDocIcon: { fontSize: 24 },
+      gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+      gridRemove: {
+        position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+        borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+      },
+      gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+      gridAddBtn: {
+        width: 80, height: 80, borderRadius: 10, margin: 4,
+        borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+        alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+      },
+      gridAddIcon: { fontSize: 22, marginBottom: 2 },
+      gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+      attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+
+      saveBtn: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+      },
+      saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
       saveBtn: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -958,22 +963,22 @@ const _AchievementFormScreenStyleBundle = (() => {
       viewerImage: { width: '100%', height: '80%' },
       viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
       viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-    
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  navSide: { minWidth: 64, paddingHorizontal: 4 },
-  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
-}),
+
+      viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', justifyContent: 'center', alignItems: 'center' },
+      viewerImage: { width: '100%', height: '80%' },
+      viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+      viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+      navbar: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        backgroundColor: NAVY,
+        paddingTop: (StatusBar.currentHeight || 0) + 6,
+        paddingBottom: 12, paddingHorizontal: 12,
+      },
+      navSide: { minWidth: 64, paddingHorizontal: 4 },
+      navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+      cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+      saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+    }),
   };
 })();
 export const AchievementFormScreenDrop = _AchievementFormScreenStyleBundle.AchievementFormScreenDrop;
@@ -986,82 +991,82 @@ export const AchievementsScreenS = (() => {
   const NAVY = COLORS.navy;
 
   return createScreenStyles({
-  safe: { flex: 1, backgroundColor: '#F7F9FC' },
-  list: { padding: 16, paddingBottom: 90 },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    marginBottom: 12,
-    padding: 16,
-    shadowColor: '#1A202C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  badge: {
-    backgroundColor: '#FEF9EC',
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  badgeText: {
-    fontSize: 10,
-    color: '#B7791F',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  cardActions: { flexDirection: 'row', gap: 8 },
-  editBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 0.5,
-    borderColor: '#BFDBFE',
-  },
-  deleteBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 0.5,
-    borderColor: '#FECACA',
-  },
-  editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-  deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  photo: {
-    width: 52, height: 52, borderRadius: 26,
-    marginRight: 14, borderWidth: 2, borderColor: GOLD,
-  },
-  photoPlaceholder: {
-    width: 52, height: 52, borderRadius: 26,
-    marginRight: 14, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 2, borderColor: GOLD,
-  },
-  photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
-  textContainer: { flex: 1 },
-  memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-  achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
-  description: { fontSize: 13, color: '#718096', lineHeight: 18 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
-  date: { fontSize: 11, color: '#A0AEC0' },
-  centered: {
-    flex: 1, justifyContent: 'center',
-    alignItems: 'center', paddingVertical: 60,
-  },
-  loadingText: { fontSize: 14, color: '#64748B', fontWeight: '600', marginTop: 12 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#A0AEC0' },
-  fab: Common.fab({ zIndex: 100 }),
-  fabText: Common.fabText,
-});
+    safe: { flex: 1, backgroundColor: '#F7F9FC' },
+    list: { padding: 16, paddingBottom: 90 },
+    card: {
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      marginBottom: 12,
+      padding: 16,
+      shadowColor: '#1A202C',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+    cardTopRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 10,
+    },
+    badge: {
+      backgroundColor: '#FEF9EC',
+      borderRadius: 6,
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+    },
+    badgeText: {
+      fontSize: 10,
+      color: '#B7791F',
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.5,
+    },
+    cardActions: { flexDirection: 'row', gap: 8 },
+    editBtn: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+      borderWidth: 0.5,
+      borderColor: '#BFDBFE',
+    },
+    deleteBtn: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 6,
+      borderWidth: 0.5,
+      borderColor: '#FECACA',
+    },
+    editText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
+    deleteText: { fontSize: 12, color: '#EF4444', fontWeight: '600' },
+    cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+    photo: {
+      width: 52, height: 52, borderRadius: 26,
+      marginRight: 14, borderWidth: 2, borderColor: GOLD,
+    },
+    photoPlaceholder: {
+      width: 52, height: 52, borderRadius: 26,
+      marginRight: 14, alignItems: 'center', justifyContent: 'center',
+      borderWidth: 2, borderColor: GOLD,
+    },
+    photoPlaceholderText: { color: '#fff', fontSize: 18, fontWeight: '800' },
+    textContainer: { flex: 1 },
+    memberName: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
+    achTitle: { fontSize: 13, fontWeight: '600', color: '#4A5568', marginBottom: 4 },
+    description: { fontSize: 13, color: '#718096', lineHeight: 18 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 6, gap: 8 },
+    date: { fontSize: 11, color: '#A0AEC0' },
+    centered: {
+      flex: 1, justifyContent: 'center',
+      alignItems: 'center', paddingVertical: 60,
+    },
+    loadingText: { fontSize: 14, color: '#64748B', fontWeight: '600', marginTop: 12 },
+    emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
+    emptyText: { fontSize: 14, color: '#A0AEC0' },
+    fab: Common.fab({ zIndex: 100 }),
+    fabText: Common.fabText,
+  });
 })();
 
 // ActivitiesScreen
@@ -1100,9 +1105,9 @@ export const ActivitiesScreenStyles = (() => {
     emptyText: { fontSize: 16, color: '#94A3B8', fontWeight: '600' },
     emptyHint: { fontSize: 13, color: '#CBD5E1', marginTop: 8 },
 
-  fab: Common.fab(),
-  fabText: Common.fabText,
-});
+    fab: Common.fab(),
+    fabText: Common.fabText,
+  });
 })();
 
 // ActivityDetailScreen
@@ -1172,8 +1177,8 @@ export const ActivityDetailScreenStyles = (() => {
     },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
 
-  ...Common.lightboxSimple({ zIndex: 10 }),
-});
+    ...Common.lightboxSimple({ zIndex: 10 }),
+  });
 })();
 
 // ActivityFormScreen
@@ -1196,6 +1201,7 @@ export const ActivityFormScreenStyles = (() => {
     card: { margin: 12, elevation: 2 },
     sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
     input: { marginBottom: 10, backgroundColor: '#fff' },
+    error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
 
     dateInput: { borderWidth: 1, borderColor: '#888', borderRadius: 4, padding: 12, marginBottom: 10, backgroundColor: '#fff' },
     dateLabel: { fontSize: 12, color: '#555', marginBottom: 4 },
@@ -1331,6 +1337,7 @@ export const AddCircularScreenStyles = (() => {
     scrollContent: { padding: 20, paddingBottom: 52 },
     label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 16 },
     input: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
+    error: { color: 'red', fontSize: 12, marginTop: 4, marginBottom: 4, marginLeft: 5 },
 
     // ── Visibility Radio Buttons ──
     radioGroup: { gap: 10 },
@@ -1373,20 +1380,20 @@ export const AddCircularScreenStyles = (() => {
     radioSubSelected: { color: '#6B9CC7' },
     radioIcon: { fontSize: 20, marginLeft: 8 },
 
-  attachGrid     : { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
-  thumb          : { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  thumbImg       : { width: '100%', height: '100%' },
-  thumbDoc       : { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  thumbIcon      : { fontSize: 24 },
-  thumbName      : { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  thumbRemove    : { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
-  thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  thumbAdd       : { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-  thumbAddIcon   : { fontSize: 22, marginBottom: 2 },
-  thumbAddText   : { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint     : { fontSize: 11, color: '#94A3B8', marginTop: 6 },
-  ...Common.lightbox,
-});
+    attachGrid: { flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80, alignItems: 'center', marginTop: 4 },
+    thumb: { width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+    thumbImg: { width: '100%', height: '100%' },
+    thumbDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+    thumbIcon: { fontSize: 24 },
+    thumbName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+    thumbRemove: { position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center' },
+    thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+    thumbAdd: { width: 80, height: 80, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+    thumbAddIcon: { fontSize: 22, marginBottom: 2 },
+    thumbAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+    attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6 },
+    ...Common.lightbox,
+  });
 })();
 
 // AdminDashboardScreen
@@ -1684,8 +1691,8 @@ export const CircularDetailScreenStyles = (() => {
     downloadBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10 },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8, flex: 1 },
 
-  ...Common.lightboxSimple(),
-});
+    ...Common.lightboxSimple(),
+  });
 })();
 
 // CircularScreen
@@ -1743,10 +1750,10 @@ export const CircularScreenStyles = (() => {
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     emptyText: { fontSize: 16, color: '#999' },
 
-  /* FAB */
-  fab: Common.fab(),
-  fabText: Common.fabText,
-});
+    /* FAB */
+    fab: Common.fab(),
+    fabText: Common.fabText,
+  });
 })();
 
 // ClubFormScreen
@@ -1791,7 +1798,7 @@ export const ClubFormScreenStyles = (() => {
     selectorValue: { fontSize: 14, color: '#111', flex: 1 },
     selectorPlaceholder: { fontSize: 14, color: '#bbb', flex: 1 },
 
-    error: { color: '#D32F2F', fontSize: 12, marginTop: 4, marginBottom: 4, paddingHorizontal: 16 },
+    error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
 
     row: { flexDirection: 'row' },
 
@@ -1882,9 +1889,9 @@ export const ClubListScreenStyles = (() => {
     emptyIcon: { fontSize: 48, marginBottom: 12 },
     emptyText: { fontSize: 15, color: '#888' },
 
-  fab: Common.fab(),
-  fabText: Common.fabText,
-});
+    fab: Common.fab(),
+    fabText: Common.fabText,
+  });
 })();
 
 // ContentViewerScreen
@@ -2095,6 +2102,7 @@ export const CreateFundScreenS = (() => {
       fontSize: 12, fontWeight: "600", color: C.sub,
       marginBottom: 5, textTransform: "uppercase", letterSpacing: 0.4,
     },
+    error: { color: 'red', fontSize: 12, marginTop: 4, marginLeft: 5 },
 
     // Input
     input: {
@@ -2232,21 +2240,21 @@ export const CreateFundScreenS = (() => {
     sheetItemText: { fontSize: 15, color: "#333" },
     sheetItemTextActive: { color: C.teal, fontWeight: "600" },
 
-  // Submit
-  submitWrap:        { marginHorizontal: 14, marginTop: 14 },
-  uploadSummary: {
-    backgroundColor: C.amber + "22", borderRadius: 10,
-    padding: 10, marginBottom: 10, alignItems: "center",
-  },
-  uploadSummaryText: { color: C.amber, fontSize: 12, fontWeight: "600" },
-  submitBtn: {
-    backgroundColor: C.navy, borderRadius: 14, padding: 17, alignItems: "center",
-    shadowColor: C.navy, shadowOpacity: 0.35, shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 }, elevation: 6,
-  },
-  submitText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
-  
-});
+    // Submit
+    submitWrap: { marginHorizontal: 14, marginTop: 14 },
+    uploadSummary: {
+      backgroundColor: C.amber + "22", borderRadius: 10,
+      padding: 10, marginBottom: 10, alignItems: "center",
+    },
+    uploadSummaryText: { color: C.amber, fontSize: 12, fontWeight: "600" },
+    submitBtn: {
+      backgroundColor: C.navy, borderRadius: 14, padding: 17, alignItems: "center",
+      shadowColor: C.navy, shadowOpacity: 0.35, shadowRadius: 8,
+      shadowOffset: { width: 0, height: 4 }, elevation: 6,
+    },
+    submitText: { color: "#fff", fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+
+  });
 })();
 
 // CreatePostScreen
@@ -2942,11 +2950,11 @@ const _FundraiseListScreenStyleBundle = (() => {
       emptyBtn: { marginTop: 24, backgroundColor: PRIMARY, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 13 },
       emptyBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 
-  fab: Common.fab(),
-  fabText: Common.fabText,
-  statusBadge: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6 },
+      fab: Common.fab(),
+      fabText: Common.fabText,
+      statusBadge: { flexDirection: 'row', alignItems: 'center', borderRadius: 20, paddingHorizontal: 9, paddingVertical: 4, marginRight: 6 },
 
-}),
+    }),
     FundraiseListScreenAv: createScreenStyles({
       img: { width: 58, height: 58, borderRadius: 14, backgroundColor: '#E8ECF4', borderWidth: 1.5, borderColor: '#DDE3EF' },
       fallback: { width: 58, height: 58, borderRadius: 14, backgroundColor: '#D6E4F7', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#B8CEE8' },
@@ -3351,14 +3359,14 @@ export const JobPostingDetailScreenStyles = (() => {
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
 
-  ...Common.lightboxSimple(),
-});
+    ...Common.lightboxSimple(),
+  });
 })();
 
 // JobPostingFormScreen
 const _JobPostingFormScreenStyleBundle = (() => {
   const NAVY = COLORS.navy;
-const GOLD = COLORS.gold; 
+  const GOLD = COLORS.gold;
   return {
     JobPostingFormScreenChip: createScreenStyles({
       wrapper: { marginBottom: 14 },
@@ -3369,68 +3377,69 @@ const GOLD = COLORS.gold;
       chipText: { color: NAVY, fontSize: 13, fontWeight: '600' },
       chipTextActive: { color: '#fff' },
     }),
- JobPostingFormScreenStyles: createScreenStyles({
-  root: { flex: 1, backgroundColor: '#F7F9FC' },
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY,
-    paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  navSide: { minWidth: 64, paddingHorizontal: 4 },
-  navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-  cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-  saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+    JobPostingFormScreenStyles: createScreenStyles({
+      root: { flex: 1, backgroundColor: '#F7F9FC' },
+      navbar: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+        backgroundColor: NAVY,
+        paddingTop: (StatusBar.currentHeight || 0) + 6,
+        paddingBottom: 12, paddingHorizontal: 12,
+      },
+      navSide: { minWidth: 64, paddingHorizontal: 4 },
+      navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+      cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+      saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
 
-  body: { padding: 18, paddingBottom: 40 },
+      body: { padding: 18, paddingBottom: 40 },
 
-  input: { marginBottom: 14, backgroundColor: '#fff' },
+      input: { marginBottom: 14, backgroundColor: '#fff' },
+      error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
 
-  dateField: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
-    borderWidth: 1, borderColor: '#BBDEFB',
-  },
-  dateText: { flex: 1, marginLeft: 10 },
-  dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
+      dateField: {
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+        borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
+        borderWidth: 1, borderColor: '#BBDEFB',
+      },
+      dateText: { flex: 1, marginLeft: 10 },
+      dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
+      dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
 
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-  attachGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-    alignItems: 'center', marginBottom: 6,
-  },
-  gridThumb: {
-    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-  },
-  gridImg: { width: '100%', height: '100%' },
-  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon: { fontSize: 24 },
-  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  gridRemove: {
-    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-  },
-  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  gridAddBtn: {
-    width: 80, height: 80, borderRadius: 10, margin: 4,
-    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-  },
-  gridAddIcon: { fontSize: 22, marginBottom: 2 },
-  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+      attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+      attachGrid: {
+        flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+        borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+        alignItems: 'center', marginBottom: 6,
+      },
+      gridThumb: {
+        width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+        backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+      },
+      gridImg: { width: '100%', height: '100%' },
+      gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+      gridDocIcon: { fontSize: 24 },
+      gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+      gridRemove: {
+        position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+        borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+      },
+      gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+      gridAddBtn: {
+        width: 80, height: 80, borderRadius: 10, margin: 4,
+        borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+        alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+      },
+      gridAddIcon: { fontSize: 22, marginBottom: 2 },
+      gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+      attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
 
-  saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-  },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+      saveBtn: {
+        flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+        backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+      },
+      saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
 
-  ...Common.lightbox,
-}),
+      ...Common.lightbox,
+    }),
   };
 })();
 export const JobPostingFormScreenChip = _JobPostingFormScreenStyleBundle.JobPostingFormScreenChip;
@@ -3863,58 +3872,59 @@ export const MagazineFormScreenStyles = (() => {
   const NAVY = COLORS.navy;
 
   return createScreenStyles({
-  root: { flex: 1, backgroundColor: '#F7F9FC' },
-  header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
-    paddingBottom: 12, paddingHorizontal: 12,
-  },
-  headerBtn: { padding: 6, borderRadius: 20 },
-  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
-  body: { padding: 18, paddingBottom: 40 },
-  input: { marginBottom: 14, backgroundColor: '#fff' },
-  dateField: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
-    borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
-    borderWidth: 1, borderColor: '#BBDEFB',
-  },
-  dateText: { flex: 1, marginLeft: 10 },
-  dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
-  dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
-  attachGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
-    alignItems: 'center', marginBottom: 6,
-  },
-  gridThumb: {
-    width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
-    backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
-  },
-  gridImg: { width: '100%', height: '100%' },
-  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
-  gridDocIcon: { fontSize: 24 },
-  gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
-  gridRemove: {
-    position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
-  },
-  gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
-  gridAddBtn: {
-    width: 80, height: 80, borderRadius: 10, margin: 4,
-    borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
-  },
-  gridAddIcon: { fontSize: 22, marginBottom: 2 },
-  gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
-  saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
-  },
-  saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
-  ...Common.lightbox,
-});
+    root: { flex: 1, backgroundColor: '#F7F9FC' },
+    header: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
+      paddingBottom: 12, paddingHorizontal: 12,
+    },
+    headerBtn: { padding: 6, borderRadius: 20 },
+    headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+    body: { padding: 18, paddingBottom: 40 },
+    input: { marginBottom: 14, backgroundColor: '#fff' },
+    error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
+    dateField: {
+      flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
+      borderRadius: 10, padding: 14, marginBottom: 20, elevation: 1,
+      borderWidth: 1, borderColor: '#BBDEFB',
+    },
+    dateText: { flex: 1, marginLeft: 10 },
+    dateLabelText: { fontSize: 11, color: '#94A3B8', fontWeight: '600' },
+    dateValue: { fontSize: 14, color: NAVY, fontWeight: '600', marginTop: 2 },
+    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, letterSpacing: 0.6 },
+    attachGrid: {
+      flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+      borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 80,
+      alignItems: 'center', marginBottom: 6,
+    },
+    gridThumb: {
+      width: 80, height: 80, borderRadius: 10, margin: 4, overflow: 'hidden',
+      backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0',
+    },
+    gridImg: { width: '100%', height: '100%' },
+    gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 4 },
+    gridDocIcon: { fontSize: 24 },
+    gridDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 2 },
+    gridRemove: {
+      position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.55)',
+      borderRadius: 8, width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
+    },
+    gridRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+    gridAddBtn: {
+      width: 80, height: 80, borderRadius: 10, margin: 4,
+      borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
+      alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+    },
+    gridAddIcon: { fontSize: 22, marginBottom: 2 },
+    gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+    attachHint: { fontSize: 11, color: '#94A3B8', marginBottom: 20 },
+    saveBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: NAVY, borderRadius: 12, padding: 16, marginTop: 6,
+    },
+    saveBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+    ...Common.lightbox,
+  });
 })();
 
 // MagazinesScreen
@@ -3925,43 +3935,43 @@ export const MagazinesScreenS = (() => {
 
 
   return createScreenStyles({
-  safe: { flex: 1, backgroundColor: '#F7F9FC' },
-  list: { padding: 16, paddingBottom: 90 },
-  card: {
-    backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16,
-    shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
-  },
-  cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
-  badge: { backgroundColor: '#FEF9EC', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
-  badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  iconBotton: { padding: 4 },
-  cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
-  coverPlaceholder: {
-    width: 52, height: 68, borderRadius: 6, marginRight: 14,
-    backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
-  },
-  textContainer: { flex: 1 },
-  title: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
-  issue: { fontSize: 12, color: GOLD, fontWeight: '600', marginBottom: 2 },
-  author: { fontSize: 13, color: '#718096', marginBottom: 4 },
-  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 8 },
-  categoryPill: { backgroundColor: '#EFF6FF', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
-  categoryText: { fontSize: 10, color: '#2563EB', fontWeight: '600' },
-  date: { fontSize: 11, color: '#A0AEC0' },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
-  emptyText: { fontSize: 14, color: '#A0AEC0' },
-  fab: Common.fab({ zIndex: 100 }),
-  fabText: Common.fabText,
-  actionContainer: {
-  position: 'absolute',
-  top: 12,
-  right: 12,
-  flexDirection: 'row',
-  alignItems: 'center',
-},
+    safe: { flex: 1, backgroundColor: '#F7F9FC' },
+    list: { padding: 16, paddingBottom: 90 },
+    card: {
+      backgroundColor: '#fff', borderRadius: 16, marginBottom: 12, padding: 16,
+      shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+    },
+    cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+    badge: { backgroundColor: '#FEF9EC', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+    badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+    iconBotton: { padding: 4 },
+    cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
+    cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
+    coverPlaceholder: {
+      width: 52, height: 68, borderRadius: 6, marginRight: 14,
+      backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center',
+    },
+    textContainer: { flex: 1 },
+    title: { fontSize: 15, fontWeight: '700', color: '#1A202C', marginBottom: 2 },
+    issue: { fontSize: 12, color: GOLD, fontWeight: '600', marginBottom: 2 },
+    author: { fontSize: 13, color: '#718096', marginBottom: 4 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 8 },
+    categoryPill: { backgroundColor: '#EFF6FF', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 },
+    categoryText: { fontSize: 10, color: '#2563EB', fontWeight: '600' },
+    date: { fontSize: 11, color: '#A0AEC0' },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
+    emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
+    emptyText: { fontSize: 14, color: '#A0AEC0' },
+    fab: Common.fab({ zIndex: 100 }),
+    fabText: Common.fabText,
+    actionContainer: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
 
     iconButton: {
       padding: 4,
@@ -4196,6 +4206,7 @@ export const MemberEditScreenStyles = (() => {
     // Form
     field: { marginBottom: 14 },
     label: { fontSize: 12, color: '#555', fontWeight: '600', marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.4 },
+    error: { color: 'red', fontSize: 12, marginTop: 4, marginBottom: 0, marginLeft: 5 },
     input: {
       backgroundColor: '#fff',
       borderRadius: 10,
@@ -5659,8 +5670,9 @@ export const SetAnnualFeeScreenStyles = (() => {
     form: { backgroundColor: '#fff', margin: 16, borderRadius: 12, padding: 20, elevation: 2 },
     sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1E3A5F', marginBottom: 20 },
     label: { fontSize: 14, color: '#333', marginBottom: 6, fontWeight: '600' },
-    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 16, backgroundColor: '#fafafa' },
-    dateInput: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 16, backgroundColor: '#fafafa' },
+    input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 10, backgroundColor: '#fafafa' },
+    error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
+    dateInput: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, marginBottom: 10, backgroundColor: '#fafafa' },
     dateText: { fontSize: 15, color: '#333' },
     datePlaceholder: { fontSize: 15, color: '#aaa' },
     calendarIcon: { fontSize: 18 },
@@ -5837,8 +5849,8 @@ export const SupportDetailScreenStyles = (() => {
     thumbDocIcon: { fontSize: 28 },
     thumbDocName: { fontSize: 9, color: '#64748B', textAlign: 'center', marginTop: 4 },
 
-  ...Common.lightbox,
-});
+    ...Common.lightbox,
+  });
 })();
 
 // SupportScreen
@@ -5940,9 +5952,9 @@ const _SupportScreenStyleBundle = (() => {
       gridAddIcon: { fontSize: 22, marginBottom: 2 },
       gridAddText: { fontSize: 9, color: '#64748B', textAlign: 'center', fontWeight: '500' },
 
-  // File viewer
-  ...Common.lightbox,
-}),
+      // File viewer
+      ...Common.lightbox,
+    }),
     SupportScreenS: createScreenStyles({
       safe: { flex: 1, backgroundColor: '#F7F9FC' },
 
@@ -6130,8 +6142,8 @@ export const UserProfileScreenStyles = (() => {
 
     centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F2F5' },
 
-  emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
-  emptyIcon: { fontSize: 40, marginBottom: 10 },
-  emptyText: { fontSize: 15, color: '#888' },
-});
+    emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
+    emptyIcon: { fontSize: 40, marginBottom: 10 },
+    emptyText: { fontSize: 15, color: '#888' },
+  });
 })();

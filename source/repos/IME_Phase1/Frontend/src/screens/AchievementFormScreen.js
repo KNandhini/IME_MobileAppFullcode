@@ -131,7 +131,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
   const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
-
+  const [errors, setErrors] = useState({});
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const bootstrap = async () => {
@@ -239,12 +239,18 @@ const AchievementFormScreen = ({ route, navigation }) => {
   const handleMemberChange = (memberId) => {
     const found = members.find((m) => m.value === memberId);
     if (!found) return;
+
     setSelectedMemberId(memberId);
     setSelectedMemberName(found.label);
     setMemberImgError(false);
     setMemberPhotoUri(found.photoUri || null);
-  };
 
+    // Clear validation error
+    setErrors(prev => ({
+      ...prev,
+      member: '',
+    }));
+  };
   // ── Attachment picker ─────────────────────────────────────────────────────
   const handlePickAttachment = async () => {
     const totalUsed = existingAttachments.length + attachments.length;
@@ -299,14 +305,20 @@ const AchievementFormScreen = ({ route, navigation }) => {
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     // Title validation
+    console.log("selectedMemberId =", selectedMemberId);
+    const validationErrors = {};
+
     if (!title.trim()) {
-      Alert.alert("Validation", "Title is required.");
-      return;
+      validationErrors.title = 'Achievement title is required';
     }
 
-    // Member validation (Admin only)
-    if (userRole === "Admin" && !selectedMemberId) {
-      Alert.alert("Validation", "Please select a member.");
+    if (userRole === 'Admin' && !selectedMemberId) {
+      validationErrors.member = 'Please select a member';
+    }
+
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
       return;
     }
 
@@ -399,6 +411,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
             onChange={handleMemberChange}
             placeholder="Select person name"
             loading={membersLoading}
+            error={errors.member}
           />
         ) : (
           <TextInput
@@ -419,10 +432,19 @@ const AchievementFormScreen = ({ route, navigation }) => {
         )}
 
         {/* ── Title ── */}
+        <Text style={drop.label}>Achievement Title *</Text>
         <TextInput
-          label="Achievement Title *"
+          placeholder="Enter Achievement Title"
+
           value={title}
-          onChangeText={setTitle}
+          onChangeText={(text) => {
+            setTitle(text);
+
+            setErrors(prev => ({
+              ...prev,
+              title: '',
+            }));
+          }}
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
@@ -430,9 +452,17 @@ const AchievementFormScreen = ({ route, navigation }) => {
           style={styles.input}
         />
 
+        {errors.title && (
+          <Text style={styles.error}>
+            {errors.title}
+          </Text>
+        )}
+
         {/* ── Description ── */}
+        <Text style={drop.label}>Description</Text>
+
         <TextInput
-          label="Description"
+          placeholder="Enter Description"
           value={description}
           onChangeText={setDescription}
           mode="outlined"
@@ -441,7 +471,11 @@ const AchievementFormScreen = ({ route, navigation }) => {
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
           textColor="#1E3A5F"
-          style={styles.input}
+          style={[styles.input, { height: 120 }]}
+          contentStyle={{
+            textAlignVertical: 'top',
+            paddingTop: 12,
+          }}
         />
 
         {/* ── Date picker ── */}

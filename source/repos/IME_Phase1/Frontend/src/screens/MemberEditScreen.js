@@ -21,6 +21,7 @@ const MemberEditScreen = ({ route, navigation }) => {
 
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
+  const [errors,   setErrors]   = useState({});
   const [member,   setMember]   = useState(null);
   const [newPhoto, setNewPhoto] = useState(null); // { uri, fileName, mimeType }
   const [genderOpen, setGenderOpen] = useState(false);
@@ -130,14 +131,15 @@ const MemberEditScreen = ({ route, navigation }) => {
 
   // ── Save ─────────────────────────────────────────────────
   const handleSave = async () => {
+    const e = {};
     if (!form.fullName.trim()) {
-      Alert.alert('Validation', 'Full name is required.');
-      return;
+      e.fullName = 'Full name is required.';
     }
     if (form.contactNumber && !/^[0-9]{10}$/.test(form.contactNumber)) {
-      Alert.alert('Validation', 'Contact number must be 10 digits.');
-      return;
+      e.contactNumber = 'Contact number must be 10 digits.';
     }
+    setErrors(e);
+    if (Object.keys(e).length > 0) return;
 
     setSaving(true);
     try {
@@ -227,21 +229,21 @@ const MemberEditScreen = ({ route, navigation }) => {
       </View>
 
       {/* ── Editable fields ── */}
-      <Field label="Full Name *">
+      <Field label="Full Name *" error={errors.fullName}>
         <TextInput
           style={styles.input}
           value={form.fullName}
-          onChangeText={v => setForm(p => ({ ...p, fullName: v.replace(/[^A-Za-z\s]/g, '').slice(0, 150) }))}
+          onChangeText={v => { setForm(p => ({ ...p, fullName: v.replace(/[^A-Za-z\s]/g, '').slice(0, 150) })); if (errors.fullName) setErrors(p => ({ ...p, fullName: null })); }}
           placeholder="Full name"
           placeholderTextColor="#aaa"
         />
       </Field>
 
-      <Field label="Contact Number">
+      <Field label="Contact Number" error={errors.contactNumber}>
         <TextInput
           style={styles.input}
           value={form.contactNumber}
-          onChangeText={v => setForm(p => ({ ...p, contactNumber: v.replace(/[^0-9]/g, '').slice(0, 10) }))}
+          onChangeText={v => { setForm(p => ({ ...p, contactNumber: v.replace(/[^0-9]/g, '').slice(0, 10) })); if (errors.contactNumber) setErrors(p => ({ ...p, contactNumber: null })); }}
           placeholder="10-digit mobile number"
           placeholderTextColor="#aaa"
           keyboardType="numeric"
@@ -341,10 +343,11 @@ const MemberEditScreen = ({ route, navigation }) => {
   );
 };
 
-const Field = ({ label, children }) => (
+const Field = ({ label, children, error }) => (
   <View style={styles.field}>
     <Text style={styles.label}>{label}</Text>
     {children}
+    {error && <Text style={styles.error}>{error}</Text>}
   </View>
 );
 
