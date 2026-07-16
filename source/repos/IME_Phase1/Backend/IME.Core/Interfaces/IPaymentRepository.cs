@@ -13,4 +13,5 @@ public interface IPaymentRepository
     Task<List<PaymentAllDTO>> GetAllPaymentsAsync(int pageNumber, int pageSize);
     Task<(bool success, string email, string fullName, string error)> CompleteRegistrationPaymentAsync(
         int memberId, int userId, int feeId, decimal amount, string paymentMode, string transactionRef);
+    Task<List<PaymentReportRowDTO>> GetPaymentReportByClubAsync(int clubId, DateTime startDate, DateTime endDate);
 }

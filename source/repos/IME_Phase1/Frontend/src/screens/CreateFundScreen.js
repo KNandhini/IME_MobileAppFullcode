@@ -9,13 +9,13 @@ import { fundraiseService } from "../services/fundraiseService";
 import { CreateFundScreenS as s } from './screenStyles';
 
 // ─── API Base ─────────────────────────────────────────────────────────────────
-//const API_BASE_URL = "http://10.0.2.2:51150/api";
-const API_BASE_URL = 'https://imei.co.in/api';
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+//const API_BASE_URL = 'https://imei.co.in/api';
 
 // Static file host (same host as API, no /api segment) — used to build direct
 // image URLs the same way AchievementFormScreen's buildPhotoUrl does.
-//const STATIC_BASE_URL = "http://10.0.2.2:51150";
-const STATIC_BASE_URL = "https://imei.co.in/api";
+const STATIC_BASE_URL = "http://10.0.2.2:51150";
+//const STATIC_BASE_URL = "https://imei.co.in/api";
 //const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
 /**   
  * Parse comma-separated DB string into raw path array.

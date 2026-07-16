@@ -7,7 +7,7 @@ import { memberService } from '../services/memberService';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MemberManagementScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ── same helper used in AchievementsScreen ────────────────────────────────────
 const blobToDataUri = (blob) => {
   if (!blob) return null;
@@ -22,7 +22,7 @@ const MemberManagementScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
-
+const insets = useSafeAreaInsets();
   // ── photoMap: memberId → data-URI (same pattern as AchievementsScreen) ──────
   const [photoMap, setPhotoMap] = useState({});
 
@@ -314,8 +314,9 @@ const MemberManagementScreen = ({ navigation }) => {
       <FAB
         icon="account-plus"
         label="Add Admin"
-        style={styles.fab}
+        style={[styles.fab,{ bottom: 24 + insets.bottom }]}
         color="#fff"
+        
         onPress={() => navigation.navigate('AdminSignup')}
       />
     </View>

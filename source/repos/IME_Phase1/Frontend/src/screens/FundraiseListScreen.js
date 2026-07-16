@@ -5,9 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fundraiseService } from '../services/fundraiseService';
 import api from '../utils/api'; // ✅ ADDED — needed to build API_BASE like AchievementDetailScreen
 import { FundraiseListScreenStyles as styles, FundraiseListScreenAv as av, FundraiseListScreenPb as pb } from './screenStyles';
-
-//const API_BASE_URL = 'http://10.0.2.2:51150/api';
-const API_BASE_URL = "https://imei.co.in/api"; // ✅ ADDED — same pattern as AchievementDetailScreen: derive the file-server base (without "/api") so raw "Uploads\..." paths can be turned into a directly-loadable static URL.
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+const API_BASE_URL = 'http://10.0.2.2:51150/api';
+//const API_BASE_URL = "https://imei.co.in/api"; // ✅ ADDED — same pattern as AchievementDetailScreen: derive the file-server base (without "/api") so raw "Uploads\..." paths can be turned into a directly-loadable static URL.
  //const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
 
 // ✅ ADDED — same pattern as AchievementDetailScreen: derive the file-server
@@ -231,7 +231,7 @@ const FundraiseListScreen = ({ navigation, route }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore,    setHasMore]    = useState(true);
   const pageRef = useRef(1);
-
+const insets = useSafeAreaInsets();
   // ── Load ──────────────────────────────────────────────────────────────────
   const loadData = async (reset = false) => {
     try {
@@ -395,7 +395,7 @@ const FundraiseListScreen = ({ navigation, route }) => {
       />
 
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab,{ bottom: 24 + insets.bottom }]}
         onPress={() => navigation.navigate('CreateFund')}
         activeOpacity={0.85}
       >

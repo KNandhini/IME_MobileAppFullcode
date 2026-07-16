@@ -8,8 +8,9 @@ import {
     Dimensions,
     Modal,
     ScrollView,
-    SafeAreaView,
+   // SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NumberedItem, BulletItem } from './Accordion';
@@ -215,7 +216,7 @@ const WelcomeCard = ({ onViewMore }) => {
                 onRequestClose={closeDetail}
             >
                 <View style={styles.modalOverlay}>
-                    <SafeAreaView style={styles.modalSheet}>
+                    <SafeAreaView style={styles.modalSheet} edges={['top']}>
                         {modalItem && (
                             <>
                                 <LinearGradient
