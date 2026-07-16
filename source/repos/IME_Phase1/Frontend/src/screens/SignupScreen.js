@@ -538,14 +538,25 @@ const SignupScreen = ({ navigation, route }) => {
             </View>
           </TouchableOpacity>
 
-          <Button mode="contained" onPress={handleSignup} loading={loading} style={styles.button} labelStyle={{ fontSize: 16 }}>
-            Register
-          </Button>
+          <Button
+  mode="contained"
+  onPress={handleSignup}
+  loading={loading}
+  style={styles.button}
+  labelStyle={styles.buttonLabel}
+>
+  Register
+</Button>
         </View>
 
-        <Button mode="text" onPress={() => navigation.navigate('Login')} style={styles.linkButton}>
-          Already have an account? Login
-        </Button>
+        <Button
+  mode="text"
+  onPress={() => navigation.navigate('Login')}
+  style={styles.linkButton}
+  labelStyle={styles.linkButtonLabel}
+>
+  Already have an account? Login
+</Button>
 
         {/* ── Country Modal ── */}
         <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>

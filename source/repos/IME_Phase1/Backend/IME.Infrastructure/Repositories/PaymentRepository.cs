@@ -179,4 +179,37 @@ public class PaymentRepository : IPaymentRepository
         }
         return (false, string.Empty, string.Empty, "No result returned");
     }
+    public async Task<List<PaymentReportRowDTO>> GetPaymentReportByClubAsync(int clubId, DateTime startDate, DateTime endDate)
+    {
+        var rows = new List<PaymentReportRowDTO>();
+
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetPaymentReportByClub", connection);
+        command.CommandTimeout = 300;
+
+        command.Parameters.AddWithValue("@ClubId", clubId);
+        command.Parameters.AddWithValue("@StartDate", startDate.Date);
+        command.Parameters.AddWithValue("@EndDate", endDate.Date);
+
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            rows.Add(new PaymentReportRowDTO
+            {
+                SNo = Convert.ToInt32(reader["SNo"]),          // ROW_NUMBER() comes back as bigint
+                MemberId = reader.GetInt32(reader.GetOrdinal("MemberId")),
+                Name = reader.GetString(reader.GetOrdinal("Name")),
+                JoiningDate = reader.IsDBNull(reader.GetOrdinal("JoiningDate"))
+                                    ? null
+                                    : reader.GetDateTime(reader.GetOrdinal("JoiningDate")),
+                PaymentAmount = reader.GetDecimal(reader.GetOrdinal("PaymentAmount")),
+                PaymentId = reader.IsDBNull(reader.GetOrdinal("PaymentId"))
+                    ? null
+                    : reader.GetString(reader.GetOrdinal("PaymentId")),
+                PaymentDate = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
+            });
+        }
+
+        return rows;
+    }
 }

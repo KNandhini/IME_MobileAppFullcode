@@ -1,5 +1,5 @@
 import api from '../utils/api';
-
+import { toSafeServiceError } from '../utils/errorHandler';
 export const paymentService = {
   createOrder: async (memberId) => {
     const response = await api.post('/payment/create-order', { memberId });
@@ -44,5 +44,21 @@ export const paymentService = {
       effectiveFrom,
     });
     return response.data;
+  },
+  getPaymentReport: async (clubId, startDate, endDate) => {
+    try {
+      debugger;
+      const response = await api.get('/payment/report', {
+        params: {
+          clubId,
+          startDate: startDate.toISOString(),
+          endDate:   endDate.toISOString(),
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('getPaymentReport error:', error);
+      return toSafeServiceError(error, { source: 'paymentService' });
+    }
   },
 };

@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { magazineService } from '../services/magazineService';
 import { MagazinesScreenS as s } from './screenStyles';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -84,7 +84,7 @@ const MagazinesScreen = ({ navigation }) => {
   const [magazines, setMagazines] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [userRole, setUserRole] = useState(null);
-
+const insets = useSafeAreaInsets();
   useFocusEffect(
     useCallback(() => {
       loadRole();
@@ -173,7 +173,7 @@ const handleEdit = (item) => {
 
       {userRole === 'Admin' && (
         <TouchableOpacity
-          style={s.fab}
+          style={[s.fab,{ bottom: 24 + insets.bottom }]}
           onPress={() => navigation.navigate('MagazineForm')}
           activeOpacity={0.85}
         >

@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ActivitiesScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -23,7 +24,7 @@ const ActivitiesScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.roleName === 'Admin';
-
+const insets = useSafeAreaInsets();
   useFocusEffect(useCallback(() => { loadActivities(); }, []));
 
   const loadActivities = async () => {
@@ -156,7 +157,7 @@ const ActivitiesScreen = ({ navigation }) => {
       />
     )}
     {isAdmin && (
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('ActivityForm')}>
+      <TouchableOpacity style={[styles.fab, { bottom: 24 + insets.bottom }]} onPress={() => navigation.navigate('ActivityForm')}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
     )}

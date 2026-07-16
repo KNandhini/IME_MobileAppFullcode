@@ -68,12 +68,16 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Forgot Password</Text>
-        <Text style={styles.subtitle}>
-          {step === 1 ? 'Enter your details to validate' : 'Enter new password'}
-        </Text>
-      </View>
+      <View style={styles.card}>
+
+    <View style={styles.header}>
+      <Text style={styles.title}>Forgot Password</Text>
+      <Text style={styles.subtitle}>
+        {step === 1
+          ? 'Enter your details to validate'
+          : 'Enter new password'}
+      </Text>
+    </View>
 
       {step === 1 ? (
         <View style={styles.form}>
@@ -97,14 +101,16 @@ const ForgotPasswordScreen = ({ navigation }) => {
           />
 
           <Button
-            mode="contained"
-            onPress={handleValidate}
-            loading={loading}
-            disabled={loading}
-            style={styles.button}
-          >
-            Validate
-          </Button>
+  mode="contained"
+  onPress={handleValidate}
+  loading={loading}
+  disabled={loading}
+  style={styles.button}
+  buttonColor="#1E3A5F"
+  textColor="#D4A017"
+>
+  Validate
+</Button>
         </View>
       ) : (
         <View style={styles.form}>
@@ -127,25 +133,30 @@ const ForgotPasswordScreen = ({ navigation }) => {
           />
 
           <Button
-            mode="contained"
-            onPress={handleResetPassword}
-            loading={loading}
-            disabled={loading}
-            style={styles.button}
-          >
-            Reset Password
-          </Button>
+  mode="contained"
+  onPress={handleResetPassword}
+  loading={loading}
+  disabled={loading}
+  style={styles.button}
+  buttonColor="#1E3A5F"
+  textColor="#D4A017"
+>
+  Reset Password
+</Button>
         </View>
       )}
 
       <Button
-        mode="text"
-        onPress={() => navigation.navigate('Login')}
-        style={styles.linkButton}
-      >
-        Back to Login
-      </Button>
-    </View>
+      mode="text"
+      onPress={() => navigation.navigate('Login')}
+      textColor="#1E3A5F"
+      style={styles.linkButton}
+    >
+      Back to Login
+    </Button>
+
+  </View>
+</View>
   );
 };
 

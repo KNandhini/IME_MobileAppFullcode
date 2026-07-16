@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { CircularScreenStyles as styles } from './screenStyles';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -16,7 +16,7 @@ const CircularScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
   const isAdmin = user?.roleName === 'Admin';
-
+const insets = useSafeAreaInsets();
   const loadCirculars = async () => {
     setLoading(true);
     try {
@@ -140,7 +140,7 @@ const CircularScreen = ({ navigation }) => {
 
       {isAdmin && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { bottom: 24 + insets.bottom }]}
           onPress={() => navigation.navigate('AddCircular')}
           activeOpacity={0.85}
         >

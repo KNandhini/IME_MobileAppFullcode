@@ -17,6 +17,7 @@ import { BASE_URL } from '../utils/api';  // ✅ add this
 import api from '../utils/api';
 import { SupportScreenDd as dd, SupportScreenDp as dp, SupportScreenFld as fld, SupportScreenInp as inp, SupportScreenAtt as att, SupportScreenFs as fs, SupportScreenS as s } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -850,6 +851,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 // ── Support Card ──────────────────────────────────────────────────────────────
 function SupportCard({ item, userRole, onEdit, onDelete, onPress ,canManageSupport,}) {
   const [imgError, setImgError] = useState(false);
+  
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
 
@@ -1073,7 +1075,7 @@ export default function SupportScreen({ navigation }) {
   const [memberList, setMemberList] = useState([]);
   const [membersLoading, setMembersLoading] = useState(false);
   const [canManageSupport, setCanManageSupport] = useState(false);
-  
+  const insets = useSafeAreaInsets();
   const loadUserRole = async () => {
   const role = await getUserRole();
   setUserRole(role);
@@ -1246,7 +1248,7 @@ export default function SupportScreen({ navigation }) {
 
       {/* ── FAB — Material Design bottom-right ── */}
       {userRole === 'Admin' && canManageSupport && (
-        <TouchableOpacity style={s.fab} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
+        <TouchableOpacity style={[s.fab,{ bottom: 0 + insets.bottom }]} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
           <Text style={s.fabText}>+</Text>
         </TouchableOpacity>
       )}
