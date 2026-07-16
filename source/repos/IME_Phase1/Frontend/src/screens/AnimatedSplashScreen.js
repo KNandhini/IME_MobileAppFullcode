@@ -28,7 +28,7 @@ const LOGO_START_DELAY_MS = MUSIC_LEAD_MS;
 
 // How long the logo + music play together (after the logo appears)
 // before the fade-out begins.
-const SYNCED_PLAY_DURATION_MS = 6000;
+const SYNCED_PLAY_DURATION_MS = 7520;
 
 // Total time-on-screen before the exit (fade-out) animation starts.
 // = 1s music-alone lead-in + 6s logo-and-music-together.
@@ -199,40 +199,62 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
             ]),
         ]).start();
 
-        const exitTimer = setTimeout(() => {
-            // Fade the music out alongside the screen
+      const exitTimer = setTimeout(() => {
+    const FADE_MS = 1000;   // 1 full second of fade — matches screen fade
+    const STEP_MS = 40;
+    const fadeSteps = Math.round(FADE_MS / STEP_MS);
+
+    let step = 0;
+    const MIN_VOLUME = 0.0001;
+    const startVolume = 1.0;
+
+    const volumeInterval = setInterval(() => {
+        step += 1;
+        const t = Math.min(1, step / fadeSteps);
+        const nextVolume = startVolume * Math.pow(MIN_VOLUME / startVolume, t);
+
+        if (soundRef.current) {
+            soundRef.current.setVolumeAsync(t >= 1 ? 0 : nextVolume).catch(() => {});
+        }
+
+        if (step >= fadeSteps) {
+            clearInterval(volumeInterval);
             if (soundRef.current) {
                 soundRef.current.stopAsync().catch(() => {});
             }
+        }
+    }, STEP_MS);
 
-            // Tell the parent the crossfade is starting, right now
-            if (onExitStart) {
-                onExitStart();
-            }
+    // Audio fade and screen fade start together and both last 1000ms,
+    // so both music and visuals finish at the exact same instant: t=9s.
+    if (onExitStart) {
+        onExitStart();
+    }
 
-            Animated.parallel([
-                Animated.timing(screenFade, {
-                    toValue: 0,
-                    duration: 480,
-                    easing: Easing.in(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(screenScale, {
-                    toValue: 1.06,
-                    duration: 480,
-                    easing: Easing.in(Easing.ease),
-                    useNativeDriver: true,
-                }),
-            ]).start(() => {
-                if (soundRef.current) {
-                    soundRef.current.unloadAsync().catch(() => {});
-                    soundRef.current = null;
-                }
-                if (onFinish) {
-                    onFinish();
-                }
-            });
-        }, SPLASH_DURATION_MS);
+    Animated.parallel([
+        Animated.timing(screenFade, {
+            toValue: 0,
+            duration: FADE_MS,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+        }),
+        Animated.timing(screenScale, {
+            toValue: 1.06,
+            duration: FADE_MS,
+            easing: Easing.in(Easing.ease),
+            useNativeDriver: true,
+        }),
+    ]).start(() => {
+        clearInterval(volumeInterval);
+        if (soundRef.current) {
+            soundRef.current.unloadAsync().catch(() => {});
+            soundRef.current = null;
+        }
+        if (onFinish) {
+            onFinish();
+        }
+    });
+}, SPLASH_DURATION_MS);
 
         return () => {
             clearTimeout(exitTimer);
