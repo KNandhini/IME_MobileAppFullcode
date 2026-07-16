@@ -12,27 +12,20 @@ import { Audio } from 'expo-av';
 import { AnimatedSplashScreenStyles as styles } from './screenStyles';
 
 const COLORS = {
-    navy: '#123663',
-    indigo: '#2F2F63',
-    plum: '#4A2354',
-    goldBright: '#FFF3D6',
-    darkGold: '#C9A227',
+  top: '#F4F6F8',
+  middle: '#E8EDF3',
+  bottom: '#D8E1EA',
 };
 
-const SPARKLE_COUNT = 12;
+const SPARKLE_COUNT = 20;
+const SPARKLE_COLOR = '#B8860B'; // dark goldenrod
 
-// Music starts as soon as it's loaded (t=0). The logo waits this long
-// AFTER that before it appears, so the music plays alone for 1s first.
-const MUSIC_LEAD_MS = 1000;
-const LOGO_START_DELAY_MS = MUSIC_LEAD_MS;
+// Logo, sparkles, title, and music all start together at t=0 (no lead-in delay).
+const LOGO_START_DELAY_MS = 0;
 
-// How long the logo + music play together (after the logo appears)
-// before the fade-out begins.
-const SYNCED_PLAY_DURATION_MS = 6000;
-
-// Total time-on-screen before the exit (fade-out) animation starts.
-// = 1s music-alone lead-in + 6s logo-and-music-together.
-const SPLASH_DURATION_MS = LOGO_START_DELAY_MS + SYNCED_PLAY_DURATION_MS;
+// Total time the splash screen (and music) stay on screen, fully synchronized,
+// before the fade-out/exit animation begins.
+const SPLASH_DURATION_MS = 10000;
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -85,7 +78,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
     }, []);
 
     // Load and immediately play the background music — this starts the
-    // instant it's ready, 1 full second BEFORE the logo begins appearing.
+    // instant it's ready, in lockstep with the logo/sparkle/title animation.
     useEffect(() => {
         let isMounted = true;
 
@@ -98,7 +91,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                 });
 
                 const { sound } = await Audio.Sound.createAsync(
-                    require('../assets/audio/splash-theme.mp3'),
+                    require('../../assets/audio/splash-theme.mp3'),
                     { shouldPlay: true, volume: 1.0 },
                 );
 
@@ -118,8 +111,8 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
         return () => {
             isMounted = false;
             if (soundRef.current) {
-                soundRef.current.stopAsync().catch(() => {});
-                soundRef.current.unloadAsync().catch(() => {});
+                soundRef.current.stopAsync().catch(() => { });
+                soundRef.current.unloadAsync().catch(() => { });
                 soundRef.current = null;
             }
         };
@@ -147,8 +140,8 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
         ]).start();
 
         sparkleAnims.forEach((anim) => {
-            // Shifted forward by LOGO_START_DELAY_MS so sparkles still feel
-            // staged relative to the logo, not relative to raw mount time.
+            // Staged relative to logo start (t=0), each sparkle begins at a
+            // slightly randomized offset so they don't all pulse in unison.
             const delay = LOGO_START_DELAY_MS + 700 + Math.random() * 700;
             let cancelled = false;
 
@@ -180,8 +173,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
         });
 
         Animated.sequence([
-            // Shifted forward by LOGO_START_DELAY_MS so the title still
-            // appears just after the logo, not before it.
+            // Title appears shortly after the logo starts (still at t≈0 base).
             Animated.delay(LOGO_START_DELAY_MS + 750),
             Animated.parallel([
                 Animated.timing(titleOpacity, {
@@ -200,9 +192,9 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
         ]).start();
 
         const exitTimer = setTimeout(() => {
-            // Fade the music out alongside the screen
+            // Fade the music out alongside the screen, at the exact same moment.
             if (soundRef.current) {
-                soundRef.current.stopAsync().catch(() => {});
+                soundRef.current.stopAsync().catch(() => { });
             }
 
             // Tell the parent the crossfade is starting, right now
@@ -225,7 +217,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                 }),
             ]).start(() => {
                 if (soundRef.current) {
-                    soundRef.current.unloadAsync().catch(() => {});
+                    soundRef.current.unloadAsync().catch(() => { });
                     soundRef.current = null;
                 }
                 if (onFinish) {
@@ -253,9 +245,9 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
             <StatusBar style="light" hidden animated />
 
             <LinearGradient
-                colors={[COLORS.navy, COLORS.indigo, COLORS.plum]}
-                start={{ x: 0.1, y: 0 }}
-                end={{ x: 0.9, y: 1 }}
+                colors={[COLORS.top, COLORS.middle, COLORS.bottom]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
                 style={StyleSheet.absoluteFill}
             >
                 <View style={styles.center}>
@@ -274,6 +266,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                                 style={[
                                     styles.sparkle,
                                     {
+                                        backgroundColor: SPARKLE_COLOR,
                                         opacity: anim,
                                         transform: [
                                             { translateX: x },
@@ -292,7 +285,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                     })}
 
                     <Animated.Image
-                        source={require('../../assets/logo_transparent.png')}
+                        source={require('../../assets/logo-clean.png')}
                         style={[
                             styles.logo,
                             {
@@ -322,4 +315,3 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
         </Animated.View>
     );
 }
-
