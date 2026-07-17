@@ -10,8 +10,8 @@ import api from "../utils/api";
 import { FeedScreenS as s, FeedScreenAv as av, FeedScreenPb as pb, FeedScreenMs as ms, FeedScreenCard as card, FeedScreenVw as vw } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 //const API_BASE_URL = "https://prasath-001-site1.ftempurl.com/api";
-const API_BASE_URL = "http://10.0.2.2:51150/api";
-//const API_BASE_URL = "https://imei.co.in/api";
+//const API_BASE_URL = "http://10.0.2.2:51150/api";
+const API_BASE_URL = "https://imei.co.in/api";
 const { width }    = Dimensions.get("window");
 const CARD_WIDTH   = width - 28;
 
