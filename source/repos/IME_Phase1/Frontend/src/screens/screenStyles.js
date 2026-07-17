@@ -4054,6 +4054,7 @@ export const MagazineDetailScreenStyles = (() => {
       backgroundColor: '#fff',
       borderTopWidth: 1,
       borderTopColor: '#E2E8F0',
+      
     },
     input: {
       flex: 1,
@@ -4105,7 +4106,7 @@ export const MagazineFormScreenStyles = (() => {
   cancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
   saveText: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
     body: { padding: 18, paddingBottom: 40 },
-    input: { marginBottom: 14, backgroundColor: '#fff' },
+    input: { marginBottom: 14, backgroundColor: '#fff' , color: '#1a1a1a'},
     error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
     dateField: {
       flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff',
@@ -5670,7 +5671,7 @@ export const ProfileEditScreenStyles = (() => {
       borderBottomColor: '#EEF2FF', paddingBottom: 8,
     },
 
-    input: { marginBottom: 10, backgroundColor: '#fff' },
+    input: { marginBottom: 10, backgroundColor: '#fff',color: '#1a1a1a' },
     error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
 
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
@@ -5965,7 +5966,7 @@ export const SignupScreenStyles = (() => {
   overflow: 'hidden',
 },
 
-    input: { backgroundColor: '#fff' },
+   input: { backgroundColor: '#fff', color: '#1a1a1a' },
   button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
     buttonLabel: { color: GOLD, fontWeight: '700', fontSize: 16 },   // ← NEW: Register text color
 

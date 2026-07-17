@@ -365,30 +365,25 @@ const PaymentReportsScreen = ({ navigation }) => {
 
     setExporting(true);
     try {
-      const { startDate: rangeStart, endDate: rangeEnd } = buildDateRange();
       const fileName = `IME_PaymentReport_${MONTHS[startMonth]}${startYear}_${MONTHS[endMonth]}${endYear}.xlsx`;
-
       const baseUrl = api.defaults.baseURL;
 
-      // ⚠️ Replace 'authToken' with whatever key your app actually saves the
-      // token under (check AuthContext / login code for AsyncStorage.setItem).
       const token = await AsyncStorage.getItem('authToken');
-      // If you use SecureStore instead:
-      // const token = await SecureStore.getItemAsync('authToken');
-
       if (!token) {
         Alert.alert('Not Signed In', 'Please log in again and retry.');
         return;
       }
 
+      // startMonth/endMonth assumed 1-indexed here (Jan = 1). If MONTHS[]
+      // is a 0-indexed array (Jan = 0) in your UI state, add +1 below.
       const downloadUrl =
         `${baseUrl}/payment/report/excel` +
         `?clubId=${encodeURIComponent(clubId)}` +
-        `&startDate=${encodeURIComponent(rangeStart.toISOString())}` +
-        `&endDate=${encodeURIComponent(rangeEnd.toISOString())}`;
+        `&startMonth=${encodeURIComponent(startMonth)}` +
+        `&startYear=${encodeURIComponent(startYear)}` +
+        `&endMonth=${encodeURIComponent(endMonth)}` +
+        `&endYear=${encodeURIComponent(endYear)}`;
 
-      // 1. Download to a temp file inside the app's own sandbox first —
-      //    this step needs no special permission on either platform.
       const tempUri = FileSystem.cacheDirectory + fileName;
       const downloadResult = await FileSystem.downloadAsync(downloadUrl, tempUri, {
         headers: { Authorization: `Bearer ${token}` },
@@ -399,15 +394,12 @@ const PaymentReportsScreen = ({ navigation }) => {
         try {
           const body = await FileSystem.readAsStringAsync(tempUri);
           if (body) serverMessage = body.slice(0, 300);
-        } catch (readErr) { /* not readable as text — keep the HTTP status message */ }
+        } catch (readErr) { }
         await FileSystem.deleteAsync(tempUri, { idempotent: true });
         throw new Error(serverMessage);
       }
 
       if (Platform.OS === 'android') {
-        // 2a. Android — ask the user to pick a folder (Storage Access
-        //     Framework). Picking "Download" puts the file exactly where a
-        //     normal download would land, visible in the device File Manager.
         const perm = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
         if (!perm.granted) {
           Alert.alert(
@@ -423,7 +415,7 @@ const PaymentReportsScreen = ({ navigation }) => {
 
         const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
           perm.directoryUri,
-          fileName.replace(/\.[^/.]+$/, ''), // name without extension — SAF appends it
+          fileName.replace(/\.[^/.]+$/, ''),
           XLSX_MIME
         );
         await FileSystem.writeAsStringAsync(destUri, fileContent, {
@@ -432,8 +424,6 @@ const PaymentReportsScreen = ({ navigation }) => {
 
         Alert.alert('Saved', `"${fileName}" was saved to the folder you selected.`);
       } else {
-        // 2b. iOS — no programmatic Downloads folder; let the user save it
-        //     via the share sheet ("Save to Files" → Downloads / On My iPhone / iCloud).
         const canShare = await Sharing.isAvailableAsync();
         if (!canShare) {
           Alert.alert('Saved', `"${fileName}" was downloaded, but sharing isn't available on this device.`);

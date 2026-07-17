@@ -281,20 +281,27 @@ public class PaymentController : ControllerBase
     [HttpGet("report")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<List<PaymentReportRowDTO>>>> GetPaymentReport(
-        [FromQuery] int clubId,
-        [FromQuery] DateTime startDate,
-        [FromQuery] DateTime endDate)
+    [FromQuery] int clubId,
+    [FromQuery] int startMonth,
+    [FromQuery] int startYear,
+    [FromQuery] int endMonth,
+    [FromQuery] int endYear)
     {
         try
         {
             if (clubId <= 0)
                 return BadRequest(new ApiResponse<List<PaymentReportRowDTO>> { Success = false, Message = "Invalid ClubId" });
 
+            if (startMonth < 1 || startMonth > 12 || endMonth < 1 || endMonth > 12)
+                return BadRequest(new ApiResponse<List<PaymentReportRowDTO>> { Success = false, Message = "Month must be between 1 and 12" });
+
+            var startDate = new DateTime(startYear, startMonth, 1);
+            var endDate = new DateTime(endYear, endMonth, 1).AddMonths(1).AddDays(-1);
+
             if (endDate < startDate)
                 return BadRequest(new ApiResponse<List<PaymentReportRowDTO>> { Success = false, Message = "End date must be on or after start date" });
 
             var rows = await _paymentRepository.GetPaymentReportByClubAsync(clubId, startDate, endDate);
-
             return Ok(new ApiResponse<List<PaymentReportRowDTO>> { Success = true, Data = rows });
         }
         catch (Exception ex)
@@ -307,12 +314,20 @@ public class PaymentController : ControllerBase
     [HttpGet("report/excel")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DownloadPaymentReportExcel(
-        [FromQuery] int clubId,
-        [FromQuery] DateTime startDate,
-        [FromQuery] DateTime endDate)
+     [FromQuery] int clubId,
+     [FromQuery] int startMonth,
+     [FromQuery] int startYear,
+     [FromQuery] int endMonth,
+     [FromQuery] int endYear)
     {
         if (clubId <= 0)
             return BadRequest("Invalid ClubId");
+
+        if (startMonth < 1 || startMonth > 12 || endMonth < 1 || endMonth > 12)
+            return BadRequest("Month must be between 1 and 12");
+
+        var startDate = new DateTime(startYear, startMonth, 1);
+        var endDate = new DateTime(endYear, endMonth, 1).AddMonths(1).AddDays(-1); // last day of end month
 
         if (endDate < startDate)
             return BadRequest("End date must be on or after start date");
@@ -320,11 +335,9 @@ public class PaymentController : ControllerBase
         try
         {
             var rows = await _paymentRepository.GetPaymentReportByClubAsync(clubId, startDate, endDate);
-
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("Payment Report");
 
-            // ── Title (merged header row) ──
             sheet.Range("A1:F1").Merge();
             sheet.Cell("A1").Value = "IME Membership Payment Report";
             sheet.Cell("A1").Style.Font.Bold = true;
@@ -333,11 +346,10 @@ public class PaymentController : ControllerBase
             sheet.Row(1).Height = 24;
 
             sheet.Range("A2:F2").Merge();
-            sheet.Cell("A2").Value = $"{startDate:dd MMM yyyy} – {endDate:dd MMM yyyy}";
+            sheet.Cell("A2").Value = $"{startDate:MMM yyyy} – {endDate:MMM yyyy}";
             sheet.Cell("A2").Style.Font.Italic = true;
             sheet.Cell("A2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // ── Column headers ──
             var headers = new[] { "S.No", "Name", "Joining Date", "Payment Amount", "Payment ID", "Payment Date" };
             for (int i = 0; i < headers.Length; i++)
             {
@@ -349,7 +361,6 @@ public class PaymentController : ControllerBase
                 cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             }
 
-            // ── Data rows ──
             int row = 5;
             decimal total = 0;
             foreach (var r in rows)
@@ -361,16 +372,13 @@ public class PaymentController : ControllerBase
                 sheet.Cell(row, 4).Style.NumberFormat.Format = "#,##0.00";
                 sheet.Cell(row, 5).Value = r.PaymentId;
                 sheet.Cell(row, 6).Value = r.PaymentDate.ToString("dd-MMM-yyyy");
-
                 for (int c = 1; c <= 6; c++)
                     sheet.Cell(row, c).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-
                 total += r.PaymentAmount;
                 row++;
             }
 
-            // ── Total row ──
-            row++; // blank spacer row
+            row++;
             sheet.Cell(row, 3).Value = "Total Amount";
             sheet.Cell(row, 3).Style.Font.Bold = true;
             sheet.Cell(row, 4).Value = total;
@@ -385,8 +393,8 @@ public class PaymentController : ControllerBase
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
-
             var fileName = $"IME_PaymentReport_{startDate:yyyyMM}_{endDate:yyyyMM}.xlsx";
+
             return File(
                 content,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

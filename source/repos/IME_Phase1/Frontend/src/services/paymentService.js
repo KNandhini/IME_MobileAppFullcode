@@ -45,14 +45,15 @@ export const paymentService = {
     });
     return response.data;
   },
-  getPaymentReport: async (clubId, startDate, endDate) => {
+  getPaymentReport: async (clubId, startMonth, startYear, endMonth, endYear) => {
     try {
-      debugger;
       const response = await api.get('/payment/report', {
         params: {
           clubId,
-          startDate: startDate.toISOString(),
-          endDate:   endDate.toISOString(),
+          startMonth,
+          startYear,
+          endMonth,
+          endYear,
         },
       });
       return response.data;
