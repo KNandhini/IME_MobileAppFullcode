@@ -10,4 +10,5 @@ public class PaymentReportRowDTO
     public decimal PaymentAmount { get; set; }
     public string PaymentId { get; set; }
     public DateTime PaymentDate { get; set; }
+    public string ClubName { get; set; } = string.Empty;
 }

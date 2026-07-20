@@ -312,7 +312,7 @@ public class PaymentController : ControllerBase
 
     // NEW — builds the .xlsx server-side and returns it as a downloadable file.
     [HttpGet("report/excel")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public async Task<IActionResult> DownloadPaymentReportExcel(
      [FromQuery] int clubId,
      [FromQuery] int startMonth,
@@ -335,25 +335,25 @@ public class PaymentController : ControllerBase
         try
         {
             var rows = await _paymentRepository.GetPaymentReportByClubAsync(clubId, startDate, endDate);
+            var clubName = rows.FirstOrDefault()?.ClubName ?? "Unknown Club";
+
             using var workbook = new XLWorkbook();
             var sheet = workbook.Worksheets.Add("Payment Report");
-
             sheet.Range("A1:F1").Merge();
             sheet.Cell("A1").Value = "IME Membership Payment Report";
             sheet.Cell("A1").Style.Font.Bold = true;
             sheet.Cell("A1").Style.Font.FontSize = 14;
             sheet.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             sheet.Row(1).Height = 24;
-
             sheet.Range("A2:F2").Merge();
-            sheet.Cell("A2").Value = $"{startDate:MMM yyyy} – {endDate:MMM yyyy}";
-            sheet.Cell("A2").Style.Font.Italic = true;
+            sheet.Cell("A2").Value = $"{clubName} ({startDate:MMM yyyy} – {endDate:MMM yyyy})";
+            //sheet.Cell("A2").Style.Font.Italic = true;
             sheet.Cell("A2").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            var headers = new[] { "S.No", "Name", "Joining Date", "Payment Amount", "Payment ID", "Payment Date" };
+            var headers = new[] { "S.No", "Name", "Joining Date", "Payment ID", "Payment Date", "Payment Amount" };
             for (int i = 0; i < headers.Length; i++)
             {
-                var cell = sheet.Cell(4, i + 1);
+                var cell = sheet.Cell(3, i + 1);
                 cell.Value = headers[i];
                 cell.Style.Font.Bold = true;
                 cell.Style.Font.FontColor = XLColor.White;
@@ -361,40 +361,38 @@ public class PaymentController : ControllerBase
                 cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             }
 
-            int row = 5;
+            int row = 4;
             decimal total = 0;
             foreach (var r in rows)
             {
                 sheet.Cell(row, 1).Value = r.SNo;
                 sheet.Cell(row, 2).Value = r.Name;
                 sheet.Cell(row, 3).Value = r.JoiningDate?.ToString("dd-MMM-yyyy") ?? "";
-                sheet.Cell(row, 4).Value = r.PaymentAmount;
-                sheet.Cell(row, 4).Style.NumberFormat.Format = "#,##0.00";
-                sheet.Cell(row, 5).Value = r.PaymentId;
-                sheet.Cell(row, 6).Value = r.PaymentDate.ToString("dd-MMM-yyyy");
+                sheet.Cell(row, 4).Value = r.PaymentId;
+                sheet.Cell(row, 5).Value = r.PaymentDate.ToString("dd-MMM-yyyy");
+                sheet.Cell(row, 6).Value = r.PaymentAmount;
+                sheet.Cell(row, 6).Style.NumberFormat.Format = "#,##0.00";
                 for (int c = 1; c <= 6; c++)
                     sheet.Cell(row, c).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
                 total += r.PaymentAmount;
                 row++;
             }
-
-            row++;
-            sheet.Cell(row, 3).Value = "Total Amount";
-            sheet.Cell(row, 3).Style.Font.Bold = true;
-            sheet.Cell(row, 4).Value = total;
-            sheet.Cell(row, 4).Style.Font.Bold = true;
-            sheet.Cell(row, 4).Style.NumberFormat.Format = "#,##0.00";
-            sheet.Cell(row, 4).Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            sheet.Cell(row, 3).Style.Border.TopBorder = XLBorderStyleValues.Thin;
+         
+            sheet.Cell(row, 5).Value = "Total Amount";
+            sheet.Cell(row, 5).Style.Font.Bold = true;
+            sheet.Cell(row, 6).Value = total;
+            sheet.Cell(row, 6).Style.Font.Bold = true;
+            sheet.Cell(row, 6).Style.NumberFormat.Format = "#,##0.00";
+            sheet.Cell(row, 6).Style.Border.TopBorder = XLBorderStyleValues.Thin;
+            sheet.Cell(row, 5).Style.Border.TopBorder = XLBorderStyleValues.Thin;
 
             sheet.Columns().AdjustToContents();
-            sheet.SheetView.FreezeRows(4);
+            sheet.SheetView.FreezeRows(3);
 
             using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
             var fileName = $"IME_PaymentReport_{startDate:yyyyMM}_{endDate:yyyyMM}.xlsx";
-
             return File(
                 content,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
