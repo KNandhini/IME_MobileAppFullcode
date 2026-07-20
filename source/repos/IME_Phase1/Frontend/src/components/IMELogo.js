@@ -31,7 +31,7 @@ const IMELogo = ({ size = 'large', animated = true }) => {
       {!isSmall && (
         <>
           <Text style={styles.orgName}>
-            Institute of Municipal Engineers
+            Institution of Municipal Engineers
           </Text>
 
           <Text style={styles.systemName}>

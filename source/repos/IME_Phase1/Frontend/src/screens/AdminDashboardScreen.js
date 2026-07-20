@@ -40,7 +40,7 @@ const AdminDashboardScreen = ({ navigation }) => {
             <Text style={styles.logoText}>IME</Text>
           </View>
           <View>
-            <Text style={styles.appName}>Institute of Municipal Engineers</Text>
+            <Text style={styles.appName}>Institution of Municipal Engineers</Text>
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>
