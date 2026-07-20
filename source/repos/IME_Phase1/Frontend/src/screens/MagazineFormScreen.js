@@ -8,7 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
 
 import api from '../utils/api';
-import { MagazineFormScreenStyles as styles } from './screenStyles';
+import { MagazineFormScreenStyles as styles, InputTheme as inputTheme } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#2b3139';
@@ -169,6 +169,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          theme={inputTheme}
           style={styles.input}
         />
         {errors.title && <Text style={styles.error}>{errors.title}</Text>}
@@ -182,6 +183,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
           numberOfLines={4}
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          theme={inputTheme}
           style={styles.input}
         />
 
@@ -192,6 +194,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          theme={inputTheme}
           style={styles.input}
           placeholder="e.g. Vol. 12, Issue 4"
         />
@@ -203,6 +206,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          theme={inputTheme}
           style={styles.input}
         />
 
@@ -213,6 +217,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
           mode="outlined"
           outlineColor="#BBDEFB"
           activeOutlineColor={NAVY}
+          theme={inputTheme}
           style={styles.input}
           placeholder="e.g. Engineering, Newsletter"
         />

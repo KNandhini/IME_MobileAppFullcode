@@ -7,11 +7,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
-import { SignupScreenStyles as styles } from './screenStyles';
+import { SignupScreenStyles as styles, InputTheme as inputTheme } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ── Small wrapper: gives every field its own white elevated card ──
 const Field = ({ children }) => <View style={styles.fieldCard}>{children}</View>;
+
+// ── Shared input theme ──────────────────────────────────────────────────
+// react-native-paper reads the rendered text color from theme.colors, not
+// from a plain style={{ color }} prop. onSurfaceVariant drives normal
+// editable text; onSurfaceDisabled drives text on any field with
+// editable={false} (Country, State, Club, Gender, DOB, Age, Occupation) —
+// both set to black here. outlineColor stays a separate per-field prop
+// ("transparent") since the visible border here comes from the Field
+// card wrapper, not Paper's outline.
+
 
 const SignupScreen = ({ navigation, route }) => {
   const [formData, setFormData] = useState({
@@ -317,19 +327,19 @@ const SignupScreen = ({ navigation, route }) => {
         <View style={styles.card}>
           <Field>
             <TextInput label="Full Name *" value={formData.fullName} onChangeText={(t) => updateField('fullName', t)}
-              mode="outlined" theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+              mode="outlined" theme={inputTheme} outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
           </Field>
           {errors.fullName && <Text style={styles.error}>{errors.fullName}</Text>}
 
           <Field>
             <TextInput label="Email *" value={formData.email} onChangeText={(t) => updateField('email', t)}
-              mode="outlined" theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
+              mode="outlined" theme={inputTheme} outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
           </Field>
           {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
           <Field>
             <TextInput label="Password *" value={formData.password} onChangeText={(t) => updateField('password', t)}
-              secureTextEntry={!showPassword} mode="outlined" theme={{ roundness: 12 }}
+              secureTextEntry={!showPassword} mode="outlined" theme={inputTheme}
               outlineColor="transparent" activeOutlineColor="#1976D2"
               right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
               style={styles.input} />
@@ -339,7 +349,7 @@ const SignupScreen = ({ navigation, route }) => {
 
           <Field>
             <TextInput label="Confirm Password *" value={formData.confirmPassword} onChangeText={(t) => updateField('confirmPassword', t)}
-              secureTextEntry={!showConfirmPassword} mode="outlined" theme={{ roundness: 12 }}
+              secureTextEntry={!showConfirmPassword} mode="outlined" theme={inputTheme}
               outlineColor="transparent" activeOutlineColor="#1976D2"
               right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
               style={styles.input} />
@@ -355,7 +365,7 @@ const SignupScreen = ({ navigation, route }) => {
           autoComplete="tel"
           textContentType="telephoneNumber"
           mode="outlined"
-          theme={{ roundness: 12 }}
+          theme={inputTheme}
               outlineColor="transparent"
           activeOutlineColor="#1976D2"
           style={styles.input}
@@ -370,7 +380,7 @@ const SignupScreen = ({ navigation, route }) => {
 
           <Field>
             <TextInput label="Address *" value={formData.address} onChangeText={(t) => updateField('address', t)}
-              multiline mode="outlined" theme={{ roundness: 12 }}
+              multiline mode="outlined" theme={inputTheme}
               outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
           </Field>
           {errors.address && <Text style={styles.error}>{errors.address}</Text>}
@@ -383,7 +393,7 @@ const SignupScreen = ({ navigation, route }) => {
                   label="Country *"
                   value={selectedCountry?.countryName || ''}
                   mode="outlined"
-                  theme={{ roundness: 12 }}
+                  theme={inputTheme}
                   outlineColor="transparent"
                   activeOutlineColor="#1976D2"
                   style={styles.input}
@@ -405,7 +415,7 @@ const SignupScreen = ({ navigation, route }) => {
                   label={statesLoading ? 'Loading states…' : 'State *'}
                   value={selectedState?.stateName || ''}
                   mode="outlined"
-                  theme={{ roundness: 12 }}
+                  theme={inputTheme}
                   outlineColor="transparent"
                   activeOutlineColor="#1976D2"
                   style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
@@ -427,7 +437,7 @@ const SignupScreen = ({ navigation, route }) => {
                   label={clubsLoading ? 'Loading clubs…' : 'Club *'}
                   value={selectedClub?.clubName || ''}
                   mode="outlined"
-                  theme={{ roundness: 12 }}
+                  theme={inputTheme}
                   outlineColor="transparent"
                   activeOutlineColor="#1976D2"
                   style={[styles.input, !selectedState && { opacity: 0.5 }]}
@@ -448,7 +458,7 @@ const SignupScreen = ({ navigation, route }) => {
                   <View pointerEvents="none">
                     <Field>
                       <TextInput label="Gender *" value={formData.gender} mode="outlined"
-                        theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2"
+                        theme={inputTheme} outlineColor="transparent" activeOutlineColor="#1976D2"
                         style={styles.input} editable={false} />
                     </Field>
                   </View>
@@ -465,7 +475,7 @@ const SignupScreen = ({ navigation, route }) => {
             <View pointerEvents="none">
               <Field>
                 <TextInput label="Date of Birth *" value={formData.dateOfBirth} mode="outlined"
-                  theme={{ roundness: 12 }} outlineColor="transparent" activeOutlineColor="#1976D2"
+                  theme={inputTheme} outlineColor="transparent" activeOutlineColor="#1976D2"
                   style={styles.input} editable={false} />
               </Field>
             </View>
@@ -489,7 +499,7 @@ const SignupScreen = ({ navigation, route }) => {
 
           <Field>
             <TextInput label="Age *" value={formData.age}
-              keyboardType="numeric" mode="outlined" theme={{ roundness: 12 }}
+              keyboardType="numeric" mode="outlined" theme={inputTheme}
               outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
           </Field>
           {errors.age && <Text style={styles.error}>{errors.age}</Text>}
@@ -503,7 +513,7 @@ const SignupScreen = ({ navigation, route }) => {
                   <View pointerEvents="none">
                     <Field>
                       <TextInput label="Occupation *" value={occupation} mode="outlined"
-                        theme={{ roundness: 12 }}
+                        theme={inputTheme}
                         outlineColor="transparent"
                         activeOutlineColor="#1976D2"
                         style={styles.input} editable={false} />
@@ -527,7 +537,7 @@ const SignupScreen = ({ navigation, route }) => {
                   label="Occupation Details *"
                   value={occupationDetails}
                   onChangeText={setOccupationDetails}
-                  multiline mode="outlined" theme={{ roundness: 12 }}
+                  multiline mode="outlined" theme={inputTheme}
                   outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
               </Field>
               {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
@@ -544,7 +554,7 @@ const SignupScreen = ({ navigation, route }) => {
                   value={qualification}
                   placeholder="e.g., Diploma-Civil Engineering"
                   onChangeText={setQualification}
-                  mode="outlined" theme={{ roundness: 12 }}
+                  mode="outlined" theme={inputTheme}
                   outlineColor="transparent" activeOutlineColor="#1976D2" style={styles.input} />
               </Field>
               {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}

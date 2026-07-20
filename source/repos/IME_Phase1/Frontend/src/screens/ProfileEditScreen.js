@@ -8,10 +8,19 @@ import { clubService } from '../services/clubService';
 import { Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
-import { ProfileEditScreenStyles as styles } from './screenStyles';
+import { ProfileEditScreenStyles as styles, InputTheme as inputTheme } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
+
+// ── Shared input theme ──────────────────────────────────────────────────
+// react-native-paper reads text color from theme.colors, not from a plain
+// `style={{ color }}` or (on some versions) the `textColor` prop alone.
+// onSurfaceVariant drives normal editable text; onSurfaceDisabled drives
+// text on any field with editable={false} (Country, State, Gender, DOB,
+// Age, Occupation) — both are set to black here so every field, editable
+// or read-only, renders black instead of the theme's default grey.
+
 
 const ProfileEditScreen = ({ navigation }) => {
   const [profilePhoto, setProfilePhoto] = useState(null);
@@ -137,36 +146,6 @@ const ProfileEditScreen = ({ navigation }) => {
     }
   };
 
-  /* const uploadProfilePhoto = async (photoUri) => {
-     try {
-       debugger;
-       // ✅ Skip if still the server-loaded base64 (not a newly picked file)
-       if (photoUri.startsWith('data:')) {
-         console.log('Photo unchanged, skipping upload.');
-         return true;
-       }
- 
-       const formData = new FormData();
-       formData.append('file', {
-         uri:  photoUri,
-         name: 'profile_photo.jpg',
-         type: 'image/jpeg',
-       });
-       formData.append('memberId', memberId.toString());
- 
-       const baseUrl  = api.defaults.baseURL;
-       const response = await fetch(`${baseUrl}/File/upload-profile-photo`, {
-         method: 'POST',
-         body: formData,
-       });
- 
-       const json = await response.json();
-       return json.success;
-     } catch (e) {
-       console.warn('Profile photo upload failed:', e.message);
-       return false;
-     }
-   };*/
   const uploadProfilePhoto = async (photoUri) => {
     try {
       // Skip if still the server-loaded base64 (not a newly picked file)
@@ -304,47 +283,6 @@ const ProfileEditScreen = ({ navigation }) => {
   };
 
   // ── Save ──────────────────────────────────────────────────────────────────
-  /* const handleSave = async () => {
-     if (!validate()) return;
-     setSaving(true);
-     try {
-       const payload = {
-         memberId:      memberId,                          // ✅ added
-         fullName:      formData.fullName,
-         email:         formData.email,
-         contactNumber: formData.contactNumber,
-         address:       formData.address,
-         gender:        formData.gender,
-         age:           parseInt(formData.age),
-         dateOfBirth:   formData.dateOfBirth,
-         designationId: formData.designationId,
-         countryId:     selectedCountry?.countryId ?? null,
-         stateId:       selectedState?.stateId     ?? null,
-         clubId:        clubId,                            // ✅ added
-       };
- 
-       console.log('Update payload:', JSON.stringify(payload)); // ✅ helpful for debugging
- 
-       const res = await memberService.updateProfile(memberId, payload);
- 
-       if (res.success) {
-         // Upload image AFTER profile update
-         if (profilePhoto) {
-           await uploadProfilePhoto(profilePhoto);
-         }
-         Alert.alert('Success', 'Profile updated successfully!', [
-           { text: 'OK', onPress: () => navigation.goBack() },
-         ]);
-       } else {
-         Alert.alert('Failed', getSafeErrorMessage(res));
-       }
-     } catch (e) {
-       Alert.alert('Error', getSafeErrorMessage(e));
-     } finally {
-       setSaving(false);
-     }
-   };
- */
   const handleSave = async () => {
     if (!validate()) return;
     setSaving(true);
@@ -448,9 +386,7 @@ const ProfileEditScreen = ({ navigation }) => {
               value={formData.fullName}
               onChangeText={t => updateField('fullName', t)}
               mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
+              theme={inputTheme}
               style={styles.input}
             />
             {errors.fullName && <Text style={styles.error}>{errors.fullName}</Text>}
@@ -460,9 +396,7 @@ const ProfileEditScreen = ({ navigation }) => {
               value={formData.email}
               onChangeText={t => updateField('email', t)}
               mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
+              theme={inputTheme}
               keyboardType="email-address"
               autoCapitalize="none"
               style={styles.input}
@@ -475,9 +409,7 @@ const ProfileEditScreen = ({ navigation }) => {
               onChangeText={t => updateField('contactNumber', t)}
               keyboardType="numeric"
               mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
+              theme={inputTheme}
               style={styles.input}
             />
             {errors.contactNumber && <Text style={styles.error}>{errors.contactNumber}</Text>}
@@ -489,9 +421,7 @@ const ProfileEditScreen = ({ navigation }) => {
               multiline
               numberOfLines={3}
               mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
+              theme={inputTheme}
               style={styles.input}
             />
             {errors.address && <Text style={styles.error}>{errors.address}</Text>}
@@ -507,9 +437,7 @@ const ProfileEditScreen = ({ navigation }) => {
                   label="Country *"
                   value={selectedCountry?.countryName || ''}
                   mode="outlined"
-                  theme={{ roundness: 10 }}
-                  outlineColor="#BBDEFB"
-                  activeOutlineColor="#1976D2"
+                  theme={inputTheme}
                   style={styles.input}
                   editable={false}
                   right={<TextInput.Icon icon="chevron-down" />}
@@ -527,9 +455,7 @@ const ProfileEditScreen = ({ navigation }) => {
                   label={statesLoading ? 'Loading states…' : 'State *'}
                   value={selectedState?.stateName || ''}
                   mode="outlined"
-                  theme={{ roundness: 10 }}
-                  outlineColor="#BBDEFB"
-                  activeOutlineColor="#1976D2"
+                  theme={inputTheme}
                   style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
                   editable={false}
                   right={<TextInput.Icon icon="chevron-down" />}
@@ -559,9 +485,7 @@ const ProfileEditScreen = ({ navigation }) => {
                         label="Gender *"
                         value={formData.gender}
                         mode="outlined"
-                        theme={{ roundness: 10 }}
-                        outlineColor="#BBDEFB"
-                        activeOutlineColor="#1976D2"
+                        theme={inputTheme}
                         style={styles.input}
                         editable={false}
                         right={<TextInput.Icon icon="chevron-down" />}
@@ -584,9 +508,7 @@ const ProfileEditScreen = ({ navigation }) => {
                   label="Date of Birth *"
                   value={formData.dateOfBirth}
                   mode="outlined"
-                  theme={{ roundness: 10 }}
-                  outlineColor="#BBDEFB"
-                  activeOutlineColor="#1976D2"
+                  theme={inputTheme}
                   style={styles.input}
                   editable={false}
                   right={<TextInput.Icon icon="calendar" />}
@@ -621,9 +543,7 @@ const ProfileEditScreen = ({ navigation }) => {
               value={formData.age}
               keyboardType="numeric"
               mode="outlined"
-              theme={{ roundness: 10 }}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
+              theme={inputTheme}
               style={styles.input}
               editable={false}
             />
@@ -650,9 +570,7 @@ const ProfileEditScreen = ({ navigation }) => {
                         label="Occupation *"
                         value={occupation}
                         mode="outlined"
-                        theme={{ roundness: 10 }}
-                        outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
-                        activeOutlineColor="#1976D2"
+                        theme={inputTheme}
                         style={styles.input}
                         editable={false}
                         right={<TextInput.Icon icon="chevron-down" />}
@@ -677,9 +595,7 @@ const ProfileEditScreen = ({ navigation }) => {
                   onChangeText={setOccupationDetails}
                   multiline
                   mode="outlined"
-                  theme={{ roundness: 10 }}
-                  outlineColor="#BBDEFB"
-                  activeOutlineColor="#1976D2"
+                  theme={inputTheme}
                   style={styles.input}
                 />
                 {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
@@ -694,9 +610,7 @@ const ProfileEditScreen = ({ navigation }) => {
                   value={qualification}
                   onChangeText={setQualification}
                   mode="outlined"
-                  theme={{ roundness: 10 }}
-                  outlineColor="#BBDEFB"
-                  activeOutlineColor="#1976D2"
+                  theme={inputTheme}
                   style={styles.input}
                 />
                 {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
@@ -775,7 +689,4 @@ const ProfileEditScreen = ({ navigation }) => {
   );
 };
 
-
-
 export default ProfileEditScreen;
-

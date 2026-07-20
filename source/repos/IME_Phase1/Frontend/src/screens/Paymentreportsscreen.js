@@ -23,6 +23,13 @@
  * (field + "‹ year ›" nav + 4-column month grid). No native modules, no
  * extra installs, works in plain Expo Go. It's defined in this same file so
  * there's nothing else to drop into your project.
+ *
+ * ── IMPORTANT: month indexing ─────────────────────────────────────────
+ * All local state (startMonth/endMonth) stays 0-11, the normal JS Date
+ * convention, so the MonthYearPicker keeps working unchanged. The backend
+ * (GetPaymentReport / DownloadPaymentReportExcel) expects 1-12. The two
+ * network call sites below convert with toApiMonth() right before sending
+ * — nowhere else in the file should add/subtract 1.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -51,6 +58,12 @@ const MONTHS = [
 ];
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+// Local state keeps months 0-11 (JS Date convention, matches MONTHS[] and
+// MonthYearPicker). The backend controller validates 1-12 and rejects
+// anything outside that range with a 400, so every network call must
+// convert through this helper right before building params.
+const toApiMonth = (m) => m + 1;
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -313,19 +326,16 @@ const PaymentReportsScreen = ({ navigation }) => {
     [rows]
   );
 
-  const buildDateRange = () => {
-    const rangeStart = new Date(startYear, startMonth, 1);
-    const rangeEnd   = new Date(endYear, endMonth + 1, 0); // last day of end month
-    return { startDate: rangeStart, endDate: rangeEnd };
-  };
-
   const handleGetPayments = async () => {
     if (!clubId) {
       Alert.alert('Missing Club', 'Could not determine your club. Please re-login and try again.');
       return;
     }
 
-    const { startDate: rangeStart, endDate: rangeEnd } = buildDateRange();
+    // Local sanity check with real Date objects (0-11 months are fine here,
+    // this never leaves the device).
+    const rangeStart = new Date(startYear, startMonth, 1);
+    const rangeEnd   = new Date(endYear, endMonth + 1, 0); // last day of end month
     if (rangeEnd < rangeStart) {
       Alert.alert('Invalid Range', 'End month must be on or after the start month.');
       return;
@@ -334,7 +344,15 @@ const PaymentReportsScreen = ({ navigation }) => {
     setLoading(true);
     setFetched(false);
     try {
-      const res = await paymentService.getPaymentReport(clubId, rangeStart, rangeEnd);
+      // paymentService.getPaymentReport(clubId, startMonth, startYear, endMonth, endYear)
+      // — flat 1-12 month ints, matching the controller's [FromQuery] signature.
+      const res = await paymentService.getPaymentReport(
+        clubId,
+        toApiMonth(startMonth),
+        startYear,
+        toApiMonth(endMonth),
+        endYear
+      );
       if (res.success && Array.isArray(res.data)) {
         setRows(res.data);
         setFetched(true);
@@ -374,14 +392,14 @@ const PaymentReportsScreen = ({ navigation }) => {
         return;
       }
 
-      // startMonth/endMonth assumed 1-indexed here (Jan = 1). If MONTHS[]
-      // is a 0-indexed array (Jan = 0) in your UI state, add +1 below.
+      // Same 0-11 → 1-12 conversion as handleGetPayments — the excel
+      // controller validates the exact same range and 400s otherwise.
       const downloadUrl =
         `${baseUrl}/payment/report/excel` +
         `?clubId=${encodeURIComponent(clubId)}` +
-        `&startMonth=${encodeURIComponent(startMonth)}` +
+        `&startMonth=${encodeURIComponent(toApiMonth(startMonth))}` +
         `&startYear=${encodeURIComponent(startYear)}` +
-        `&endMonth=${encodeURIComponent(endMonth)}` +
+        `&endMonth=${encodeURIComponent(toApiMonth(endMonth))}` +
         `&endYear=${encodeURIComponent(endYear)}`;
 
       const tempUri = FileSystem.cacheDirectory + fileName;
