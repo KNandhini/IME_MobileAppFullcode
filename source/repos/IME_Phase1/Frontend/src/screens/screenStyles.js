@@ -5641,7 +5641,15 @@ export const PresentationScreenStyles = (() => {
     },
   });
 })();
-
+export const InputTheme = {
+  roundness: 12,
+  colors: {
+    onSurfaceVariant: '#000',
+    onSurface: '#000',
+    onSurfaceDisabled: '#000',
+    primary: '#1976D2',
+  },
+};
 // ProfileEditScreen
 export const ProfileEditScreenStyles = (() => {
   return createScreenStyles({
@@ -5671,7 +5679,7 @@ export const ProfileEditScreenStyles = (() => {
       borderBottomColor: '#EEF2FF', paddingBottom: 8,
     },
 
-    input: { marginBottom: 10, backgroundColor: '#fff',color: '#1a1a1a' },
+    input: { marginBottom: 10, backgroundColor: '#fff', },
     error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
 
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
@@ -5966,7 +5974,7 @@ export const SignupScreenStyles = (() => {
   overflow: 'hidden',
 },
 
-   input: { backgroundColor: '#fff', color: '#1a1a1a' },
+   input: { backgroundColor: '#fff' },
   button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
     buttonLabel: { color: GOLD, fontWeight: '700', fontSize: 16 },   // ← NEW: Register text color
 
