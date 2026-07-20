@@ -15,7 +15,7 @@ const AUTO_ADVANCE_MS = 5000;
 const SLIDES = [
   {
     id: 'welcome',
-    title: 'Institute of Municipal Engineers (IME)',
+    title: 'Institution of Municipal Engineers (IME)',
     subtitle: 'Member Portal',
     desc: 'A unified platform for IME members to connect, collaborate, and stay informed. Available on Android and iOS.',
     icon: 'city-variant-outline',
@@ -146,7 +146,7 @@ const MockupContent = ({ type, accent }) => {
             <MaterialCommunityIcons name="city-variant-outline" size={32} color={NAVY} />
           </View>
           <Text style={{ color: GOLD, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IME</Text>
-          <Text style={{ color: WHITE, fontSize: 10, marginTop: 2 }}>Institute of Municipal Corporation</Text>
+          <Text style={{ color: WHITE, fontSize: 10, marginTop: 2 }}>Institution of Municipal Corporation</Text>
           <View style={{ marginTop: 20, width: 40, height: 3, backgroundColor: GOLD, borderRadius: 2 }} />
         </View>
       );
