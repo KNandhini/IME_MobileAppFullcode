@@ -16,6 +16,7 @@ import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';  // ✅ add this
 import api from '../utils/api';
 import { SupportScreenDd as dd, SupportScreenDp as dp, SupportScreenFld as fld, SupportScreenInp as inp, SupportScreenAtt as att, SupportScreenFs as fs, SupportScreenS as s } from './screenStyles';
+import ListSearchBar from '../components/ListSearchBar';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -938,8 +939,14 @@ function categoryColor(id) {
 // ── Tab Content ───────────────────────────────────────────────────────────────
 function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation, canManageSupport, }) {
   const [supportList, setSupportList] = useState([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const query = search.trim().toLowerCase();
+  const filteredSupportList = query
+    ? supportList.filter((item) => [item.title, item.clubName, item.description, item.categoryName, item.companyOrIndividual]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : supportList;
 
   useEffect(() => {
     if (isActive) loadSupport();
@@ -1025,19 +1032,11 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
     );
   }
 
-  if (supportList.length === 0) {
-    return (
-      <View style={s.centered}>
-        <Text style={s.emptyIcon}>📂</Text>
-        <Text style={s.emptyTitle}>Nothing here yet</Text>
-        <Text style={s.emptyText}>Tap + to add a support entry</Text>
-      </View>
-    );
-  }
-
   return (
+    <View style={{ flex: 1 }}>
+    <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search support..." />
     <FlatList
-      data={supportList}
+      data={filteredSupportList}
       renderItem={({ item }) => (
        <SupportCard
     item={item}
@@ -1058,7 +1057,15 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />
       }
+      ListEmptyComponent={
+        <View style={s.centered}>
+          <Text style={s.emptyIcon}>📂</Text>
+          <Text style={s.emptyTitle}>Nothing here yet</Text>
+          <Text style={s.emptyText}>Tap + to add a support entry</Text>
+        </View>
+      }
     />
+    </View>
   );
 }
 

@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { CircularScreenStyles as styles } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListSearchBar from '../components/ListSearchBar';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -14,9 +15,15 @@ const CircularScreen = ({ navigation }) => {
   const [circulars,  setCirculars]  = useState([]);
   const [loading,    setLoading]    = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
   const { user } = useAuth();
   const isAdmin = user?.roleName === 'Admin';
 const insets = useSafeAreaInsets();
+  const query = search.trim().toLowerCase();
+  const filteredCirculars = query
+    ? circulars.filter((item) => [item.circularNumber, item.title, item.description, item.visibility]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : circulars;
   const loadCirculars = async () => {
     setLoading(true);
     try {
@@ -118,17 +125,18 @@ const insets = useSafeAreaInsets();
 
   return (
   <View style={styles.container}>
+    <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search circulars..." />
     {loading && circulars.length === 0 ? (
       <View style={styles.emptyContainer}>
         <ActivityIndicator size="large" color={NAVY} />
       </View>
-    ) : circulars.length === 0 ? (
+    ) : filteredCirculars.length === 0 ? (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>No circulars available</Text>
       </View>
     ) : (
       <FlatList
-        data={circulars}
+        data={filteredCirculars}
         renderItem={renderCircular}
         keyExtractor={(item) => item.circularId.toString()}
         contentContainerStyle={styles.list}

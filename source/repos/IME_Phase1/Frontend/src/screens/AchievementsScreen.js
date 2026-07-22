@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';  // ← AD
 import { BASE_URL } from '../utils/api';                                // ← ADD
 import { AchievementsScreenS as s } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListSearchBar from '../components/ListSearchBar';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 const AVATAR_COLORS = ['#1E3A5F', '#D4A017', '#27AE60', '#8E44AD', '#E67E22', '#2980B9'];
@@ -123,9 +124,15 @@ const AchievementsScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [photoMap, setPhotoMap] = useState({});
+  const [search, setSearch] = useState('');
   const [userRole, setUserRole] = useState(null);  // ← ADD
   const { user } = useAuth();
 const insets = useSafeAreaInsets();
+  const query = search.trim().toLowerCase();
+  const filteredAchievements = query
+    ? achievements.filter((item) => [item.memberName, item.title, item.description]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : achievements;
   // ── Load role once on mount ───────────────────────────────────────────────
   useEffect(() => {                                                     // ← ADD
     const loadRole = async () => {
@@ -222,12 +229,14 @@ const insets = useSafeAreaInsets();
         <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
+      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search achievements..." />
+
       {loading ? (
         <View style={s.centered}>
           <ActivityIndicator size="large" color={GOLD} />
           <Text style={s.loadingText}>Loading achievements...</Text>
         </View>
-      ) : achievements.length === 0 && !refreshing ? (
+      ) : filteredAchievements.length === 0 && !refreshing ? (
         <View style={s.centered}>
           <MaterialCommunityIcons name="trophy-outline" size={56} color="#CBD5E1" />
           <Text style={s.emptyTitle}>No achievements yet</Text>
@@ -235,7 +244,7 @@ const insets = useSafeAreaInsets();
         </View>
       ) : (
         <FlatList
-          data={achievements}
+          data={filteredAchievements}
           renderItem={({ item, index }) => (
             <AchievementCard
               item={item}

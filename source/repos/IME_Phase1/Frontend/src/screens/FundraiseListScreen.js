@@ -6,6 +6,7 @@ import { fundraiseService } from '../services/fundraiseService';
 import api from '../utils/api'; // ✅ ADDED — needed to build API_BASE like AchievementDetailScreen
 import { FundraiseListScreenStyles as styles, FundraiseListScreenAv as av, FundraiseListScreenPb as pb } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListSearchBar from '../components/ListSearchBar';
 //const API_BASE_URL = 'http://10.0.2.2:51150/api';
 const API_BASE_URL = "https://imei.co.in/api"; // ✅ ADDED — same pattern as AchievementDetailScreen: derive the file-server base (without "/api") so raw "Uploads\..." paths can be turned into a directly-loadable static URL.
  //const API_BASE_URL = 'https://prasath-001-site1.ftempurl.com/api';
@@ -230,8 +231,14 @@ const FundraiseListScreen = ({ navigation, route }) => {
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hasMore,    setHasMore]    = useState(true);
+  const [search,     setSearch]     = useState('');
   const pageRef = useRef(1);
 const insets = useSafeAreaInsets();
+  const query = search.trim().toLowerCase();
+  const filteredData = query
+    ? data.filter((item) => [item.fundTitle, item.fullName, item.fundCategory, item.status, item.urgencyLevel]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : data;
   // ── Load ──────────────────────────────────────────────────────────────────
   const loadData = async (reset = false) => {
     try {
@@ -332,6 +339,8 @@ const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
 
+      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search fundraisers..." />
+
       {/* Summary strip */}
       {data.length > 0 && (
         <View style={styles.summaryStrip}>
@@ -353,9 +362,9 @@ const insets = useSafeAreaInsets();
       )}
 
       <FlatList
-        data={data}
+        data={filteredData}
         keyExtractor={(item) => item.id?.toString()}
-        contentContainerStyle={[styles.listContent, data.length === 0 && { flex: 1 }]}
+        contentContainerStyle={[styles.listContent, filteredData.length === 0 && { flex: 1 }]}
 
         refreshControl={
           <RefreshControl
