@@ -10,7 +10,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
+[Authorize]
 public class MemberController : ControllerBase
 {
     private readonly IMemberRepository _memberRepository;

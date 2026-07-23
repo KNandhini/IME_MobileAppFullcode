@@ -2,8 +2,7 @@
 // Mirrors AchievementFormScreen.js structure exactly.
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, Platform } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -20,6 +19,63 @@ const GOLD = '#D4A017';
 
 const EMPLOYMENT_TYPES = ['Full Time', 'Contract', 'Part Time', 'Internship'];
 const WORK_MODES       = ['Remote', 'Hybrid', 'Office'];
+
+const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// filePath from the server is a raw disk path like "Uploads\jobpostings\xyz.jpg" —
+// convert it into a URL the app can actually load/display/download.
+const toPublicUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http')) return filePath;
+  const idx = filePath.indexOf('Uploads\\');
+  if (idx === -1) return filePath;
+  const relative = filePath.substring(idx).replace(/\\/g, '/');
+  return `${API_BASE}/${relative}`;
+};
+
+// ── Field wrapper — local styles.field (own copy, matches AchievementFormScreen) ──
+function Field({ label, required, children, error, hint, charCount, maxChars }) {
+  const over = maxChars != null && charCount > maxChars;
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+        {maxChars != null && (
+          <Text style={[styles.field.counter, over && styles.field.counterOver]}>
+            {charCount ?? 0}/{maxChars}
+          </Text>
+        )}
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — local styles.styledInput (own copy, matches AchievementFormScreen) ──
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
 
 // ── Chip selector (Employment Type / Work Mode) ───────────────────────────────
 function ChipSelector({ label, options, value, onChange }) {
@@ -51,7 +107,8 @@ const JobPostingFormScreen = ({ route, navigation }) => {
   const { user } = useAuth();
 
   const [currentUserName, setCurrentUserName] = useState('');
-const [currentClubId, setCurrentClubId]     = useState(null);  
+  const [currentClubId, setCurrentClubId]     = useState(null);
+
   // Form fields
   const [jobTitle,                 setJobTitle]                 = useState(item?.jobTitle || '');
   const [companyName,              setCompanyName]              = useState(item?.companyName || '');
@@ -204,7 +261,6 @@ const [currentClubId, setCurrentClubId]     = useState(null);
         res      = await jobPostingService.update(item.jobPostingId, { ...payload, modifiedBy: currentUserName });
         recordId = item.jobPostingId;
       } else {
-        debugger;
         res      = await jobPostingService.create({
           ...payload,
           clubId: Number(currentClubId),
@@ -221,7 +277,6 @@ const [currentClubId, setCurrentClubId]     = useState(null);
       // Upload new attachments one-by-one (same as AchievementFormScreen)
       for (const file of attachments) {
         try {
-          debugger;
           const fd = new FormData();
           fd.append('files', { uri: file.uri, name: file.fileName, type: file.mimeType });
           await jobPostingService.uploadAttachments(recordId, fd);
@@ -247,69 +302,121 @@ const [currentClubId, setCurrentClubId]     = useState(null);
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       <View style={styles.navbar}>
-  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
-    <Text style={styles.cancelText}>Cancel</Text>
-  </TouchableOpacity>
-  <Text style={styles.navTitle}>{isEdit ? 'Edit Job Posting' : 'Add Job Posting'}</Text>
-  <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
-    {loading
-      ? <ActivityIndicator size="small" color={GOLD} />
-      : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
-  </TouchableOpacity>
-</View>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{isEdit ? 'Edit Job Posting' : 'Add Job Posting'}</Text>
+        <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
+          {loading
+            ? <ActivityIndicator size="small" color={GOLD} />
+            : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
+        </TouchableOpacity>
+      </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
-        {/* ── Fields ── */}
-        <TextInput label="Job Title *" value={jobTitle} onChangeText={(t) => { setJobTitle(t); if (errors.jobTitle) setErrors(p => ({ ...p, jobTitle: null })); }}
-          mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
-        {errors.jobTitle && <Text style={styles.error}>{errors.jobTitle}</Text>}
+        {/* ── Job Title ── */}
+        <Field label="Job Title" required error={errors.jobTitle}>
+          <StyledInput
+            placeholder="Enter Job Title"
+            value={jobTitle}
+            onChangeText={(t) => { setJobTitle(t); if (errors.jobTitle) setErrors(p => ({ ...p, jobTitle: '' })); }}
+            hasError={!!errors.jobTitle}
+          />
+        </Field>
 
-        <TextInput label="Company Name *" value={companyName} onChangeText={(t) => { setCompanyName(t); if (errors.companyName) setErrors(p => ({ ...p, companyName: null })); }}
-          mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
-        {errors.companyName && <Text style={styles.error}>{errors.companyName}</Text>}
+        {/* ── Company Name ── */}
+        <Field label="Company Name" required error={errors.companyName}>
+          <StyledInput
+            placeholder="Enter Company Name"
+            value={companyName}
+            onChangeText={(t) => { setCompanyName(t); if (errors.companyName) setErrors(p => ({ ...p, companyName: '' })); }}
+            hasError={!!errors.companyName}
+          />
+        </Field>
 
-        <TextInput label="Location *" value={location} onChangeText={(t) => { setLocation(t); if (errors.location) setErrors(p => ({ ...p, location: null })); }}
-          mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
-        {errors.location && <Text style={styles.error}>{errors.location}</Text>}
+        {/* ── Location ── */}
+        <Field label="Location" required error={errors.location}>
+          <StyledInput
+            placeholder="Enter Location"
+            value={location}
+            onChangeText={(t) => { setLocation(t); if (errors.location) setErrors(p => ({ ...p, location: '' })); }}
+            hasError={!!errors.location}
+          />
+        </Field>
 
         <ChipSelector label="Employment Type *" options={EMPLOYMENT_TYPES}
           value={employmentType} onChange={setEmploymentType} />
 
-        <TextInput label="Working Hours" value={workingHours} onChangeText={setWorkingHours}
-          mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY}
-          style={styles.input} placeholder="e.g. 9:00 AM – 6:00 PM" />
+        {/* ── Working Hours ── */}
+        <Field label="Working Hours">
+          <StyledInput
+            placeholder="e.g. 9:00 AM – 6:00 PM"
+            value={workingHours}
+            onChangeText={setWorkingHours}
+          />
+        </Field>
 
         <ChipSelector label="Work Mode *" options={WORK_MODES}
           value={workMode} onChange={setWorkMode} />
 
-        <TextInput label="About the Role" value={aboutRole} onChangeText={setAboutRole}
-          mode="outlined" multiline numberOfLines={4}
-          outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
+        {/* ── About the Role ── */}
+        <Field label="About the Role">
+          <StyledInput
+            placeholder="Describe the role"
+            value={aboutRole}
+            onChangeText={setAboutRole}
+            multiline
+          />
+        </Field>
 
-        <TextInput label="Required Skills & Experience" value={requiredSkills} onChangeText={setRequiredSkills}
-          mode="outlined" multiline numberOfLines={4}
-          outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
+        {/* ── Required Skills & Experience ── */}
+        <Field label="Required Skills & Experience">
+          <StyledInput
+            placeholder="List required skills and experience"
+            value={requiredSkills}
+            onChangeText={setRequiredSkills}
+            multiline
+          />
+        </Field>
 
-        <TextInput label="Salary Package" value={salaryPackage} onChangeText={setSalaryPackage}
-          mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY}
-          style={styles.input} placeholder="e.g. 6–8 LPA" />
+        {/* ── Salary Package ── */}
+        <Field label="Salary Package">
+          <StyledInput
+            placeholder="e.g. 6–8 LPA"
+            value={salaryPackage}
+            onChangeText={setSalaryPackage}
+          />
+        </Field>
 
-        <TextInput label="If Interested, Please Contact *" value={contactInfo} onChangeText={(t) => { setContactInfo(t); if (errors.contactInfo) setErrors(p => ({ ...p, contactInfo: null })); }}
-          mode="outlined" outlineColor="#BBDEFB" activeOutlineColor={NAVY} textColor={NAVY} style={styles.input} />
-        {errors.contactInfo && <Text style={styles.error}>{errors.contactInfo}</Text>}
+        {/* ── Contact Info ── */}
+        <Field label="If Interested, Please Contact" required error={errors.contactInfo}>
+          <StyledInput
+            placeholder="Enter contact details"
+            value={contactInfo}
+            onChangeText={(t) => { setContactInfo(t); if (errors.contactInfo) setErrors(p => ({ ...p, contactInfo: '' })); }}
+            hasError={!!errors.contactInfo}
+          />
+        </Field>
 
-        {/* ── Vacancy Closing Date ── */}
-        <TouchableOpacity style={styles.dateField} onPress={() => setShowDate(true)} activeOpacity={0.8}>
-          <MaterialCommunityIcons name="calendar-outline" size={20} color={NAVY} />
-          <View style={styles.dateText}>
-            <Text style={styles.dateLabelText}>Vacancy Closing Date</Text>
-            <Text style={styles.dateValue}>
-              {closingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-            </Text>
-          </View>
-          <MaterialCommunityIcons name="chevron-right" size={20} color="#94A3B8" />
-        </TouchableOpacity>
+        {/* ── Vacancy Closing Date — styled like Achievement's date field ── */}
+        <Field label="Vacancy Closing Date" required error={errors.closingDate}>
+          <TouchableOpacity
+            style={[
+              styles.styledInput.base,
+              !!errors.closingDate && styles.styledInput.errored,
+            ]}
+            onPress={() => setShowDate(true)}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 15, color: '#1E293B', fontWeight: '500' }}>
+                {closingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+              </Text>
+              <MaterialCommunityIcons name="calendar-outline" size={18} color={NAVY} />
+            </View>
+          </TouchableOpacity>
+        </Field>
         {showDate && (
           <DateTimePicker
             value={closingDate} mode="date" display="default" minimumDate={new Date()}
@@ -320,27 +427,26 @@ const [currentClubId, setCurrentClubId]     = useState(null);
         {/* ── Attachments (same grid as AchievementFormScreen) ── */}
         <Text style={styles.attachLabel}>ATTACHMENTS</Text>
         <View style={styles.attachGrid}>
-         {existingAttachments.map((a) => {
-  const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-    a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-  const url = toPublicUrl(a.filePath);
-  return (
-    <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
-      <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-        if (isImage) setFileViewer({ visible: true, uri: url });
-        else Linking.openURL(url);
-      }}>
-        {isImage ? (
-          <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
-        ) : (
-          <View style={styles.gridDoc}>
-            <Text style={styles.gridDocIcon}>📄</Text>
-            <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-      {/* ...remove button unchanged... */}
-      <TouchableOpacity style={styles.gridRemove} onPress={() => {
+          {existingAttachments.map((a) => {
+            const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+            const url = toPublicUrl(a.filePath);
+            return (
+              <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+                  if (isImage) setFileViewer({ visible: true, uri: url });
+                  else Linking.openURL(url);
+                }}>
+                  {isImage ? (
+                    <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.gridDoc}>
+                      <Text style={styles.gridDocIcon}>📄</Text>
+                      <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.gridRemove} onPress={() => {
                   Alert.alert('Delete', `Delete "${a.fileName}"?`, [
                     { text: 'Cancel', style: 'cancel' },
                     {
@@ -354,10 +460,10 @@ const [currentClubId, setCurrentClubId]     = useState(null);
                   ]);
                 }}>
                   <Text style={styles.gridRemoveText}>✕</Text>
-                </TouchableOpacity>   
-                 </View>
-  );
-})}
+                </TouchableOpacity>
+              </View>
+            );
+          })}
 
           {attachments.map((a, i) => (
             <View key={`new-${i}`} style={styles.gridThumb}>

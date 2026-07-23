@@ -100,6 +100,39 @@ const insets = useSafeAreaInsets();
 
     return (
       <View style={styles.card}>
+        {/* ── Header row: status badge on the left, edit/delete on the right ── */}
+        <View style={styles.cardHeaderRow}>
+          <View style={[styles.badge, item.isActive ? styles.badgeActive : styles.badgeInactive]}>
+            <Text style={[styles.badgeText, item.isActive ? styles.badgeTextActive : styles.badgeTextInactive]}>
+              {item.isActive ? 'Active' : 'Inactive'}
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('ClubForm', { clubId: item.clubId })}
+              style={{ padding: 4, marginRight: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={20}
+                color="#1E3A5F"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleDelete(item)}
+              style={{ padding: 4 }}
+            >
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={20}
+                color="#D9534F"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
         <View style={styles.cardTop}>
           {logoUrl ? (
             <Image source={{ uri: logoUrl }} style={styles.logoImg} />
@@ -118,34 +151,6 @@ const insets = useSafeAreaInsets();
             {item.contactNumber ? <Text style={styles.clubMeta}>📞 {item.contactNumber}</Text> : null}
             {item.adminMemberNames ? <Text style={styles.clubMeta}>👤 {item.adminMemberNames}</Text> : null}
           </View>
-          <View style={[styles.badge, item.isActive ? styles.badgeActive : styles.badgeInactive]}>
-            <Text style={[styles.badgeText, item.isActive ? styles.badgeTextActive : styles.badgeTextInactive]}>
-              {item.isActive ? 'Active' : 'Inactive'}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.cardActions}>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ClubForm', { clubId: item.clubId })}
-            style={{ padding: 4, marginRight: 2 }}
-          >
-            <MaterialCommunityIcons
-              name="pencil-outline"
-              size={22}
-              color="#1E3A5F"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => handleDelete(item)}
-            style={{ padding: 4 }}
-          >
-            <MaterialCommunityIcons
-              name="delete-outline"
-              size={22}
-              color="#D9534F"
-            />
-          </TouchableOpacity>
         </View>
       </View>
     );
@@ -158,7 +163,6 @@ const insets = useSafeAreaInsets();
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
      <Searchbar
@@ -207,4 +211,3 @@ const insets = useSafeAreaInsets();
     </View>
   );
 }
-

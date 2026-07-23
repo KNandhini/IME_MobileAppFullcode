@@ -10,7 +10,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
+[Authorize]
 public class ActivityController : ControllerBase
 {
     private readonly IActivityRepository _activityRepository;

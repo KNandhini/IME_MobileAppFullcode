@@ -12,7 +12,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
+[Authorize]
 public class OrganisationController : ControllerBase
 {
     private readonly IOrganisationRepository _organisationRepository;

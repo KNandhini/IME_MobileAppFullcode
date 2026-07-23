@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -8,7 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
 
 import api from '../utils/api';
-import { MagazineFormScreenStyles as styles, InputTheme as inputTheme } from './screenStyles';
+import { MagazineFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#2b3139';
@@ -23,6 +22,50 @@ const toPublicUrl = (filePath) => {
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
 };
+
+// ── Field wrapper — local styles.field (matches Achievement Form Screen) ──
+function Field({ label, required, children, error, hint, charCount, maxChars }) {
+  const over = maxChars != null && charCount > maxChars;
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+        {maxChars != null && (
+          <Text style={[styles.field.counter, over && styles.field.counterOver]}>
+            {charCount ?? 0}/{maxChars}
+          </Text>
+        )}
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — local styles.styledInput (matches Achievement Form Screen) ──
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
 
 const MagazineFormScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
@@ -146,92 +189,77 @@ const totalAttachments = existingAttachments.length + attachments.length;
     <View style={styles.root}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
-      <View style={styles.header}>
-       <View style={styles.navbar}>
-  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
-    <Text style={styles.cancelText}>Cancel</Text>
-  </TouchableOpacity>
-  <Text style={styles.navTitle}>{isEdit ? 'Edit Magazine' : 'Add Magazine'}</Text>
-  <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
-    {loading
-      ? <ActivityIndicator size="small" color={GOLD} />
-      : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
-  </TouchableOpacity>
-</View>
+      <View style={styles.navbar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{isEdit ? 'Edit Magazine' : 'Add Magazine'}</Text>
+        <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={loading}>
+          {loading
+            ? <ActivityIndicator size="small" color={GOLD} />
+            : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
-        <TextInput
-          label="Magazine Title *"
-          value={title}
-          onChangeText={(t) => { setTitle(t); if (errors.title) setErrors(p => ({ ...p, title: null })); }}
-          mode="outlined"
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          theme={inputTheme}
-          style={styles.input}
-        />
-        {errors.title && <Text style={styles.error}>{errors.title}</Text>}
+        <Field label="Magazine Title" required error={errors.title}>
+          <StyledInput
+            placeholder="Enter magazine title"
+            value={title}
+            onChangeText={(t) => { setTitle(t); if (errors.title) setErrors(p => ({ ...p, title: null })); }}
+            hasError={!!errors.title}
+          />
+        </Field>
 
-        <TextInput
-          label="Description"
-          value={description}
-          onChangeText={setDescription}
-          mode="outlined"
-          multiline
-          numberOfLines={4}
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          theme={inputTheme}
-          style={styles.input}
-        />
+        <Field label="Description">
+          <StyledInput
+            placeholder="Enter description"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+        </Field>
 
-        <TextInput
-          label="Issue Number"
-          value={issueNumber}
-          onChangeText={setIssueNumber}
-          mode="outlined"
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          theme={inputTheme}
-          style={styles.input}
-          placeholder="e.g. Vol. 12, Issue 4"
-        />
+        <Field label="Issue Number">
+          <StyledInput
+            placeholder="e.g. Vol. 12, Issue 4"
+            value={issueNumber}
+            onChangeText={setIssueNumber}
+          />
+        </Field>
 
-        <TextInput
-          label="Author Name"
-          value={authorName}
-          onChangeText={setAuthorName}
-          mode="outlined"
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          theme={inputTheme}
-          style={styles.input}
-        />
+        <Field label="Author Name">
+          <StyledInput
+            placeholder="Enter author name"
+            value={authorName}
+            onChangeText={setAuthorName}
+          />
+        </Field>
 
-        <TextInput
-          label="Category"
-          value={category}
-          onChangeText={setCategory}
-          mode="outlined"
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          theme={inputTheme}
-          style={styles.input}
-          placeholder="e.g. Engineering, Newsletter"
-        />
+        <Field label="Category">
+          <StyledInput
+            placeholder="e.g. Engineering, Newsletter"
+            value={category}
+            onChangeText={setCategory}
+          />
+        </Field>
 
-        <TouchableOpacity style={styles.dateField} onPress={() => setShowDate(true)} activeOpacity={0.8}>
-          <MaterialCommunityIcons name="calendar-outline" size={20} color={NAVY} />
-          <View style={styles.dateText}>
-            <Text style={styles.dateLabelText}>Published Date</Text>
-            <Text style={styles.dateValue}>
-              {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-            </Text>
-          </View>
-          <MaterialCommunityIcons name="chevron-right" size={20} color="#94A3B8" />
-        </TouchableOpacity>
+        {/* ── Date picker — styled like Title/Category, matches Achievement Form ── */}
+        <Field label="Published Date">
+          <TouchableOpacity
+            style={styles.styledInput.base}
+            onPress={() => setShowDate(true)}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={{ fontSize: 15, color: '#1E293B', fontWeight: '500' }}>
+                {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
+              </Text>
+              <MaterialCommunityIcons name="calendar-outline" size={18} color={NAVY} />
+            </View>
+          </TouchableOpacity>
+        </Field>
         {showDate && (
           <DateTimePicker
             value={date} mode="date" display="default" maximumDate={new Date()}
@@ -300,7 +328,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
 
   {totalAttachments < 5 && (
     <TouchableOpacity style={styles.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
-      <Text style={styles.gridAddIcon}>📎</Text>
+        <Text style={styles.gridAddIcon}>📷</Text>
       <Text style={styles.gridAddText}>Add ({totalAttachments}/5)</Text>
     </TouchableOpacity>
   )}
