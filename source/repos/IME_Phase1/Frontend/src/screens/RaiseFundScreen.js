@@ -8,14 +8,61 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { WebView } from 'react-native-webview';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system/legacy';
 import api from '../utils/api';
 import { RaiseFundScreenS as s } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import logoAsset from '../../assets/logo-clean.png';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
+// Logo shown on the Razorpay checkout screen (the circular emblem in your
+// screenshot). Loaded from your local asset (assets/logo-clean.png, imported
+// above) and converted to a base64 data URI at runtime — see
+// useLogoDataUri() below — since the WebView needs an actual image string,
+// not a bundler asset reference.
+const LOGO_ASSET = logoAsset;
+
+// ─── Local overrides for the full-screen "Support this cause" sheet ──────────
+// (kept local to this file since screenStyles.js wasn't in scope for this edit)
+const fsStyles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    backgroundColor: '#fff',
+  },
+  closeBtn: {
+    padding: 6,
+  },
+  sheet: {
+    flex: 1,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
+    marginTop: 0,
+    paddingTop: 0,
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    // extra breathing room at the bottom, more on iOS for the home indicator
+    paddingBottom: Platform.OS === 'ios' ? 28 : 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+});
+
 // ─── Razorpay HTML ────────────────────────────────────────────────────────────
-function getRazorpayHTML({ amount, userData, post }) {
+function getRazorpayHTML({ amount, userData, post, logoUrl }) {
   console.log(userData, "UserData");
   const name  = (userData?.fullName      || '').replace(/'/g, "\\'");
   const email = (userData?.email         || '').replace(/'/g, "\\'");
@@ -106,6 +153,7 @@ function openRazorpay(){
     amount:${Math.round(amount * 100)},
     currency:'INR',
     name:'Raise Fund',
+    image:'${logoUrl || ''}',
     description:'${(post?.title || 'Donation').replace(/'/g, "\\'")}',
     theme:{color:'#e8623a'},
     prefill:{name:'${name}',email:'${email}',contact:'${phone}'},
@@ -203,6 +251,35 @@ async function storePayment({ memberId, fundId, amount, transactionId, paymentMo
   return res.data.data;
 }
 
+// ─── useLogoDataUri ────────────────────────────────────────────────────────────
+/**
+ * Converts the local logo asset (LOGO_ASSET) into a base64 data URI once,
+ * so it can be handed to Razorpay's checkout.js as the `image` option.
+ * Runs once per app session — cheap after the first call.
+ */
+function useLogoDataUri() {
+  const [logoDataUri, setLogoDataUri] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(LOGO_ASSET);
+        await asset.downloadAsync();
+        const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        if (!cancelled) setLogoDataUri(`data:image/png;base64,${base64}`);
+      } catch (e) {
+        console.warn('Failed to prepare logo for Razorpay checkout:', e.message);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  return logoDataUri;
+}
+
 // ─── ProgressBar ──────────────────────────────────────────────────────────────
 function ProgressBar({ raised, goal }) {
   const pct = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0;
@@ -221,6 +298,9 @@ function ProgressBar({ raised, goal }) {
 }
 
 // ─── Amount Modal ─────────────────────────────────────────────────────────────
+// Now opens as a full-screen sheet (instead of a bottom sheet) with a close (✕)
+// button in its own header row, and the "Proceed to Pay" button lives in a
+// fixed footer that always has bottom breathing room.
 function AmountModal({ visible, post, onClose, onProceed }) {
   const minAmount = post.minimumAmount ?? 1;
   const [amount, setAmount] = useState('');
@@ -245,84 +325,103 @@ function AmountModal({ visible, post, onClose, onProceed }) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView
-        style={s.modalOverlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        <TouchableOpacity style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={s.modalSheet}>
-          <View style={s.modalHandle} />
-          <Text style={s.modalTitle}>Support this cause</Text>
-
-          <View style={s.modalGoalBox}>
-            <ProgressBar raised={post.raised} goal={post.goal} />
-            <View style={s.modalGoalRow}>
-              <View style={s.modalStat}>
-                <Text style={s.modalStatVal}>₹{post.raised.toLocaleString('en-IN')}</Text>
-                <Text style={s.modalStatLabel}>Raised</Text>
-              </View>
-              <View style={s.modalStatDivider} />
-              <View style={s.modalStat}>
-                <Text style={s.modalStatVal}>₹{post.goal.toLocaleString('en-IN')}</Text>
-                <Text style={s.modalStatLabel}>Goal</Text>
-              </View>
-              <View style={s.modalStatDivider} />
-              <View style={s.modalStat}>
-                <Text style={[s.modalStatVal, { color: '#22c55e' }]}>
-                  {post.goal > 0 ? Math.round((post.raised / post.goal) * 100) : 0}%
-                </Text>
-                <Text style={s.modalStatLabel}>Reached</Text>
-              </View>
-            </View>
+    <Modal
+      visible={visible}
+      transparent={false}
+      animationType="slide"
+      onRequestClose={onClose}
+      presentationStyle="fullScreen"
+    >
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <KeyboardAvoidingView
+          style={[s.modalOverlay, fsStyles.overlay]}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {/* Full-screen header with close button */}
+          <View style={fsStyles.header}>
+            <Text style={[s.modalTitle, { marginBottom: 0 }]}>Support this cause</Text>
+            <TouchableOpacity onPress={onClose} style={fsStyles.closeBtn}>
+              <Ionicons name="close" size={24} color="#333" />
+            </TouchableOpacity>
           </View>
 
-          {/* Display minimum amount as info only — no validation */}
-          {minAmount > 1 && (
-            <View style={s.minAmountBanner}>
-              <Ionicons name="information-circle-outline" size={15} color="#e8623a" />
-              <Text style={s.minAmountText}>
-                Minimum donation: ₹{minAmount.toLocaleString('en-IN')}
+          <ScrollView
+            style={[s.modalSheet, fsStyles.sheet]}
+            contentContainerStyle={{ paddingBottom: 12 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={s.modalGoalBox}>
+              <ProgressBar raised={post.raised} goal={post.goal} />
+              <View style={s.modalGoalRow}>
+                <View style={s.modalStat}>
+                  <Text style={s.modalStatVal}>₹{post.raised.toLocaleString('en-IN')}</Text>
+                  <Text style={s.modalStatLabel}>Raised</Text>
+                </View>
+                <View style={s.modalStatDivider} />
+                <View style={s.modalStat}>
+                  <Text style={s.modalStatVal}>₹{post.goal.toLocaleString('en-IN')}</Text>
+                  <Text style={s.modalStatLabel}>Goal</Text>
+                </View>
+                <View style={s.modalStatDivider} />
+                <View style={s.modalStat}>
+                  <Text style={[s.modalStatVal, { color: '#22c55e' }]}>
+                    {post.goal > 0 ? Math.round((post.raised / post.goal) * 100) : 0}%
+                  </Text>
+                  <Text style={s.modalStatLabel}>Reached</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Display minimum amount as info only — no validation */}
+            {minAmount > 1 && (
+              <View style={s.minAmountBanner}>
+                <Ionicons name="information-circle-outline" size={15} color="#e8623a" />
+                <Text style={s.minAmountText}>
+                  Minimum donation: ₹{minAmount.toLocaleString('en-IN')}
+                </Text>
+              </View>
+            )}
+
+            <Text style={s.modalSectionLabel}>Quick select</Text>
+            <View style={s.quickRow}>
+              {quickAmounts.map((q) => (
+                <TouchableOpacity
+                  key={q}
+                  style={[s.quickChip, amount === String(q) && s.quickChipActive]}
+                  onPress={() => setAmount(String(q))}
+                >
+                  <Text style={[s.quickChipText, amount === String(q) && s.quickChipTextActive]}>
+                    ₹{q.toLocaleString('en-IN')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={s.modalSectionLabel}>Or enter amount</Text>
+            <View style={s.amountInputRow}>
+              <Text style={s.rupeeSign}>₹</Text>
+              <TextInput
+                style={s.amountInput}
+                value={amount}
+                onChangeText={handleAmountChange}
+                keyboardType="number-pad"
+                placeholder={minAmount > 1 ? `Min ₹${minAmount.toLocaleString('en-IN')}` : 'Enter amount'}
+                placeholderTextColor="#bbb"
+              />
+            </View>
+          </ScrollView>
+
+          {/* Fixed footer — Proceed to Pay always has bottom breathing room */}
+          <View style={fsStyles.footer}>
+            <TouchableOpacity style={s.proceedBtn} onPress={handleProceed} activeOpacity={0.85}>
+              <Ionicons name="heart" size={16} color="#fff" />
+              <Text style={s.proceedBtnText}>
+                Proceed to Pay{amount ? ` ₹${Number(amount).toLocaleString('en-IN')}` : ''}
               </Text>
-            </View>
-          )}
-
-          <Text style={s.modalSectionLabel}>Quick select</Text>
-          <View style={s.quickRow}>
-            {quickAmounts.map((q) => (
-              <TouchableOpacity
-                key={q}
-                style={[s.quickChip, amount === String(q) && s.quickChipActive]}
-                onPress={() => setAmount(String(q))}
-              >
-                <Text style={[s.quickChipText, amount === String(q) && s.quickChipTextActive]}>
-                  ₹{q.toLocaleString('en-IN')}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            </TouchableOpacity>
           </View>
-
-          <Text style={s.modalSectionLabel}>Or enter amount</Text>
-          <View style={s.amountInputRow}>
-            <Text style={s.rupeeSign}>₹</Text>
-            <TextInput
-              style={s.amountInput}
-              value={amount}
-              onChangeText={handleAmountChange}
-              keyboardType="number-pad"
-              placeholder={minAmount > 1 ? `Min ₹${minAmount.toLocaleString('en-IN')}` : 'Enter amount'}
-              placeholderTextColor="#bbb"
-            />
-          </View>
-
-          <TouchableOpacity style={s.proceedBtn} onPress={handleProceed} activeOpacity={0.85}>
-            <Ionicons name="heart" size={16} color="#fff" />
-            <Text style={s.proceedBtnText}>
-              Proceed to Pay{amount ? ` ₹${Number(amount).toLocaleString('en-IN')}` : ''}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -354,6 +453,7 @@ export default function RaiseFundScreen({ route, navigation }) {
   const [paymentAmount,      setPaymentAmount]      = useState(0);
   const [showWebView,        setShowWebView]        = useState(false);
   const [processingPayment,  setProcessingPayment]  = useState(false);
+  const logoDataUri = useLogoDataUri();
 
   useEffect(() => {
     fetchMemberDetails()
@@ -445,8 +545,12 @@ export default function RaiseFundScreen({ route, navigation }) {
   };
 
   if (loadingMember) {
+    // Background forced to white for the moment right after tapping
+    // "Raise Fund" on the feed card, while the member profile loads.
+    // Kept the spinner in brand orange (#e8623a) — a white spinner would be
+    // invisible on a white background. Say the word if you want it changed.
     return (
-      <View style={s.centered}>
+      <View style={[s.centered, { backgroundColor: '#fff' }]}>
         <ActivityIndicator size="large" color="#e8623a" />
       </View>
     );
@@ -466,7 +570,7 @@ export default function RaiseFundScreen({ route, navigation }) {
           </View>
           <WebView
             source={{
-              html    : getRazorpayHTML({ amount: paymentAmount, userData: memberData, post: safePost }),
+              html    : getRazorpayHTML({ amount: paymentAmount, userData: memberData, post: safePost, logoUrl: logoDataUri }),
               baseUrl : 'https://checkout.razorpay.com',
             }}
             onMessage={handleWebViewMessage}
@@ -501,7 +605,7 @@ export default function RaiseFundScreen({ route, navigation }) {
       )}
 
       {/* ── Main content ── */}
-      <ScrollView contentContainerStyle={s.scroll}>
+      <ScrollView contentContainerStyle={[s.scroll, { paddingBottom: 40 }]}>
 
         {/* Post card */}
         <View style={s.postCard}>
@@ -575,7 +679,9 @@ export default function RaiseFundScreen({ route, navigation }) {
           <Text style={s.raiseFundBtnText}>Raise Fund</Text>
         </TouchableOpacity>
 
-        <Text style={s.secureNote}>🔒 Secured by Razorpay · All transactions are encrypted</Text>
+        <Text style={[s.secureNote, { marginTop: 16, marginBottom: 24 }]}>
+          🔒 Secured by Razorpay · All transactions are encrypted
+        </Text>
       </ScrollView>
 
       <AmountModal
@@ -589,4 +695,3 @@ export default function RaiseFundScreen({ route, navigation }) {
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
-

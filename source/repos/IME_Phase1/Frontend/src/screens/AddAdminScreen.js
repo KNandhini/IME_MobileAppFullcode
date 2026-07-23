@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList } from 'react-native';
-import { TextInput, Button, Menu } from 'react-native-paper';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import { Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
@@ -15,22 +15,93 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 const NAVY = COLORS.navy;
 const GOLD = COLORS.gold;
 
-// Forces every TextInput on this screen to stay light-themed regardless of
-// the device's dark mode setting. Without this, react-native-paper falls
-// back to its dark theme (black fields, low-contrast borders/text) even
-// though outlineColor/activeOutlineColor are set — those two props only
-// control the outline, not the fill/text/placeholder colors.
-const INPUT_THEME = {
-  roundness: 10,
-  colors: {
-    background: '#fff',
-    surface: '#fff',
-    text: '#1a1a1a',
-    onSurface: '#1a1a1a',
-    placeholder: '#94A3B8',
-    primary: '#1976D2',
-  },
-};
+// ── Field wrapper — local styles.field (own copy, matches Activity Form) ──
+function Field({ label, required, children, error, hint, charCount, maxChars }) {
+  const over = maxChars != null && charCount > maxChars;
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+        {maxChars != null && (
+          <Text style={[styles.field.counter, over && styles.field.counterOver]}>
+            {charCount ?? 0}/{maxChars}
+          </Text>
+        )}
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — local styles.styledInput (own copy, matches Activity Form) ──
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
+
+// ── Password field — StyledInput with an eye toggle overlaid on the right ──
+function PasswordField({ label, required, value, onChangeText, error, hint, visible, onToggleVisible }) {
+  return (
+    <Field label={label} required={required} error={error} hint={hint}>
+      <View style={{ position: 'relative' }}>
+        <StyledInput
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={!visible}
+          hasError={!!error}
+          style={{ paddingRight: 44 }}
+        />
+        <TouchableOpacity
+          onPress={onToggleVisible}
+          style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
+        </TouchableOpacity>
+      </View>
+    </Field>
+  );
+}
+
+// ── Select-style field — read-only StyledInput that opens a modal/menu/picker ──
+function SelectField({ label, required, value, placeholder, onPress, error, disabled, loading, multiline }) {
+  return (
+    <Field label={label} required={required} error={error}>
+      <TouchableOpacity onPress={disabled ? undefined : onPress} activeOpacity={0.8} disabled={disabled}>
+        <View pointerEvents="none">
+          <StyledInput
+            value={value}
+            placeholder={loading ? 'Loading…' : placeholder}
+            editable={false}
+            multiline={multiline}
+            hasError={!!error}
+            style={disabled ? { opacity: 0.5 } : null}
+          />
+        </View>
+      </TouchableOpacity>
+    </Field>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────
 // AdminSignupScreen
@@ -369,153 +440,151 @@ const AdminSignupScreen = ({
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
-      <View style={styles.header}>
-            {navigation?.canGoBack?.() && (
-              <TouchableOpacity style={styles.headerBackBtn} onPress={() => navigation.goBack()}>
-                <MaterialCommunityIcons name="arrow-left" size={20} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <Text style={styles.headerTitle}>Create Account</Text>
-            <Text style={styles.headerSubtitle}>Join IME to access member benefits</Text>
-          </View>
+      <View style={styles.navbar}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
+          <Text style={styles.navCancel}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>Create Account</Text>
+        <TouchableOpacity onPress={handleSignup} style={styles.navSide} disabled={loading}>
+          {loading
+            ? <ActivityIndicator size="small" color={GOLD} />
+            : <Text style={styles.navSave}>Save</Text>}
+        </TouchableOpacity>
+      </View>
 
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
    
       <View style={styles.card}>
-        <TextInput label="Full Name *" value={formData.fullName} onChangeText={(t) => updateField('fullName', t)}
-          mode="outlined" theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.fullName && <Text style={styles.error}>{errors.fullName}</Text>}
+        <Field label="Full Name" required error={errors.fullName}>
+          <StyledInput
+            value={formData.fullName}
+            onChangeText={(t) => updateField('fullName', t)}
+            hasError={!!errors.fullName}
+            returnKeyType="next"
+          />
+        </Field>
 
-        <TextInput label="Email *" value={formData.email} onChangeText={(t) => updateField('email', t)}
-          mode="outlined" theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
+        <Field label="Email" required error={errors.email}>
+          <StyledInput
+            value={formData.email}
+            onChangeText={(t) => updateField('email', t)}
+            hasError={!!errors.email}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            returnKeyType="next"
+          />
+        </Field>
 
-        <TextInput label="Password *" value={formData.password} onChangeText={(t) => updateField('password', t)}
-          secureTextEntry={!showPassword} mode="outlined" theme={INPUT_THEME}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-          right={<TextInput.Icon icon={showPassword ? 'eye-off' : 'eye'} onPress={() => setShowPassword(!showPassword)} />}
-          style={styles.input} />
-        <Text style={styles.helper}>Min 6 chars, include number & special character</Text>
-        {errors.password && <Text style={styles.error}>{errors.password}</Text>}
+        <PasswordField
+          label="Password"
+          required
+          value={formData.password}
+          onChangeText={(t) => updateField('password', t)}
+          error={errors.password}
+          hint="Min 6 chars, include number & special character"
+          visible={showPassword}
+          onToggleVisible={() => setShowPassword(!showPassword)}
+        />
 
-        <TextInput label="Confirm Password *" value={formData.confirmPassword} onChangeText={(t) => updateField('confirmPassword', t)}
-          secureTextEntry={!showConfirmPassword} mode="outlined" theme={INPUT_THEME}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-          right={<TextInput.Icon icon={showConfirmPassword ? 'eye-off' : 'eye'} onPress={() => setShowConfirmPassword(!showConfirmPassword)} />}
-          style={styles.input} />
-        {errors.confirmPassword && <Text style={styles.error}>{errors.confirmPassword}</Text>}
+        <PasswordField
+          label="Confirm Password"
+          required
+          value={formData.confirmPassword}
+          onChangeText={(t) => updateField('confirmPassword', t)}
+          error={errors.confirmPassword}
+          visible={showConfirmPassword}
+          onToggleVisible={() => setShowConfirmPassword(!showConfirmPassword)}
+        />
 
-        <TextInput label="Contact Number *" value={formData.contactNumber} onChangeText={(t) => updateField('contactNumber', t)}
-          keyboardType="numeric" mode="outlined" theme={INPUT_THEME}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.contactNumber && <Text style={styles.error}>{errors.contactNumber}</Text>}
+        <Field label="Contact Number" required error={errors.contactNumber}>
+          <StyledInput
+            value={formData.contactNumber}
+            onChangeText={(t) => updateField('contactNumber', t)}
+            hasError={!!errors.contactNumber}
+            keyboardType="numeric"
+            returnKeyType="next"
+          />
+        </Field>
 
-        <TextInput label="Address *" value={formData.address} onChangeText={(t) => updateField('address', t)}
-          multiline mode="outlined" theme={INPUT_THEME}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-        {errors.address && <Text style={styles.error}>{errors.address}</Text>}
+        <Field label="Address" required error={errors.address}>
+          <StyledInput
+            value={formData.address}
+            onChangeText={(t) => updateField('address', t)}
+            hasError={!!errors.address}
+            multiline
+          />
+        </Field>
 
         {/* ── Country ── */}
-        <TouchableOpacity onPress={() => setCountryModal(true)}>
-          <View pointerEvents="none">
-            <TextInput
-              label="Country *"
-              value={selectedCountry?.countryName || ''}
-              mode="outlined"
-              theme={INPUT_THEME}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
-              style={styles.input}
-              editable={false}
-            />
-          </View>
-        </TouchableOpacity>
-        {errors.country && <Text style={styles.error}>{errors.country}</Text>}
+        <SelectField
+          label="Country"
+          required
+          value={selectedCountry?.countryName || ''}
+          placeholder="Select country…"
+          onPress={() => setCountryModal(true)}
+          error={errors.country}
+        />
 
         {/* ── State ── */}
-        <TouchableOpacity
-          onPress={() => (selectedCountry ? setStateModal(true) : Alert.alert('Select country first'))}
-          activeOpacity={0.8}
-        >
-          <View pointerEvents="none">
-            <TextInput
-              label={statesLoading ? 'Loading states…' : 'State *'}
-              value={selectedState?.stateName || ''}
-              mode="outlined"
-              theme={INPUT_THEME}
-              outlineColor="#BBDEFB"
-              activeOutlineColor="#1976D2"
-              style={[styles.input, !selectedCountry && { opacity: 0.5 }]}
-              editable={false}
-            />
-          </View>
-        </TouchableOpacity>
-        {errors.state && <Text style={styles.error}>{errors.state}</Text>}
+        <SelectField
+          label="State"
+          required
+          value={selectedState?.stateName || ''}
+          placeholder="Select state…"
+          onPress={() => setStateModal(true)}
+          error={errors.state}
+          disabled={!selectedCountry}
+          loading={statesLoading}
+        />
 
         {/* ── Clubs (MULTI-SELECT — an admin can manage more than one club) ── */}
         {!hideClubSelection && (
-          <>
-            <TouchableOpacity
-              onPress={() =>
-                selectedState
-                  ? setClubModal(true)
-                  : Alert.alert('Select state first')
-              }
-              activeOpacity={0.8}
-            >
-              <View pointerEvents="none">
-                <TextInput
-                  label={clubsLoading ? 'Loading clubs…' : 'Clubs *'}
-                  value={selectedClubs.map(c => c.clubName).join(', ')}
-                  mode="outlined"
-                  theme={INPUT_THEME}
-                  outlineColor="#BBDEFB"
-                  activeOutlineColor="#1976D2"
-                  style={[
-                    styles.input,
-                    !selectedState && { opacity: 0.5 },
-                  ]}
-                  editable={false}
-                  multiline
-                />
-              </View>
-            </TouchableOpacity>
-
-            {errors.clubs && (
-              <Text style={styles.error}>
-                {errors.clubs}
-              </Text>
-            )}
-          </>
+          <SelectField
+            label="Clubs"
+            required
+            value={selectedClubs.map(c => c.clubName).join(', ')}
+            placeholder="Select clubs…"
+            onPress={() =>
+              selectedState
+                ? setClubModal(true)
+                : Alert.alert('Select state first')
+            }
+            error={errors.clubs}
+            loading={clubsLoading}
+            multiline
+          />
         )}
 
-        <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
-          <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
-            contentStyle={{ width: menuWidth }}
-            anchor={
-              <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
-                <View pointerEvents="none">
-                  <TextInput label="Gender *" value={formData.gender} mode="outlined"
-                    theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-                    style={styles.input} editable={false} />
-                </View>
-              </TouchableOpacity>
-            }>
-            <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
-            <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
-            <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
-          </Menu>
-        </View>
-        {errors.gender && <Text style={styles.error}>{errors.gender}</Text>}
-
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <View pointerEvents="none">
-            <TextInput label="Date of Birth *" value={formData.dateOfBirth} mode="outlined"
-              theme={INPUT_THEME} outlineColor="#BBDEFB" activeOutlineColor="#1976D2"
-              style={styles.input} editable={false} />
+        {/* ── Gender ── */}
+        <View style={styles.field.wrapper}>
+          <Text style={styles.field.label}>Gender<Text style={styles.field.req}> *</Text></Text>
+          <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
+            <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
+              contentStyle={{ width: menuWidth }}
+              anchor={
+                <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
+                  <View pointerEvents="none">
+                    <StyledInput value={formData.gender} editable={false} hasError={!!errors.gender} />
+                  </View>
+                </TouchableOpacity>
+              }>
+              <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
+              <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
+              <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
+            </Menu>
           </View>
-        </TouchableOpacity>
-        {errors.dateOfBirth && <Text style={styles.error}>{errors.dateOfBirth}</Text>}
+          {!!errors.gender && <Text style={styles.field.error}>{errors.gender}</Text>}
+        </View>
+
+        {/* ── Date of Birth ── */}
+        <SelectField
+          label="Date of Birth"
+          required
+          value={formData.dateOfBirth}
+          placeholder="Select date of birth…"
+          onPress={() => setShowDatePicker(true)}
+          error={errors.dateOfBirth}
+        />
         {showDatePicker && (
           <DateTimePicker value={selectedDate || new Date()} mode="date" display="default"
             minimumDate={minDate} maximumDate={today}
@@ -532,44 +601,43 @@ const AdminSignupScreen = ({
             }} />
         )}
 
-        <TextInput label="Age *" value={formData.age}
-          keyboardType="numeric" mode="outlined" theme={INPUT_THEME}
-          outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} editable={false} />
-        {errors.age && <Text style={styles.error}>{errors.age}</Text>}
+        <Field label="Age" required error={errors.age}>
+          <StyledInput value={formData.age} editable={false} hasError={!!errors.age} keyboardType="numeric" />
+        </Field>
 
         {/* ── Occupation ── */}
-        <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
-          <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
-            contentStyle={{ width: occupationMenuWidth }}
-            anchor={
-              <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
-                <View pointerEvents="none">
-                  <TextInput label="Occupation *" value={occupation} mode="outlined"
-                    theme={INPUT_THEME}
-                    outlineColor={occupationMenuVisible ? '#1976D2' : '#BBDEFB'}
-                    activeOutlineColor="#1976D2"
-                    style={styles.input} editable={false} />
-                </View>
-              </TouchableOpacity>
-            }>
-            {OCCUPATION_OPTIONS.map((opt) => (
-              <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
-            ))}
-          </Menu>
+        <View style={styles.field.wrapper}>
+          <Text style={styles.field.label}>Occupation<Text style={styles.field.req}> *</Text></Text>
+          <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
+            <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
+              contentStyle={{ width: occupationMenuWidth }}
+              anchor={
+                <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                  <View pointerEvents="none">
+                    <StyledInput value={occupation} editable={false} hasError={!!errors.occupation} />
+                  </View>
+                </TouchableOpacity>
+              }>
+              {OCCUPATION_OPTIONS.map((opt) => (
+                <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+              ))}
+            </Menu>
+          </View>
+          {!!errors.occupation && <Text style={styles.field.error}>{errors.occupation}</Text>}
         </View>
-        {errors.occupation && <Text style={styles.error}>{errors.occupation}</Text>}
 
         {/* ── Occupation Details (Employed / Self Employed only) ── */}
         {showOccupationDetails && (
           <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>Occupation Details</Text>
-            <TextInput
-              label="Occupation Details *"
-              value={occupationDetails}
-              onChangeText={setOccupationDetails}
-              multiline mode="outlined" theme={INPUT_THEME}
-              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-            {errors.occupationDetails && <Text style={styles.error}>{errors.occupationDetails}</Text>}
+            <Field label="Occupation Details" required error={errors.occupationDetails}>
+              <StyledInput
+                value={occupationDetails}
+                onChangeText={setOccupationDetails}
+                hasError={!!errors.occupationDetails}
+                multiline
+              />
+            </Field>
           </View>
         )}
 
@@ -577,14 +645,14 @@ const AdminSignupScreen = ({
         {showEducationSection && (
           <View style={styles.sectionBox}>
             <Text style={styles.sectionTitle}>Educational Qualification</Text>
-            <TextInput
-              label="Educational Qualification *"
-              value={qualification}
-              placeholder="e.g., Diploma-Civil Engineering"
-              onChangeText={setQualification}
-              mode="outlined" theme={INPUT_THEME}
-              outlineColor="#BBDEFB" activeOutlineColor="#1976D2" style={styles.input} />
-            {errors.qualification && <Text style={styles.error}>{errors.qualification}</Text>}
+            <Field label="Educational Qualification" required error={errors.qualification}>
+              <StyledInput
+                value={qualification}
+                onChangeText={setQualification}
+                hasError={!!errors.qualification}
+                placeholder="e.g., Diploma-Civil Engineering"
+              />
+            </Field>
           </View>
         )}
 
@@ -606,26 +674,7 @@ const AdminSignupScreen = ({
           </View>
         </TouchableOpacity>
 
-        <Button
-          mode="contained"
-          onPress={handleSignup}
-          loading={loading}
-          style={styles.button}
-          labelStyle={{ fontSize: 16 }}
-          textColor={GOLD}
-        >
-          Create Admin
-        </Button>
       </View>
-
-      <Button
-        mode="text"
-        onPress={() => navigation.goBack()}
-        style={styles.linkButton}
-        textColor={GOLD}
-      >
-        Cancel
-      </Button>
 
       {/* ── Country Modal ── */}
       <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>

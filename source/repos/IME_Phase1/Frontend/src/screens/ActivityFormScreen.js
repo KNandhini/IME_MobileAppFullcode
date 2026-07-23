@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking } from 'react-native';
-import { TextInput, Card, Chip } from 'react-native-paper';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking, TextInput } from 'react-native';
+import { Card, Chip } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -11,8 +11,6 @@ import { ActivityFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ─── Build a displayable URL from a stored FilePath ───────────────────────
-// Mirrors buildPhotoUrl in AchievementFormScreen — handles backslashes from
-// Windows-style paths and avoids double-prefixing already-absolute URLs.
 const buildFileUrl = (filePath) => {
   if (!filePath) return null;
   if (filePath.startsWith('http')) return filePath;
@@ -26,7 +24,7 @@ const getAttachmentKind = (fileTypeOrName = "") => {
   if (v.includes("video") || /\.(mp4|mov|avi|mkv)$/.test(v)) return "video";
   return "document";
 };
-const NAVY = '#1E3A5F';
+
 const STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
 
 const VISIBILITY_OPTIONS = [
@@ -52,33 +50,76 @@ const toDateOnlyString = (date) => {
   return `${y}-${m}-${d}T00:00:00`;
 };
 
-const DateField = ({ label, value, onChange }) => {
+// ── Field wrapper ──────────────────────────────────────────────────────────
+function Field({ label, required, children, error, hint, charCount, maxChars }) {
+  const over = maxChars != null && charCount > maxChars;
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+        {maxChars != null && (
+          <Text style={[styles.field.counter, over && styles.field.counterOver]}>
+            {charCount ?? 0}/{maxChars}
+          </Text>
+        )}
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput ───────────────────────────────────────────────────────
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
+
+// ── Date Field — styled to match Field + StyledInput used for Title/Description ──
+const DateField = ({ label, required, value, onChange, error }) => {
   const [show, setShow] = useState(false);
   return (
-    <>
+    <Field label={label} required={required} error={error}>
       <TouchableOpacity
-        style={[
-          styles.dateInput,
-          { borderColor: '#BBDEFB' }
-        ]}
+        activeOpacity={0.8}
         onPress={() => setShow(true)}
+        style={[
+          styles.styledInput.base,
+          error && styles.styledInput.errored,
+          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+        ]}
       >
-        <Text style={[styles.dateLabel, { color: '#64748B' }]}>
-          {label}
+        <Text
+          style={{
+            fontSize: 15,
+            fontWeight: '500',
+            color: value ? '#1E293B' : '#CBD5E1',
+          }}
+        >
+          {value ? formatDate(value) : 'Select date'}
         </Text>
-        <View style={styles.dateValueRow}>
-          <Text
-            style={
-              value
-                ? [styles.dateText, { color: '#1E3A5F' }]
-                : [styles.datePlaceholder, { color: '#94A3B8' }]
-            }
-          >
-            {value ? formatDate(value) : 'Select date'}
-          </Text>
-          <Text style={styles.calendarIcon}>📅</Text>
-        </View>
+        <Text style={{ fontSize: 16 }}>📅</Text>
       </TouchableOpacity>
+
       {show && (
         <DateTimePicker
           value={value || new Date()}
@@ -90,7 +131,7 @@ const DateField = ({ label, value, onChange }) => {
           }}
         />
       )}
-    </>
+    </Field>
   );
 };
 
@@ -141,7 +182,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
     ]);
   };
 
-  // ── Load existing attachments via activityService (mirrors AchievementFormScreen) ──
+  // ── Load existing attachments ─────────────────────────────────────────────
   const loadAttachments = async () => {
     try {
       const res = await activityService.getAttachments(activityId);
@@ -263,7 +304,6 @@ const ActivityFormScreen = ({ route, navigation }) => {
       `${BASE_URL}/api/Activity/${id}/attachments`,
       {
         method: "POST",
-        // Do NOT set Content-Type manually — fetch sets the multipart boundary itself
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
@@ -313,9 +353,6 @@ const ActivityFormScreen = ({ route, navigation }) => {
         return;
       }
 
-      // Resolve the id to upload attachments against:
-      // - edit mode: we already know activityId
-      // - create mode: pull the new id out of whatever shape the API returned
       const newActivityId = isEditMode
         ? activityId
         : (res.data?.activityId ?? res.data?.id ?? res.data);
@@ -347,282 +384,255 @@ const ActivityFormScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
-      {/* ── Top navbar ── */}
-      <View style={styles.navbar}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.navSide}
-          disabled={saving}
-        >
-          <Text style={styles.navCancel}>Cancel</Text>
-        </TouchableOpacity>
-        <Text style={styles.navTitle}>{isEditMode ? 'Edit Activity' : 'Add Activity'}</Text>
-        <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
-          {saving
-            ? <ActivityIndicator size="small" color="#D4A017" />
-            : <Text style={styles.navSave}>{isEditMode ? 'Update' : 'Save'}</Text>}
-        </TouchableOpacity>
-      </View>
-
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+  <View style={styles.root}>
+    {/* ── Top navbar ── */}
+    <View style={styles.navbar}>
+      <TouchableOpacity
+        onPress={() => navigation.goBack()}
+        style={styles.navSide}
+        disabled={saving}
       >
-        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 32 }}>
-
-          {/* ── Activity Details ── */}
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>Activity Details</Text>
-              <TextInput
-                label="Title *"
-                value={formData.activityName}
-                onChangeText={(v) => update('activityName', v)}
-                mode="outlined"
-                textColor="#1E3A5F"
-                outlineColor="#BBDEFB"
-                activeOutlineColor={NAVY}
-                style={styles.input}
-              />
-              {errors.activityName && <Text style={styles.error}>{errors.activityName}</Text>}
-              <TextInput
-                label="Description *"
-                value={formData.description}
-                onChangeText={(v) => update('description', v)}
-                mode="outlined"
-                multiline
-                numberOfLines={4}
-                textColor="#1E3A5F"
-                outlineColor="#BBDEFB"
-                activeOutlineColor={NAVY}
-                style={styles.input}
-              />
-              {errors.description && <Text style={styles.error}>{errors.description}</Text>}
-              <TextInput
-                label="Venue *"
-                value={formData.venue}
-                onChangeText={(v) => update('venue', v)}
-                mode="outlined"
-                style={styles.input}
-                textColor="#1E3A5F"
-                outlineColor="#BBDEFB"
-                activeOutlineColor={NAVY}
-              />
-              {errors.venue && <Text style={styles.error}>{errors.venue}</Text>}
-              <TextInput
-                label="Coordinator"
-                value={formData.coordinator}
-                onChangeText={(v) => update('coordinator', v)}
-                mode="outlined"
-                style={styles.input}
-                textColor="#1E3A5F"
-                outlineColor="#BBDEFB"
-                activeOutlineColor={NAVY}
-              />
-              <TextInput
-                label="Chief Guest"
-                value={formData.chiefGuest}
-                onChangeText={(v) => update('chiefGuest', v)}
-                mode="outlined"
-                style={styles.input}
-                textColor="#1E3A5F"
-                outlineColor="#BBDEFB"
-                activeOutlineColor={NAVY}
-              />
-              <TextInput
-                label="Time (e.g. 10:00 AM)"
-                value={formData.time}
-                onChangeText={(v) => update('time', v)}
-                mode="outlined"
-                style={styles.input}
-                placeholder="e.g. 10:00 AM"
-                textColor="#1E3A5F"
-                outlineColor="#BBDEFB"
-                activeOutlineColor={NAVY}
-              />
-            </Card.Content>
-          </Card>
-
-          {/* ── Date & Time ── */}
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>Date & Time</Text>
-              <DateField
-                label="Activity Date *"
-                value={activityDate}
-                onChange={(d) => { setActivityDate(d); if (errors.activityDate) setErrors(p => ({ ...p, activityDate: null })); }}
-
-              />
-              {errors.activityDate && <Text style={styles.error}>{errors.activityDate}</Text>}
-              <DateField
-                label="Registration Deadline"
-                value={registrationDeadline}
-                onChange={setRegistrationDeadline}
-              />
-            </Card.Content>
-          </Card>
-
-          {/* ── Status ── */}
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>Status</Text>
-              <View style={styles.statusRow}>
-                {STATUSES.map((s) => (
-                  <TouchableOpacity key={s} onPress={() => update('status', s)}>
-                    <Chip
-                      selected={formData.status === s}
-                      style={[styles.chip, formData.status === s && styles.chipSelected]}
-                      textStyle={formData.status === s ? { color: '#fff' } : {}}
-                    >
-                      {s}
-                    </Chip>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </Card.Content>
-          </Card>
-
-          {/* ── Visibility ── */}
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>Visibility</Text>
-              <View style={styles.radioGroup}>
-                {VISIBILITY_OPTIONS.map((opt) => {
-                  const selected = formData.visibility === opt.value;
-                  return (
-                    <TouchableOpacity
-                      key={opt.value}
-                      style={[styles.radioOption, selected && styles.radioOptionSelected]}
-                      onPress={() => update('visibility', opt.value)}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
-                        {selected && <View style={styles.radioInner} />}
-                      </View>
-                      <View style={styles.radioTextWrap}>
-                        <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
-                          {opt.label}
-                        </Text>
-                        <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
-                          {opt.sub}
-                        </Text>
-                      </View>
-                      <Text style={styles.radioIcon}>
-                        {opt.value === 'Public(All Clubs)' ? '🌐' : '🔒'}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </Card.Content>
-          </Card>
-
-          {/* ── Attachments ── */}
-          <Card style={styles.card}>
-            <Card.Content>
-              <Text style={styles.sectionTitle}>Attachments (Optional)</Text>
-              <View style={styles.attachGrid}>
-
-                {/* Existing (server) attachments */}
-                {existingAttachments.map((a) => {
-                  const kind = getAttachmentKind(a.fileType || a.fileName);
-                  const url = buildFileUrl(a.filePath);
-                  return (
-                    <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
-                      <TouchableOpacity
-                        style={{ flex: 1 }}
-                        onPress={() => {
-                          if (kind !== 'image') {
-                            Linking.openURL(url).catch(() =>
-                              Alert.alert('Error', 'Cannot open this file.')
-                            );
-                          }
-                        }}
-                      >
-                        {kind === 'image' ? (
-                          <Image
-                            source={{ uri: url }}
-                            style={styles.thumbImg}
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <View style={styles.thumbDoc}>
-                            <Text style={styles.thumbIcon}>
-                              {kind === 'video' ? '🎬' : '📄'}
-                            </Text>
-                            <Text style={styles.thumbName} numberOfLines={2}>
-                              {a.fileName}
-                            </Text>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.thumbRemove}
-                        onPress={() => deleteExisting(a.attachmentId, a.fileName)}
-                      >
-                        <Text style={styles.thumbRemoveText}>✕</Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-
-                {/* New, not-yet-uploaded attachments */}
-                {attachments.map((a, i) => (
-                  <View key={`new-${i}`} style={styles.thumb}>
-                    <TouchableOpacity
-                      style={{ flex: 1 }}
-                      onPress={() => openFile(a.uri, a.type)}
-                    >
-                      {a.type === 'image' ? (
-                        <Image
-                          source={{ uri: a.uri }}
-                          style={styles.thumbImg}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={styles.thumbDoc}>
-                          <Text style={styles.thumbIcon}>
-                            {a.type === 'video' ? '🎬' : '📄'}
-                          </Text>
-                          <Text style={styles.thumbName} numberOfLines={2}>
-                            {a.fileName}
-                          </Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.thumbRemove}
-                      onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
-                    >
-                      <Text style={styles.thumbRemoveText}>✕</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-
-                {(existingAttachments.length + attachments.length) < 5 && (
-                  <TouchableOpacity
-                    style={styles.thumbAdd}
-                    onPress={handlePickAttachment}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.thumbAddIcon}>📷</Text>
-                    <Text style={styles.thumbAddText}>
-                      Add ({existingAttachments.length + attachments.length}/5)
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-              <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4 · Max 50 MB each</Text>
-            </Card.Content>
-          </Card>
-
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <Text style={styles.navCancel}>Cancel</Text>
+      </TouchableOpacity>
+      <Text style={styles.navTitle}>{isEditMode ? 'Edit Activity' : 'Add Activity'}</Text>
+      <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
+        {saving
+          ? <ActivityIndicator size="small" color="#D4A017" />
+          : <Text style={styles.navSave}>{isEditMode ? 'Update' : 'Save'}</Text>}
+      </TouchableOpacity>
     </View>
-  );
+
+    <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={{ flex: 1 }}
+    >
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+
+        {/* ── Activity Details ── */}
+        <Field label="Title" required error={errors.activityName}>
+          <StyledInput
+            placeholder="Enter activity title"
+            value={formData.activityName}
+            onChangeText={(v) => update('activityName', v)}
+            hasError={!!errors.activityName}
+            returnKeyType="next"
+          />
+        </Field>
+
+        <Field label="Description" required error={errors.description}>
+          <StyledInput
+            placeholder="Describe the activity…"
+            value={formData.description}
+            onChangeText={(v) => update('description', v)}
+            hasError={!!errors.description}
+            multiline
+          />
+        </Field>
+
+        <Field label="Venue" required error={errors.venue}>
+          <StyledInput
+            placeholder="Enter venue"
+            value={formData.venue}
+            onChangeText={(v) => update('venue', v)}
+            hasError={!!errors.venue}
+            returnKeyType="next"
+          />
+        </Field>
+
+        <Field label="Coordinator">
+          <StyledInput
+            placeholder="Enter coordinator name"
+            value={formData.coordinator}
+            onChangeText={(v) => update('coordinator', v)}
+            returnKeyType="next"
+          />
+        </Field>
+
+        <Field label="Chief Guest">
+          <StyledInput
+            placeholder="Enter chief guest name"
+            value={formData.chiefGuest}
+            onChangeText={(v) => update('chiefGuest', v)}
+            returnKeyType="next"
+          />
+        </Field>
+
+        <Field label="Time">
+          <StyledInput
+            placeholder="e.g. 10:00 AM"
+            value={formData.time}
+            onChangeText={(v) => update('time', v)}
+            returnKeyType="done"
+          />
+        </Field>
+
+        {/* ── Date & Time ── */}
+        <DateField
+          label="Activity Date"
+          required
+          value={activityDate}
+          onChange={(d) => {
+            setActivityDate(d);
+            if (errors.activityDate) setErrors(p => ({ ...p, activityDate: null }));
+          }}
+          error={errors.activityDate}
+        />
+
+        <DateField
+          label="Registration Deadline"
+          value={registrationDeadline}
+          onChange={setRegistrationDeadline}
+        />
+
+        {/* ── Status ── */}
+        <Text style={styles.sectionTitle}>Status</Text>
+        <View style={styles.statusRow}>
+          {STATUSES.map((s) => (
+            <TouchableOpacity key={s} onPress={() => update('status', s)}>
+              <Chip
+                selected={formData.status === s}
+                style={[styles.chip, formData.status === s && styles.chipSelected]}
+                textStyle={[
+                  styles.chipText,
+                  formData.status === s && styles.chipTextSelected,
+                ]}
+              >
+                {s}
+              </Chip>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* ── Visibility ── */}
+        <Text style={styles.sectionTitle}>Visibility</Text>
+        <View style={styles.radioGroup}>
+          {VISIBILITY_OPTIONS.map((opt) => {
+            const selected = formData.visibility === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[styles.radioOption, selected && styles.radioOptionSelected]}
+                onPress={() => update('visibility', opt.value)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+                  {selected && <View style={styles.radioInner} />}
+                </View>
+                <View style={styles.radioTextWrap}>
+                  <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
+                    {opt.label}
+                  </Text>
+                  <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
+                    {opt.sub}
+                  </Text>
+                </View>
+                <Text style={styles.radioIcon}>
+                  {opt.value === 'Public(All Clubs)' ? '🌐' : '🔒'}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* ── Attachments ── */}
+        <Text style={styles.sectionTitle}>Attachments (Optional)</Text>
+        <View style={styles.attachGrid}>
+
+          {/* Existing (server) attachments */}
+          {existingAttachments.map((a) => {
+            const kind = getAttachmentKind(a.fileType || a.fileName);
+            const url = buildFileUrl(a.filePath);
+            return (
+              <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
+                <TouchableOpacity
+                  style={{ flex: 1 }}
+                  onPress={() => {
+                    if (kind !== 'image') {
+                      Linking.openURL(url).catch(() =>
+                        Alert.alert('Error', 'Cannot open this file.')
+                      );
+                    }
+                  }}
+                >
+                  {kind === 'image' ? (
+                    <Image
+                      source={{ uri: url }}
+                      style={styles.thumbImg}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.thumbDoc}>
+                      <Text style={styles.thumbIcon}>
+                        {kind === 'video' ? '🎬' : '📄'}
+                      </Text>
+                      <Text style={styles.thumbName} numberOfLines={2}>
+                        {a.fileName}
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.thumbRemove}
+                  onPress={() => deleteExisting(a.attachmentId, a.fileName)}
+                >
+                  <Text style={styles.thumbRemoveText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+
+          {/* New, not-yet-uploaded attachments */}
+          {attachments.map((a, i) => (
+            <View key={`new-${i}`} style={styles.thumb}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => openFile(a.uri, a.type)}
+              >
+                {a.type === 'image' ? (
+                  <Image
+                    source={{ uri: a.uri }}
+                    style={styles.thumbImg}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View style={styles.thumbDoc}>
+                    <Text style={styles.thumbIcon}>
+                      {a.type === 'video' ? '🎬' : '📄'}
+                    </Text>
+                    <Text style={styles.thumbName} numberOfLines={2}>
+                      {a.fileName}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.thumbRemove}
+                onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
+              >
+                <Text style={styles.thumbRemoveText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          {(existingAttachments.length + attachments.length) < 5 && (
+            <TouchableOpacity
+              style={styles.thumbAdd}
+              onPress={handlePickAttachment}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.thumbAddIcon}>📷</Text>
+              <Text style={styles.thumbAddText}>
+                Add ({existingAttachments.length + attachments.length}/5)
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4 · Max 50 MB each</Text>
+
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </View>
+);
 };
-
-
 
 export default ActivityFormScreen;

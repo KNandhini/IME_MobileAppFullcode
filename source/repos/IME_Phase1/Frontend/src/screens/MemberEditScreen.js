@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform } from 'react-native';
+import { Card } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
@@ -16,13 +17,69 @@ const blobToDataUri = (blob) => {
   return `data:image/jpeg;base64,${blob}`;
 };
 
-const MemberEditScreen = ({ route, navigation }) => {
-  const { memberId } = route.params;
+// ── Safe date-of-birth formatter ───────────────────────────────────────────
+// Guards against `new Date(x).toLocaleDateString()` throwing a RangeError
+// on Hermes/Android when `x` is missing or not a parseable date, which was
+// crashing the whole screen (showing as a blank blue page — the root
+// container's background color with nothing rendered on top of it).
+const formatDob = (dob) => {
+  if (!dob) return '—';
+  const d = new Date(dob);
+  if (isNaN(d.getTime())) return '—';
+  try {
+    return d.toLocaleDateString('en-IN');
+  } catch {
+    return '—';
+  }
+};
 
+// ── Field wrapper — matches Activity Form ─────────────────────────────────
+function Field({ label, required, children, error, hint }) {
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — matches Activity Form, supports disabled ───────────
+function StyledInput({ hasError, multiline, disabled, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && !disabled && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        disabled && styles.styledInput.disabled,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      editable={!disabled}
+      {...props}
+    />
+  );
+}
+
+const MemberEditScreen = ({ route, navigation }) => {
+ const { member } = route.params;
+const memberId = member.memberId || member.MemberId;
   const [loading,  setLoading]  = useState(true);
   const [saving,   setSaving]   = useState(false);
   const [errors,   setErrors]   = useState({});
-  const [member,   setMember]   = useState(null);
+  //const [member,   setMember]   = useState(null);
   const [newPhoto, setNewPhoto] = useState(null); // { uri, fileName, mimeType }
   const [genderOpen, setGenderOpen] = useState(false);
 
@@ -41,47 +98,34 @@ const MemberEditScreen = ({ route, navigation }) => {
 
   // ── Load member profile ───────────────────────────────────
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await memberService.getProfile(memberId);
-        if (res.success && res.data) {
-          const d = res.data;
-          setMember(d);
-          setForm({
-            fullName:      d.fullName      || '',
-            contactNumber: d.contactNumber || '',
-            gender:        d.gender        || '',
-            age:           d.age != null   ? String(d.age) : '',
-            address:       d.address       || '',
-            place:         d.place         || '',
-            designationId: d.designationId ?? 1,
-          });
+    setForm({
+        fullName: member.fullName || '',
+        contactNumber: member.contactNumber || '',
+        gender: member.gender || '',
+        age: member.age != null ? String(member.age) : '',
+        address: member.address || '',
+        place: member.place || '',
+        designationId: member.designationId ?? 1,
+    });
 
-          // ── Resolve photo the same way AchievementsScreen does ──────────────
-          // Priority 1: profilePhoto blob (base64) field
-          const blob =
-            d.profilePhoto ?? d.ProfilePhoto ?? d.photo ?? d.Photo ?? null;
-          if (blob) {
-            setResolvedPhotoUri(blobToDataUri(blob));
-          } else if (d.profilePhotoPath) {
-            // Fallback: URL path
-            const uri = d.profilePhotoPath.startsWith('http')
-              ? d.profilePhotoPath
-              : `${BASE_URL}/${d.profilePhotoPath}`;
-            setResolvedPhotoUri(uri);
-          }
-        } else {
-          Alert.alert('Error', getSafeErrorMessage(res));
-          navigation.goBack();
-        }
-      } catch {
-        Alert.alert('Error', 'Failed to load member');
-        navigation.goBack();
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [memberId]);
+    const blob =
+        member.profilePhoto ??
+        member.ProfilePhoto ??
+        member.photo ??
+        member.Photo;
+
+    if (blob) {
+        setResolvedPhotoUri(blobToDataUri(blob));
+    } else if (member.profilePhotoPath) {
+        setResolvedPhotoUri(
+            member.profilePhotoPath.startsWith('http')
+                ? member.profilePhotoPath
+                : `${BASE_URL}/${member.profilePhotoPath}`
+        );
+    }
+
+    setLoading(false);
+}, []);
 
   // ── Pick new photo ────────────────────────────────────────
   const handlePickPhoto = useCallback(async () => {
@@ -177,7 +221,6 @@ const MemberEditScreen = ({ route, navigation }) => {
   const handleClear = () => navigation.goBack();
 
   // ── Current photo source ──────────────────────────────────
-  // newPhoto (just picked) takes priority, then blob-resolved URI
   const photoSource = newPhoto
     ? { uri: newPhoto.uri }
     : resolvedPhotoUri
@@ -193,164 +236,191 @@ const MemberEditScreen = ({ route, navigation }) => {
   }
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-
-      {/* ── Photo ── */}
-      <View style={styles.photoSection}>
-        <TouchableOpacity onPress={handlePickPhoto} activeOpacity={0.8}>
-          {photoSource ? (
-            <Image source={photoSource} style={styles.photo} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoInitial}>
-                {form.fullName ? form.fullName.charAt(0).toUpperCase() : '?'}
-              </Text>
-            </View>
-          )}
-          <View style={styles.cameraOverlay}>
-            <Text style={styles.cameraIcon}>📷</Text>
-          </View>
+    <View style={styles.root}>
+      {/* ── Top navbar — same as Activity Form ── */}
+      <View style={styles.navbar}>
+        <TouchableOpacity onPress={handleClear} style={styles.navSide} disabled={saving}>
+          <Text style={styles.navCancel}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.photoHint}>Tap to change profile photo</Text>
-      </View>
-
-      {/* ── Read-only info ── */}
-      <View style={styles.readOnlyBox}>
-        <Text style={styles.readOnlyLabel}>Email</Text>
-        <Text style={styles.readOnlyValue}>{member?.email}</Text>
-        <Text style={[styles.readOnlyLabel, { marginTop: 8 }]}>Date of Birth</Text>
-        <Text style={styles.readOnlyValue}>
-          {member?.dateOfBirth
-            ? new Date(member.dateOfBirth).toLocaleDateString('en-IN')
-            : '—'}
-        </Text>
-        <Text style={[styles.readOnlyLabel, { marginTop: 8 }]}>Status</Text>
-        <Text style={styles.readOnlyValue}>{member?.membershipStatus}</Text>
-      </View>
-
-      {/* ── Editable fields ── */}
-      <Field label="Full Name *" error={errors.fullName}>
-        <TextInput
-          style={styles.input}
-          value={form.fullName}
-          onChangeText={v => { setForm(p => ({ ...p, fullName: v.replace(/[^A-Za-z\s]/g, '').slice(0, 150) })); if (errors.fullName) setErrors(p => ({ ...p, fullName: null })); }}
-          placeholder="Full name"
-          placeholderTextColor="#aaa"
-        />
-      </Field>
-
-      <Field label="Contact Number" error={errors.contactNumber}>
-        <TextInput
-          style={styles.input}
-          value={form.contactNumber}
-          onChangeText={v => { setForm(p => ({ ...p, contactNumber: v.replace(/[^0-9]/g, '').slice(0, 10) })); if (errors.contactNumber) setErrors(p => ({ ...p, contactNumber: null })); }}
-          placeholder="10-digit mobile number"
-          placeholderTextColor="#aaa"
-          keyboardType="numeric"
-          maxLength={10}
-        />
-      </Field>
-
-      <Field label="Gender">
-        <TouchableOpacity
-          style={[styles.input, styles.dropdown]}
-          onPress={() => setGenderOpen(o => !o)}
-          activeOpacity={0.8}
-        >
-          <Text style={form.gender ? styles.dropdownSelected : styles.dropdownPlaceholder}>
-            {form.gender || 'Select gender'}
-          </Text>
-          <Text style={styles.dropdownArrow}>{genderOpen ? '▲' : '▼'}</Text>
-        </TouchableOpacity>
-        {genderOpen && (
-          <View style={styles.dropdownMenu}>
-            {GENDERS.map(g => (
-              <TouchableOpacity
-                key={g}
-                style={styles.dropdownItem}
-                onPress={() => { setForm(p => ({ ...p, gender: g })); setGenderOpen(false); }}
-              >
-                <Text style={[styles.dropdownItemText, form.gender === g && styles.dropdownItemActive]}>
-                  {g}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </Field>
-
-      <Field label="Age">
-        <TextInput
-          style={styles.input}
-          value={form.age}
-          onChangeText={v => setForm(p => ({ ...p, age: v.replace(/[^0-9]/g, '').slice(0, 3) }))}
-          placeholder="Age"
-          placeholderTextColor="#aaa"
-          keyboardType="numeric"
-          maxLength={3}
-        />
-      </Field>
-
-      <Field label="Address">
-        <TextInput
-          style={[styles.input, styles.multiline]}
-          value={form.address}
-          onChangeText={v => setForm(p => ({ ...p, address: v.slice(0, 250) }))}
-          placeholder="Address"
-          placeholderTextColor="#aaa"
-          multiline
-          numberOfLines={3}
-          textAlignVertical="top"
-        />
-      </Field>
-
-      <Field label="Place">
-        <TextInput
-          style={styles.input}
-          value={form.place}
-          onChangeText={v => setForm(p => ({ ...p, place: v.replace(/[^A-Za-z\s]/g, '').slice(0, 50) }))}
-          placeholder="City / Town"
-          placeholderTextColor="#aaa"
-        />
-      </Field>
-
-      {/* ── Action buttons ── */}
-      <View style={styles.buttonRow}>
-        {/* Clear / Cancel */}
-        <TouchableOpacity
-          style={styles.clearBtn}
-          onPress={handleClear}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.clearBtnText}>Clear</Text>
-        </TouchableOpacity>
-
-        {/* Save */}
-        <TouchableOpacity
-          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={saving}
-          activeOpacity={0.8}
-        >
+        <Text style={styles.navTitle}>Edit Member</Text>
+        <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
           {saving
-            ? <ActivityIndicator color="#fff" size="small" />
-            : <Text style={styles.saveBtnText}>Save Changes</Text>
-          }
+            ? <ActivityIndicator size="small" color="#D4A017" />
+            : <Text style={styles.navSave}>Update</Text>}
         </TouchableOpacity>
       </View>
 
-    </ScrollView>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+
+        {/* ── Member Info (read-only, shown as disabled textboxes) ── */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Member Info</Text>
+
+            <Field label="Email">
+              <StyledInput
+                value={member?.email || ''}
+                editable={false}
+                disabled
+              />
+            </Field>
+
+            <Field label="Date of Birth">
+              <StyledInput
+                value={formatDob(member?.dateOfBirth)}
+                editable={false}
+                disabled
+              />
+            </Field>
+
+            <Field label="Status">
+              <StyledInput
+                value={member?.membershipStatus || '—'}
+                editable={false}
+                disabled
+              />
+            </Field>
+          </Card.Content>
+        </Card>
+
+        {/* ── Personal Details ── */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Personal Details</Text>
+
+            <Field label="Full Name" required error={errors.fullName}>
+              <StyledInput
+                placeholder="Full name"
+                value={form.fullName}
+                onChangeText={v => {
+                  setForm(p => ({ ...p, fullName: v.replace(/[^A-Za-z\s]/g, '').slice(0, 150) }));
+                  if (errors.fullName) setErrors(p => ({ ...p, fullName: null }));
+                }}
+                hasError={!!errors.fullName}
+                returnKeyType="next"
+              />
+            </Field>
+
+            <Field label="Contact Number" error={errors.contactNumber}>
+              <StyledInput
+                placeholder="10-digit mobile number"
+                value={form.contactNumber}
+                onChangeText={v => {
+                  setForm(p => ({ ...p, contactNumber: v.replace(/[^0-9]/g, '').slice(0, 10) }));
+                  if (errors.contactNumber) setErrors(p => ({ ...p, contactNumber: null }));
+                }}
+                hasError={!!errors.contactNumber}
+                keyboardType="numeric"
+                maxLength={10}
+                returnKeyType="next"
+              />
+            </Field>
+
+            <Field label="Gender">
+              <TouchableOpacity
+                style={[styles.styledInput.base, styles.dropdown]}
+                onPress={() => setGenderOpen(o => !o)}
+                activeOpacity={0.8}
+              >
+                <Text style={form.gender ? styles.dropdownSelected : styles.dropdownPlaceholder}>
+                  {form.gender || 'Select gender'}
+                </Text>
+                <Text style={styles.dropdownArrow}>{genderOpen ? '▲' : '▼'}</Text>
+              </TouchableOpacity>
+              {genderOpen && (
+                <View style={styles.dropdownMenu}>
+                  {GENDERS.map(g => (
+                    <TouchableOpacity
+                      key={g}
+                      style={styles.dropdownItem}
+                      onPress={() => { setForm(p => ({ ...p, gender: g })); setGenderOpen(false); }}
+                    >
+                      <Text style={[styles.dropdownItemText, form.gender === g && styles.dropdownItemActive]}>
+                        {g}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </Field>
+
+            <Field label="Age">
+              <StyledInput
+                placeholder="Age"
+                value={form.age}
+                onChangeText={v => setForm(p => ({ ...p, age: v.replace(/[^0-9]/g, '').slice(0, 3) }))}
+                keyboardType="numeric"
+                maxLength={3}
+                returnKeyType="next"
+              />
+            </Field>
+
+            <Field label="Address">
+              <StyledInput
+                placeholder="Address"
+                value={form.address}
+                onChangeText={v => setForm(p => ({ ...p, address: v.slice(0, 250) }))}
+                multiline
+              />
+            </Field>
+
+            <Field label="Place">
+              <StyledInput
+                placeholder="City / Town"
+                value={form.place}
+                onChangeText={v => setForm(p => ({ ...p, place: v.replace(/[^A-Za-z\s]/g, '').slice(0, 50) }))}
+                returnKeyType="done"
+              />
+            </Field>
+          </Card.Content>
+        </Card>
+
+        {/* ── Profile Photo — attachment-style card, identical pattern to Activity Form Attachments ── */}
+        <Card style={styles.card}>
+          <Card.Content>
+            <Text style={styles.sectionTitle}>Profile Photo (Optional)</Text>
+            <View style={[styles.attachGrid, { justifyContent: 'flex-start' }]}>
+
+              {photoSource && (
+                <View style={styles.thumb}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={handlePickPhoto}
+                    activeOpacity={0.8}
+                  >
+                    <Image
+                      source={photoSource}
+                      style={styles.thumbImg}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.thumbRemove}
+                    onPress={() => { setNewPhoto(null); setResolvedPhotoUri(null); }}
+                  >
+                    <Text style={styles.thumbRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {!photoSource && (
+                <TouchableOpacity
+                  style={styles.thumbAdd}
+                  onPress={handlePickPhoto}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.thumbAddIcon}>📷</Text>
+                  <Text style={styles.thumbAddText}>Add (0/1)</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            <Text style={styles.attachHint}>JPG, PNG · Max 1 photo · Tap thumbnail to replace</Text>
+          </Card.Content>
+        </Card>
+
+      </ScrollView>
+    </View>
   );
 };
-
-const Field = ({ label, children, error }) => (
-  <View style={styles.field}>
-    <Text style={styles.label}>{label}</Text>
-    {children}
-    {error && <Text style={styles.error}>{error}</Text>}
-  </View>
-);
-
-
 
 export default MemberEditScreen;

@@ -8,12 +8,15 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MemberManagementScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 // ── same helper used in AchievementsScreen ────────────────────────────────────
 const blobToDataUri = (blob) => {
   if (!blob) return null;
   if (typeof blob === 'string' && blob.startsWith('data:')) return blob;
   return `data:image/jpeg;base64,${blob}`;
 };
+
+const FILTER_STATUSES = ['All', 'Active', 'Pending', 'Inactive'];
 
 const MemberManagementScreen = ({ navigation }) => {
   const [members, setMembers] = useState([]);
@@ -22,7 +25,7 @@ const MemberManagementScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
-const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   // ── photoMap: memberId → data-URI (same pattern as AchievementsScreen) ──────
   const [photoMap, setPhotoMap] = useState({});
 
@@ -36,14 +39,12 @@ const insets = useSafeAreaInsets();
   const loadMembers = async () => {
     setLoading(true);
     try {
-      debugger;
       // Step 1: Get userData from AsyncStorage
       const userDataStr = await AsyncStorage.getItem('userData');
       if (!userDataStr) {
         Alert.alert('Error', 'User session not found. Please login again.');
         return;
       }
-      debugger;
       // Step 2: Parse and extract memberId
       const userData = JSON.parse(userDataStr);
       const memberId = userData?.memberId ?? userData?.MemberId;
@@ -58,7 +59,6 @@ const insets = useSafeAreaInsets();
         Alert.alert('Error', getSafeErrorMessage(profileResponse));
         return;
       }
-      debugger;
       const clubId = profileResponse.data?.clubId ?? profileResponse.data?.ClubId;
       if (!clubId) {
         Alert.alert('Error', 'Club not assigned to this member.');
@@ -69,7 +69,6 @@ const insets = useSafeAreaInsets();
       const response = await memberService.getMembersByClub(clubId);
       if (response.success) {
         const memberList = response.data ?? [];
-        debugger;
         // ── Step 5: Fetch photos via /api/Member/photos-by-ids ──────────────────
         const map = {};
         try {
@@ -82,13 +81,10 @@ const insets = useSafeAreaInsets();
           ];
           if (memberIds.length === 0) return;
           if (memberIds) {
-            const photosResponse = await memberService.
-              getMemberPhotosByIds
-              (memberIds);
+            const photosResponse = await memberService.getMemberPhotosByIds(memberIds);
             if (photosResponse.success && Array.isArray(photosResponse.data)) {
               photosResponse.data.forEach((p) => {
                 const id = p.memberId ?? p.MemberId;
-                // Prefer base64 blob, fall back to URL path
                 const uri = p.profilePhotoBase64
                   ? blobToDataUri(p.profilePhotoBase64)
                   : p.profilePhotoPath
@@ -102,7 +98,6 @@ const insets = useSafeAreaInsets();
           console.warn('[MemberManagementScreen] Failed to load photos:', photoErr?.message);
         }
 
-        console.log('[MemberManagementScreen] photoMap keys:', Object.keys(map));
         setPhotoMap(map);
         setMembers(memberList);
       } else {
@@ -116,7 +111,7 @@ const insets = useSafeAreaInsets();
     }
   };
 
-  // ── effective status (unchanged) ─────────────────────────────────────────────
+  // ── effective status ─────────────────────────────────────────────
   const getEffectiveStatus = (member) => {
     if (member.membershipStatus === 'Active') return 'Active';
     if (member.membershipStatus === 'Pending') {
@@ -176,20 +171,21 @@ const insets = useSafeAreaInsets();
     );
   };
 
+  // ── Active = green, Inactive = red, Pending/Unknown stay light ──
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return '#E8F5E9';
-      case 'Pending': return '#FFF3E0';
-      case 'Inactive': return '#FFEBEE';
+      case 'Active': return '#2E7D32';     // green
+      case 'Pending': return '#FFF3E0';    // light amber
+      case 'Inactive': return '#D32F2F';   // red
       default: return '#EEEEEE';
     }
   };
 
   const getStatusTextColor = (status) => {
     switch (status) {
-      case 'Active': return '#2E7D32';
+      case 'Active': return '#FFFFFF';     // white on green
       case 'Pending': return '#EF6C00';
-      case 'Inactive': return '#C62828';
+      case 'Inactive': return '#FFFFFF';   // white on red
       default: return '#424242';
     }
   };
@@ -199,7 +195,6 @@ const insets = useSafeAreaInsets();
     const id = item.memberId ?? item.MemberId;
     const photoUri = id ? (photoMap[id] ?? null) : null;
 
-    // If no blob in map, fall back to profilePhotoPath (URL) like before
     const fallbackUri = item.profilePhotoPath
       ? { uri: item.profilePhotoPath }
       : null;
@@ -207,8 +202,59 @@ const insets = useSafeAreaInsets();
     const photoSource = photoUri ? { uri: photoUri } : fallbackUri;
 
     return (
-      <Card style={styles.card}>
+      <Card style={[styles.card, { position: 'relative' }]}>
         <Card.Content>
+
+          {/* ── TOP ROW: status badge (left) — Edit/Delete (right) ── */}
+          <View style={styles.cardTopRow}>
+            <View
+              style={[
+                styles.cornerBadge,
+                { backgroundColor: getStatusColor(item.effectiveStatus) },
+              ]}
+            >
+              <Text style={[styles.cornerBadgeText, { color: getStatusTextColor(item.effectiveStatus) }]}>
+                {item.effectiveStatus || 'Unknown'}
+              </Text>
+            </View>
+
+            <View style={styles.cardActions}>
+              <TouchableOpacity
+                onPress={async () => {
+    const res = await memberService.getProfile(item.memberId);
+
+    if (res.success) {
+        navigation.navigate('MemberEdit', {
+            member: res.data,
+        });
+    }
+}}
+                style={styles.iconBotton}
+                hitSlop={{ top: 8, bottom: 6, left: 8, right: 8 }}
+              >
+                <MaterialCommunityIcons
+                  name="pencil-outline"
+                  size={22}
+                  color="#1E3A5F"
+                />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  handleDeleteMember(item.memberId, item.fullName)
+                }
+                style={styles.iconBotton}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <MaterialCommunityIcons
+                  name="delete-outline"
+                  size={22}
+                  color="#F44336"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <View style={styles.memberHeader}>
             {photoSource ? (
               <Image source={photoSource} style={styles.photo} />
@@ -223,45 +269,12 @@ const insets = useSafeAreaInsets();
               <Text style={styles.memberName}>{item.fullName}</Text>
               <Text style={styles.memberEmail}>{item.email}</Text>
               <Text style={styles.memberPhone}>{item.contactNumber}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.effectiveStatus) }]}>
-                <Text style={[styles.statusBadgeText, { color: getStatusTextColor(item.effectiveStatus) }]}>
-                  {item.effectiveStatus || 'Unknown'}
-                </Text>
-              </View>
             </View>
           </View>
+
           {item.designationName && (
             <Text style={styles.designation}>{item.designationName}</Text>
           )}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('MemberEdit', { memberId: item.memberId })
-              }
-              style={{ padding: 4, marginRight: 4 }}
-              hitSlop={{ top: 8, bottom: 6, left: 8, right: 8 }}
-            >
-              <MaterialCommunityIcons
-                name="pencil-outline"
-                size={22}
-                color="#1E3A5F"
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() =>
-                handleDeleteMember(item.memberId, item.fullName)
-              }
-              style={{ padding: 4 }}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <MaterialCommunityIcons
-                name="delete-outline"
-                size={22}
-                color="#F44336"
-              />
-            </TouchableOpacity>
-          </View>
         </Card.Content>
       </Card>
     );
@@ -273,19 +286,23 @@ const insets = useSafeAreaInsets();
         placeholder="Search members..."
         onChangeText={setSearchQuery}
         value={searchQuery}
-        style={[styles.searchBar,{ backgroundColor: '#fff' }]}
+        style={[styles.searchBar, { backgroundColor: '#fff' }]}
       />
 
       <View style={styles.filters}>
-        {['All', 'Active', 'Pending', 'Inactive'].map((status) => (
-          <Chip
-            key={status}
-            selected={filterStatus === status}
-            onPress={() => setFilterStatus(status)}
-            style={styles.filterChip}
-          >
-            {status}
-          </Chip>
+        {FILTER_STATUSES.map((status) => (
+          <TouchableOpacity key={status} onPress={() => setFilterStatus(status)}>
+            <Chip
+              selected={filterStatus === status}
+              style={[styles.chip, filterStatus === status && styles.chipSelected]}
+              textStyle={[
+                styles.chipText,
+                filterStatus === status && styles.chipTextSelected,
+              ]}
+            >
+              {status}
+            </Chip>
+          </TouchableOpacity>
         ))}
       </View>
 
@@ -310,19 +327,16 @@ const insets = useSafeAreaInsets();
         />
       )}
 
-      {/* ── Add Admin ── opens AdminSignupScreen (register this route in your navigator) */}
+      {/* ── Add Admin ── */}
       <FAB
         icon="account-plus"
         label="Add Admin"
-        style={[styles.fab,{ bottom: 24 + insets.bottom }]}
+        style={[styles.fab, { bottom: 24 + insets.bottom }]}
         color="#fff"
-        
         onPress={() => navigation.navigate('AdminSignup')}
       />
     </View>
   );
 };
-
-
 
 export default MemberManagementScreen;

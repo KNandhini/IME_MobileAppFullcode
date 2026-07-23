@@ -12,7 +12,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
+[Authorize]
 public class JobPostingsController : ControllerBase
 {
     private readonly IJobPostingRepository _jobPostingRepository;

@@ -9,7 +9,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-//[Authorize]
+[Authorize]
 public class FeedController : ControllerBase
 {
     private readonly IFeedRepository _feedRepository;

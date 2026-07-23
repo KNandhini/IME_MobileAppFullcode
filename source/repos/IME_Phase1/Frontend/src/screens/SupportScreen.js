@@ -579,10 +579,10 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
               <Text style={fs.navCancelText}>Cancel</Text>
             </TouchableOpacity>
             <View style={fs.navCenter}>
-              <Text style={fs.navTitle}>{editItem ? '' : 'New Support'}</Text>
+              <Text style={fs.navTitle}>{editItem ? 'Edit Support' : 'New Support'}</Text>
             </View>
             <TouchableOpacity onPress={handleSubmit} style={fs.navSideBtn}>
-              <Text style={fs.navSubmitText}>{editItem ? 'Update' : 'Add'}</Text>
+              <Text style={fs.navSubmitText}>{editItem ? 'Update' : 'Save'}</Text>
             </TouchableOpacity>
           </View>
           <View style={fs.accentBar} />

@@ -9,7 +9,7 @@ namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/support")]
-//[Authorize]
+[Authorize]
 public class SupportController : ControllerBase
 {
     private readonly ISupportRepository _repository;

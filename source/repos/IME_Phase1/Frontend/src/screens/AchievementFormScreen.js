@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -35,6 +34,50 @@ const blobToDataUri = (blob) => {
   if (blob.startsWith('data:')) return blob;
   return `data:image/jpeg;base64,${blob}`;
 };
+
+// ── Field wrapper — local styles.field (own copy, matches Admin Signup / Activity Form) ──
+function Field({ label, required, children, error, hint, charCount, maxChars }) {
+  const over = maxChars != null && charCount > maxChars;
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+        {maxChars != null && (
+          <Text style={[styles.field.counter, over && styles.field.counterOver]}>
+            {charCount ?? 0}/{maxChars}
+          </Text>
+        )}
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — local styles.styledInput (own copy, matches Admin Signup / Activity Form) ──
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
 
 // ── Simple Dropdown ───────────────────────────────────────────────────────────
 function SimpleDropdown({ label, options, value, onChange, placeholder = 'Select…', loading, error }) {
@@ -124,7 +167,8 @@ const AchievementFormScreen = ({ route, navigation }) => {
 
   const [title, setTitle] = useState(item?.title || '');
   const [description, setDescription] = useState(item?.description || '');
-  const [date, setDate] = useState(item?.achievementDate ? new Date(item.achievementDate) : new Date());
+  // ── Date: no default — user must pick. Edit mode still seeds from item. ──
+  const [date, setDate] = useState(item?.achievementDate ? new Date(item.achievementDate) : null);
   const [showDate, setShowDate] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -316,6 +360,10 @@ const AchievementFormScreen = ({ route, navigation }) => {
       validationErrors.member = 'Please select a member';
     }
 
+    if (!date) {
+      validationErrors.date = 'Please select achievement date';
+    }
+
     setErrors(validationErrors);
 
     if (Object.keys(validationErrors).length > 0) {
@@ -414,85 +462,67 @@ const AchievementFormScreen = ({ route, navigation }) => {
             error={errors.member}
           />
         ) : (
-          <TextInput
-            label="Member Name"
-            value={selectedMemberName}
-            mode="outlined"
-            editable={false}
-            outlineColor="#BBDEFB"
-            activeOutlineColor={NAVY}
-            textColor="#1E3A5F"
-            style={[styles.input, styles.inputReadOnly]}
-            theme={{
-              colors: {
-                onSurfaceDisabled: '#1E3A5F',
-              },
-            }}
-          />
+          <Field label="Member Name">
+            <StyledInput value={selectedMemberName} editable={false} />
+          </Field>
         )}
 
         {/* ── Title ── */}
-        <Text style={drop.label}>Achievement Title *</Text>
-        <TextInput
-          placeholder="Enter Achievement Title"
-
-          value={title}
-          onChangeText={(text) => {
-            setTitle(text);
-
-            setErrors(prev => ({
-              ...prev,
-              title: '',
-            }));
-          }}
-          mode="outlined"
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          textColor="#1E3A5F"
-          style={styles.input}
-        />
-
-        {errors.title && (
-          <Text style={styles.error}>
-            {errors.title}
-          </Text>
-        )}
+        <Field label="Achievement Title" required error={errors.title}>
+          <StyledInput
+            placeholder="Enter Achievement Title"
+            value={title}
+            onChangeText={(text) => {
+              setTitle(text);
+              setErrors(prev => ({ ...prev, title: '' }));
+            }}
+            hasError={!!errors.title}
+          />
+        </Field>
 
         {/* ── Description ── */}
-        <Text style={drop.label}>Description</Text>
+        <Field label="Description">
+          <StyledInput
+            placeholder="Enter Description"
+            value={description}
+            onChangeText={setDescription}
+            multiline
+          />
+        </Field>
 
-        <TextInput
-          placeholder="Enter Description"
-          value={description}
-          onChangeText={setDescription}
-          mode="outlined"
-          multiline
-          numberOfLines={4}
-          outlineColor="#BBDEFB"
-          activeOutlineColor={NAVY}
-          textColor="#1E3A5F"
-          style={[styles.input, { height: 120 }]}
-          contentStyle={{
-            textAlignVertical: 'top',
-            paddingTop: 12,
-          }}
-        />
-
-        {/* ── Date picker ── */}
-        <TouchableOpacity style={styles.dateField} onPress={() => setShowDate(true)} activeOpacity={0.8}>
-          <MaterialCommunityIcons name="calendar-outline" size={20} color={NAVY} />
-          <View style={styles.dateText}>
-            <Text style={styles.dateLabelText}>Achievement Date</Text>
-            <Text style={styles.dateValue}>
-              {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-            </Text>
-          </View>
-          <MaterialCommunityIcons name="chevron-right" size={20} color="#94A3B8" />
-        </TouchableOpacity>
+        {/* ── Date picker — styled like Title, no default value ── */}
+        <Field label="Achievement Date" required error={errors.date}>
+          <TouchableOpacity
+            style={[
+              styles.styledInput.base,
+              !!errors.date && styles.styledInput.errored,
+            ]}
+            onPress={() => setShowDate(true)}
+            activeOpacity={0.8}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Text style={date ? { fontSize: 15, color: '#1E293B', fontWeight: '500' } : { fontSize: 15, color: '#CBD5E1', fontWeight: '500' }}>
+                {date
+                  ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
+                  : 'Select achievement date'}
+              </Text>
+              <MaterialCommunityIcons name="calendar-outline" size={18} color={date ? NAVY : '#94A3B8'} />
+            </View>
+          </TouchableOpacity>
+        </Field>
         {showDate && (
           <DateTimePicker
-            value={date} mode="date" display="default" maximumDate={new Date()}
-            onChange={(evt, d) => { setShowDate(false); if (d) setDate(d); }}
+            value={date || new Date()}
+            mode="date"
+            display="default"
+            maximumDate={new Date()}
+            onChange={(evt, d) => {
+              setShowDate(false);
+              if (d) {
+                setDate(d);
+                setErrors(prev => ({ ...prev, date: '' }));
+              }
+            }}
           />
         )}
 

@@ -183,7 +183,7 @@ const ChatScreen = ({ navigation, route }) => {
 
   return (
     // SafeAreaView (default edges) — matches the working LawBotScreen/Chat.js pattern.
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
       {/* Header */}

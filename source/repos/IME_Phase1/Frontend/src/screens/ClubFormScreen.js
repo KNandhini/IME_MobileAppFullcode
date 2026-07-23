@@ -10,15 +10,8 @@ import { ClubFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 //import AdminSignupScreen from '../screens/AddAdminScreen';
 
-// api.defaults.baseURL is usually something like "http://host:port/api"
-// strip the trailing "/api" so we get the plain server root to prefix
-// the raw disk-style paths ("Uploads\Clubs-11\xyz.jpeg") that come back
-// from the backend. Same helper as AchievementDetailScreen for consistency.
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
-// logoPath from the server can be a raw disk path like "Uploads\Clubs-11\xyz.jpeg"
-// (or a full absolute path once the backend stores GetFullPath()) — convert it
-// into a URL the app can actually load/display.
 const toPublicUrl = (filePath) => {
   if (!filePath) return null;
   if (filePath.startsWith('http')) return filePath;
@@ -30,6 +23,28 @@ const toPublicUrl = (filePath) => {
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
+// ── Styled TextInput — matches AchievementFormScreen/JobPostingFormScreen ──
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
+
 export default function ClubFormScreen({ route, navigation }) {
   const { clubId } = route.params || {};
   const isEditMode = !!clubId;
@@ -38,32 +53,25 @@ export default function ClubFormScreen({ route, navigation }) {
   const [loading, setLoading] = useState(isEditMode);
   const [errors, setErrors] = useState({});
 
-  // ── Lookup data ───────────────────────────────────────────────────────────
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
   const [members, setMembers] = useState([]);
-  const [clubMembers, setClubMembers] = useState([]); // members belonging to this club (edit mode)
+  const [clubMembers, setClubMembers] = useState([]);
 
-  // ── Modal state ───────────────────────────────────────────────────────────
   const [countryModal, setCountryModal] = useState(false);
   const [stateModal, setStateModal] = useState(false);
   const [typeModal, setTypeModal] = useState(false);
   const [memberModal, setMemberModal] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
 
-  // ── Admin Members: radio toggle between "existing" and "add new" ──────────
-  // On Add screen, "Existing Member" is hidden — always defaults to 'new'.
   const [adminMode, setAdminMode] = useState(isEditMode ? 'existing' : 'new');
 
-  // ── Date picker state ─────────────────────────────────────────────────────
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  // ── Logo state ────────────────────────────────────────────────────────────
   const [logoUri, setLogoUri] = useState(null);
   const [existingLogo, setExistingLogo] = useState(null);
 
-  // ── Form fields ───────────────────────────────────────────────────────────
   const [form, setForm] = useState({
     clubName: '',
     clubCode: '',
@@ -97,60 +105,32 @@ export default function ClubFormScreen({ route, navigation }) {
       loadClubMembers(clubId);
     } else {
       fetchNextCode();
-      setAdminMode('new'); // Add screen only supports "Add New Admin"
+      setAdminMode('new');
     }
   }, []);
-/*useEffect(() => {
-  if (route.params?.newAdminMember) {
-    const member = route.params.newAdminMember;
 
-    setForm(prev => {
-      const exists = prev.adminMembers.some(
-        m => m.memberId === member.memberId
-      );
+  useEffect(() => {
+    if (route.params?.newAdminMember) {
+      const member = route.params.newAdminMember;
 
-      if (exists) return prev;
-
-      return {
+      setForm(prev => ({
         ...prev,
         adminMembers: [
-          ...prev.adminMembers,
           {
             memberId: member.memberId,
             fullName: member.fullName,
           },
         ],
-      };
-    });
+      }));
 
-    // clear param so it doesn't re-add on rerender
-    navigation.setParams({
-      newAdminMember: undefined,
-    });
-  }
-}, [route.params?.newAdminMember]);*/
-useEffect(() => {
-  if (route.params?.newAdminMember) {
-    const member = route.params.newAdminMember;
+      setAdminMode('new');
 
-    setForm(prev => ({
-      ...prev,
-      adminMembers: [
-        {
-          memberId: member.memberId,
-          fullName: member.fullName,
-        },
-      ],
-    }));
+      navigation.setParams({
+        newAdminMember: undefined,
+      });
+    }
+  }, [route.params?.newAdminMember]);
 
-    setAdminMode('new');
-
-    // clear param so it doesn't re-add on rerender
-    navigation.setParams({
-      newAdminMember: undefined,
-    });
-  }
-}, [route.params?.newAdminMember]);
   const fetchNextCode = async () => {
     const res = await clubService.getNextCode();
     if (res.success && res.data?.code) set('clubCode', res.data.code);
@@ -165,8 +145,6 @@ useEffect(() => {
     if (mRes.success) setMembers((mRes.data || []).filter(m => m.membershipStatus === 'Active'));
   };
 
-  // Members that already belong to this club — used in Edit mode's
-  // "Existing Member" picker so admins are chosen from the club's own roster.
   const loadClubMembers = async (id) => {
     if (!id) return;
     const res = await memberService.getMembersByClub(id);
@@ -227,7 +205,6 @@ useEffect(() => {
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
-  // ── Logo picker ───────────────────────────────────────────────────────────
   const pickLogo = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
@@ -245,7 +222,6 @@ useEffect(() => {
     }
   };
 
-  // ── Country / State ───────────────────────────────────────────────────────
   const selectCountry = async (country) => {
     set('countryId', country.countryId);
     set('countryName', country.countryName);
@@ -262,7 +238,6 @@ useEffect(() => {
     setStateModal(false);
   };
 
-  // ── Multi-admin ───────────────────────────────────────────────────────────
   const toggleAdminMember = (member) => {
     setForm(prev => {
       const exists = prev.adminMembers.some(m => m.memberId === member.memberId);
@@ -282,36 +257,29 @@ useEffect(() => {
     }));
   };
 
-  // Called by the embedded AdminSignupScreen once a brand-new member has
-  // been created — adds them straight into the Admin Members chip list and
-  // flips the toggle back to "Select Existing" so the mini-form collapses.
   const handleNewAdminCreated = (member) => {
-  setForm(prev => ({
-    ...prev,
-    adminMembers: [
-      ...prev.adminMembers,
-      {
-        memberId: member.memberId,
-        fullName: member.fullName,
-      },
-    ],
-  }));
+    setForm(prev => ({
+      ...prev,
+      adminMembers: [
+        ...prev.adminMembers,
+        {
+          memberId: member.memberId,
+          fullName: member.fullName,
+        },
+      ],
+    }));
 
-  Alert.alert(
-    'Admin Added',
-    `${member.fullName} added successfully.`
-  );
-};
+    Alert.alert(
+      'Admin Added',
+      `${member.fullName} added successfully.`
+    );
+  };
 
-  // In Edit mode, the "Existing Member" picker pulls from this club's own
-  // roster (clubMembers via GetMembersByClub). In Add mode this branch is
-  // unused since the "Existing Member" option is hidden.
   const memberSource = isEditMode ? clubMembers : members;
   const filteredMembers = memberSource.filter(m =>
     m.fullName?.toLowerCase().includes(memberSearch.toLowerCase())
   );
 
-  // ── Date picker ───────────────────────────────────────────────────────────
   const today = new Date();
   const minDate = new Date();
   minDate.setFullYear(today.getFullYear() - 200);
@@ -323,57 +291,47 @@ useEffect(() => {
     return `${y}-${m}-${d}`;
   };
 
-  // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
 
-    // Club Code — mandatory
     if (!form.clubCode.trim()) {
       e.clubCode = 'Club Code is required.';
     }
 
-    // Country — mandatory
     if (!form.countryId) {
       e.countryId = 'Country is required.';
     }
 
-    // State — mandatory
     if (!form.stateId) {
       e.stateId = 'State is required.';
     }
 
-    // Club Name — alphabets only (letters + spaces)
     if (!form.clubName.trim()) {
       e.clubName = 'Club Name is required.';
     } else if (!/^[A-Za-z\s]+$/.test(form.clubName.trim())) {
       e.clubName = 'Club Name must contain alphabets only.';
     }
 
-    // Description — no special chars except - . , /
     if (form.description && /[^A-Za-z0-9\s\-.,/]/.test(form.description)) {
       e.description = 'Description allows only letters, numbers, spaces and - . , /';
     }
 
-    // City — alphabets only
     if (!form.city.trim()) {
       e.city = 'City is required.';
     } else if (!/^[A-Za-z\s]+$/.test(form.city.trim())) {
       e.city = 'City must contain alphabets only.';
     }
 
-    // District — alphabets only
     if (!form.district.trim()) {
       e.district = 'District is required.';
     } else if (!/^[A-Za-z\s]+$/.test(form.district.trim())) {
       e.district = 'District must contain alphabets only.';
     }
 
-    // Pincode — numbers only, max 10
     if (form.pincode && !/^\d+$/.test(form.pincode)) {
       e.pincode = 'Pincode must contain numbers only.';
     }
 
-    // Address Line 1 — mandatory, max 250, allow letters/digits/space/.,/-
     if (!form.addressLine1.trim()) {
       e.addressLine1 = 'Address Line 1 is required.';
     } else if (form.addressLine1.length > 250) {
@@ -382,7 +340,6 @@ useEffect(() => {
       e.addressLine1 = 'Address Line 1 allows only letters, numbers, spaces and . , - /';
     }
 
-    // Address Line 2 — optional, max 250, allow letters/digits/space/.,
     if (form.addressLine2) {
       if (form.addressLine2.length > 250) {
         e.addressLine2 = 'Address Line 2 must be at most 250 characters.';
@@ -391,7 +348,6 @@ useEffect(() => {
       }
     }
 
-    // Contact Person — alphabets only
     if (!form.contactPersonName.trim()) {
       e.contactPersonName = 'Contact Person is required.';
     } else if (!/^[A-Za-z\s]+$/.test(form.contactPersonName.trim())) {
@@ -400,23 +356,19 @@ useEffect(() => {
       e.contactPersonName = 'Contact Person must be at most 150 characters.';
     }
 
-    // Contact Number — mandatory, numbers only
     if (!form.contactNumber.trim()) {
       e.contactNumber = 'Contact Number is required.';
     } else if (!/^\d+$/.test(form.contactNumber)) {
       e.contactNumber = 'Contact Number must contain numbers only.';
     }
 
-    // Email — mandatory, valid format
-    // Allow domains like .com  .com.au  .edu.in
-    // Reject repeated TLDs like .com.com  .au.au
     if (!form.email.trim()) {
       e.email = 'Email is required.';
     } else if (!form.email.includes('@')) {
       e.email = 'Invalid email — missing @.';
     } else {
       const emailRegex = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z]{2,})+$/;
-      const repeatedTLD = /(\.[A-Za-z]{2,})\1+/; // catches .com.com, .au.au
+      const repeatedTLD = /(\.[A-Za-z]{2,})\1+/;
       if (!emailRegex.test(form.email)) {
         e.email = 'Invalid email address.';
       } else if (repeatedTLD.test(form.email.split('@')[1])) {
@@ -424,22 +376,18 @@ useEffect(() => {
       }
     }
 
-    // Club Type — mandatory
     if (!form.clubType) {
       e.clubType = 'Club Type is required.';
     }
 
-    // Established Date — mandatory
     if (!form.establishedDate) {
       e.establishedDate = 'Established Date is required.';
     }
 
-    // Total Members — max 4 digits
     if (form.totalMembers && form.totalMembers.length > 4) {
       e.totalMembers = 'Total Members must be at most 4 digits.';
     }
 
-    // Registration Number — alphanumeric, max 15
     if (form.registrationNumber) {
       if (!/^[A-Za-z0-9]+$/.test(form.registrationNumber)) {
         e.registrationNumber = 'Registration Number must be alphanumeric.';
@@ -452,7 +400,6 @@ useEffect(() => {
     return Object.keys(e).length === 0;
   };
 
-  // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     if (!validate()) return;
 
@@ -499,16 +446,16 @@ useEffect(() => {
       const fileName = logoUri.split('/').pop();
       await clubService.uploadLogo(savedId, logoUri, fileName);
     }
-if (savedId && form.adminMembers.length > 0) {
-  const memberIds = form.adminMembers
-    .map(m => m.memberId)
-    .join(',');
+    if (savedId && form.adminMembers.length > 0) {
+      const memberIds = form.adminMembers
+        .map(m => m.memberId)
+        .join(',');
 
-  await clubService.updateClubByMemberId(
-    memberIds,
-    savedId
-  );
-}
+      await clubService.updateClubByMemberId(
+        memberIds,
+        savedId
+      );
+    }
 
     setSaving(false);
     Alert.alert('Success', isEditMode ? 'Club updated.' : 'Club created.', [
@@ -516,26 +463,25 @@ if (savedId && form.adminMembers.length > 0) {
     ]);
   };
 
-  if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#1E3A5F" />
-      </View>
-    );
-  }
-
   const logoSource = logoUri ? { uri: logoUri } : existingLogo ? { uri: existingLogo } : null;
 
   return (
     <View style={styles.root}>
       {/* ── Header ── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
+        {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
           <Ionicons name="close" size={22} color="#fff" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
+        <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.navSide}
+                disabled={saving}
+              >
+                <Text style={styles.navCancel}>Cancel</Text>
+              </TouchableOpacity>
         <Text style={styles.headerTitle}>{isEditMode ? 'Edit Club' : 'Add Club'}</Text>
-        <TouchableOpacity onPress={handleSave} style={styles.headerBtn} disabled={saving}>
-          {saving
+        <TouchableOpacity onPress={handleSave} style={styles.headerBtn} disabled={saving || loading}>
+          {saving || loading
             ? <ActivityIndicator size="small" color="#D4A017" />
             : <Text style={styles.saveText}>Save</Text>}
         </TouchableOpacity>
@@ -543,14 +489,14 @@ if (savedId && form.adminMembers.length > 0) {
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
-        {/* ── Club Logo ── */}
-        <View style={styles.logoSection}>
+        {/* ── Club Logo — styled like Achievement's attachment upload ── */}
+        {/*<View style={styles.logoSection}>
           <TouchableOpacity style={styles.logoBox} onPress={pickLogo} activeOpacity={0.8}>
             {logoSource ? (
               <Image source={logoSource} style={styles.logoImage} />
             ) : (
               <View style={styles.logoPlaceholder}>
-                <Ionicons name="camera" size={32} color="#aaa" />
+                <Text style={{ fontSize: 22 }}>📷</Text>
                 <Text style={styles.logoPlaceholderText}>Add Logo</Text>
               </View>
             )}
@@ -560,31 +506,29 @@ if (savedId && form.adminMembers.length > 0) {
               <Text style={styles.changeLogoText}>Change Logo</Text>
             </TouchableOpacity>
           )}
-        </View>
+        </View>*/}
 
         {/* ── Basic Details ── */}
-        <SectionHeader title="Basic Details" />
+      
 
-        <Field label="Club Name *">
-          <TextInput
-            style={[styles.input, errors.clubName && styles.inputError]}
+        <Field label="Club Name" required error={errors.clubName}>
+          <StyledInput
             value={form.clubName}
             onChangeText={v => set('clubName', v.replace(/[^A-Za-z\s]/g, '').slice(0, 200))}
             placeholder="Enter club name"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.clubName}
             maxLength={200}
           />
         </Field>
-        {errors.clubName && <Text style={styles.error}>{errors.clubName}</Text>}
 
-        <Field label="Club Code *">
+        <Field label="Club Code" required error={errors.clubCode}>
           <View style={styles.codeRow}>
-            <TextInput
-              style={[styles.input, styles.codeInput, errors.clubCode && styles.inputError]}
+            <StyledInput
+              style={styles.codeInput}
               value={form.clubCode}
               onChangeText={v => set('clubCode', v)}
               placeholder="e.g. CLB-AB12"
-              placeholderTextColor="#bbb"
+              hasError={!!errors.clubCode}
               autoCapitalize="characters"
             />
             <TouchableOpacity style={styles.regenBtn} onPress={fetchNextCode} activeOpacity={0.75}>
@@ -592,26 +536,21 @@ if (savedId && form.adminMembers.length > 0) {
             </TouchableOpacity>
           </View>
         </Field>
-        {errors.clubCode && <Text style={styles.error}>{errors.clubCode}</Text>}
 
-        <Field label="Description">
-          <TextInput
-            style={[styles.input, styles.textarea, errors.description && styles.inputError]}
+        <Field label="Description" error={errors.description}>
+          <StyledInput
             value={form.description}
             onChangeText={v => set('description', v.replace(/[^A-Za-z0-9\s\-.,/]/g, ''))}
             placeholder="Brief description"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.description}
             multiline
-            numberOfLines={3}
-            textAlignVertical="top"
           />
         </Field>
-        {errors.description && <Text style={styles.error}>{errors.description}</Text>}
 
         {/* ── Location Details ── */}
-        <SectionHeader title="Location Details" />
+      
 
-        <Field label="Country *">
+        <Field label="Country" required error={errors.countryId}>
           <TouchableOpacity
             style={[styles.selector, errors.countryId && styles.selectorError]}
             onPress={() => setCountryModal(true)}
@@ -619,12 +558,11 @@ if (savedId && form.adminMembers.length > 0) {
             <Text style={form.countryName ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.countryName || 'Select country'}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#888" />
+            <Ionicons name="chevron-down" size={16} color="#94A3B8" />
           </TouchableOpacity>
         </Field>
-        {errors.countryId && <Text style={styles.error}>{errors.countryId}</Text>}
 
-        <Field label="State *">
+        <Field label="State" required error={errors.stateId}>
           <TouchableOpacity
             style={[styles.selector, !form.countryId && styles.selectorDisabled, errors.stateId && styles.selectorError]}
             onPress={() => form.countryId && setStateModal(true)}
@@ -632,148 +570,131 @@ if (savedId && form.adminMembers.length > 0) {
             <Text style={form.stateName ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.stateName || (form.countryId ? 'Select state' : 'Select country first')}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#888" />
+            <Ionicons name="chevron-down" size={16} color="#94A3B8" />
           </TouchableOpacity>
         </Field>
-        {errors.stateId && <Text style={styles.error}>{errors.stateId}</Text>}
 
-        <Row>
-          <Field label="City *" flex>
-            <TextInput
-              style={[styles.input, errors.city && styles.inputError]}
-              value={form.city}
-              onChangeText={v => set('city', v.replace(/[^A-Za-z\s]/g, ''))}
-              placeholder="Enter city"
-              placeholderTextColor="#bbb"
-            />
-            {errors.city && <Text style={styles.error}>{errors.city}</Text>}
-          </Field>
+        <View style={styles.row}>
+          <View style={styles.fieldFlex}>
+            <Field label="City" required error={errors.city}>
+              <StyledInput
+                value={form.city}
+                onChangeText={v => set('city', v.replace(/[^A-Za-z\s]/g, ''))}
+                placeholder="Enter city"
+                hasError={!!errors.city}
+              />
+            </Field>
+          </View>
 
-          <Field label="District *" flex>
-            <TextInput
-              style={[styles.input, errors.district && styles.inputError]}
-              value={form.district}
-              onChangeText={v => set('district', v.replace(/[^A-Za-z\s]/g, ''))}
-              placeholder="Enter district"
-              placeholderTextColor="#bbb"
-            />
-            {errors.district && <Text style={styles.error}>{errors.district}</Text>}
-          </Field>
-        </Row>
+          <View style={styles.fieldFlex}>
+            <Field label="District" required error={errors.district}>
+              <StyledInput
+                value={form.district}
+                onChangeText={v => set('district', v.replace(/[^A-Za-z\s]/g, ''))}
+                placeholder="Enter district"
+                hasError={!!errors.district}
+              />
+            </Field>
+          </View>
+        </View>
 
-        <Field label="Address Line 1 *">
-          <TextInput
-            style={[styles.input, styles.textarea, errors.addressLine1 && styles.inputError]}
+        <Field label="Address Line 1" required error={errors.addressLine1}>
+          <StyledInput
             value={form.addressLine1}
             onChangeText={v => set('addressLine1', v.slice(0, 250))}
             placeholder="Street / Building"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.addressLine1}
             maxLength={250}
             multiline
-            numberOfLines={3}
-            textAlignVertical="top"
           />
         </Field>
-        {errors.addressLine1 && <Text style={styles.error}>{errors.addressLine1}</Text>}
 
-        <Field label="Address Line 2">
-          <TextInput
-            style={[styles.input, styles.textarea, errors.addressLine2 && styles.inputError]}
+        <Field label="Address Line 2" error={errors.addressLine2}>
+          <StyledInput
             value={form.addressLine2}
             onChangeText={v => set('addressLine2', v.slice(0, 250))}
             placeholder="Area / Landmark"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.addressLine2}
             maxLength={250}
             multiline
-            numberOfLines={3}
-            textAlignVertical="top"
           />
         </Field>
-        {errors.addressLine2 && <Text style={styles.error}>{errors.addressLine2}</Text>}
 
-        <Field label="Pincode">
-          <TextInput
-            style={[styles.input, errors.pincode && styles.inputError]}
+        <Field label="Pincode" error={errors.pincode}>
+          <StyledInput
             value={form.pincode}
             onChangeText={v => set('pincode', v.replace(/[^0-9]/g, '').slice(0, 10))}
             placeholder="Pincode"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.pincode}
             keyboardType="number-pad"
             maxLength={10}
           />
         </Field>
-        {errors.pincode && <Text style={styles.error}>{errors.pincode}</Text>}
 
         {/* ── Contact Details ── */}
-        <SectionHeader title="Contact Details" />
+        
 
-        <Field label="Contact Person *">
-          <TextInput
-            style={[styles.input, errors.contactPersonName && styles.inputError]}
+        <Field label="Contact Person" required error={errors.contactPersonName}>
+          <StyledInput
             value={form.contactPersonName}
             onChangeText={v => set('contactPersonName', v.slice(0, 150))}
             placeholder="Contact person name"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.contactPersonName}
             maxLength={150}
           />
         </Field>
-        {errors.contactPersonName && <Text style={styles.error}>{errors.contactPersonName}</Text>}
 
-        <Row>
-          <Field label="Phone *" flex>
-            <TextInput
-              style={[styles.input, errors.contactNumber && styles.inputError]}
-              value={form.contactNumber}
-              onChangeText={v => set('contactNumber', v.replace(/[^0-9]/g, ''))}
-              placeholder="+91 XXXXXXXXXX"
-              placeholderTextColor="#bbb"
-              keyboardType="phone-pad"
-              maxLength={10}
-            />
-          </Field>
-          <Field label="Alternate" flex>
-            <TextInput
-              style={styles.input}
-              value={form.alternateNumber}
-              onChangeText={v => set('alternateNumber', v.replace(/[^0-9]/g, ''))}
-              placeholder="Alternate no."
-              placeholderTextColor="#bbb"
-              keyboardType="phone-pad"
-              maxLength={10}
-            />
-          </Field>
-        </Row>
-        {errors.contactNumber && <Text style={[styles.error, { paddingHorizontal: 16 }]}>{errors.contactNumber}</Text>}
+        <View style={styles.row}>
+          <View style={styles.fieldFlex}>
+            <Field label="Phone" required error={errors.contactNumber}>
+              <StyledInput
+                value={form.contactNumber}
+                onChangeText={v => set('contactNumber', v.replace(/[^0-9]/g, ''))}
+                placeholder="+91 XXXXXXXXXX"
+                hasError={!!errors.contactNumber}
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+            </Field>
+          </View>
+          <View style={styles.fieldFlex}>
+            <Field label="Alternate">
+              <StyledInput
+                value={form.alternateNumber}
+                onChangeText={v => set('alternateNumber', v.replace(/[^0-9]/g, ''))}
+                placeholder="Alternate no."
+                keyboardType="phone-pad"
+                maxLength={10}
+              />
+            </Field>
+          </View>
+        </View>
 
-        <Field label="Email *">
-          <TextInput
-            style={[styles.input, errors.email && styles.inputError]}
+        <Field label="Email" required error={errors.email}>
+          <StyledInput
             value={form.email}
             onChangeText={v => set('email', v)}
             placeholder="club@example.com"
-            placeholderTextColor="#bbb"
+            hasError={!!errors.email}
             keyboardType="email-address"
             autoCapitalize="none"
           />
         </Field>
-        {errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
         <Field label="Website">
-          <TextInput
-            style={styles.input}
+          <StyledInput
             value={form.website}
             onChangeText={v => set('website', v)}
             placeholder="https://..."
-            placeholderTextColor="#bbb"
             keyboardType="url"
             autoCapitalize="none"
           />
         </Field>
 
         {/* ── Club Info ── */}
-        <SectionHeader title="Club Info" />
+      
 
-        <Field label="Club Type *">
+        <Field label="Club Type" required error={errors.clubType}>
           <TouchableOpacity
             style={[styles.selector, errors.clubType && styles.selectorError]}
             onPress={() => setTypeModal(true)}
@@ -781,13 +702,11 @@ if (savedId && form.adminMembers.length > 0) {
             <Text style={form.clubType ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.clubType || 'Select club type'}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#888" />
+            <Ionicons name="chevron-down" size={16} color="#94A3B8" />
           </TouchableOpacity>
         </Field>
-        {errors.clubType && <Text style={styles.error}>{errors.clubType}</Text>}
 
-        {/* ── Established Date — Date Picker ── */}
-        <Field label="Established Date *">
+        <Field label="Established Date" required error={errors.establishedDate}>
           <TouchableOpacity
             style={[styles.selector, errors.establishedDate && styles.selectorError]}
             onPress={() => setShowDatePicker(true)}
@@ -795,10 +714,9 @@ if (savedId && form.adminMembers.length > 0) {
             <Text style={form.establishedDate ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.establishedDate || 'Select date'}
             </Text>
-            <Ionicons name="calendar-outline" size={16} color="#888" />
+            <Ionicons name="calendar-outline" size={16} color="#94A3B8" />
           </TouchableOpacity>
         </Field>
-        {errors.establishedDate && <Text style={styles.error}>{errors.establishedDate}</Text>}
         {showDatePicker && (
           <DateTimePicker
             value={selectedDate || new Date()}
@@ -816,184 +734,195 @@ if (savedId && form.adminMembers.length > 0) {
           />
         )}
 
-        <Row>
-          <Field label="Total Members" flex>
-            <TextInput
-              style={styles.input}
-              value={form.totalMembers}
-              onChangeText={v => set('totalMembers', v.replace(/[^0-9]/g, '').slice(0, 4))}
-              placeholder="0"
-              placeholderTextColor="#bbb"
-              keyboardType="number-pad"
-              maxLength={4}
-            />
-            {errors.totalMembers && (
-              <Text style={[styles.error, { paddingHorizontal: 16 }]}>
-                {errors.totalMembers}
-              </Text>
-            )}
-          </Field>
-          <Field label="Reg. Number" flex>
-            <TextInput
-              style={[styles.input, errors.registrationNumber && styles.inputError]}
-              value={form.registrationNumber}
-              onChangeText={v =>
-                set('registrationNumber', v.replace(/[^A-Za-z0-9]/g, '').slice(0, 15))
-              }
-              placeholder="Registration no."
-              placeholderTextColor="#bbb"
-              maxLength={15}
-            />
-            {errors.registrationNumber && <Text style={styles.error}>{errors.registrationNumber}</Text>}
-          </Field>
-        </Row>
-<Field label="Admin Members *">
-
-  <View style={styles.radioRow}>
-
-    {/* "Existing Member" is only relevant once a club exists, so it's
-        hidden on the Add screen and only shown in Edit mode. */}
-    {isEditMode && (
-      <TouchableOpacity
-        style={styles.radioOption}
-        onPress={() => setAdminMode('existing')}
-      >
-        <View
-          style={[
-            styles.radioOuter,
-            adminMode === 'existing' && styles.radioOuterActive,
-          ]}
-        >
-          {adminMode === 'existing' && (
-            <View style={styles.radioInner} />
-          )}
+        <View style={styles.row}>
+          <View style={styles.fieldFlex}>
+            <Field label="Total Members" error={errors.totalMembers}>
+              <StyledInput
+                value={form.totalMembers}
+                onChangeText={v => set('totalMembers', v.replace(/[^0-9]/g, '').slice(0, 4))}
+                placeholder="0"
+                hasError={!!errors.totalMembers}
+                keyboardType="number-pad"
+                maxLength={4}
+              />
+            </Field>
+          </View>
+          <View style={styles.fieldFlex}>
+            <Field label="Reg. Number" error={errors.registrationNumber}>
+              <StyledInput
+                value={form.registrationNumber}
+                onChangeText={v =>
+                  set('registrationNumber', v.replace(/[^A-Za-z0-9]/g, '').slice(0, 15))
+                }
+                placeholder="Registration no."
+                hasError={!!errors.registrationNumber}
+                maxLength={15}
+              />
+            </Field>
+          </View>
         </View>
 
-        <Text style={styles.radioLabel}>
-          Existing Member
-        </Text>
-      </TouchableOpacity>
-    )}
+        <Field label="Admin Members" required>
 
-    <TouchableOpacity
-      style={styles.addAdminButton}
-      onPress={() => {
-        setAdminMode('new');
-setForm(prev => ({
-    ...prev,
-    adminMembers: [],
-  }));
-        navigation.navigate('AdminSignup', {
-          hideClubSelection: true,
-          presetClub: {
-            clubId: clubId || null,
-            clubName: form.clubName,
-          },
-        });
-      }}
-    >
-      <Ionicons name="person-add-outline" size={17} color="#1E3A5F" />
-      <Text style={styles.addAdminButtonText}>
-        Click here to add new admin
-      </Text>
-    </TouchableOpacity>
+          <View style={styles.radioRow}>
 
-  </View>
+            {isEditMode && (
+              <TouchableOpacity
+                style={styles.radioOption}
+                onPress={() => setAdminMode('existing')}
+              >
+                <View
+                  style={[
+                    styles.radioOuter,
+                    adminMode === 'existing' && styles.radioOuterActive,
+                  ]}
+                >
+                  {adminMode === 'existing' && (
+                    <View style={styles.radioInner} />
+                  )}
+                </View>
 
-  {adminMode === 'existing' && isEditMode && (
-    <>
-      <TouchableOpacity
-        style={styles.selector}
-        onPress={() => setMemberModal(true)}
-      >
-        <Text
-          style={
-            form.adminMembers.length
-              ? styles.selectorValue
-              : styles.selectorPlaceholder
-          }
-          numberOfLines={1}
-        >
-          {form.adminMembers.length
-            ? form.adminMembers.map(m => m.fullName).join(', ')
-            : 'Select Admin Members'}
-        </Text>
+                <Text style={styles.radioLabel}>
+                  Existing Member
+                </Text>
+              </TouchableOpacity>
+            )}
 
-        <Ionicons
-          name="people"
-          size={18}
-          color="#888"
-        />
-      </TouchableOpacity>
-    </>
-  )}
-
-  {adminMode === 'new' && (
-    <View style={{ marginTop: 8 }}>
-      <Text style={styles.fieldLabel}>
-        Newly Added Admin Member
-      </Text>
-
-      <View
-        style={[
-          styles.selector,
-          {
-            marginTop: 4,
-            minHeight: 48,
-          },
-        ]}
-      >
-        <Text
-          style={
-            form.adminMembers.length
-              ? styles.selectorValue
-              : styles.selectorPlaceholder
-          }
-          numberOfLines={2}
-        >
-          {form.adminMembers.length
-            ? form.adminMembers.map(m => m.fullName).join(', ')
-            : 'No admin member added yet'}
-        </Text>
-
-        <Ionicons
-          name="person-circle-outline"
-          size={20}
-          color="#888"
-        />
-      </View>
-    </View>
-  )}
-
-  {form.adminMembers.length > 0 && (
-    <View style={styles.chipWrap}>
-      {form.adminMembers.map(member => (
-        <View
-          key={member.memberId}
-          style={styles.adminChip}
-        >
-          <Text style={styles.adminChipText}>
-            {member.fullName}
-          </Text>
+          </View>
 
           <TouchableOpacity
-            onPress={() => removeAdmin(member.memberId)}
+            style={[styles.addAdminButton, isEditMode && { marginTop: 10 }]}
+            onPress={() => {
+              setAdminMode('new');
+              setForm(prev => ({
+                ...prev,
+                adminMembers: [],
+              }));
+              navigation.navigate('AdminSignup', {
+                hideClubSelection: true,
+                presetClub: {
+                  clubId: clubId || null,
+                  clubName: form.clubName,
+                },
+              });
+            }}
           >
-            <Ionicons
-              name="close-circle"
-              size={18}
-              color="#D32F2F"
-            />
+            <Ionicons name="person-add-outline" size={17} color="#1E3A5F" />
+            <Text style={styles.addAdminButtonText}>
+              Click here to add new admin
+            </Text>
           </TouchableOpacity>
-        </View>
-      ))}
+
+          {adminMode === 'existing' && isEditMode && (
+            <TouchableOpacity
+              style={[styles.selector,{ marginTop: 10 }]}
+              onPress={() => setMemberModal(true)}
+            >
+              <Text
+                style={
+                  form.adminMembers.length
+                    ? styles.selectorValue
+                    : styles.selectorPlaceholder
+                }
+                numberOfLines={1}
+              >
+                {form.adminMembers.length
+                  ? form.adminMembers.map(m => m.fullName).join(', ')
+                  : 'Select Admin Members'}
+              </Text>
+
+              <Ionicons
+                name="people"
+                size={18}
+                color="#94A3B8"
+              />
+            </TouchableOpacity>
+          )}
+
+          {adminMode === 'new' && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.fieldLabel}>
+                Newly Added Admin Member
+              </Text>
+
+              <View
+                style={[
+                  styles.selector,
+                  {
+                    marginTop: 4,
+                    minHeight: 48,
+                  },
+                ]}
+              >
+                <Text
+                  style={
+                    form.adminMembers.length
+                      ? styles.selectorValue
+                      : styles.selectorPlaceholder
+                  }
+                  numberOfLines={2}
+                >
+                  {form.adminMembers.length
+                    ? form.adminMembers.map(m => m.fullName).join(', ')
+                    : 'No admin member added yet'}
+                </Text>
+
+                <Ionicons
+                  name="person-circle-outline"
+                  size={20}
+                  color="#94A3B8"
+                />
+              </View>
+            </View>
+          )}
+
+          {form.adminMembers.length > 0 && (
+            <View style={styles.chipWrap}>
+              {form.adminMembers.map(member => (
+                <View
+                  key={member.memberId}
+                  style={styles.adminChip}
+                >
+                  <Text style={styles.adminChipText}>
+                    {member.fullName}
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => removeAdmin(member.memberId)}
+                  >
+                    <Ionicons
+                      name="close-circle"
+                      size={18}
+                      color="#D32F2F"
+                    />
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+          )}
+
+        </Field>
+{/* ── Club Logo — moved here, styled like AddAdminScreen's photo picker ── */}
+  <Text style={styles.logoLabel}>Club Logo (Optional)</Text>
+  <TouchableOpacity style={styles.logoPickerRow} onPress={pickLogo}>
+    {logoSource ? (
+      <Image source={logoSource} style={styles.logoPreview} />
+    ) : (
+      <View style={styles.logoPlaceholderCircle}>
+        <Text style={styles.logoPlaceholderIcon}>📷</Text>
+      </View>
+    )}
+    <View style={styles.logoPickerText}>
+      <Text style={styles.logoPickerTitle}>
+        {logoSource ? 'Logo selected' : 'Upload club logo'}
+      </Text>
+      <Text style={styles.logoPickerHint}>
+        {logoSource ? 'Tap to change' : 'Tap to choose from gallery'}
+      </Text>
     </View>
-  )}
-
-</Field>
-
+  </TouchableOpacity>
         {/* ── Status ── */}
-        <SectionHeader title="Status" />
+        
         <View style={styles.switchRow}>
           <Text style={styles.switchLabel}>Active</Text>
           <Switch
@@ -1004,7 +933,6 @@ setForm(prev => ({
           />
         </View>
 
-        <View style={{ height: 32 }} />
       </ScrollView>
 
       {/* ── Country Modal ── */}
@@ -1051,7 +979,7 @@ setForm(prev => ({
               value={memberSearch}
               onChangeText={setMemberSearch}
               placeholder="Search member..."
-              placeholderTextColor="#bbb"
+              placeholderTextColor="#CBD5E1"
             />
             <FlatList
               data={filteredMembers}
@@ -1094,17 +1022,16 @@ function SectionHeader({ title }) {
   );
 }
 
-function Field({ label, children, flex }) {
+function Field({ label, required, children, error }) {
   return (
-    <View style={[styles.field, flex && styles.fieldFlex]}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>
+        {label}{required && <Text style={{ color: '#EF4444' }}> *</Text>}
+      </Text>
       {children}
+      {!!error && <Text style={styles.error}>{error}</Text>}
     </View>
   );
-}
-
-function Row({ children }) {
-  return <View style={styles.row}>{children}</View>;
 }
 
 function PickerModal({ visible, title, items, keyProp, labelProp, onSelect, onClose }) {

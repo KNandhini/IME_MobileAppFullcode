@@ -62,16 +62,45 @@ const insets = useSafeAreaInsets();
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
+      {/* ── Card header: status badge on the left, edit/delete on the top-right ── */}
       <View style={styles.cardHeader}>
-        <View style={[
-          styles.visibilityBadge,
-          item.visibility === 'Club' ? styles.badgeClub : styles.badgeAll,
-        ]}>
-          <Text style={styles.visibilityText}>
-            {item.visibility === 'Club' ? 'My Club' : 'All Members'}
-          </Text>
-        </View>
+        {item.status ? (
+          <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] || '#F3F4F6' }]}>
+            <Text style={styles.statusText}>{item.status}</Text>
+          </View>
+        ) : (
+          <View />
+        )}
 
+        {isAdmin && (
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('ActivityForm', { activityId: item.activityId })
+              }
+              style={{ padding: 4, marginRight: 2 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={20}
+                color="#1E3A5F"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleDelete(item.activityId, item.activityName)}
+              style={{ padding: 4 }}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={20}
+                color="#D9534F"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <TouchableOpacity
@@ -89,41 +118,7 @@ const insets = useSafeAreaInsets();
           )}
           {item.venue ? <Text style={styles.metaText}>📍 {item.venue}</Text> : null}
         </View>
-        {item.status ? (
-          <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] || '#F3F4F6' }]}>
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
-        ) : null}
       </TouchableOpacity>
-      {isAdmin && (
-        <View style={[styles.actionRow, { marginTop: 5, justifyContent: 'flex-end' }]}>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('ActivityForm', { activityId: item.activityId })
-            }
-            style={{ padding: 4, marginRight: 2 }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <MaterialCommunityIcons
-              name="pencil-outline"
-              size={22}
-              color="#1E3A5F"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => handleDelete(item.activityId, item.activityName)}
-            style={{ padding: 4 }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <MaterialCommunityIcons
-              name="delete-outline"
-              size={22}
-              color="#D9534F"
-            />
-          </TouchableOpacity>
-        </View>
-      )}
     </View>
 
   );
