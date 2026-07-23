@@ -7,6 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { magazineService } from '../services/magazineService';
 import { MagazinesScreenS as s } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListSearchBar from '../components/ListSearchBar';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -84,7 +85,13 @@ const MagazinesScreen = ({ navigation }) => {
   const [magazines, setMagazines] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [search, setSearch] = useState('');
 const insets = useSafeAreaInsets();
+  const query = search.trim().toLowerCase();
+  const filteredMagazines = query
+    ? magazines.filter((item) => [item.title, item.issueNumber, item.authorName, item.category]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : magazines;
   useFocusEffect(
     useCallback(() => {
       loadRole();
@@ -144,7 +151,9 @@ const handleEdit = (item) => {
         <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
-      {magazines.length === 0 && !refreshing ? (
+      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search magazines..." />
+
+      {filteredMagazines.length === 0 && !refreshing ? (
         <View style={s.centered}>
           <MaterialCommunityIcons name="book-open-page-variant-outline" size={56} color="#CBD5E1" />
           <Text style={s.emptyTitle}>No magazines yet</Text>
@@ -152,7 +161,7 @@ const handleEdit = (item) => {
         </View>
       ) : (
         <FlatList
-          data={magazines}
+          data={filteredMagazines}
           renderItem={({ item, index }) => (
            <MagazineCard
   item={item}

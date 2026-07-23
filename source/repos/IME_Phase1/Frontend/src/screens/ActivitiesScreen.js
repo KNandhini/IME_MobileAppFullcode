@@ -8,6 +8,7 @@ import { ActivitiesScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListSearchBar from '../components/ListSearchBar';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -22,9 +23,15 @@ const ActivitiesScreen = ({ navigation }) => {
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState('');
   const { user } = useAuth();
   const isAdmin = user?.roleName === 'Admin';
 const insets = useSafeAreaInsets();
+  const query = search.trim().toLowerCase();
+  const filteredActivities = query
+    ? activities.filter((item) => [item.activityName, item.description, item.venue, item.status, item.visibility]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : activities;
   useFocusEffect(useCallback(() => { loadActivities(); }, []));
 
   const loadActivities = async () => {
@@ -126,13 +133,14 @@ const insets = useSafeAreaInsets();
   return (
    
   <View style={styles.container}>
+    <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search activities..." />
     {loading && activities.length === 0 ? (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" color={NAVY} />
       </View>
     ) : (
       <FlatList
-        data={activities}
+        data={filteredActivities}
         renderItem={renderItem}
         keyExtractor={(item) => item.activityId?.toString()}
         contentContainerStyle={styles.list}

@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { JobPostingListScreenStyles as styles } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ListSearchBar from '../components/ListSearchBar';
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
 const toPublicUrl = (filePath) => {
@@ -33,6 +34,12 @@ const insets = useSafeAreaInsets();
   const [clubName,   setClubName]   = useState('');
 const [currentUserName, setCurrentUserName] = useState('');
 const [isUnemployed, setIsUnemployed] = useState(false);
+const [search, setSearch] = useState('');
+  const query = search.trim().toLowerCase();
+  const filteredJobs = query
+    ? jobs.filter((item) => [item.jobTitle, item.companyName, item.location, item.employmentType, item.workMode, item.salaryPackage]
+        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+    : jobs;
 
   // ── Bootstrap club info from AsyncStorage (same pattern as AchievementFormScreen) ──
   const getClubId = async () => {
@@ -196,13 +203,15 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
         </View>
       </View>
 
+      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search job postings..." />
+
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={NAVY} />
         </View>
       ) : (
         <FlatList
-          data={jobs}
+          data={filteredJobs}
           keyExtractor={(item) => String(item.jobPostingId)}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
