@@ -28,6 +28,17 @@ const FALLBACK_CATEGORIES = [
   { label: 'Financial', value: 4 },
   { label: 'Education', value: 5 },
 ];
+
+// Explicit error-state override — applied on top of whatever the shared
+// stylesheet provides (dd.triggerError / dp.triggerError / inp.errored) so
+// every required field is guaranteed to show the red highlight, not just
+// the ones where the shared style happens to be wired up correctly.
+const ERROR_STYLE = {
+  borderWidth: 1.5,
+  borderColor: '#EF4444',
+  backgroundColor: '#FEF2F2',
+};
+
 const getUserId = async () => {
   const userData = await AsyncStorage.getItem('userData');
 
@@ -86,12 +97,12 @@ function Dropdown({ label, options, value, onChange, placeholder = 'Select…', 
   const selected = options.find((o) => o.value === value);
 
   return (
-    
+
     <View style={dd.wrapper}>
       <Text style={dd.label}>{label}</Text>
 
       <TouchableOpacity
-        style={[dd.trigger, !!error && dd.triggerError]}
+        style={[dd.trigger, !!error && dd.triggerError, !!error && ERROR_STYLE]}
         onPress={() => !loading && setOpen(true)}
         activeOpacity={0.8}
       >
@@ -178,7 +189,7 @@ function DatePickerField({ label, required, value, onChange, error }) {
           <TextInput
             value={value}
             placeholder="YYYY-MM-DD"
-            style={[dp.input, !!error && dp.triggerError]}
+            style={[dp.input, !!error && dp.triggerError, !!error && ERROR_STYLE]}
             editable={false}
           />
         </View>
@@ -243,6 +254,7 @@ function StyledInput({ hasError, multiline, style, ...props }) {
         multiline && inp.multiline,
         focused && inp.focused,
         hasError && inp.errored,
+        hasError && ERROR_STYLE,
         style,
       ]}
       placeholderTextColor="#CBD5E1"
@@ -286,7 +298,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null, type: null });
   //const [imgError, setImgError] = useState(false);
- // const [canManageSupport, setCanManageSupport] = useState(false);
+  // const [canManageSupport, setCanManageSupport] = useState(false);
   // Form state uses DB column names directly
   const [form, setForm] = useState({
     //  personName            : null,   // FK → member
@@ -571,7 +583,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   return (
     <Modal visible={visible} animationType="none" transparent={false} statusBarTranslucent onRequestClose={handleClose}>
       <StatusBar barStyle="light-content" backgroundColor="#1E3A5F" />
-       <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+      <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
         <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
           {/* ── Navigation Bar with Cancel / Add buttons ── */}
@@ -850,9 +862,9 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 
 
 // ── Support Card ──────────────────────────────────────────────────────────────
-function SupportCard({ item, userRole, onEdit, onDelete, onPress ,canManageSupport,}) {
+function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSupport, }) {
   const [imgError, setImgError] = useState(false);
-  
+
   return (
     <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
 
@@ -892,22 +904,22 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress ,canManageSuppo
             onError={() => setImgError(true)}
           />
         ) : (
-    <View
-      style={[
-        s.photoPlaceholder,
-        { backgroundColor: categoryColor(item.categoryId) }
-      ]}
-    >
-      <Text style={s.photoPlaceholderText}>
-        {(item.clubName || "S")
-          .split(" ")
-          .map(w => w[0])
-          .join("")
-          .slice(0, 2)
-          .toUpperCase()}
-      </Text>
-    </View>
-  )}
+          <View
+            style={[
+              s.photoPlaceholder,
+              { backgroundColor: categoryColor(item.categoryId) }
+            ]}
+          >
+            <Text style={s.photoPlaceholderText}>
+              {(item.clubName || "S")
+                .split(" ")
+                .map(w => w[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+            </Text>
+          </View>
+        )}
 
         <View style={s.textContainer}>
           <Text style={s.title} numberOfLines={1}>{item.title}</Text>
@@ -945,7 +957,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
   const query = search.trim().toLowerCase();
   const filteredSupportList = query
     ? supportList.filter((item) => [item.title, item.clubName, item.description, item.categoryName, item.companyOrIndividual]
-        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+      .some((value) => String(value ?? '').toLowerCase().includes(query)))
     : supportList;
 
   useEffect(() => {
@@ -1034,37 +1046,37 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
 
   return (
     <View style={{ flex: 1 }}>
-    <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search support..." />
-    <FlatList
-      data={filteredSupportList}
-      renderItem={({ item }) => (
-       <SupportCard
-    item={item}
-    userRole={userRole}
-    canManageSupport={canManageSupport}
-    onEdit={onEdit}
-    onDelete={handleDelete}
-    onPress={() =>
-        navigation?.navigate('SupportDetail', {
-            supportId: item.supportId,
-            item,
-        })
-    }
-/>
-      )}
-      keyExtractor={(item) => item.supportId?.toString() ?? Math.random().toString()}
-      contentContainerStyle={s.list}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />
-      }
-      ListEmptyComponent={
-        <View style={s.centered}>
-          <Text style={s.emptyIcon}>📂</Text>
-          <Text style={s.emptyTitle}>Nothing here yet</Text>
-          <Text style={s.emptyText}>Tap + to add a support entry</Text>
-        </View>
-      }
-    />
+      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search support..." />
+      <FlatList
+        data={filteredSupportList}
+        renderItem={({ item }) => (
+          <SupportCard
+            item={item}
+            userRole={userRole}
+            canManageSupport={canManageSupport}
+            onEdit={onEdit}
+            onDelete={handleDelete}
+            onPress={() =>
+              navigation?.navigate('SupportDetail', {
+                supportId: item.supportId,
+                item,
+              })
+            }
+          />
+        )}
+        keyExtractor={(item) => item.supportId?.toString() ?? Math.random().toString()}
+        contentContainerStyle={s.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />
+        }
+        ListEmptyComponent={
+          <View style={s.centered}>
+            <Text style={s.emptyIcon}>📂</Text>
+            <Text style={s.emptyTitle}>Nothing here yet</Text>
+            <Text style={s.emptyText}>Tap + to add a support entry</Text>
+          </View>
+        }
+      />
     </View>
   );
 }
@@ -1084,27 +1096,27 @@ export default function SupportScreen({ navigation }) {
   const [canManageSupport, setCanManageSupport] = useState(false);
   const insets = useSafeAreaInsets();
   const loadUserRole = async () => {
-  const role = await getUserRole();
-  setUserRole(role);
+    const role = await getUserRole();
+    setUserRole(role);
 
-  try {
-    const raw = await AsyncStorage.getItem('userData');
+    try {
+      const raw = await AsyncStorage.getItem('userData');
 
-    if (raw) {
-      const userData = JSON.parse(raw);
+      if (raw) {
+        const userData = JSON.parse(raw);
 
-      // Hide Edit/Delete/FAB if occupation is Unemployed
-      const occupation = (userData.occupation || "").trim().toLowerCase();
+        // Hide Edit/Delete/FAB if occupation is Unemployed
+        const occupation = (userData.occupation || "").trim().toLowerCase();
 
-      setCanManageSupport(occupation !== "unemployed");
-    } else {
+        setCanManageSupport(occupation !== "unemployed");
+      } else {
+        setCanManageSupport(false);
+      }
+    } catch (e) {
+      console.log(e);
       setCanManageSupport(false);
     }
-  } catch (e) {
-    console.log(e);
-    setCanManageSupport(false);
-  }
-};
+  };
 
   const loadMemberList = async () => {
     setMembersLoading(true);
@@ -1197,7 +1209,7 @@ export default function SupportScreen({ navigation }) {
   }
 
   return (
-     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}
@@ -1223,19 +1235,19 @@ export default function SupportScreen({ navigation }) {
       <View style={s.content}>
         {categories.map((cat, index) => (
           <View key={cat.categoryId} style={[s.tabPanel, { display: activeIndex === index ? 'flex' : 'none' }]}>
-           <SupportTabContent
-    categoryId={cat.categoryId}
-    isActive={activeIndex === index}
-    refresh={activeIndex === index ? refreshSignal : 0}
-    userRole={userRole}
-    canManageSupport={canManageSupport}
-    setRefreshSignal={setRefreshSignal}
-    navigation={navigation}
-    onEdit={(item) => {
-        setEditItem(item);
-        setFormVisible(true);
-    }}
-/>
+            <SupportTabContent
+              categoryId={cat.categoryId}
+              isActive={activeIndex === index}
+              refresh={activeIndex === index ? refreshSignal : 0}
+              userRole={userRole}
+              canManageSupport={canManageSupport}
+              setRefreshSignal={setRefreshSignal}
+              navigation={navigation}
+              onEdit={(item) => {
+                setEditItem(item);
+                setFormVisible(true);
+              }}
+            />
           </View>
         ))}
       </View>
@@ -1255,7 +1267,7 @@ export default function SupportScreen({ navigation }) {
 
       {/* ── FAB — Material Design bottom-right ── */}
       {userRole === 'Admin' && canManageSupport && (
-        <TouchableOpacity style={[s.fab,{ bottom: 0 + insets.bottom }]} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
+        <TouchableOpacity style={[s.fab, { bottom: 0 + insets.bottom }]} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
           <Text style={s.fabText}>+</Text>
         </TouchableOpacity>
       )}

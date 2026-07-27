@@ -43,23 +43,23 @@ const buildPhotoUrl = (photoPath) => {
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
-  bg:        "#F7F8FC",
-  card:      "#FFFFFF",
-  navy:      "#1A2E4A",
-  teal:      "#0D8A6E",
+  bg: "#F7F8FC",
+  card: "#FFFFFF",
+  navy: "#1A2E4A",
+  teal: "#0D8A6E",
   tealLight: "#E6F5F1",
-  amber:     "#F59E0B",
-  red:       "#E53E3E",
-  border:    "#E2E8F0",
-  muted:     "#94A3B8",
-  text:      "#1E293B",
-  sub:       "#64748B",
+  amber: "#F59E0B",
+  red: "#E53E3E",
+  border: "#E2E8F0",
+  muted: "#94A3B8",
+  text: "#1E293B",
+  sub: "#64748B",
 };
 
 // ─── Dropdown ─────────────────────────────────────────────────────────────────
 function Dropdown({ label, options, value, onChange }) {
   const [visible, setVisible] = useState(false);
-  const [search, setSearch]   = useState("");
+  const [search, setSearch] = useState("");
   const filtered = options.filter(o =>
     o.toLowerCase().includes(search.toLowerCase())
   );
@@ -149,14 +149,36 @@ function SectionHeader({ icon, title, subtitle }) {
 
 // ─── Field ────────────────────────────────────────────────────────────────────
 function Field({ label, required, children, error }) {
+  // Match AddAdminScreen: no wrapping box — the red border/tint goes directly
+  // on the input itself (like styledInput.errored), error text sits below.
+  const styledChild =
+    error && React.isValidElement(children)
+      ? React.cloneElement(children, {
+        style: [
+          children.props.style,
+          { borderWidth: 1.5, borderColor: "#EF4444", backgroundColor: "#FFF5F5" },
+        ],
+      })
+      : children;
+
   return (
     <View style={s.field}>
       <Text style={s.fieldLabel}>
         {label}
         {required ? <Text style={{ color: C.red }}> *</Text> : null}
       </Text>
-      {children}
-      {error ? <Text style={s.error}>{error}</Text> : null}
+      {styledChild}
+      {error ? (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            marginTop: 5,
+          }}
+        >
+          <Text style={{ color: "#EF4444", fontSize: 12, fontWeight: "500" }}>{error}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -164,80 +186,80 @@ function Field({ label, required, children, error }) {
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function CreateFundScreen() {
   const navigation = useNavigation();
-  const route      = useRoute();
-  const { data }   = route.params || {};
-  const isEdit     = !!data;
+  const route = useRoute();
+  const { data } = route.params || {};
+  const isEdit = !!data;
 
   // ── Local new files (not yet uploaded) ───────────────────────────────────
   const [photoFiles, setPhotoFiles] = useState([]); // [{ uri, name, type }]
-  const [docFiles,   setDocFiles]   = useState([]); // [{ uri, name, type }]
+  const [docFiles, setDocFiles] = useState([]); // [{ uri, name, type }]
 
   // ── Existing server paths (parsed from comma-separated DB string) ─────────
   const [existingPhotos, setExistingPhotos] = useState([]);
-  const [existingDocs,   setExistingDocs]   = useState([]);
+  const [existingDocs, setExistingDocs] = useState([]);
 
   // ── Form ──────────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
-    fullName:            "",
-    age:                 "",
-    gender:              "",
-    place:               "",
-    address:             "",
-    contactNumber:       "",
+    fullName: "",
+    age: "",
+    gender: "",
+    place: "",
+    address: "",
+    contactNumber: "",
     relationToCommunity: "",
-    fundTitle:           "",
-    fundCategory:        "",
-    description:         "",
-    targetAmount:        "",
-    balanceAmount:       "",
-    minimumAmount:       "",
-    collectedAmount:     "0",
-    urgencyLevel:        "",
-    startDate:           new Date(),
-    endDate:             new Date(),
-    status:              "Active",
+    fundTitle: "",
+    fundCategory: "",
+    description: "",
+    targetAmount: "",
+    balanceAmount: "",
+    minimumAmount: "",
+    collectedAmount: "0",
+    urgencyLevel: "",
+    startDate: new Date(),
+    endDate: new Date(),
+    status: "Active",
   });
 
   const [bank, setBank] = useState({
     accountHolderName: "",
     bankAccountNumber: "",
-    ifscCode:          "",
-    upiId:             "",
+    ifscCode: "",
+    upiId: "",
   });
 
-  const [showStart,  setShowStart]  = useState(false);
-  const [showEnd,    setShowEnd]    = useState(false);
+  const [showStart, setShowStart] = useState(false);
+  const [showEnd, setShowEnd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errors,     setErrors]     = useState({});
+  const [errors, setErrors] = useState({});
 
   // ── Populate on edit ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!isEdit || !data) return;
     setForm({
-      fullName:            data.fullName            || "",
-      age:                 data.age?.toString()     || "",
-      gender:              data.gender              || "",
-      place:               data.place               || "",
-      address:             data.address             || "",
-      contactNumber:       data.contactNumber       || "",
+      fullName: data.fullName || "",
+      age: data.age?.toString() || "",
+      gender: data.gender || "",
+      place: data.place || "",
+      address: data.address || "",
+      contactNumber: data.contactNumber || "",
       relationToCommunity: data.relationToCommunity || "",
-      fundTitle:           data.fundTitle           || "",
-      fundCategory:        data.fundCategory        || "",
-      description:         data.description         || "",
-      targetAmount:        data.targetAmount?.toString()    || "",
-      balanceAmount:       data.targetAmount?.toString()    || "",
-      minimumAmount:       data.minimumAmount?.toString()   || "",
-      collectedAmount:     data.collectedAmount?.toString() || "0",
-      urgencyLevel:        data.urgencyLevel        || "",
-      startDate:           new Date(data.startDate),
-      endDate:             new Date(data.endDate),
-      status:              data.status              || "Active",
+      fundTitle: data.fundTitle || "",
+      fundCategory: data.fundCategory || "",
+      description: data.description || "",
+      targetAmount: data.targetAmount?.toString() || "",
+      balanceAmount: data.targetAmount?.toString() || "",
+      minimumAmount: data.minimumAmount?.toString() || "",
+      collectedAmount: data.collectedAmount?.toString() || "0",
+      urgencyLevel: data.urgencyLevel || "",
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+      status: data.status || "Active",
     });
     setBank({
       accountHolderName: data.accountHolderName || "",
       bankAccountNumber: data.bankAccountNumber || "",
-      ifscCode:          data.ifscCode          || "",
-      upiId:             data.upiId             || "",
+      ifscCode: data.ifscCode || "",
+      upiId: data.upiId || "",
     });
     if (data.beneficiaryPhotoUrl) {
       // parseServerPaths handles backslashes + builds full URLs
@@ -275,7 +297,7 @@ export default function CreateFundScreen() {
       });
       if (!result.canceled && result.assets?.length) {
         const picked = result.assets.map(a => ({
-          uri:  a.uri,
+          uri: a.uri,
           name: a.fileName || a.uri.split("/").pop() || `photo_${Date.now()}.jpg`,
           type: a.mimeType || "image/jpeg",
         }));
@@ -297,7 +319,7 @@ export default function CreateFundScreen() {
       });
       if (!result.canceled && result.assets?.length) {
         const picked = result.assets.map(a => ({
-          uri:  a.uri,
+          uri: a.uri,
           name: a.name || `document_${Date.now()}.pdf`,
           type: a.mimeType || "application/pdf",
         }));
@@ -309,10 +331,10 @@ export default function CreateFundScreen() {
     }
   };
 
-  const removeNewPhoto      = idx => setPhotoFiles(prev => prev.filter((_, i) => i !== idx));
-  const removeNewDoc        = idx => setDocFiles(prev => prev.filter((_, i) => i !== idx));
+  const removeNewPhoto = idx => setPhotoFiles(prev => prev.filter((_, i) => i !== idx));
+  const removeNewDoc = idx => setDocFiles(prev => prev.filter((_, i) => i !== idx));
   const removeExistingPhoto = idx => setExistingPhotos(prev => prev.filter((_, i) => i !== idx));
-  const removeExistingDoc   = idx => setExistingDocs(prev => prev.filter((_, i) => i !== idx));
+  const removeExistingDoc = idx => setExistingDocs(prev => prev.filter((_, i) => i !== idx));
 
   // ── Upload files via fetch (fixes axios multipart boundary bug) ───────────
   const uploadFiles = async (id) => {
@@ -330,9 +352,9 @@ export default function CreateFundScreen() {
     const formData = new FormData();
     allFiles.forEach(file => {
       formData.append("files", {
-        uri:  Platform.OS === "android"
-                ? file.uri
-                : file.uri.replace("file://", ""),
+        uri: Platform.OS === "android"
+          ? file.uri
+          : file.uri.replace("file://", ""),
         name: file.name,
         type: file.type,
       });
@@ -344,7 +366,7 @@ export default function CreateFundScreen() {
     const response = await fetch(
       `${API_BASE_URL}/Fundraise/${id}/attachments`,
       {
-        method:  "POST",
+        method: "POST",
         // ⚠️ Do NOT set Content-Type — fetch adds it automatically with boundary
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -367,13 +389,13 @@ export default function CreateFundScreen() {
   // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!form.fullName.trim())          e.fullName = "Full Name is required";
-    if (!form.fundTitle.trim())         e.fundTitle = "Fund Title is required";
-    if (!form.targetAmount)             e.targetAmount = "Target Amount is required";
+    if (!form.fullName.trim()) e.fullName = "Full Name is required";
+    if (!form.fundTitle.trim()) e.fundTitle = "Fund Title is required";
+    if (!form.targetAmount) e.targetAmount = "Target Amount is required";
     if (
       form.minimumAmount &&
       Number(form.minimumAmount) > Number(form.targetAmount)
-    )                                   e.minimumAmount = "Minimum Amount cannot exceed Target Amount";
+    ) e.minimumAmount = "Minimum Amount cannot exceed Target Amount";
     if (!bank.accountHolderName.trim()) e.accountHolderName = "Account Holder Name is required";
     return e;
   };
@@ -387,29 +409,29 @@ export default function CreateFundScreen() {
     setSubmitting(true);
     try {
       const payload = {
-        fullName:            form.fullName,
-        age:                 Number(form.age) || null,
-        gender:              form.gender,
-        place:               form.place,
-        address:             form.address,
-        contactNumber:       form.contactNumber,
+        fullName: form.fullName,
+        age: Number(form.age) || null,
+        gender: form.gender,
+        place: form.place,
+        address: form.address,
+        contactNumber: form.contactNumber,
         relationToCommunity: form.relationToCommunity,
-        fundTitle:           form.fundTitle,
-        fundCategory:        form.fundCategory,
-        description:         form.description,
-        targetAmount:        Number(form.targetAmount),
-        balanceAmount:       Number(form.balanceAmount || form.targetAmount || 0),
-        minimumAmount:       Number(form.minimumAmount || 0),
-        collectedAmount:     Number(form.collectedAmount || 0),
-        urgencyLevel:        form.urgencyLevel,
-        startDate:           form.startDate.toISOString().slice(0, 19),
-        endDate:             form.endDate.toISOString().slice(0, 19),
+        fundTitle: form.fundTitle,
+        fundCategory: form.fundCategory,
+        description: form.description,
+        targetAmount: Number(form.targetAmount),
+        balanceAmount: Number(form.balanceAmount || form.targetAmount || 0),
+        minimumAmount: Number(form.minimumAmount || 0),
+        collectedAmount: Number(form.collectedAmount || 0),
+        urgencyLevel: form.urgencyLevel,
+        startDate: form.startDate.toISOString().slice(0, 19),
+        endDate: form.endDate.toISOString().slice(0, 19),
         // existingPhotos/Docs store raw server paths — join directly
-        beneficiaryPhotoUrl:   existingPhotos.length ? existingPhotos.join(",") : null,
-        supportingDocumentUrl: existingDocs.length   ? existingDocs.join(",")   : null,
+        beneficiaryPhotoUrl: existingPhotos.length ? existingPhotos.join(",") : null,
+        supportingDocumentUrl: existingDocs.length ? existingDocs.join(",") : null,
         ...bank,
-        status:     form.status,
-        createdBy:  isEdit ? data.createdBy : "Admin",
+        status: form.status,
+        createdBy: isEdit ? data.createdBy : "Admin",
         modifiedBy: isEdit ? "Admin" : null,
       };
 
@@ -457,8 +479,8 @@ export default function CreateFundScreen() {
   };
 
   const urgencyColor = {
-    Normal:   C.teal,
-    Urgent:   C.amber,
+    Normal: C.teal,
+    Urgent: C.amber,
     Critical: C.red,
   };
 
@@ -479,452 +501,452 @@ export default function CreateFundScreen() {
         </TouchableOpacity>
       </View>
 
-    <ScrollView
-      style={s.root}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
+      <ScrollView
+        style={s.root}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
 
-      {/* ══ BASIC INFO ══════════════════════════════════════════════════════ */}
-      <View style={s.card}>
-        <SectionHeader
-          icon="👤"
-          title="Beneficiary Info"
-          subtitle="Who needs support?"
-        />
-
-        <Field label="Full Name" required error={errors.fullName}>
-          <TextInput
-            style={s.input}
-            placeholder="Enter full name"
-            value={form.fullName}
-            onChangeText={v => set("fullName", v)}
+        {/* ══ BASIC INFO ══════════════════════════════════════════════════════ */}
+        <View style={s.card}>
+          <SectionHeader
+            icon="👤"
+            title="Beneficiary Info"
+            subtitle="Who needs support?"
           />
-        </Field>
 
-        <View style={s.row}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Field label="Age">
-              <TextInput
-                style={s.input}
-                placeholder="Years"
-                keyboardType="numeric"
-                value={form.age}
-                onChangeText={v => set("age", v)}
-              />
-            </Field>
+          <Field label="Full Name" required error={errors.fullName}>
+            <TextInput
+              style={s.input}
+              placeholder="Enter full name"
+              value={form.fullName}
+              onChangeText={v => set("fullName", v)}
+            />
+          </Field>
+
+          <View style={s.row}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Field label="Age">
+                <TextInput
+                  style={s.input}
+                  placeholder="Years"
+                  keyboardType="numeric"
+                  value={form.age}
+                  onChangeText={v => set("age", v)}
+                />
+              </Field>
+            </View>
+            <View style={{ flex: 1.6 }}>
+              <Field label="Gender">
+                <Dropdown
+                  label="Select Gender"
+                  options={["Male", "Female", "Transgender"]}
+                  value={form.gender}
+                  onChange={v => set("gender", v)}
+                />
+              </Field>
+            </View>
           </View>
-          <View style={{ flex: 1.6 }}>
-            <Field label="Gender">
-              <Dropdown
-                label="Select Gender"
-                options={["Male", "Female", "Transgender"]}
-                value={form.gender}
-                onChange={v => set("gender", v)}
-              />
-            </Field>
-          </View>
+
+          <Field label="Place">
+            <TextInput
+              style={s.input}
+              placeholder="City / Town"
+              value={form.place}
+              onChangeText={v => set("place", v)}
+            />
+          </Field>
+
+          <Field label="Address">
+            <TextInput
+              style={[s.input, s.multiline]}
+              placeholder="Full address"
+              multiline
+              value={form.address}
+              onChangeText={v => set("address", v)}
+            />
+          </Field>
+
+          <Field label="Contact Number">
+            <TextInput
+              style={s.input}
+              placeholder="+91 XXXXX XXXXX"
+              keyboardType="phone-pad"
+              value={form.contactNumber}
+              onChangeText={v => set("contactNumber", v)}
+            />
+          </Field>
+
+          <Field label="Relation to Community">
+            <TextInput
+              style={s.input}
+              placeholder="e.g. Resident, Volunteer"
+              value={form.relationToCommunity}
+              onChangeText={v => set("relationToCommunity", v)}
+            />
+          </Field>
         </View>
 
-        <Field label="Place">
-          <TextInput
-            style={s.input}
-            placeholder="City / Town"
-            value={form.place}
-            onChangeText={v => set("place", v)}
+        {/* ══ FUND DETAILS ════════════════════════════════════════════════════ */}
+        <View style={s.card}>
+          <SectionHeader
+            icon="💰"
+            title="Fund Details"
+            subtitle="Campaign information"
           />
-        </Field>
 
-        <Field label="Address">
-          <TextInput
-            style={[s.input, s.multiline]}
-            placeholder="Full address"
-            multiline
-            value={form.address}
-            onChangeText={v => set("address", v)}
+          <Field label="Fund Title" required error={errors.fundTitle}>
+            <TextInput
+              style={s.input}
+              placeholder="Give your fund a clear title"
+              value={form.fundTitle}
+              onChangeText={v => set("fundTitle", v)}
+            />
+          </Field>
+
+          <Field label="Category">
+            <Dropdown
+              label="Select Category"
+              options={[
+                "Medical",
+                "Education",
+                "Natural Disaster",
+                "Business Loss",
+                "Death / Funeral",
+                "Other",
+              ]}
+              value={form.fundCategory}
+              onChange={v => set("fundCategory", v)}
+            />
+          </Field>
+
+          <Field label="Description">
+            <TextInput
+              style={[s.input, s.multilineTall]}
+              placeholder="Describe the need in detail…"
+              multiline
+              value={form.description}
+              onChangeText={v => set("description", v)}
+            />
+          </Field>
+
+          <Field label="Target Amount (₹)" required error={errors.targetAmount}>
+            <TextInput
+              style={s.input}
+              placeholder="0.00"
+              keyboardType="numeric"
+              value={form.targetAmount}
+              onChangeText={v => set("targetAmount", v)}
+            />
+          </Field>
+
+          <View style={s.row}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Field label="Balance Amount">
+                <View style={s.readOnly}>
+                  <Text style={s.readOnlyText}>
+                    {form.balanceAmount || "—"}
+                  </Text>
+                  <Text style={s.autoBadge}>Auto</Text>
+                </View>
+              </Field>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Field label="Minimum (₹)" error={errors.minimumAmount}>
+                <TextInput
+                  style={s.input}
+                  placeholder="0.00"
+                  keyboardType="numeric"
+                  value={form.minimumAmount}
+                  onChangeText={v => set("minimumAmount", v)}
+                />
+              </Field>
+            </View>
+          </View>
+
+          <Field label="Urgency Level">
+            <Dropdown
+              label="Select Urgency"
+              options={["Normal", "Urgent", "Critical"]}
+              value={form.urgencyLevel}
+              onChange={v => set("urgencyLevel", v)}
+            />
+          </Field>
+        </View>
+
+        {/* ══ DATES ═══════════════════════════════════════════════════════════ */}
+        <View style={s.card}>
+          <SectionHeader icon="📅" title="Campaign Dates" />
+          <View style={s.row}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Field label="Start Date">
+                <TouchableOpacity
+                  style={s.datePill}
+                  onPress={() => setShowStart(true)}
+                >
+                  <Text style={s.datePillIcon}>📆</Text>
+                  <Text style={s.datePillText}>
+                    {form.startDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+              </Field>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Field label="End Date">
+                <TouchableOpacity
+                  style={s.datePill}
+                  onPress={() => setShowEnd(true)}
+                >
+                  <Text style={s.datePillIcon}>📆</Text>
+                  <Text style={s.datePillText}>
+                    {form.endDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+              </Field>
+            </View>
+          </View>
+
+          {showStart && (
+            <DateTimePicker
+              value={form.startDate}
+              mode="date"
+              onChange={(_, d) => {
+                setShowStart(false);
+                if (d) set("startDate", d);
+              }}
+            />
+          )}
+          {showEnd && (
+            <DateTimePicker
+              value={form.endDate}
+              mode="date"
+              onChange={(_, d) => {
+                setShowEnd(false);
+                if (d) set("endDate", d);
+              }}
+            />
+          )}
+        </View>
+
+        {/* ══ PHOTOS ══════════════════════════════════════════════════════════ */}
+        <View style={s.card}>
+          <SectionHeader
+            icon="🖼️"
+            title="Beneficiary Photos"
+            subtitle="JPG / PNG — select multiple"
           />
-        </Field>
 
-        <Field label="Contact Number">
-          <TextInput
-            style={s.input}
-            placeholder="+91 XXXXX XXXXX"
-            keyboardType="phone-pad"
-            value={form.contactNumber}
-            onChangeText={v => set("contactNumber", v)}
+          <TouchableOpacity style={s.addZone} onPress={pickPhotos}>
+            <Text style={s.addZoneIcon}>＋</Text>
+            <Text style={s.addZoneText}>Add Photos from Gallery</Text>
+            <Text style={s.addZoneSub}>Tap to select one or more images</Text>
+          </TouchableOpacity>
+
+          {/* ── Server photos ── */}
+          {existingPhotos.length > 0 && (
+            <View style={{ marginTop: 12 }}>
+              <Text style={s.groupLabel}>
+                Saved on server ({existingPhotos.length})
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {existingPhotos.map((path, idx) => (
+                  <View key={`ep-${idx}`} style={s.thumbWrap}>
+                    <Image
+                      source={{ uri: buildPhotoUrl(path) }}
+                      style={s.thumb}
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      style={s.thumbRemove}
+                      onPress={() => removeExistingPhoto(idx)}
+                    >
+                      <Text style={s.thumbRemoveText}>✕</Text>
+                    </TouchableOpacity>
+                    <View style={s.serverBadge}>
+                      <Text style={s.serverBadgeText}>Server</Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* ── New local photos ── */}
+          {photoFiles.length > 0 && (
+            <View style={{ marginTop: 12 }}>
+              <Text style={s.groupLabel}>
+                Ready to upload ({photoFiles.length})
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {photoFiles.map((f, idx) => (
+                  <View key={`np-${idx}`} style={s.thumbWrap}>
+                    <Image
+                      source={{ uri: f.uri }}
+                      style={s.thumb}
+                      resizeMode="cover"
+                    />
+                    <TouchableOpacity
+                      style={s.thumbRemove}
+                      onPress={() => removeNewPhoto(idx)}
+                    >
+                      <Text style={s.thumbRemoveText}>✕</Text>
+                    </TouchableOpacity>
+                    <View style={[s.serverBadge, { backgroundColor: C.amber }]}>
+                      <Text style={s.serverBadgeText}>New</Text>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {existingPhotos.length === 0 && photoFiles.length === 0 && (
+            <Text style={s.emptyHint}>No photos added yet</Text>
+          )}
+        </View>
+
+        {/* ══ DOCUMENTS ═══════════════════════════════════════════════════════ */}
+        <View style={s.card}>
+          <SectionHeader
+            icon="📎"
+            title="Supporting Documents"
+            subtitle="PDF files — select multiple"
           />
-        </Field>
 
-        <Field label="Relation to Community">
-          <TextInput
-            style={s.input}
-            placeholder="e.g. Resident, Volunteer"
-            value={form.relationToCommunity}
-            onChangeText={v => set("relationToCommunity", v)}
-          />
-        </Field>
-      </View>
+          <TouchableOpacity style={s.addZone} onPress={pickDocs}>
+            <Text style={s.addZoneIcon}>＋</Text>
+            <Text style={s.addZoneText}>Add PDF Documents</Text>
+            <Text style={s.addZoneSub}>Tap to select one or more PDFs</Text>
+          </TouchableOpacity>
 
-      {/* ══ FUND DETAILS ════════════════════════════════════════════════════ */}
-      <View style={s.card}>
-        <SectionHeader
-          icon="💰"
-          title="Fund Details"
-          subtitle="Campaign information"
-        />
-
-        <Field label="Fund Title" required error={errors.fundTitle}>
-          <TextInput
-            style={s.input}
-            placeholder="Give your fund a clear title"
-            value={form.fundTitle}
-            onChangeText={v => set("fundTitle", v)}
-          />
-        </Field>
-
-        <Field label="Category">
-          <Dropdown
-            label="Select Category"
-            options={[
-              "Medical",
-              "Education",
-              "Natural Disaster",
-              "Business Loss",
-              "Death / Funeral",
-              "Other",
-            ]}
-            value={form.fundCategory}
-            onChange={v => set("fundCategory", v)}
-          />
-        </Field>
-
-        <Field label="Description">
-          <TextInput
-            style={[s.input, s.multilineTall]}
-            placeholder="Describe the need in detail…"
-            multiline
-            value={form.description}
-            onChangeText={v => set("description", v)}
-          />
-        </Field>
-
-        <Field label="Target Amount (₹)" required error={errors.targetAmount}>
-          <TextInput
-            style={s.input}
-            placeholder="0.00"
-            keyboardType="numeric"
-            value={form.targetAmount}
-            onChangeText={v => set("targetAmount", v)}
-          />
-        </Field>
-
-        <View style={s.row}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Field label="Balance Amount">
-              <View style={s.readOnly}>
-                <Text style={s.readOnlyText}>
-                  {form.balanceAmount || "—"}
-                </Text>
-                <Text style={s.autoBadge}>Auto</Text>
+          {/* ── Server docs ── */}
+          {existingDocs.map((path, idx) => (
+            <View key={`ed-${idx}`} style={s.docRow}>
+              <View style={s.docIconWrap}>
+                <Text style={{ fontSize: 18 }}>📄</Text>
               </View>
-            </Field>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Field label="Minimum (₹)">
-              <TextInput
-                style={s.input}
-                placeholder="0.00"
-                keyboardType="numeric"
-                value={form.minimumAmount}
-                onChangeText={v => set("minimumAmount", v)}
-              />
-            </Field>
-          </View>
-        </View>
-
-        <Field label="Urgency Level">
-          <Dropdown
-            label="Select Urgency"
-            options={["Normal", "Urgent", "Critical"]}
-            value={form.urgencyLevel}
-            onChange={v => set("urgencyLevel", v)}
-          />
-        </Field>
-      </View>
-
-      {/* ══ DATES ═══════════════════════════════════════════════════════════ */}
-      <View style={s.card}>
-        <SectionHeader icon="📅" title="Campaign Dates" />
-        <View style={s.row}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Field label="Start Date">
+              <View style={{ flex: 1 }}>
+                <Text style={s.docName} numberOfLines={1}>
+                  {path.split("/").pop()}
+                </Text>
+                <Text style={[s.docSub, { color: C.teal }]}>
+                  Saved on server
+                </Text>
+              </View>
               <TouchableOpacity
-                style={s.datePill}
-                onPress={() => setShowStart(true)}
+                onPress={() => removeExistingDoc(idx)}
+                style={{ padding: 6 }}
               >
-                <Text style={s.datePillIcon}>📆</Text>
-                <Text style={s.datePillText}>
-                  {form.startDate.toLocaleDateString()}
+                <Text style={{ color: C.red, fontSize: 18, fontWeight: "700" }}>
+                  ✕
                 </Text>
               </TouchableOpacity>
-            </Field>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Field label="End Date">
-              <TouchableOpacity
-                style={s.datePill}
-                onPress={() => setShowEnd(true)}
-              >
-                <Text style={s.datePillIcon}>📆</Text>
-                <Text style={s.datePillText}>
-                  {form.endDate.toLocaleDateString()}
-                </Text>
-              </TouchableOpacity>
-            </Field>
-          </View>
-        </View>
-
-        {showStart && (
-          <DateTimePicker
-            value={form.startDate}
-            mode="date"
-            onChange={(_, d) => {
-              setShowStart(false);
-              if (d) set("startDate", d);
-            }}
-          />
-        )}
-        {showEnd && (
-          <DateTimePicker
-            value={form.endDate}
-            mode="date"
-            onChange={(_, d) => {
-              setShowEnd(false);
-              if (d) set("endDate", d);
-            }}
-          />
-        )}
-      </View>
-
-      {/* ══ PHOTOS ══════════════════════════════════════════════════════════ */}
-      <View style={s.card}>
-        <SectionHeader
-          icon="🖼️"
-          title="Beneficiary Photos"
-          subtitle="JPG / PNG — select multiple"
-        />
-
-        <TouchableOpacity style={s.addZone} onPress={pickPhotos}>
-          <Text style={s.addZoneIcon}>＋</Text>
-          <Text style={s.addZoneText}>Add Photos from Gallery</Text>
-          <Text style={s.addZoneSub}>Tap to select one or more images</Text>
-        </TouchableOpacity>
-
-        {/* ── Server photos ── */}
-        {existingPhotos.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={s.groupLabel}>
-              Saved on server ({existingPhotos.length})
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            >
-              {existingPhotos.map((path, idx) => (
-                <View key={`ep-${idx}`} style={s.thumbWrap}>
-                  <Image
-                    source={{ uri: buildPhotoUrl(path) }}
-                    style={s.thumb}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={s.thumbRemove}
-                    onPress={() => removeExistingPhoto(idx)}
-                  >
-                    <Text style={s.thumbRemoveText}>✕</Text>
-                  </TouchableOpacity>
-                  <View style={s.serverBadge}>
-                    <Text style={s.serverBadgeText}>Server</Text>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* ── New local photos ── */}
-        {photoFiles.length > 0 && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={s.groupLabel}>
-              Ready to upload ({photoFiles.length})
-            </Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-            >
-              {photoFiles.map((f, idx) => (
-                <View key={`np-${idx}`} style={s.thumbWrap}>
-                  <Image
-                    source={{ uri: f.uri }}
-                    style={s.thumb}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity
-                    style={s.thumbRemove}
-                    onPress={() => removeNewPhoto(idx)}
-                  >
-                    <Text style={s.thumbRemoveText}>✕</Text>
-                  </TouchableOpacity>
-                  <View style={[s.serverBadge, { backgroundColor: C.amber }]}>
-                    <Text style={s.serverBadgeText}>New</Text>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {existingPhotos.length === 0 && photoFiles.length === 0 && (
-          <Text style={s.emptyHint}>No photos added yet</Text>
-        )}
-      </View>
-
-      {/* ══ DOCUMENTS ═══════════════════════════════════════════════════════ */}
-      <View style={s.card}>
-        <SectionHeader
-          icon="📎"
-          title="Supporting Documents"
-          subtitle="PDF files — select multiple"
-        />
-
-        <TouchableOpacity style={s.addZone} onPress={pickDocs}>
-          <Text style={s.addZoneIcon}>＋</Text>
-          <Text style={s.addZoneText}>Add PDF Documents</Text>
-          <Text style={s.addZoneSub}>Tap to select one or more PDFs</Text>
-        </TouchableOpacity>
-
-        {/* ── Server docs ── */}
-        {existingDocs.map((path, idx) => (
-          <View key={`ed-${idx}`} style={s.docRow}>
-            <View style={s.docIconWrap}>
-              <Text style={{ fontSize: 18 }}>📄</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.docName} numberOfLines={1}>
-                {path.split("/").pop()}
-              </Text>
-              <Text style={[s.docSub, { color: C.teal }]}>
-                Saved on server
-              </Text>
-            </View>
-            <TouchableOpacity
-              onPress={() => removeExistingDoc(idx)}
-              style={{ padding: 6 }}
-            >
-              <Text style={{ color: C.red, fontSize: 18, fontWeight: "700" }}>
-                ✕
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+          ))}
 
-        {/* ── New local docs ── */}
-        {docFiles.map((f, idx) => (
-          <View
-            key={`nd-${idx}`}
-            style={[s.docRow, { borderColor: C.amber + "99" }]}
-          >
+          {/* ── New local docs ── */}
+          {docFiles.map((f, idx) => (
             <View
-              style={[s.docIconWrap, { backgroundColor: C.amber + "22" }]}
+              key={`nd-${idx}`}
+              style={[s.docRow, { borderColor: C.amber + "99" }]}
             >
-              <Text style={{ fontSize: 18 }}>📄</Text>
+              <View
+                style={[s.docIconWrap, { backgroundColor: C.amber + "22" }]}
+              >
+                <Text style={{ fontSize: 18 }}>📄</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={s.docName} numberOfLines={1}>
+                  {f.name}
+                </Text>
+                <Text style={[s.docSub, { color: C.amber }]}>
+                  Ready to upload
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => removeNewDoc(idx)}
+                style={{ padding: 6 }}
+              >
+                <Text style={{ color: C.red, fontSize: 18, fontWeight: "700" }}>
+                  ✕
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+
+          {existingDocs.length === 0 && docFiles.length === 0 && (
+            <Text style={s.emptyHint}>No documents added yet</Text>
+          )}
+        </View>
+
+        {/* ══ BANK DETAILS ════════════════════════════════════════════════════ */}
+        <View style={s.card}>
+          <SectionHeader
+            icon="🏦"
+            title="Bank Details"
+            subtitle="For fund transfer"
+          />
+
+          <Field label="Account Holder Name" required error={errors.accountHolderName}>
+            <TextInput
+              style={s.input}
+              placeholder="Name as per bank"
+              value={bank.accountHolderName}
+              onChangeText={v => { setBank(p => ({ ...p, accountHolderName: v })); setErrors(p => (p.accountHolderName ? { ...p, accountHolderName: null } : p)); }}
+            />
+          </Field>
+
+          <Field label="Account Number">
+            <TextInput
+              style={s.input}
+              placeholder="Enter account number"
+              keyboardType="numeric"
+              value={bank.bankAccountNumber}
+              onChangeText={v => setBank(p => ({ ...p, bankAccountNumber: v }))}
+            />
+          </Field>
+
+          <View style={s.row}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Field label="IFSC Code">
+                <TextInput
+                  style={s.input}
+                  placeholder="SBIN0001234"
+                  autoCapitalize="characters"
+                  value={bank.ifscCode}
+                  onChangeText={v => setBank(p => ({ ...p, ifscCode: v }))}
+                />
+              </Field>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={s.docName} numberOfLines={1}>
-                {f.name}
-              </Text>
-              <Text style={[s.docSub, { color: C.amber }]}>
-                Ready to upload
-              </Text>
+              <Field label="UPI ID">
+                <TextInput
+                  style={s.input}
+                  placeholder="name@upi"
+                  value={bank.upiId}
+                  onChangeText={v => setBank(p => ({ ...p, upiId: v }))}
+                />
+              </Field>
             </View>
-            <TouchableOpacity
-              onPress={() => removeNewDoc(idx)}
-              style={{ padding: 6 }}
-            >
-              <Text style={{ color: C.red, fontSize: 18, fontWeight: "700" }}>
-                ✕
-              </Text>
-            </TouchableOpacity>
           </View>
-        ))}
+        </View>
 
-        {existingDocs.length === 0 && docFiles.length === 0 && (
-          <Text style={s.emptyHint}>No documents added yet</Text>
+        {(photoFiles.length > 0 || docFiles.length > 0) && (
+          <View style={s.uploadSummary}>
+            <Text style={s.uploadSummaryText}>
+              📤 {photoFiles.length} photo(s) + {docFiles.length} document(s) will upload on save
+            </Text>
+          </View>
         )}
-      </View>
 
-      {/* ══ BANK DETAILS ════════════════════════════════════════════════════ */}
-      <View style={s.card}>
-        <SectionHeader
-          icon="🏦"
-          title="Bank Details"
-          subtitle="For fund transfer"
-        />
-
-        <Field label="Account Holder Name" required error={errors.accountHolderName}>
-          <TextInput
-            style={s.input}
-            placeholder="Name as per bank"
-            value={bank.accountHolderName}
-            onChangeText={v => { setBank(p => ({ ...p, accountHolderName: v })); setErrors(p => (p.accountHolderName ? { ...p, accountHolderName: null } : p)); }}
-          />
-        </Field>
-
-        <Field label="Account Number">
-          <TextInput
-            style={s.input}
-            placeholder="Enter account number"
-            keyboardType="numeric"
-            value={bank.bankAccountNumber}
-            onChangeText={v => setBank(p => ({ ...p, bankAccountNumber: v }))}
-          />
-        </Field>
-
-        <View style={s.row}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Field label="IFSC Code">
-              <TextInput
-                style={s.input}
-                placeholder="SBIN0001234"
-                autoCapitalize="characters"
-                value={bank.ifscCode}
-                onChangeText={v => setBank(p => ({ ...p, ifscCode: v }))}
-              />
-            </Field>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Field label="UPI ID">
-              <TextInput
-                style={s.input}
-                placeholder="name@upi"
-                value={bank.upiId}
-                onChangeText={v => setBank(p => ({ ...p, upiId: v }))}
-              />
-            </Field>
-          </View>
-        </View>
-      </View>
-
-      {(photoFiles.length > 0 || docFiles.length > 0) && (
-        <View style={s.uploadSummary}>
-          <Text style={s.uploadSummaryText}>
-            📤 {photoFiles.length} photo(s) + {docFiles.length} document(s) will upload on save
-          </Text>
-        </View>
-      )}
-
-      <View style={{ height: 50 }} />
-    </ScrollView>
+        <View style={{ height: 50 }} />
+      </ScrollView>
     </View>
   );
 }
