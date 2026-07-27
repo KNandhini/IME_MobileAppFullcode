@@ -275,35 +275,68 @@ const AdminSignupScreen = ({
     return String(Math.max(age, 0));
   };
 
+  // Lets the user type the DOB directly (auto-formats digits as YYYY-MM-DD)
+  // in addition to picking it from the calendar. Age is recalculated once a
+  // full, valid date has been typed.
+  const handleDOBTextChange = (text) => {
+    const digits = text.replace(/[^0-9]/g, '').slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    if (digits.length > 6) formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
+
+    setFormData((prev) => ({ ...prev, dateOfBirth: formatted }));
+    setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
+
+    if (digits.length === 8) {
+      const y = parseInt(digits.slice(0, 4), 10);
+      const m = parseInt(digits.slice(4, 6), 10);
+      const d = parseInt(digits.slice(6, 8), 10);
+      const parsed = new Date(y, m - 1, d);
+      const isRealDate = parsed.getFullYear() === y && parsed.getMonth() === m - 1 && parsed.getDate() === d;
+
+      if (isRealDate && parsed >= minDate && parsed <= today) {
+        setSelectedDate(parsed);
+        setFormData((prev) => ({ ...prev, dateOfBirth: formatted, age: calculateAge(parsed) }));
+      } else {
+        setErrors((prev) => ({ ...prev, dateOfBirth: 'Enter a valid date of birth' }));
+      }
+    }
+  };
+
   const validate = () => {
     let e = {};
-    if (!formData.fullName) e.fullName = 'Required';
-    if (!formData.email) e.email = 'Required';
+    if (!formData.fullName) e.fullName = 'Name is required';
+    if (!formData.email) e.email = 'Email is required';
     else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/.test(formData.email)) e.email = 'Invalid email';
-    if (!formData.password) e.password = 'Required';
+    if (!formData.password) e.password = 'Password is required';
     else if (!/^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,}$/.test(formData.password)) e.password = 'Min 6 chars, 1 number & 1 special char';
-    if (!formData.confirmPassword) e.confirmPassword = 'Required';
+    if (!formData.confirmPassword) e.confirmPassword = 'Please confirm your password';
     else if (formData.password !== formData.confirmPassword) e.confirmPassword = 'Passwords do not match';
-    if (!formData.contactNumber) e.contactNumber = 'Required';
+    if (!formData.contactNumber) e.contactNumber = 'Contact number is required';
     else if (!/^[0-9]{10}$/.test(formData.contactNumber)) e.contactNumber = 'Must be 10 digits';
-    if (!formData.address) e.address = 'Required';
-    if (!formData.gender) e.gender = 'Required';
-    if (!formData.age) e.age = 'Required';
-    if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
-    if (!selectedCountry) e.country = 'Required';
-    if (!selectedState) e.state = 'Required';
-    if (!hideClubSelection && !selectedClub) e.clubs = 'Select a club';
+    if (!formData.address) e.address = 'Address is required';
+    if (!formData.gender) e.gender = 'Gender is required';
+    if (!formData.age) e.age = 'Age is required';
+    if (!formData.dateOfBirth) e.dateOfBirth = 'Date of birth is required';
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(formData.dateOfBirth)) e.dateOfBirth = 'Enter date as YYYY-MM-DD';
+    else {
+      const dob = new Date(formData.dateOfBirth);
+      if (isNaN(dob.getTime()) || dob > today || dob < minDate) e.dateOfBirth = 'Enter a valid date of birth';
+    }
+    if (!selectedCountry) e.country = 'Country is required';
+    if (!selectedState) e.state = 'State is required';
+    if (!hideClubSelection && selectedClubs.length === 0) e.clubs = 'Select at least one club';
 
     // ── Occupation ──
-    if (!occupation) e.occupation = 'Required';
+    if (!occupation) e.occupation = 'Occupation is required';
 
     if (showOccupationDetails) {
-      if (!occupationDetails) e.occupationDetails = 'Required';
+      if (!occupationDetails) e.occupationDetails = 'Occupation details are required';
     }
 
     // ── Educational Qualification ──
     if (showEducationSection) {
-      if (!qualification) e.qualification = 'Required';
+      if (!qualification) e.qualification = 'Educational qualification is required';
     }
 
     setErrors(e);
@@ -456,315 +489,335 @@ const handleSignup = async () => {
         </TouchableOpacity>
       </View>
 
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-   
-      <View style={styles.card}>
-        <Field label="Full Name" required error={errors.fullName}>
-          <StyledInput
-            value={formData.fullName}
-            onChangeText={(t) => updateField('fullName', t)}
-            hasError={!!errors.fullName}
-            returnKeyType="next"
-          />
-        </Field>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
-        <Field label="Email" required error={errors.email}>
-          <StyledInput
-            value={formData.email}
-            onChangeText={(t) => updateField('email', t)}
-            hasError={!!errors.email}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            returnKeyType="next"
-          />
-        </Field>
+        <View style={styles.card}>
+          <Field label="Full Name" required error={errors.fullName}>
+            <StyledInput
+              value={formData.fullName}
+              onChangeText={(t) => updateField('fullName', t)}
+              hasError={!!errors.fullName}
+              returnKeyType="next"
+            />
+          </Field>
 
-        <PasswordField
-          label="Password"
-          required
-          value={formData.password}
-          onChangeText={(t) => updateField('password', t)}
-          error={errors.password}
-          hint="Min 6 chars, include number & special character"
-          visible={showPassword}
-          onToggleVisible={() => setShowPassword(!showPassword)}
-        />
+          <Field label="Email" required error={errors.email}>
+            <StyledInput
+              value={formData.email}
+              onChangeText={(t) => updateField('email', t)}
+              hasError={!!errors.email}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              returnKeyType="next"
+            />
+          </Field>
 
-        <PasswordField
-          label="Confirm Password"
-          required
-          value={formData.confirmPassword}
-          onChangeText={(t) => updateField('confirmPassword', t)}
-          error={errors.confirmPassword}
-          visible={showConfirmPassword}
-          onToggleVisible={() => setShowConfirmPassword(!showConfirmPassword)}
-        />
-
-        <Field label="Contact Number" required error={errors.contactNumber}>
-          <StyledInput
-            value={formData.contactNumber}
-            onChangeText={(t) => updateField('contactNumber', t)}
-            hasError={!!errors.contactNumber}
-            keyboardType="numeric"
-            returnKeyType="next"
-          />
-        </Field>
-
-        <Field label="Address" required error={errors.address}>
-          <StyledInput
-            value={formData.address}
-            onChangeText={(t) => updateField('address', t)}
-            hasError={!!errors.address}
-            multiline
-          />
-        </Field>
-
-        {/* ── Country ── */}
-        <SelectField
-          label="Country"
-          required
-          value={selectedCountry?.countryName || ''}
-          placeholder="Select country…"
-          onPress={() => setCountryModal(true)}
-          error={errors.country}
-        />
-
-        {/* ── State ── */}
-        <SelectField
-          label="State"
-          required
-          value={selectedState?.stateName || ''}
-          placeholder="Select state…"
-          onPress={() => setStateModal(true)}
-          error={errors.state}
-          disabled={!selectedCountry}
-          loading={statesLoading}
-        />
-
-        {/* ── Club (SINGLE-SELECT) ── */}
-        {!hideClubSelection && (
-          <SelectField
-            label="Club"
+          <PasswordField
+            label="Password"
             required
-            value={selectedClub?.clubName || ''}
-            placeholder="Select club…"
-            onPress={() =>
-              selectedState
-                ? setClubModal(true)
-                : Alert.alert('Select state first')
-            }
-            error={errors.clubs}
-            loading={clubsLoading}
+            value={formData.password}
+            onChangeText={(t) => updateField('password', t)}
+            error={errors.password}
+            hint="Min 6 chars, include number & special character"
+            visible={showPassword}
+            onToggleVisible={() => setShowPassword(!showPassword)}
           />
-        )}
 
-        {/* ── Gender ── */}
-        <View style={styles.field.wrapper}>
-          <Text style={styles.field.label}>Gender<Text style={styles.field.req}> *</Text></Text>
-          <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
-            <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
-              contentStyle={{ width: menuWidth }}
-              anchor={
-                <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
-                  <View pointerEvents="none">
-                    <StyledInput value={formData.gender} editable={false} hasError={!!errors.gender} />
-                  </View>
-                </TouchableOpacity>
-              }>
-              <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
-              <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
-              <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
-            </Menu>
-          </View>
-          {!!errors.gender && <Text style={styles.field.error}>{errors.gender}</Text>}
-        </View>
+          <PasswordField
+            label="Confirm Password"
+            required
+            value={formData.confirmPassword}
+            onChangeText={(t) => updateField('confirmPassword', t)}
+            error={errors.confirmPassword}
+            visible={showConfirmPassword}
+            onToggleVisible={() => setShowConfirmPassword(!showConfirmPassword)}
+          />
 
-        {/* ── Date of Birth ── */}
-        <SelectField
-          label="Date of Birth"
-          required
-          value={formData.dateOfBirth}
-          placeholder="Select date of birth…"
-          onPress={() => setShowDatePicker(true)}
-          error={errors.dateOfBirth}
-        />
-        {showDatePicker && (
-          <DateTimePicker value={selectedDate || new Date()} mode="date" display="default"
-            minimumDate={minDate} maximumDate={today}
-            onChange={(event, date) => {
-              setShowDatePicker(false);
-              if (event.type === 'set' && date) {
-                setSelectedDate(date);
-                setFormData((prev) => ({
-                  ...prev,
-                  dateOfBirth: formatDate(date),
-                  age: calculateAge(date),
-                }));
+          <Field label="Contact Number" required error={errors.contactNumber}>
+            <StyledInput
+              value={formData.contactNumber}
+              onChangeText={(t) => updateField('contactNumber', t)}
+              hasError={!!errors.contactNumber}
+              keyboardType="numeric"
+              returnKeyType="next"
+            />
+          </Field>
+
+          <Field label="Address" required error={errors.address}>
+            <StyledInput
+              value={formData.address}
+              onChangeText={(t) => updateField('address', t)}
+              hasError={!!errors.address}
+              multiline
+            />
+          </Field>
+
+          {/* ── Country ── */}
+          <SelectField
+            label="Country"
+            required
+            value={selectedCountry?.countryName || ''}
+            placeholder="Select country…"
+            onPress={() => setCountryModal(true)}
+            error={errors.country}
+          />
+
+          {/* ── State ── */}
+          <SelectField
+            label="State"
+            required
+            value={selectedState?.stateName || ''}
+            placeholder="Select state…"
+            onPress={() => setStateModal(true)}
+            error={errors.state}
+            disabled={!selectedCountry}
+            loading={statesLoading}
+          />
+
+          {/* ── Clubs (MULTI-SELECT — an admin can manage more than one club) ── */}
+          {!hideClubSelection && (
+            <SelectField
+              label="Clubs"
+              required
+              value={selectedClubs.map(c => c.clubName).join(', ')}
+              placeholder="Select clubs…"
+              onPress={() =>
+                selectedState
+                  ? setClubModal(true)
+                  : Alert.alert('Select state first')
               }
-            }} />
-        )}
+              error={errors.clubs}
+              loading={clubsLoading}
+              multiline
+            />
+          )}
 
-        <Field label="Age" required error={errors.age}>
-          <StyledInput value={formData.age} editable={false} hasError={!!errors.age} keyboardType="numeric" />
-        </Field>
-
-        {/* ── Occupation ── */}
-        <View style={styles.field.wrapper}>
-          <Text style={styles.field.label}>Occupation<Text style={styles.field.req}> *</Text></Text>
-          <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
-            <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
-              contentStyle={{ width: occupationMenuWidth }}
-              anchor={
-                <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
-                  <View pointerEvents="none">
-                    <StyledInput value={occupation} editable={false} hasError={!!errors.occupation} />
-                  </View>
-                </TouchableOpacity>
-              }>
-              {OCCUPATION_OPTIONS.map((opt) => (
-                <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
-              ))}
-            </Menu>
+          {/* ── Gender ── */}
+          <View style={styles.field.wrapper}>
+            <Text style={styles.field.label}>Gender<Text style={styles.field.req}> *</Text></Text>
+            <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
+              <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
+                contentStyle={{ width: menuWidth }}
+                anchor={
+                  <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
+                    <View pointerEvents="none">
+                      <StyledInput value={formData.gender} editable={false} hasError={!!errors.gender} />
+                    </View>
+                  </TouchableOpacity>
+                }>
+                <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
+                <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
+                <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
+              </Menu>
+            </View>
+            {!!errors.gender && <Text style={styles.field.error}>{errors.gender}</Text>}
           </View>
-          {!!errors.occupation && <Text style={styles.field.error}>{errors.occupation}</Text>}
-        </View>
 
-        {/* ── Occupation Details (Employed / Self Employed only) ── */}
-        {showOccupationDetails && (
-          <View style={styles.sectionBox}>
-          
-            <Field label="Occupation Details" required error={errors.occupationDetails}>
+          {/* ── Date of Birth ── */}
+          <Field label="Date of Birth" required error={errors.dateOfBirth}>
+            <View style={{ position: 'relative' }}>
               <StyledInput
-                value={occupationDetails}
-                onChangeText={setOccupationDetails}
-                hasError={!!errors.occupationDetails}
-                multiline
+                value={formData.dateOfBirth}
+                onChangeText={handleDOBTextChange}
+                placeholder="YYYY-MM-DD"
+                keyboardType="number-pad"
+                hasError={!!errors.dateOfBirth}
+                style={{ paddingRight: 44 }}
               />
-            </Field>
-          </View>
-        )}
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <MaterialCommunityIcons name="calendar-outline" size={20} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+          </Field>
+          {showDatePicker && (
+            <DateTimePicker value={selectedDate || new Date()} mode="date" display="default"
+              minimumDate={minDate} maximumDate={today}
+              onChange={(event, date) => {
+                setShowDatePicker(false);
+                if (event.type === 'set' && date) {
+                  setSelectedDate(date);
+                  setFormData((prev) => ({
+                    ...prev,
+                    dateOfBirth: formatDate(date),
+                    age: calculateAge(date),
+                  }));
+                }
+              }} />
+          )}
 
-        {/* ── Educational Qualification (shown for any occupation once selected) ── */}
-        {showEducationSection && (
-          <View style={styles.sectionBox}>
-           
-            <Field label="Educational Qualification" required error={errors.qualification}>
-              <StyledInput
-                value={qualification}
-                onChangeText={setQualification}
-                hasError={!!errors.qualification}
-                placeholder="e.g., Diploma-Civil Engineering"
-              />
-            </Field>
-          </View>
-        )}
+          <Field label="Age" required error={errors.age}>
+            <StyledInput value={formData.age} editable={false} hasError={!!errors.age} keyboardType="numeric" />
+          </Field>
 
-        {/* Profile Photo */}
-        <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
-        <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
-          {profilePhoto ? (
-            <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
-          ) : (
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderIcon}>👤</Text>
+          {/* ── Occupation ── */}
+          <View style={styles.field.wrapper}>
+            <Text style={styles.field.label}>Occupation<Text style={styles.field.req}> *</Text></Text>
+            <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
+              <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
+                contentStyle={{ width: occupationMenuWidth }}
+                anchor={
+                  <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                    <View pointerEvents="none">
+                      <StyledInput value={occupation} editable={false} hasError={!!errors.occupation} />
+                    </View>
+                  </TouchableOpacity>
+                }>
+                {OCCUPATION_OPTIONS.map((opt) => (
+                  <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+                ))}
+              </Menu>
+            </View>
+            {!!errors.occupation && <Text style={styles.field.error}>{errors.occupation}</Text>}
+          </View>
+
+          {/* ── Occupation Details (Employed / Self Employed only) ── */}
+          {showOccupationDetails && (
+            <View style={styles.sectionBox}>
+              <Text style={styles.sectionTitle}>Occupation Details</Text>
+              <Field label="Occupation Details" required error={errors.occupationDetails}>
+                <StyledInput
+                  value={occupationDetails}
+                  onChangeText={setOccupationDetails}
+                  hasError={!!errors.occupationDetails}
+                  multiline
+                />
+              </Field>
             </View>
           )}
-          <View style={styles.photoPickerText}>
-            <Text style={styles.photoPickerTitle}>
-              {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
-            </Text>
-            <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
-          </View>
-        </TouchableOpacity>
 
-      </View>
+          {/* ── Educational Qualification (shown for any occupation once selected) ── */}
+          {showEducationSection && (
+            <View style={styles.sectionBox}>
+              <Text style={styles.sectionTitle}>Educational Qualification</Text>
+              <Field label="Educational Qualification" required error={errors.qualification}>
+                <StyledInput
+                  value={qualification}
+                  onChangeText={setQualification}
+                  hasError={!!errors.qualification}
+                  placeholder="e.g., Diploma-Civil Engineering"
+                />
+              </Field>
+            </View>
+          )}
 
-      {/* ── Country Modal ── */}
-      <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select Country</Text>
-            <FlatList
-              data={countries}
-              keyExtractor={(item) => String(item.countryId)}
-              style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.pickerItem}
-                  onPress={() => {
-                    setSelectedCountry(item);
-                    setCountryModal(false);
-                    loadStates(item.countryId);
-                  }}
-                >
-                  <Text style={styles.pickerItemText}>{item.countryName}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
-            />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Profile Photo */}
+          <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
+          <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
+            {profilePhoto ? (
+              <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Text style={styles.photoPlaceholderIcon}>👤</Text>
+              </View>
+            )}
+            <View style={styles.photoPickerText}>
+              <Text style={styles.photoPickerTitle}>
+                {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
+              </Text>
+              <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
+            </View>
+          </TouchableOpacity>
+
         </View>
-      </Modal>
 
-      {/* ── State Modal ── */}
-      <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select State</Text>
-            <FlatList
-              data={states}
-              keyExtractor={(item) => String(item.stateId)}
-              style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.pickerItem}
-                  onPress={() => {
-                    setSelectedState(item);
-                    setStateModal(false);
-                    loadClubsByState(item.stateId);
-                  }}
-                >
-                  <Text style={styles.pickerItemText}>{item.stateName}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
-            />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setStateModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
+        {/* ── Country Modal ── */}
+        <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
+          <View style={styles.pickerOverlay}>
+            <View style={styles.pickerSheet}>
+              <Text style={styles.pickerTitle}>Select Country</Text>
+              <FlatList
+                data={countries}
+                keyExtractor={(item) => String(item.countryId)}
+                style={{ maxHeight: 380 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      setSelectedCountry(item);
+                      setCountryModal(false);
+                      loadStates(item.countryId);
+                    }}
+                  >
+                    <Text style={styles.pickerItemText}>{item.countryName}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
+              />
+              <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryModal(false)}>
+                <Text style={styles.pickerCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      {/* ── Club Modal (SINGLE-SELECT) ── */}
-      <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
-        <View style={styles.pickerOverlay}>
-          <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select Club</Text>
-            <FlatList
-              data={clubs}
-              keyExtractor={(item) => String(item.clubId)}
-              style={{ maxHeight: 380 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.pickerItem}
-                  onPress={() => selectClub(item)}
-                >
-                  <Text style={styles.pickerItemText}>{item.clubName}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
-            />
-            <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
-              <Text style={styles.pickerCancelText}>Cancel</Text>
-            </TouchableOpacity>
+        {/* ── State Modal ── */}
+        <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
+          <View style={styles.pickerOverlay}>
+            <View style={styles.pickerSheet}>
+              <Text style={styles.pickerTitle}>Select State</Text>
+              <FlatList
+                data={states}
+                keyExtractor={(item) => String(item.stateId)}
+                style={{ maxHeight: 380 }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.pickerItem}
+                    onPress={() => {
+                      setSelectedState(item);
+                      setStateModal(false);
+                      loadClubsByState(item.stateId);
+                    }}
+                  >
+                    <Text style={styles.pickerItemText}>{item.stateName}</Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
+              />
+              <TouchableOpacity style={styles.pickerCancel} onPress={() => setStateModal(false)}>
+                <Text style={styles.pickerCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+
+        {/* ── Club Modal (MULTI-SELECT) ── */}
+        <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
+          <View style={styles.pickerOverlay}>
+            <View style={styles.pickerSheet}>
+              <Text style={styles.pickerTitle}>Select Clubs (you can pick more than one)</Text>
+              <FlatList
+                data={clubs}
+                keyExtractor={(item) => String(item.clubId)}
+                style={{ maxHeight: 380 }}
+                renderItem={({ item }) => {
+                  const checked = selectedClubs.some((c) => c.clubId === item.clubId);
+                  return (
+                    <TouchableOpacity
+                      style={[styles.pickerItem, styles.pickerItemRow, checked && styles.pickerItemActive]}
+                      onPress={() => toggleClubSelection(item)}
+                    >
+                      <Text style={[styles.pickerItemText, checked && styles.pickerItemTextActive]}>
+                        {item.clubName}
+                      </Text>
+                      <Text style={[styles.checkMark, checked && styles.checkMarkActive]}>
+                        {checked ? '✓' : ''}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+                ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
+              />
+              <TouchableOpacity style={styles.pickerDone} onPress={() => setClubModal(false)}>
+                <Text style={styles.pickerDoneText}>Done ({selectedClubs.length} selected)</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
     </View>
   );
 };

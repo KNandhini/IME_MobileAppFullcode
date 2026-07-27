@@ -106,7 +106,10 @@ const SetAnnualFeeScreen = () => {
 
         <Text style={styles.label}>Fee Amount (₹) *</Text>
         <TextInput
-          style={styles.input}
+          style={[
+            styles.input,
+            errors.amount && { borderWidth: 1.5, borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+          ]}
           placeholder="e.g. 1500"
           keyboardType="decimal-pad"
           value={amount}
@@ -115,7 +118,13 @@ const SetAnnualFeeScreen = () => {
         {errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
 
         <Text style={styles.label}>Effective From *</Text>
-        <TouchableOpacity style={styles.dateInput} onPress={() => { setShowFromPicker(true); if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null })); }}>
+        <TouchableOpacity
+          style={[
+            styles.dateInput,
+            errors.effectiveFrom && { borderWidth: 1.5, borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+          ]}
+          onPress={() => { setShowFromPicker(true); if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null })); }}
+        >
           <Text style={effectiveFrom ? styles.dateText : styles.datePlaceholder}>
             {effectiveFrom ? formatDate(effectiveFrom) : 'Select date'}
           </Text>
