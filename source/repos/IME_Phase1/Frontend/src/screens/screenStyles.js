@@ -1681,29 +1681,67 @@ export const AnimatedSplashScreenStyles = (() => {
     },
   });
 })();
-
-// ChangePasswordScreen
+//ChangePasswordScreen
 export const ChangePasswordScreenStyles = (() => {
+  const NAVY = '#1E3A5F';
+  const GOLD = '#D4A017';
   return createScreenStyles({
+    root: { flex: 1, backgroundColor: '#F7F9FC' },
+
     navbar: {
       flexDirection: 'row', alignItems: 'center',
       paddingHorizontal: 12, paddingVertical: 12,
       paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: NAVY,
     },
     navSide: { minWidth: 72, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
     navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+    navSave: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
 
-    container: { flex: 1, backgroundColor: '#f5f5f5' },
-    card: { margin: 15, elevation: 2 },
-    title: { fontSize: 22, fontWeight: 'bold', color: '#333', marginBottom: 6 },
-    subtitle: { fontSize: 13, color: '#666', marginBottom: 18 },
-    input: { marginBottom: 10, backgroundColor: '#fff' },
-    requirements: { backgroundColor: '#E3F2FD', padding: 14, borderRadius: 8, marginBottom: 18 },
-    reqTitle: { fontSize: 13, fontWeight: '600', color: '#333', marginBottom: 6 },
-    req: { fontSize: 12, color: '#555', marginBottom: 3 },
+    body: { padding: 18, paddingBottom: 40 },
+
+    // ── Card wrapping the whole form ──
+    card: {
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      padding: 18,
+      borderWidth: 1.5,
+      borderColor: '#E2E8F0',
+    },
+
+    title: { fontSize: 20, fontWeight: '700', color: '#1E293B', marginBottom: 6 },
+    subtitle: { fontSize: 13, color: '#64748B', marginBottom: 24 },
+
+    // ── Requirements box — light blue ──
+    requirements: {
+      backgroundColor: '#E0E7EF',
+      borderRadius: 12,
+      padding: 16,
+      marginTop: 4,
+    },
+    reqTitle: { fontSize: 12, fontWeight: '700', color: '#1E3A5F', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 },
+    req: { fontSize: 13, color: '#334155', marginBottom: 4 },
+
+    // ── Field wrapper — matches Achievement/JobPosting/Club ──
+    field: {
+      wrapper: { marginBottom: 20 },
+      labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
+      label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6 },
+      req: { color: '#EF4444' },
+      counter: { fontSize: 11, color: '#94A3B8', fontWeight: '500' },
+      counterOver: { color: '#EF4444' },
+      hint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
+      error: { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
+    },
+
+    // ── Styled TextInput — matches Achievement/JobPosting/Club ──
+    styledInput: {
+      base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
+      focused: { borderColor: '#3B82F6', backgroundColor: '#fff' },
+      errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+      multiline: { height: 130, paddingTop: 14 },
+    },
   });
 })();
 
@@ -3161,12 +3199,13 @@ export const FeesDetailsStyles = (() => {
   });
 })();
 
-// ForgotPasswordScreen
 export const ForgotPasswordScreenStyles = (() => {
+  const NAVY = '#1E3A5F';
+  const GOLD = '#D4A017';
   return createScreenStyles({
     container: {
       flex: 1,
-      backgroundColor: '#F4F6F9',
+      backgroundColor: '#F7F9FC',
       justifyContent: 'center',
       padding: 20,
     },
@@ -3175,47 +3214,58 @@ export const ForgotPasswordScreenStyles = (() => {
       backgroundColor: '#FFFFFF',
       borderRadius: 16,
       padding: 24,
-      elevation: 5,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 5,
+      borderWidth: 1.5,
+      borderColor: '#E2E8F0',
     },
 
     header: {
       alignItems: 'center',
-      marginBottom: 30,
+      marginBottom: 24,
     },
 
     title: {
-      fontSize: 28,
-      fontWeight: 'bold',
-      color: '#1E3A5F', // Navy
-      marginBottom: 8,
+      fontSize: 22,
+      fontWeight: '700',
+      color: NAVY,
+      marginBottom: 6,
     },
 
     subtitle: {
-      fontSize: 14,
-      color: '#666',
+      fontSize: 13,
+      color: '#64748B',
       textAlign: 'center',
     },
 
-    form: {
-      width: '100%',
-    },
-
-    input: {
-      marginBottom: 16,
-      backgroundColor: '#FFFFFF',
-    },
+    form: { width: '100%' },
 
     button: {
-      marginTop: 10,
-      borderRadius: 8,
+      marginTop: 6,
+      backgroundColor: NAVY,
+      borderRadius: 12,
+      paddingVertical: 14,
+      alignItems: 'center',
+    },
+    buttonText: { color: GOLD, fontSize: 15, fontWeight: '700' },
+    buttonDisabled: { opacity: 0.6 },
+
+    linkButton: { marginTop: 18, alignItems: 'center' },
+    linkButtonText: { color: NAVY, fontSize: 14, fontWeight: '600' },
+
+    // ── Field wrapper — matches Achievement/JobPosting/Club ──
+    field: {
+      wrapper: { marginBottom: 16 },
+      labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
+      label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6 },
+      req: { color: '#EF4444' },
+      hint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
+      error: { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
     },
 
-    linkButton: {
-      marginTop: 20,
+    // ── Styled TextInput — matches Achievement/JobPosting/Club ──
+    styledInput: {
+      base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
+      focused: { borderColor: '#3B82F6', backgroundColor: '#fff' },
+      errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
     },
   });
 })();
@@ -4059,9 +4109,7 @@ messageList: {
 // LoginScreen
 export const LoginScreenStyles = (() => {
   const NAVY = COLORS.navy;
-
   const GOLD = COLORS.gold;
-
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: NAVY },
@@ -4102,7 +4150,22 @@ export const LoginScreenStyles = (() => {
     },
     cardTitle: { fontSize: 22, fontWeight: '800', color: NAVY, marginBottom: 4 },
     cardSub: { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
-    input: { marginBottom: 12, backgroundColor: '#fff' },
+
+    field: {
+  wrapper: { marginBottom: 14 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 7 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 7 },  // added marginBottom
+  req: { color: '#EF4444' },
+  hint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
+  error: { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
+},
+
+    // ── Styled TextInput — matches Achievement/JobPosting/Club/ChangePassword ──
+    styledInput: {
+      base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
+      focused: { borderColor: NAVY, backgroundColor: '#fff' },
+      errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+    },
 
     forgotWrap: { alignSelf: 'flex-end', marginBottom: 16 },
     forgotText: { color: NAVY, fontSize: 13, fontWeight: '600' },
@@ -5563,105 +5626,67 @@ export const OrganisationScreenStyles = (() => {
 
 // PaymentHistoryScreen
 export const PaymentHistoryScreenStyles = (() => {
+  const NAVY = '#1E3A5F';
+  const GOLD = '#D4A017';
   return createScreenStyles({
-    container: {
-      flex: 1,
-      backgroundColor: '#f5f5f5',
+    root: { flex: 1, backgroundColor: '#F7F9FC' },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7F9FC' },
+
+    navbar: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: NAVY,
+      paddingTop: (StatusBar.currentHeight || 0) + 6,
+      paddingBottom: 12, paddingHorizontal: 12,
     },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    searchBar: {
-      margin: 15,
-      elevation: 2,
-    },
-    list: {
-      padding: 15,
-      paddingTop: 0,
-    },
+    navSide: { minWidth: 64, paddingHorizontal: 4 },
+    navTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+    navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+
+    body: { padding: 18, paddingBottom: 40 },
+
     card: {
-      marginBottom: 15,
-      elevation: 2,
+      backgroundColor: '#fff',
+      borderRadius: 16,
+      borderWidth: 1.5,
+      borderColor: '#E2E8F0',
+      padding: 16,
+      marginBottom: 20,
     },
-    cardHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: 12,
+    cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
+    cardTitle: { fontSize: 15, fontWeight: '700', color: '#1E293B', marginLeft: 8 },
+
+    emptyText: { fontSize: 13, color: '#94A3B8', textAlign: 'center', paddingVertical: 20 },
+
+    tableHeaderRow: {
+      flexDirection: 'row', borderBottomWidth: 1.5, borderBottomColor: '#E2E8F0',
+      paddingBottom: 8, marginBottom: 4,
     },
-    headerLeft: {
-      flex: 1,
+    th: { fontSize: 11, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.4 },
+
+    tableRow: {
+      flexDirection: 'row', alignItems: 'center',
+      paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F1F5F9',
     },
-    year: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: '#333',
+    td: { fontSize: 13, color: '#1E293B', fontWeight: '500' },
+    tdSub: { fontSize: 10, color: '#94A3B8', marginTop: 2 },
+
+    colSno: { width: 34 },
+    colName: { flex: 1, paddingRight: 6 },
+    colDate: { width: 78 },
+    colAmount: { width: 74, textAlign: 'right' },
+
+    totalRow: {
+      flexDirection: 'row', justifyContent: 'space-between',
+      marginTop: 8, paddingTop: 10, borderTopWidth: 1.5, borderTopColor: '#E2E8F0',
     },
-    date: {
-      fontSize: 12,
-      color: '#666',
-      marginTop: 2,
+    totalLabel: { fontSize: 13, fontWeight: '700', color: '#64748B' },
+    totalValue: { fontSize: 15, fontWeight: '800', color: NAVY },
+
+    downloadBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: NAVY, borderRadius: 12, paddingVertical: 15, marginTop: 4,marginBottom:15
     },
-    statusChip: {
-      height: 28,
-    },
-    statusText: {
-      fontSize: 12,
-      fontWeight: '600',
-    },
-    amountContainer: {
-      backgroundColor: '#E3F2FD',
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 12,
-      alignItems: 'center',
-    },
-    amountLabel: {
-      fontSize: 12,
-      color: '#666',
-    },
-    amount: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: '#2196F3',
-      marginTop: 4,
-    },
-    detailsContainer: {
-      borderTopWidth: 1,
-      borderTopColor: '#e0e0e0',
-      paddingTop: 12,
-    },
-    detailRow: {
-      flexDirection: 'row',
-      marginBottom: 8,
-    },
-    detailLabel: {
-      fontSize: 14,
-      color: '#666',
-      width: 110,
-    },
-    detailValue: {
-      fontSize: 14,
-      color: '#333',
-      flex: 1,
-      fontWeight: '500',
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingVertical: 50,
-    },
-    emptyIcon: {
-      fontSize: 64,
-      marginBottom: 16,
-    },
-    emptyText: {
-      fontSize: 16,
-      color: '#999',
-    },
+    downloadBtnText: { color: '#fff', fontSize: 15, fontWeight: '700', marginLeft: 8 },
   });
 })();
 

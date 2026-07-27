@@ -1,10 +1,68 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Alert, StatusBar, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { TextInput, Card } from 'react-native-paper';
+import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';
 import { ChangePasswordScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+
+// ── Field wrapper — matches Achievement/JobPosting/Club ──
+function Field({ label, required, children, error, hint }) {
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — matches Achievement/JobPosting/Club ──
+function StyledInput({ hasError, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      {...props}
+    />
+  );
+}
+
+// ── Password field — StyledInput with an eye toggle overlaid on the right ──
+function PasswordField({ label, value, onChangeText, visible, onToggleVisible }) {
+  return (
+    <Field label={label}>
+      <View style={{ position: 'relative' }}>
+        <StyledInput
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={!visible}
+          style={{ paddingRight: 44 }}
+        />
+        <TouchableOpacity
+          onPress={onToggleVisible}
+          style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
+        </TouchableOpacity>
+      </View>
+    </Field>
+  );
+}
 
 const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -36,7 +94,7 @@ const ChangePasswordScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
+    <View style={styles.root}>
       {/* ── Top navbar ── */}
       <View style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
@@ -51,38 +109,43 @@ const ChangePasswordScreen = ({ navigation }) => {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-        <ScrollView style={styles.container}>
-          <Card style={[styles.card, { marginBottom: 32 },{ backgroundColor: '#fff' }]}>
-            <Card.Content>
-              <Text style={styles.title}>Change Password</Text>
-              <Text style={styles.subtitle}>Please enter your current and new password.</Text>
+  <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+    <View style={styles.card}>
+      <Text style={styles.title}>Change Password</Text>
+      <Text style={styles.subtitle}>Please enter your current and new password.</Text>
 
-              <TextInput label="Current Password" value={currentPassword} onChangeText={setCurrentPassword}
-                secureTextEntry={!showCurrent} mode="outlined" style={styles.input}
-                right={<TextInput.Icon icon={showCurrent ? 'eye-off' : 'eye'} onPress={() => setShowCurrent(!showCurrent)} />}
-              />
-              <TextInput label="New Password" value={newPassword} onChangeText={setNewPassword}
-                secureTextEntry={!showNew} mode="outlined" style={styles.input}
-                right={<TextInput.Icon icon={showNew ? 'eye-off' : 'eye'} onPress={() => setShowNew(!showNew)} />}
-              />
-              <TextInput label="Confirm New Password" value={confirmPassword} onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirm} mode="outlined" style={styles.input}
-                right={<TextInput.Icon icon={showConfirm ? 'eye-off' : 'eye'} onPress={() => setShowConfirm(!showConfirm)} />}
-              />
+      <PasswordField
+        label="Current Password"
+        value={currentPassword}
+        onChangeText={setCurrentPassword}
+        visible={showCurrent}
+        onToggleVisible={() => setShowCurrent(!showCurrent)}
+      />
+      <PasswordField
+        label="New Password"
+        value={newPassword}
+        onChangeText={setNewPassword}
+        visible={showNew}
+        onToggleVisible={() => setShowNew(!showNew)}
+      />
+      <PasswordField
+        label="Confirm New Password"
+        value={confirmPassword}
+        onChangeText={setConfirmPassword}
+        visible={showConfirm}
+        onToggleVisible={() => setShowConfirm(!showConfirm)}
+      />
 
-              <View style={styles.requirements}>
-                <Text style={styles.reqTitle}>Requirements:</Text>
-                <Text style={styles.req}>• At least 8 characters</Text>
-                <Text style={styles.req}>• Mix of letters and numbers recommended</Text>
-              </View>
-            </Card.Content>
-          </Card>
-        </ScrollView>
-      </KeyboardAvoidingView>
+      <View style={styles.requirements}>
+        <Text style={styles.reqTitle}>Requirements</Text>
+        <Text style={styles.req}>• At least 8 characters</Text>
+        <Text style={styles.req}>• Mix of letters and numbers recommended</Text>
+      </View>
+    </View>
+  </ScrollView>
+</KeyboardAvoidingView>
     </View>
   );
 };
-
-
 
 export default ChangePasswordScreen;

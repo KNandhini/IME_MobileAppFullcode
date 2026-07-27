@@ -531,7 +531,7 @@ const PaymentReportsScreen = ({ navigation }) => {
                 >
                   {exporting
                     ? <ActivityIndicator size="small" color="#fff" />
-                    : <Text style={styles.downloadBtnText}>⬇ Download as Excel</Text>
+                    : <Text style={styles.downloadBtnText}> Download as Excel</Text>
                   }
                 </TouchableOpacity>
               </>

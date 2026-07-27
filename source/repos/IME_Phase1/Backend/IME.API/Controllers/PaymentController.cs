@@ -366,6 +366,7 @@ public class PaymentController : ControllerBase
             foreach (var r in rows)
             {
                 sheet.Cell(row, 1).Value = r.SNo;
+                sheet.Cell(row, 1).Style.NumberFormat.Format = "0";
                 sheet.Cell(row, 2).Value = r.Name;
                 sheet.Cell(row, 3).Value = r.JoiningDate?.ToString("dd-MMM-yyyy") ?? "";
                 sheet.Cell(row, 4).Value = r.PaymentId;
@@ -387,6 +388,7 @@ public class PaymentController : ControllerBase
             sheet.Cell(row, 5).Style.Border.TopBorder = XLBorderStyleValues.Thin;
 
             sheet.Columns().AdjustToContents();
+            sheet.Column(1).Width = Math.Max(sheet.Column(1).Width, 8);
             sheet.SheetView.FreezeRows(3);
 
             using var stream = new MemoryStream();
@@ -398,6 +400,144 @@ public class PaymentController : ControllerBase
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName
             );
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+
+    [HttpGet("member-history/{memberId}")]
+    public async Task<ActionResult<ApiResponse<object>>> GetMemberPaymentHistory(int memberId)
+    {
+        try
+        {
+            var membership = await _paymentRepository.GetMemberMembershipPaymentHistoryAsync(memberId);
+            var fundraise = await _paymentRepository.GetMemberFundraisePaymentHistoryAsync(memberId);
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Data = new
+                {
+                    MembershipPayments = membership,
+                    FundraisePayments = fundraise
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+    [HttpGet("member-history/{memberId}/excel")]
+    public async Task<IActionResult> DownloadMemberPaymentHistoryExcel(int memberId)
+    {
+        try
+        {
+            var membership = await _paymentRepository.GetMemberMembershipPaymentHistoryAsync(memberId);
+            var fundraise = await _paymentRepository.GetMemberFundraisePaymentHistoryAsync(memberId);
+
+            using var workbook = new XLWorkbook();
+
+            // ── Sheet 1: Membership Payments ──
+            var sheet1 = workbook.Worksheets.Add("Membership Payments");
+            sheet1.Range("A1:E1").Merge();
+            sheet1.Cell("A1").Value = "IME Membership Payment History";
+            sheet1.Cell("A1").Style.Font.Bold = true;
+            sheet1.Cell("A1").Style.Font.FontSize = 14;
+            sheet1.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            sheet1.Row(1).Height = 24;
+
+            var headers1 = new[] { "S.No", "Club Name", "Payment Date", "Payment ID", "Amount" };
+            for (int i = 0; i < headers1.Length; i++)
+            {
+                var cell = sheet1.Cell(2, i + 1);
+                cell.Value = headers1[i];
+                cell.Style.Font.Bold = true;
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1E3A5F");
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            }
+
+            int r1 = 3;
+            decimal total1 = 0;
+            foreach (var row in membership)
+            {
+                sheet1.Cell(r1, 1).Value = row.SNo;
+                sheet1.Cell(r1, 1).Style.NumberFormat.Format = "0";   // add this line
+
+                sheet1.Cell(r1, 2).Value = row.ClubName;
+                sheet1.Cell(r1, 3).Value = row.PaymentDate.ToString("dd-MMM-yyyy");
+                sheet1.Cell(r1, 4).Value = row.PaymentId;
+                sheet1.Cell(r1, 5).Value = row.Amount;
+                sheet1.Cell(r1, 5).Style.NumberFormat.Format = "#,##0.00";
+                for (int c = 1; c <= 5; c++)
+                    sheet1.Cell(r1, c).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                total1 += row.Amount;
+                r1++;
+            }
+            sheet1.Cell(r1, 4).Value = "Total Amount";
+            sheet1.Cell(r1, 4).Style.Font.Bold = true;
+            sheet1.Cell(r1, 5).Value = total1;
+            sheet1.Cell(r1, 5).Style.Font.Bold = true;
+            sheet1.Cell(r1, 5).Style.NumberFormat.Format = "#,##0.00";
+            sheet1.Columns().AdjustToContents();
+            sheet1.Column(1).Width = Math.Max(sheet1.Column(1).Width, 8);   // S.No column floor
+            sheet1.SheetView.FreezeRows(2);
+
+            // ── Sheet 2: Fundraise Payments ──
+            var sheet2 = workbook.Worksheets.Add("Fundraise Payments");
+            sheet2.Range("A1:E1").Merge();
+            sheet2.Cell("A1").Value = "IME Fundraise Payment History";
+            sheet2.Cell("A1").Style.Font.Bold = true;
+            sheet2.Cell("A1").Style.Font.FontSize = 14;
+            sheet2.Cell("A1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            sheet2.Row(1).Height = 24;
+
+            var headers2 = new[] { "S.No", "Fund Name", "Payment Date", "Payment ID", "Amount" };
+            for (int i = 0; i < headers2.Length; i++)
+            {
+                var cell = sheet2.Cell(2, i + 1);
+                cell.Value = headers2[i];
+                cell.Style.Font.Bold = true;
+                cell.Style.Font.FontColor = XLColor.White;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#1E3A5F");
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            }
+
+            int r2 = 3;
+            decimal total2 = 0;
+            foreach (var row in fundraise)
+            {
+                sheet2.Cell(r2, 1).Value = row.SNo;
+                sheet2.Cell(r2, 1).Style.NumberFormat.Format = "0";
+                sheet2.Cell(r2, 2).Value = row.FundName;
+                sheet2.Cell(r2, 3).Value = row.PaymentDate.ToString("dd-MMM-yyyy");
+                sheet2.Cell(r2, 4).Value = row.PaymentId;
+                sheet2.Cell(r2, 5).Value = row.Amount;
+                sheet2.Cell(r2, 5).Style.NumberFormat.Format = "#,##0.00";
+                for (int c = 1; c <= 5; c++)
+                    sheet2.Cell(r2, c).Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                total2 += row.Amount;
+                r2++;
+            }
+            sheet2.Cell(r2, 4).Value = "Total Amount";
+            sheet2.Cell(r2, 4).Style.Font.Bold = true;
+            sheet2.Cell(r2, 5).Value = total2;
+            sheet2.Cell(r2, 5).Style.Font.Bold = true;
+            sheet2.Cell(r2, 5).Style.NumberFormat.Format = "#,##0.00";
+            sheet2.Columns().AdjustToContents();
+            sheet2.Column(2).Width = Math.Max(sheet2.Column(2).Width, 8);   // same idea for Sheet 2's narrow columns if needed
+            sheet2.SheetView.FreezeRows(2);
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            var fileName = $"IME_PaymentHistory_Member{memberId}_{DateTime.Now:yyyyMMdd}.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
         catch (Exception ex)
         {
