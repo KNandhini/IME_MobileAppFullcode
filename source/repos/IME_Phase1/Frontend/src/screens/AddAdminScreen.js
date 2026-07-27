@@ -109,9 +109,7 @@ function SelectField({ label, required, value, placeholder, onPress, error, disa
 //   • No "welcome / grace-period / fee" modal
 //   • No RegistrationPayment navigation
 //   • Sends roleId = 1 (Admin) instead of the default member roleId
-//   • Lets you pick MULTIPLE clubs (an admin can manage more than one club)
-//     and sends them as a single comma-separated string in `clubId`
-//     (e.g. "3,7,12")
+//   • Lets you pick a SINGLE club (an admin manages one club)
 //   • Uploads the picked profile photo directly to /File/upload-profile-photo
 //     right after signup succeeds, using the new memberId
 //   • Occupation + Educational Qualification fields (same shape as SignupScreen)
@@ -151,7 +149,7 @@ const AdminSignupScreen = ({
 
   const [selectedCountry, setSelectedCountry] = useState(null); // { countryId, countryName }
   const [selectedState, setSelectedState] = useState(null); // { stateId, stateName }
-  const [selectedClubs, setSelectedClubs] = useState([]);   // [{ clubId, clubName }, ...] — MULTIPLE
+  const [selectedClub, setSelectedClub] = useState(null);   // { clubId, clubName } — SINGLE
 
   const [statesLoading, setStatesLoading] = useState(false);
   const [clubsLoading, setClubsLoading] = useState(false);
@@ -174,12 +172,10 @@ const AdminSignupScreen = ({
 
   useEffect(() => {
     if (hideClubSelection && presetClub) {
-      setSelectedClubs([
-        {
-          clubId: presetClub.clubId,
-          clubName: presetClub.clubName,
-        },
-      ]);
+      setSelectedClub({
+        clubId: presetClub.clubId,
+        clubName: presetClub.clubName,
+      });
     }
   }, [hideClubSelection, presetClub]);
   useEffect(() => { loadCountries(); }, []);
@@ -197,7 +193,7 @@ const AdminSignupScreen = ({
     setStatesLoading(true);
     setStates([]);
     setSelectedState(null);
-    setSelectedClubs([]);
+    setSelectedClub(null);
     setClubs([]);
     try {
       const res = await clubService.getStatesByCountry(countryId);
@@ -212,7 +208,7 @@ const AdminSignupScreen = ({
   const loadClubsByState = async (stateId) => {
     setClubsLoading(true);
     setClubs([]);
-    setSelectedClubs([]);
+    setSelectedClub(null);
     try {
       const res = await clubService.getAll(1, 200, '', true);
       if (res.success && res.data) {
@@ -226,12 +222,9 @@ const AdminSignupScreen = ({
     }
   };
 
-  const toggleClubSelection = (club) => {
-    setSelectedClubs((prev) => {
-      const exists = prev.find((c) => c.clubId === club.clubId);
-      if (exists) return prev.filter((c) => c.clubId !== club.clubId);
-      return [...prev, club];
-    });
+  const selectClub = (club) => {
+    setSelectedClub(club);
+    setClubModal(false);
   };
 
   // Clears whatever is no longer relevant when the occupation selection changes,
@@ -299,7 +292,7 @@ const AdminSignupScreen = ({
     if (!formData.dateOfBirth) e.dateOfBirth = 'Required';
     if (!selectedCountry) e.country = 'Required';
     if (!selectedState) e.state = 'Required';
-    if (!hideClubSelection && selectedClubs.length === 0) e.clubs = 'Select at least one club';
+    if (!hideClubSelection && !selectedClub) e.clubs = 'Select a club';
 
     // ── Occupation ──
     if (!occupation) e.occupation = 'Required';
@@ -360,83 +353,94 @@ const AdminSignupScreen = ({
     }
   };
 
-  const handleSignup = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      const payload = {
+const handleSignup = async () => {
+  if (!validate()) return;
+  setLoading(true);
+  try {
+    const payload = {
+      fullName: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+      contactNumber: formData.contactNumber,
+      address: formData.address,
+      gender: formData.gender,
+      age: parseInt(formData.age),
+      dateOfBirth: formData.dateOfBirth,
+      designationId: formData.designationId,
+      countryId: selectedCountry?.countryId ?? null,
+      stateId: selectedState?.stateId ?? null,
+      clubId: selectedClub ? String(selectedClub.clubId) : (presetClub ? String(presetClub.clubId) : null),
+      roleId: 1,
+      occupation,
+      ...(showOccupationDetails && { occupationDetails }),
+      ...(showEducationSection && { qualification }),
+    };
+
+    const response = await api.post('/Auth/signup', payload);
+    debugger;
+    const res = response.data;
+
+    if (res.success) {
+      if (profilePhoto && res.data?.memberId) {
+        const uploaded = await uploadProfilePhoto(res.data.memberId, profilePhoto.uri);
+        if (!uploaded) {
+          console.warn('Profile photo upload did not succeed for member', res.data.memberId);
+        }
+      }
+
+      const clubName = selectedClub?.clubName || presetClub?.clubName || '';
+
+      const newMember = {
+        memberId: res.data.memberId,
         fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-        contactNumber: formData.contactNumber,
-        address: formData.address,
-        gender: formData.gender,
-        age: parseInt(formData.age),
-        dateOfBirth: formData.dateOfBirth,
-        designationId: formData.designationId,
-        countryId: selectedCountry?.countryId ?? null,
-        stateId: selectedState?.stateId ?? null,
-        // Comma-separated list of every club this admin manages, e.g. "3,7,12"
-        // (a single club still works fine, it'll just be one id with no comma)
-        clubId: selectedClubs.map((c) => c.clubId).join(',') ?? null,
-        // 1 = Admin (see backend SignupRequestDTO.RoleId)
-        roleId: 1,
-        occupation,
-        ...(showOccupationDetails && { occupationDetails }),
-        ...(showEducationSection && { qualification }),
       };
 
-      const response = await api.post('/Auth/signup', payload);
-      const res = response.data;
-
-      if (res.success) {
-        // No payment step to defer to here, so push the photo now.
-        if (profilePhoto && res.data?.memberId) {
-          debugger;
-          const uploaded = await uploadProfilePhoto(res.data.memberId, profilePhoto.uri);
-          if (!uploaded) {
-            console.warn('Profile photo upload did not succeed for member', res.data.memberId);
-          }
-        }
-
-        const clubNames = selectedClubs?.map(c => c.clubName).join(', ');
-
-        const newMember = {
-          memberId: res.data.memberId,
-          fullName: formData.fullName,
-        };
-
-        Alert.alert(
-          'Admin Created',
-          clubNames
-            ? `${formData.fullName} has been registered as an admin for ${clubNames}.`
-            : `${formData.fullName} has been registered as an admin.`,
-          [
-            {
-              text: 'OK',
-              onPress: () => {
+      Alert.alert(
+        'Admin Created',
+        clubName
+          ? `${formData.fullName} has been registered as an admin for ${clubName}.`
+          : `${formData.fullName} has been registered as an admin.`,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              if (hideClubSelection) {
+                debugger;
+                // Club field was hidden — this signup was triggered from an
+                // existing club's "add admin" flow, so return to that same club.
                 navigation.navigate({
                   name: 'ClubForm',
                   params: {
+                    clubId: presetClub?.clubId,
                     newAdminMember: newMember,
                   },
                   merge: true,
                 });
-              },
+              } else {
+                debugger;
+                // Club field was visible — standalone add admin, just go back.
+                navigation.goBack();
+              }
             },
-          ]
-        );
-      } else {
-        Alert.alert('Registration Failed', getSafeErrorMessage(res));
-      }
-    } catch (e) {
-      const status = e?.response?.status;
-      const serverMsg = e?.response?.data?.message || e?.response?.data?.title || e?.message || 'Network error';
-      Alert.alert(`Error${status ? ` (${status})` : ''}`, serverMsg);
-    } finally {
-      setLoading(false);
+          },
+        ]
+      );
+    } else {
+      Alert.alert('Registration Failed', res.message || getSafeErrorMessage(res) || 'Registration failed. Please try again.');
     }
-  };
+  } catch (e) {
+    const apiMessage = e?.response?.data?.message;
+    const status = e?.response?.status;
+    const fallbackMsg = e?.response?.data?.title || e?.message || 'Network error';
+
+    Alert.alert(
+      apiMessage ? 'Registration Failed' : `Error${status ? ` (${status})` : ''}`,
+      apiMessage || fallbackMsg
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
@@ -537,13 +541,13 @@ const AdminSignupScreen = ({
           loading={statesLoading}
         />
 
-        {/* ── Clubs (MULTI-SELECT — an admin can manage more than one club) ── */}
+        {/* ── Club (SINGLE-SELECT) ── */}
         {!hideClubSelection && (
           <SelectField
-            label="Clubs"
+            label="Club"
             required
-            value={selectedClubs.map(c => c.clubName).join(', ')}
-            placeholder="Select clubs…"
+            value={selectedClub?.clubName || ''}
+            placeholder="Select club…"
             onPress={() =>
               selectedState
                 ? setClubModal(true)
@@ -551,7 +555,6 @@ const AdminSignupScreen = ({
             }
             error={errors.clubs}
             loading={clubsLoading}
-            multiline
           />
         )}
 
@@ -629,7 +632,7 @@ const AdminSignupScreen = ({
         {/* ── Occupation Details (Employed / Self Employed only) ── */}
         {showOccupationDetails && (
           <View style={styles.sectionBox}>
-            <Text style={styles.sectionTitle}>Occupation Details</Text>
+          
             <Field label="Occupation Details" required error={errors.occupationDetails}>
               <StyledInput
                 value={occupationDetails}
@@ -644,7 +647,7 @@ const AdminSignupScreen = ({
         {/* ── Educational Qualification (shown for any occupation once selected) ── */}
         {showEducationSection && (
           <View style={styles.sectionBox}>
-            <Text style={styles.sectionTitle}>Educational Qualification</Text>
+           
             <Field label="Educational Qualification" required error={errors.qualification}>
               <StyledInput
                 value={qualification}
@@ -736,35 +739,27 @@ const AdminSignupScreen = ({
         </View>
       </Modal>
 
-      {/* ── Club Modal (MULTI-SELECT) ── */}
+      {/* ── Club Modal (SINGLE-SELECT) ── */}
       <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
         <View style={styles.pickerOverlay}>
           <View style={styles.pickerSheet}>
-            <Text style={styles.pickerTitle}>Select Clubs (you can pick more than one)</Text>
+            <Text style={styles.pickerTitle}>Select Club</Text>
             <FlatList
               data={clubs}
               keyExtractor={(item) => String(item.clubId)}
               style={{ maxHeight: 380 }}
-              renderItem={({ item }) => {
-                const checked = selectedClubs.some((c) => c.clubId === item.clubId);
-                return (
-                  <TouchableOpacity
-                    style={[styles.pickerItem, styles.pickerItemRow, checked && styles.pickerItemActive]}
-                    onPress={() => toggleClubSelection(item)}
-                  >
-                    <Text style={[styles.pickerItemText, checked && styles.pickerItemTextActive]}>
-                      {item.clubName}
-                    </Text>
-                    <Text style={[styles.checkMark, checked && styles.checkMarkActive]}>
-                      {checked ? '✓' : ''}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.pickerItem}
+                  onPress={() => selectClub(item)}
+                >
+                  <Text style={styles.pickerItemText}>{item.clubName}</Text>
+                </TouchableOpacity>
+              )}
               ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
             />
-            <TouchableOpacity style={styles.pickerDone} onPress={() => setClubModal(false)}>
-              <Text style={styles.pickerDoneText}>Done ({selectedClubs.length} selected)</Text>
+            <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
+              <Text style={styles.pickerCancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>

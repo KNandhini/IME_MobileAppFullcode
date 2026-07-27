@@ -193,12 +193,14 @@ const memberId = member.memberId || member.MemberId;
 
       const payload = {
         fullName:        form.fullName.trim(),
+         email:           member?.email ?? undefined,
         contactNumber:   form.contactNumber.trim(),
         gender:          form.gender,
         age:             form.age ? parseInt(form.age, 10) : 0,
         address:         form.address.trim(),
         place:           form.place.trim(),
         designationId:   form.designationId,
+         dateOfBirth:     member?.dateOfBirth ?? undefined, 
         profilePhotoPath: member?.profilePhotoPath ?? null,
       };
 

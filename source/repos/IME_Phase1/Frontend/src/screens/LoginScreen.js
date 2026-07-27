@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { View, Text, TouchableOpacity, Alert, Animated, StatusBar, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { View, Text, TouchableOpacity, Alert, Animated, StatusBar, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';
@@ -12,6 +11,52 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 const { width } = Dimensions.get('window');
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+// ── Field wrapper — matches Achievement/JobPosting/Club/ChangePassword ──
+function Field({ label, children, error, hint }) {
+  return (
+    <View style={styles.field.wrapper}>
+      <Text style={styles.field.label}>{label}</Text>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput with a left icon and optional right icon (eye toggle) ──
+function IconInputField({ leftIcon, rightIcon, onRightIconPress, hasError, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <View style={{ position: 'relative' }}>
+      <TextInput
+        style={[
+          styles.styledInput.base,
+          { paddingLeft: 44, paddingRight: rightIcon ? 44 : 16 },
+          focused && styles.styledInput.focused,
+          hasError && styles.styledInput.errored,
+          style,
+        ]}
+        placeholderTextColor="#CBD5E1"
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        {...props}
+      />
+      <View style={{ position: 'absolute', left: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
+        <MaterialCommunityIcons name={leftIcon} size={19} color="#94A3B8" />
+      </View>
+      {rightIcon && (
+        <TouchableOpacity
+          onPress={onRightIconPress}
+          style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialCommunityIcons name={rightIcon} size={20} color="#94A3B8" />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -27,11 +72,11 @@ const LoginScreen = ({ navigation }) => {
   const screenOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    if (!startFadeIn) return; // stay invisible until the splash tells us to go
+    if (!startFadeIn) return;
 
     Animated.timing(screenOpacity, {
       toValue: 1,
-      duration: 480, // matches the splash's fade-out duration for a clean crossfade
+      duration: 480,
       easing: Easing.out(Easing.ease),
       useNativeDriver: true,
     }).start();
@@ -122,38 +167,28 @@ const LoginScreen = ({ navigation }) => {
             <Text style={styles.cardTitle}>Sign In</Text>
             <Text style={styles.cardSub}>Welcome back to IME Portal</Text>
 
-            <TextInput
-              label="Email Address"
-              value={email}
-              onChangeText={setEmail}
-              mode="outlined"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              outlineColor="#BBDEFB"
-              activeOutlineColor={NAVY}
-              textColor="#1E3A5F"
-              left={<TextInput.Icon icon="email-outline" />}
-              style={styles.input}
-            />
+            <Field label="Email Address">
+              <IconInputField
+                leftIcon="email-outline"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholder="you@example.com"
+              />
+            </Field>
 
-            <TextInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              mode="outlined"
-              secureTextEntry={secureText}
-              outlineColor="#BBDEFB"
-              activeOutlineColor={NAVY}
-              textColor="#1E3A5F"
-              left={<TextInput.Icon icon="lock-outline" />}
-              right={
-                <TextInput.Icon
-                  icon={secureText ? 'eye-outline' : 'eye-off-outline'}
-                  onPress={() => setSecureText(!secureText)}
-                />
-              }
-              style={styles.input}
-            />
+            <Field label="Password">
+              <IconInputField
+                leftIcon="lock-outline"
+                rightIcon={secureText ? 'eye-outline' : 'eye-off-outline'}
+                onRightIconPress={() => setSecureText(!secureText)}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={secureText}
+                placeholder="Enter your password"
+              />
+            </Field>
 
             <TouchableOpacity
               style={styles.forgotWrap}
@@ -181,8 +216,6 @@ const LoginScreen = ({ navigation }) => {
               <View style={styles.dividerLine} />
             </View>
 
-            {/* Routes through the Membership Benefits screen first, so new
-                users see what they're joining before hitting the signup form. */}
             <TouchableOpacity
               style={styles.signupBtn}
               onPress={() => navigation.navigate('MembershipBenefits')}>
@@ -246,8 +279,5 @@ const StatItem = ({ value, label }) => (
     <Text style={styles.statLabel}>{label}</Text>
   </View>
 );
-
-// ── Styles ───────────────────────────────────────────────────────
-
 
 export default LoginScreen;

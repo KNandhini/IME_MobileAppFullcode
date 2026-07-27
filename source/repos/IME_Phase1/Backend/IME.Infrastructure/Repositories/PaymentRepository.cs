@@ -211,4 +211,45 @@ public class PaymentRepository : IPaymentRepository
         }
         return rows;
     }
+    public async Task<List<MemberMembershipPaymentRowDTO>> GetMemberMembershipPaymentHistoryAsync(int memberId)
+    {
+        var rows = new List<MemberMembershipPaymentRowDTO>();
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetMemberMembershipPaymentHistory", connection);
+        command.Parameters.AddWithValue("@MemberId", memberId);
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            rows.Add(new MemberMembershipPaymentRowDTO
+            {
+                SNo = Convert.ToInt32(reader["SNo"]),
+                ClubName = reader.IsDBNull(reader.GetOrdinal("ClubName")) ? string.Empty : reader.GetString(reader.GetOrdinal("ClubName")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                PaymentDate = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
+                PaymentId = reader.IsDBNull(reader.GetOrdinal("PaymentId")) ? null : reader.GetString(reader.GetOrdinal("PaymentId")),
+            });
+        }
+        return rows;
+    }
+
+    public async Task<List<MemberFundraisePaymentRowDTO>> GetMemberFundraisePaymentHistoryAsync(int memberId)
+    {
+        var rows = new List<MemberFundraisePaymentRowDTO>();
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetMemberFundraisePaymentHistory", connection);
+        command.Parameters.AddWithValue("@MemberId", memberId);
+        using var reader = await command.ExecuteReaderAsync();
+        while (await reader.ReadAsync())
+        {
+            rows.Add(new MemberFundraisePaymentRowDTO
+            {
+                SNo = Convert.ToInt32(reader["SNo"]),
+                FundName = reader.IsDBNull(reader.GetOrdinal("FundName")) ? string.Empty : reader.GetString(reader.GetOrdinal("FundName")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                PaymentDate = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
+                PaymentId = reader.IsDBNull(reader.GetOrdinal("PaymentId")) ? null : reader.GetString(reader.GetOrdinal("PaymentId")),
+            });
+        }
+        return rows;
+    }
 }

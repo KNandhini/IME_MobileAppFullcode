@@ -1,9 +1,38 @@
 import React, { useState } from 'react';
-import { View, Text, Alert } from 'react-native';
-import { TextInput, Button } from 'react-native-paper';
+import { View, Text, Alert, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { authService } from '../services/authService';
 import { ForgotPasswordScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+
+// ── Field wrapper — matches Achievement/JobPosting/Club ──
+function Field({ label, children, error }) {
+  return (
+    <View style={styles.field.wrapper}>
+      <Text style={styles.field.label}>{label}</Text>
+      {children}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput — matches Achievement/JobPosting/Club ──
+function StyledInput({ hasError, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      {...props}
+    />
+  );
+}
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -70,96 +99,87 @@ const ForgotPasswordScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.card}>
 
-    <View style={styles.header}>
-      <Text style={styles.title}>Forgot Password</Text>
-      <Text style={styles.subtitle}>
-        {step === 1
-          ? 'Enter your details to validate'
-          : 'Enter new password'}
-      </Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Forgot Password</Text>
+          <Text style={styles.subtitle}>
+            {step === 1
+              ? 'Enter your details to validate'
+              : 'Enter new password'}
+          </Text>
+        </View>
+
+        {step === 1 ? (
+          <View style={styles.form}>
+            <Field label="Email">
+              <StyledInput
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholder="you@example.com"
+              />
+            </Field>
+
+            <Field label="Date of Birth" hint="Format: YYYY-MM-DD">
+              <StyledInput
+                value={dateOfBirth}
+                onChangeText={setDateOfBirth}
+                placeholder="2000-01-01"
+              />
+            </Field>
+
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleValidate}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading
+                ? <ActivityIndicator color="#D4A017" />
+                : <Text style={styles.buttonText}>Validate</Text>}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.form}>
+            <Field label="New Password">
+              <StyledInput
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+              />
+            </Field>
+
+            <Field label="Confirm Password">
+              <StyledInput
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+              />
+            </Field>
+
+            <TouchableOpacity
+              style={[styles.button, loading && styles.buttonDisabled]}
+              onPress={handleResetPassword}
+              disabled={loading}
+              activeOpacity={0.85}
+            >
+              {loading
+                ? <ActivityIndicator color="#D4A017" />
+                : <Text style={styles.buttonText}>Reset Password</Text>}
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <TouchableOpacity
+          style={styles.linkButton}
+          onPress={() => navigation.navigate('Login')}
+        >
+          <Text style={styles.linkButtonText}>Back to Login</Text>
+        </TouchableOpacity>
+
+      </View>
     </View>
-
-      {step === 1 ? (
-        <View style={styles.form}>
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={styles.input}
-          />
-
-          <TextInput
-            label="Date of Birth (YYYY-MM-DD)"
-            value={dateOfBirth}
-            onChangeText={setDateOfBirth}
-            mode="outlined"
-            placeholder="2000-01-01"
-            style={styles.input}
-          />
-
-          <Button
-  mode="contained"
-  onPress={handleValidate}
-  loading={loading}
-  disabled={loading}
-  style={styles.button}
-  buttonColor="#1E3A5F"
-  textColor="#D4A017"
->
-  Validate
-</Button>
-        </View>
-      ) : (
-        <View style={styles.form}>
-          <TextInput
-            label="New Password"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            mode="outlined"
-            secureTextEntry
-            style={styles.input}
-          />
-
-          <TextInput
-            label="Confirm Password"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            mode="outlined"
-            secureTextEntry
-            style={styles.input}
-          />
-
-          <Button
-  mode="contained"
-  onPress={handleResetPassword}
-  loading={loading}
-  disabled={loading}
-  style={styles.button}
-  buttonColor="#1E3A5F"
-  textColor="#D4A017"
->
-  Reset Password
-</Button>
-        </View>
-      )}
-
-      <Button
-      mode="text"
-      onPress={() => navigation.navigate('Login')}
-      textColor="#1E3A5F"
-      style={styles.linkButton}
-    >
-      Back to Login
-    </Button>
-
-  </View>
-</View>
   );
 };
-
-
 
 export default ForgotPasswordScreen;

@@ -62,4 +62,16 @@ export const paymentService = {
       return toSafeServiceError(error, { source: 'paymentService' });
     }
   },
+   getMemberHistory: async (memberId) => {
+    try {
+      const res = await api.get(`/Payment/member-history/${memberId}`);
+      return res.data;
+    } catch (e) {
+      return { success: false, message: e?.response?.data?.message || e.message };
+    }
+  },
+  getExcelDownloadUrl: (memberId) => {
+    const base = (api.defaults.baseURL || '').replace(/\/$/, '');
+    return `${base}/Payment/member-history/${memberId}/excel`;
+  },
 };

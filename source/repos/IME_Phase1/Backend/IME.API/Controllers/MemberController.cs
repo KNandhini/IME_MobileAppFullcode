@@ -108,6 +108,7 @@ public class MemberController : ControllerBase
                 ContactNumber = request.ContactNumber,
                 Gender = request.Gender,
                 Age = request.Age,
+                Place=request.Place,
                 DateOfBirth = request.DateOfBirth,
                 DesignationId = request.DesignationId,
                 CountryId = request.CountryId,
