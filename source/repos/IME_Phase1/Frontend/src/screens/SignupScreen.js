@@ -404,7 +404,16 @@ const SignupScreen = ({ navigation, route }) => {
         Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
-      Alert.alert('Error', getSafeErrorMessage(e));
+      console.log("FULL ERROR");
+      console.log(e);
+
+      console.log("Response");
+      console.log(e.response);
+
+      console.log("Response Data");
+      console.log(e.response?.data);
+
+      Alert.alert("Error", getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }

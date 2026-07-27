@@ -21,10 +21,27 @@ export const configureErrorHandler = ({ endpoint } = {}) => {
 };
 
 export const getSafeErrorMessage = (errorOrStatus) => {
+  // If backend returned a custom message, use it first
+  const backendMessage =
+    errorOrStatus?.response?.data?.message ||
+    errorOrStatus?.response?.data?.error ||
+    errorOrStatus?.message ||
+    errorOrStatus?.data?.message;
+
+  if (backendMessage === 'Email already registered') {
+    return 'This email is already registered. Please use a different email address or log in to your existing account.';
+  }
+
+  if (backendMessage) {
+    return backendMessage;
+  }
+
   const status =
     typeof errorOrStatus === 'number'
       ? errorOrStatus
-      : errorOrStatus?.response?.status || errorOrStatus?.status || errorOrStatus?.statusCode;
+      : errorOrStatus?.response?.status ||
+      errorOrStatus?.status ||
+      errorOrStatus?.statusCode;
 
   if (!status) {
     return 'Something went wrong. Please try again.';
@@ -58,7 +75,7 @@ const sendErrorToBackend = (details) => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(details),
-  }).catch(() => {});
+  }).catch(() => { });
 };
 
 export const handleError = (error, context = {}) => {
