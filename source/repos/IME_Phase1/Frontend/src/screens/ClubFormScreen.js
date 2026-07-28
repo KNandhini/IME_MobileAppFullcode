@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image } from 'react-native';
+import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -66,6 +66,9 @@ export default function ClubFormScreen({ route, navigation }) {
 
   const [adminMode, setAdminMode] = useState(isEditMode ? 'existing' : 'new');
 
+  const { width: screenWidth } = useWindowDimensions();
+  const isLargeScreen = screenWidth >= 600; // tablet / web breakpoint
+
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
@@ -101,6 +104,7 @@ export default function ClubFormScreen({ route, navigation }) {
   useEffect(() => {
     loadLookups();
     if (isEditMode) {
+      debugger;
       loadClub();
       loadClubMembers(clubId);
     } else {
@@ -109,6 +113,7 @@ export default function ClubFormScreen({ route, navigation }) {
     }
   }, []);
 
+  // ── Handle a newly-created admin returning from the AdminSignup screen ──
   useEffect(() => {
     if (route.params?.newAdminMember) {
       const member = route.params.newAdminMember;
@@ -123,7 +128,22 @@ export default function ClubFormScreen({ route, navigation }) {
         ],
       }));
 
-      setAdminMode('new');
+      if (isEditMode) {
+        // Add the newly created member into the "existing member" dropdown
+        // source so they show up there too, and switch to the existing-member
+        // selector so their name appears in the dropdown/text input.
+        setClubMembers(prev => {
+          const exists = prev.some(m => m.memberId === member.memberId);
+          return exists ? prev : [...prev, member];
+        });
+        setAdminMode('existing');
+      } else {
+        setMembers(prev => {
+          const exists = prev.some(m => m.memberId === member.memberId);
+          return exists ? prev : [...prev, member];
+        });
+        setAdminMode('new');
+      }
 
       navigation.setParams({
         newAdminMember: undefined,
@@ -146,6 +166,7 @@ export default function ClubFormScreen({ route, navigation }) {
   };
 
   const loadClubMembers = async (id) => {
+    debugger;
     if (!id) return;
     const res = await memberService.getMembersByClub(id);
     if (res.success) {
@@ -764,58 +785,83 @@ export default function ClubFormScreen({ route, navigation }) {
 
         <Field label="Admin Members" required>
 
-          <View style={styles.radioRow}>
-
-            {isEditMode && (
-              <TouchableOpacity
-                style={styles.radioOption}
-                onPress={() => setAdminMode('existing')}
-              >
-                <View
-                  style={[
-                    styles.radioOuter,
-                    adminMode === 'existing' && styles.radioOuterActive,
-                  ]}
-                >
-                  {adminMode === 'existing' && (
-                    <View style={styles.radioInner} />
-                  )}
-                </View>
-
-                <Text style={styles.radioLabel}>
-                  Existing Member
-                </Text>
-              </TouchableOpacity>
-            )}
-
-          </View>
-
-          <TouchableOpacity
-            style={[styles.addAdminButton, isEditMode && { marginTop: 10 }]}
-            onPress={() => {
-              setAdminMode('new');
-              setForm(prev => ({
-                ...prev,
-                adminMembers: [],
-              }));
-              navigation.navigate('AdminSignup', {
-                hideClubSelection: true,
-                presetClub: {
-                  clubId: clubId || null,
-                  clubName: form.clubName,
-                },
-              });
-            }}
+          <View
+            style={
+              isLargeScreen
+                ? {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    flexWrap: 'nowrap',
+                    width: '100%',
+                    gap: 12,
+                  }
+                : undefined
+            }
           >
-            <Ionicons name="person-add-outline" size={17} color="#1E3A5F" />
-            <Text style={styles.addAdminButtonText}>
-              Click here to add new admin
-            </Text>
-          </TouchableOpacity>
+            <View style={[styles.radioRow, isLargeScreen && { flexShrink: 0, flexGrow: 0, width: 'auto' }]}>
+
+              {isEditMode && (
+                <TouchableOpacity
+                  style={styles.radioOption}
+                  onPress={() => setAdminMode('existing')}
+                >
+                  <View
+                    style={[
+                      styles.radioOuter,
+                      adminMode === 'existing' && styles.radioOuterActive,
+                    ]}
+                  >
+                    {adminMode === 'existing' && (
+                      <View style={styles.radioInner} />
+                    )}
+                  </View>
+
+                  <Text style={styles.radioLabel}>
+                    Existing Member
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+            </View>
+
+            <TouchableOpacity
+              style={[
+                styles.addAdminButton,
+                isEditMode && !isLargeScreen && { marginTop: 10 },
+                isLargeScreen && {
+                  alignSelf: 'center',
+                  flexGrow: 0,
+                  flexShrink: 0,
+                  width: 'auto',
+                  marginTop: 0,
+                },
+              ]}
+              onPress={() => {
+                setAdminMode('new');
+                setForm(prev => ({
+                  ...prev,
+                  adminMembers: [],
+                }));
+                navigation.navigate('AdminSignup', {
+                  hideClubSelection: true,
+                  presetClub: {
+                    clubId: clubId || null,
+                    clubName: form.clubName,
+                  },
+                });
+              }}
+            >
+              <Ionicons name="person-add-outline" size={17} color="#1E3A5F" />
+              <Text style={styles.addAdminButtonText}>
+                Click here to add new admin
+              </Text>
+            </TouchableOpacity>
+          </View>
 
           {adminMode === 'existing' && isEditMode && (
             <TouchableOpacity
-              style={[styles.selector,{ marginTop: 10 }]}
+              style={[styles.selector,{ marginTop: isLargeScreen ? 6 : 10 }]}
               onPress={() => setMemberModal(true)}
             >
               <Text
@@ -877,7 +923,7 @@ export default function ClubFormScreen({ route, navigation }) {
           )}
 
           {form.adminMembers.length > 0 && (
-            <View style={styles.chipWrap}>
+            <View style={[styles.chipWrap, { marginTop: 10 }]}>
               {form.adminMembers.map(member => (
                 <View
                   key={member.memberId}

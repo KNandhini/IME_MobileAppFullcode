@@ -4,9 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system/legacy';
 import api from '../utils/api';
 import { RegistrationPaymentScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import logoImage from '../../assets/logo-clean.png';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
@@ -18,6 +21,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
   const [processingPayment, setProcessingPayment]  = useState(false);
   const [feeAmount,         setFeeAmount]          = useState(route.params?.feeAmount ?? 0);
   const [feeId,             setFeeId]              = useState(null);
+  const [logoDataUri,       setLogoDataUri]        = useState(null);
 
   // Always fetch the current fee from the backend — params value may be stale or 0
   useEffect(() => {
@@ -29,6 +33,26 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
         }
       })
       .catch(() => {}); // silently keep param value if request fails
+  }, []);
+
+  // Convert the local logo asset to a base64 data URI once, so it can be
+  // handed to Razorpay's checkout.js as the `image` option — the WebView
+  // needs an actual image string, not a bundler asset reference.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const asset = Asset.fromModule(logoImage);
+        await asset.downloadAsync();
+        const base64 = await FileSystem.readAsStringAsync(asset.localUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        if (!cancelled) setLogoDataUri(`data:image/png;base64,${base64}`);
+      } catch (e) {
+        console.warn('Failed to prepare logo for Razorpay checkout:', e.message);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   const pickProfilePhoto = async () => {
@@ -225,6 +249,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
               currency: 'INR',
               name: 'IME Membership',
               description: 'Annual Membership Registration Fee',
+              image: '${logoDataUri || ''}',
               theme: { color: '#1E3A5F' },
               prefill: {
                 name: '${(memberName || '').replace(/'/g, "\\'")}',
@@ -447,7 +472,10 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <View style={styles.razorpayBadge}>
-            <Text style={styles.razorpayIcon}>💳</Text>
+            <Image
+              source={logoImage}
+              style={{ width: 32, height: 32, resizeMode: 'contain' }}
+            />
             <View style={{ flex: 1, marginLeft: 12 }}>
               <Text style={styles.razorpayTitle}>Razorpay Secure Payment</Text>
               <Text style={styles.razorpaySubtitle}>UPI • Debit/Credit Card • Net Banking</Text>
@@ -488,4 +516,3 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
 
 
 export default RegistrationPaymentScreen;
-

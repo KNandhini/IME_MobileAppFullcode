@@ -325,7 +325,7 @@ const AdminSignupScreen = ({
     }
     if (!selectedCountry) e.country = 'Country is required';
     if (!selectedState) e.state = 'State is required';
-    if (!hideClubSelection && selectedClubs.length === 0) e.clubs = 'Select at least one club';
+    if (!hideClubSelection && !selectedClub) e.club = 'Please select a club';
 
     // ── Occupation ──
     if (!occupation) e.occupation = 'Occupation is required';
@@ -574,21 +574,20 @@ const handleSignup = async () => {
             loading={statesLoading}
           />
 
-          {/* ── Clubs (MULTI-SELECT — an admin can manage more than one club) ── */}
+          {/* ── Club (SINGLE SELECT — an admin manages one club) ── */}
           {!hideClubSelection && (
             <SelectField
-              label="Clubs"
+              label="Club"
               required
-              value={selectedClubs.map(c => c.clubName).join(', ')}
-              placeholder="Select clubs…"
+              value={selectedClub?.clubName || ''}
+              placeholder="Select club…"
               onPress={() =>
                 selectedState
                   ? setClubModal(true)
                   : Alert.alert('Select state first')
               }
-              error={errors.clubs}
+              error={errors.club}
               loading={clubsLoading}
-              multiline
             />
           )}
 
@@ -784,21 +783,21 @@ const handleSignup = async () => {
           </View>
         </Modal>
 
-        {/* ── Club Modal (MULTI-SELECT) ── */}
+        {/* ── Club Modal (SINGLE SELECT) ── */}
         <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
           <View style={styles.pickerOverlay}>
             <View style={styles.pickerSheet}>
-              <Text style={styles.pickerTitle}>Select Clubs (you can pick more than one)</Text>
+              <Text style={styles.pickerTitle}>Select Club</Text>
               <FlatList
                 data={clubs}
                 keyExtractor={(item) => String(item.clubId)}
                 style={{ maxHeight: 380 }}
                 renderItem={({ item }) => {
-                  const checked = selectedClubs.some((c) => c.clubId === item.clubId);
+                  const checked = selectedClub?.clubId === item.clubId;
                   return (
                     <TouchableOpacity
                       style={[styles.pickerItem, styles.pickerItemRow, checked && styles.pickerItemActive]}
-                      onPress={() => toggleClubSelection(item)}
+                      onPress={() => selectClub(item)}
                     >
                       <Text style={[styles.pickerItemText, checked && styles.pickerItemTextActive]}>
                         {item.clubName}
@@ -811,8 +810,8 @@ const handleSignup = async () => {
                 }}
                 ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
               />
-              <TouchableOpacity style={styles.pickerDone} onPress={() => setClubModal(false)}>
-                <Text style={styles.pickerDoneText}>Done ({selectedClubs.length} selected)</Text>
+              <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
+                <Text style={styles.pickerCancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
