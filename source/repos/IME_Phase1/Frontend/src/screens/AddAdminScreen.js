@@ -682,7 +682,7 @@ const handleSignup = async () => {
                   value={occupationDetails}
                   onChangeText={setOccupationDetails}
                   hasError={!!errors.occupationDetails}
-                  multiline
+                  
                 />
               </Field>
             </View>
