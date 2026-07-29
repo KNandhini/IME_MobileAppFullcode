@@ -1,37 +1,40 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState } from 'react-native';
 import { configureErrorHandler, handleError } from './errorHandler';
+import { isTokenExpired } from './tokenUtils';
+// navigateToLogin import removed — no longer needed
 
-// ── Update with your actual backend URL ───────────────────────
-// For local development use your machine IP (not localhost):
-//   Android emulator: http://10.0.2.2:51150/api
-//   Physical device:  http://YOUR_LOCAL_IP:51150/api
-//   Production:       https://your-api-domain.com/api
-// Android emulator reaches the host machine through 10.0.2.2.
-// Use the HTTP port shown by local Swagger: http://localhost:51150/swagger/index.html
-//const API_BASE_URL = 'http://10.0.2.2:51150/api';
-const API_BASE_URL = 'https://imei.co.in/api';
-//const API_BASE_URL ='https://prasath-001-site1.ftempurl.com/api';/
-//const API_BASE_URL = 'http://10.0.2.2:51150/api';
+const API_BASE_URL = 'http://10.0.2.2:51150/api';
 export const BASE_URL = API_BASE_URL.replace(/\/api$/, '');
 configureErrorHandler({ endpoint: `${API_BASE_URL}/log-error` });
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  // Do NOT set Content-Type here — it breaks multipart/form-data uploads.
-  // The interceptor below sets it per-request based on data type.
 });
 
-// Attach JWT token + set correct Content-Type per request
+// Only clears storage here. AuthContext's poll (or its own login-state
+// check) picks up the missing/expired token and calls forceLogout(),
+// which flips isAuthenticated -> AppNavigator swaps to AuthStack -> Login.
+export const clearSessionAndRedirect = async () => {
+  await AsyncStorage.multiRemove(['authToken', 'userData', 'tokenExpiresAt']);
+};
+
 api.interceptors.request.use(
   async (config) => {
     const token = await AsyncStorage.getItem('authToken');
+    const expiresAt = await AsyncStorage.getItem('tokenExpiresAt');
+
+    if (token && isTokenExpired(expiresAt)) {
+      await clearSessionAndRedirect();
+      return Promise.reject(new axios.Cancel('Session expired'));
+    }
+
     if (token) config.headers.Authorization = `Bearer ${token}`;
 
     if (config.data instanceof FormData) {
-      // Do NOT set Content-Type for FormData.
-      // React Native's native HTTP client will set multipart/form-data with the correct boundary.
+      // leave Content-Type unset for multipart
     } else {
       config.headers['Content-Type'] = 'application/json';
     }
@@ -40,7 +43,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle 401 globally
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -51,11 +53,20 @@ api.interceptors.response.use(
     });
 
     if (error.response?.status === 401) {
-      await AsyncStorage.removeItem('authToken');
-      await AsyncStorage.removeItem('userData');
+      await clearSessionAndRedirect();
     }
     return Promise.reject(error);
   }
 );
+
+AppState.addEventListener('change', async (state) => {
+  if (state === 'active') {
+    const token = await AsyncStorage.getItem('authToken');
+    const expiresAt = await AsyncStorage.getItem('tokenExpiresAt');
+    if (token && isTokenExpired(expiresAt)) {
+      await clearSessionAndRedirect();
+    }
+  }
+});
 
 export default api;
