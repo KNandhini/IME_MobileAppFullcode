@@ -30,7 +30,6 @@ public class AuthController : ControllerBase
         try
         {
             var user = await _authRepository.GetUserByEmailAsync(request.Email);
-
             if (user == null || !_passwordService.VerifyPassword(request.Password, user.PasswordHash))
             {
                 return Ok(new ApiResponse<LoginResponseDTO>
@@ -39,7 +38,6 @@ public class AuthController : ControllerBase
                     Message = "Invalid email or password"
                 });
             }
-
             if (!user.IsActive)
             {
                 return Ok(new ApiResponse<LoginResponseDTO>
@@ -48,12 +46,9 @@ public class AuthController : ControllerBase
                     Message = "Account is inactive"
                 });
             }
-
             // Get additional user info with role
             var userWithDetails = await _authRepository.ValidateUserCredentialsAsync(request.Email, user.PasswordHash);
-
             var fullUser = userWithDetails ?? user;
-
             // Grace period expired — block login, return data so frontend can navigate to payment
             if (fullUser.LoginStatus == "GRACE_EXPIRED")
             {
@@ -63,35 +58,33 @@ public class AuthController : ControllerBase
                     Message = "GRACE_EXPIRED",
                     Data = new LoginResponseDTO
                     {
-                        UserId   = fullUser.UserId,
+                        UserId = fullUser.UserId,
                         MemberId = fullUser.MemberId,
-                        Email    = fullUser.Email,
+                        Email = fullUser.Email,
                         FullName = fullUser.FullName,
                         LoginStatus = "GRACE_EXPIRED"
                     }
                 });
             }
-
             // Generate JWT token
-            var token = _jwtService.GenerateToken(fullUser.UserId, fullUser.RoleId, fullUser.RoleName, null, fullUser.Email);
-
+            var (token, expiresAt) = _jwtService.GenerateToken(fullUser.UserId, fullUser.RoleId, fullUser.RoleName, null, fullUser.Email);
             var response = new LoginResponseDTO
             {
-                UserId           = fullUser.UserId,
-                Email            = fullUser.Email,
-                RoleId           = fullUser.RoleId,
-                RoleName         = fullUser.RoleName,
-                MemberId         = fullUser.MemberId,
-                FullName         = fullUser.FullName,
+                UserId = fullUser.UserId,
+                Email = fullUser.Email,
+                RoleId = fullUser.RoleId,
+                RoleName = fullUser.RoleName,
+                MemberId = fullUser.MemberId,
+                FullName = fullUser.FullName,
                 ProfilePhotoPath = fullUser.ProfilePhotoPath,
-                Token            = token,
+                Token = token,
+                ExpiresAt = expiresAt,
                 MembershipStatus = fullUser.MembershipStatus,
-                GraceExpiryDate  = fullUser.GraceExpiryDate,
-                LoginStatus      = fullUser.LoginStatus,
-                ClubId           = fullUser.ClubId.ToString(),
+                GraceExpiryDate = fullUser.GraceExpiryDate,
+                LoginStatus = fullUser.LoginStatus,
+                ClubId = fullUser.ClubId.ToString(),
                 Occupation = fullUser.Occupation,
             };
-
             return Ok(new ApiResponse<LoginResponseDTO>
             {
                 Success = true,
