@@ -4,7 +4,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export const authService = {
   login: async (email, password) => {
     try {
-      debugger;
       const response = await api.post('/Auth/login', { email, password });
       const res = response.data;
 
@@ -13,16 +12,16 @@ export const authService = {
       const token = data?.token;
 
       if (token) {
-        debugger;
         await AsyncStorage.setItem('authToken', token);
+        if (data?.expiresAt) {
+          await AsyncStorage.setItem('tokenExpiresAt', data.expiresAt); // ISO string, e.g. "2026-07-28T14:32:59+05:30"
+        }
         const { profilePhoto, ProfilePhoto, profilePhotoPath, ProfilePhotoPath, ...safeData } = data;
         await AsyncStorage.setItem('userData', JSON.stringify(safeData));
       }
 
       return { success: !!(res.success !== false && token), data, message: res.message };
     } catch (error) {
-      debugger;
-
       if (error.response) {
         return {
           success: false,
