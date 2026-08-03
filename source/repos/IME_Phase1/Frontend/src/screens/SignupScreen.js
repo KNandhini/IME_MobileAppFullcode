@@ -14,7 +14,8 @@ import { COLORS } from './theme'; // ← adjust this path to wherever COLORS act
 // Local color constants — same design system as AdminSignupScreen.
 const NAVY = COLORS.navy;
 const GOLD = COLORS.gold;
-
+// Author Name: letters, numbers, spaces, dot, comma, hyphen
+const AUTHOR_REGEX = /^[A-Za-z0-9\s.,-]*$/;
 // ── Field wrapper — same shape as AdminSignupScreen's Field (own copy) ──
 function Field({ label, required, children, error, hint, charCount, maxChars }) {
   const over = maxChars != null && charCount > maxChars;
@@ -216,13 +217,18 @@ const SignupScreen = ({ navigation, route }) => {
 
   const updateField = (field, value) => {
     let v = value;
-    if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150);
+    if (field === 'fullName') v = value.replace(/[^A-Za-z\s]/g, '').slice(0, 150); if (field === 'fullName') {
+      v = value
+        .split('')
+        .filter(ch => AUTHOR_REGEX.test(ch))
+        .join('')
+        .slice(0, 150);
+    }
     else if (field === 'email') v = value.slice(0, 100);
     else if (field === 'contactNumber') {
-      v = value.replace(/[^0-9]/g, '');
+      v = value;
 
-      // First digit cannot be 0 or 1
-      if (v.length === 1 && (v.startsWith('0') || v.startsWith('1'))) {
+      if (v.length === 1 && (v === '0' || v === '1')) {
         return;
       }
 
@@ -491,13 +497,15 @@ const SignupScreen = ({ navigation, route }) => {
           <Field label="Contact Number" required error={errors.contactNumber}>
             <StyledInput
               value={formData.contactNumber}
-              onChangeText={(t) => updateField('contactNumber', t)}
-              hasError={!!errors.contactNumber}
-              keyboardType="number-pad"
+              onChangeText={(text) => {
+                const numbers = text.replace(/[^0-9]/g, '');
+                updateField('contactNumber', numbers);
+              }}
+              keyboardType="phone-pad"
+              inputMode="numeric"
               maxLength={10}
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              returnKeyType="next"
+              autoCorrect={false}
+              autoCapitalize="none"
             />
           </Field>
 
@@ -636,7 +644,7 @@ const SignupScreen = ({ navigation, route }) => {
                   value={occupationDetails}
                   onChangeText={setOccupationDetails}
                   hasError={!!errors.occupationDetails}
-                  
+
                 />
               </Field>
             </View>
