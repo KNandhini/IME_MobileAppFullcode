@@ -42,14 +42,15 @@ function StyledInput({ hasError, style, ...props }) {
 }
 
 // ── Password field — StyledInput with an eye toggle overlaid on the right ──
-function PasswordField({ label, value, onChangeText, visible, onToggleVisible }) {
+function PasswordField({ label, required, value, onChangeText, error, hint, visible, onToggleVisible }) {
   return (
-    <Field label={label}>
+    <Field label={label} required={required} error={error} hint={hint}>
       <View style={{ position: 'relative' }}>
         <StyledInput
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={!visible}
+          hasError={!!error}
           style={{ paddingRight: 44 }}
         />
         <TouchableOpacity
@@ -66,24 +67,41 @@ function PasswordField({ label, value, onChangeText, visible, onToggleVisible })
 
 const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword]         = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [loading, setLoading]                 = useState(false);
-  const [showCurrent, setShowCurrent]         = useState(false);
-  const [showNew, setShowNew]                 = useState(false);
-  const [showConfirm, setShowConfirm]         = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const clearError = (key) => {
+    setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
+  };
+
+  const validate = () => {
+    const e = {};
+    if (!currentPassword.trim()) e.currentPassword = 'Current password is required';
+
+    if (!newPassword) e.newPassword = 'New password is required';
+    else if (newPassword.length < 8) e.newPassword = 'New password must be at least 8 characters';
+
+    if (!confirmPassword) e.confirmPassword = 'Please confirm your new password';
+    else if (newPassword !== confirmPassword) e.confirmPassword = 'New passwords do not match';
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
   const handleChangePassword = async () => {
-    if (!currentPassword.trim()) { Alert.alert('Error', 'Enter your current password.'); return; }
-    if (newPassword.length < 8)  { Alert.alert('Error', 'New password must be at least 8 characters.'); return; }
-    if (newPassword !== confirmPassword) { Alert.alert('Error', 'New passwords do not match.'); return; }
+    if (!validate()) return;
 
     setLoading(true);
     try {
       const userStr = await AsyncStorage.getItem('userData');
       if (!userStr) { Alert.alert('Error', 'Session expired. Please login again.'); return; }
       const user = JSON.parse(userStr);
-      const res  = await memberService.changePassword(user.memberId, { currentPassword, newPassword });
+      const res = await memberService.changePassword(user.memberId, { currentPassword, newPassword });
       if (res.success) {
         Alert.alert('Success', 'Password changed successfully.', [
           { text: 'OK', onPress: () => navigation.goBack() },
@@ -109,41 +127,47 @@ const ChangePasswordScreen = ({ navigation }) => {
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-  <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
-    <View style={styles.card}>
-      <Text style={styles.title}>Change Password</Text>
-      <Text style={styles.subtitle}>Please enter your current and new password.</Text>
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          <View style={styles.card}>
+            <Text style={styles.title}>Change Password</Text>
+            <Text style={styles.subtitle}>Please enter your current and new password.</Text>
 
-      <PasswordField
-        label="Current Password"
-        value={currentPassword}
-        onChangeText={setCurrentPassword}
-        visible={showCurrent}
-        onToggleVisible={() => setShowCurrent(!showCurrent)}
-      />
-      <PasswordField
-        label="New Password"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        visible={showNew}
-        onToggleVisible={() => setShowNew(!showNew)}
-      />
-      <PasswordField
-        label="Confirm New Password"
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-        visible={showConfirm}
-        onToggleVisible={() => setShowConfirm(!showConfirm)}
-      />
+            <PasswordField
+              label="Current Password"
+              required
+              value={currentPassword}
+              onChangeText={(t) => { setCurrentPassword(t); clearError('currentPassword'); }}
+              error={errors.currentPassword}
+              visible={showCurrent}
+              onToggleVisible={() => setShowCurrent(!showCurrent)}
+            />
+            <PasswordField
+              label="New Password"
+              required
+              value={newPassword}
+              onChangeText={(t) => { setNewPassword(t); clearError('newPassword'); }}
+              error={errors.newPassword}
+              visible={showNew}
+              onToggleVisible={() => setShowNew(!showNew)}
+            />
+            <PasswordField
+              label="Confirm New Password"
+              required
+              value={confirmPassword}
+              onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
+              error={errors.confirmPassword}
+              visible={showConfirm}
+              onToggleVisible={() => setShowConfirm(!showConfirm)}
+            />
 
-      <View style={styles.requirements}>
-        <Text style={styles.reqTitle}>Requirements</Text>
-        <Text style={styles.req}>• At least 8 characters</Text>
-        <Text style={styles.req}>• Mix of letters and numbers recommended</Text>
-      </View>
-    </View>
-  </ScrollView>
-</KeyboardAvoidingView>
+            <View style={styles.requirements}>
+              <Text style={styles.reqTitle}>Requirements</Text>
+              <Text style={styles.req}>• At least 8 characters</Text>
+              <Text style={styles.req}>• Mix of letters and numbers recommended</Text>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

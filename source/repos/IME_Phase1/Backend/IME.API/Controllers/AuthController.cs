@@ -199,23 +199,38 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = await _authRepository.ValidateUserForPasswordResetAsync(request.Email, request.DateOfBirth);
+           // Check if email exists
+var emailUser = await _authRepository.GetUserByEmailAsync(request.Email);
 
-            if (user == null)
-            {
-                return Ok(new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Invalid email or date of birth"
-                });
-            }
+if (emailUser == null)
+{
+    return Ok(new ApiResponse<object>
+    {
+        Success = false,
+        Message = "Email address not found."
+    });
+}
 
-            return Ok(new ApiResponse<object>
-            {
-                Success = true,
-                Message = "Validation successful",
-                Data = new { UserId = user.UserId }
-            });
+// Check if DOB matches
+var user = await _authRepository.ValidateUserForPasswordResetAsync(
+    request.Email,
+    request.DateOfBirth);
+
+if (user == null)
+{
+    return Ok(new ApiResponse<object>
+    {
+        Success = false,
+        Message = "The date of birth does not match our records."
+    });
+}
+
+return Ok(new ApiResponse<object>
+{
+    Success = true,
+    Message = "Validation successful",
+    Data = new { UserId = user.UserId }
+});
         }
         catch (Exception ex)
         {
