@@ -150,12 +150,31 @@ const AddCircularScreen = ({ route, navigation }) => {
     ]);
   };
 
+  // Letters, numbers, spaces, and . , - only
+  const TITLE_REGEX = /^[A-Za-z0-9\s.,-]*$/;
+  const CIRCULAR_NUMBER_REGEX = /^[0-9]*$/;
+  const TITLE_MAX_LENGTH = 150;
+  const DESCRIPTION_MAX_LENGTH = 500;
+
   const saveCircular = async () => {
     if (saving) return;
     const validationErrors = {};
 
-    if (!title.trim()) {
+    const trimmedTitle = title.trim();
+    if (!trimmedTitle) {
       validationErrors.title = 'Title is required';
+    } else if (trimmedTitle.length > TITLE_MAX_LENGTH) {
+      validationErrors.title = `Title cannot exceed ${TITLE_MAX_LENGTH} characters`;
+    } else if (!TITLE_REGEX.test(trimmedTitle)) {
+      validationErrors.title = 'Title can only contain letters, numbers, spaces, and . , -';
+    }
+
+    if (description.trim().length > DESCRIPTION_MAX_LENGTH) {
+      validationErrors.description = `Description cannot exceed ${DESCRIPTION_MAX_LENGTH} characters`;
+    }
+
+    if (circularNumber.trim() && !CIRCULAR_NUMBER_REGEX.test(circularNumber.trim())) {
+      validationErrors.circularNumber = 'Circular number can only contain numbers';
     }
 
     setErrors(validationErrors);
@@ -214,8 +233,11 @@ const AddCircularScreen = ({ route, navigation }) => {
           <TextInput
             style={styles.input}
             value={title}
+            maxLength={TITLE_MAX_LENGTH}
             onChangeText={(text) => {
-              setTitle(text);
+              // Only allow letters, numbers, spaces, and . , -
+              const filtered = text.replace(/[^A-Za-z0-9\s.,-]/g, '');
+              setTitle(filtered);
 
               setErrors(prev => ({
                 ...prev,
@@ -229,18 +251,41 @@ const AddCircularScreen = ({ route, navigation }) => {
           {errors.title ? (
             <Text style={styles.error}>{errors.title}</Text>
           ) : null}
+          <Text style={{ color: "#94A3B8", fontSize: 12, alignSelf: "flex-end", marginTop: 4 }}>{title.length}/{TITLE_MAX_LENGTH}</Text>
+
           <Text style={styles.label}>Description</Text>
           <TextInput
             style={[styles.input, { height: 100, textAlignVertical: 'top', paddingTop: 12 }]}
-            value={description} onChangeText={setDescription}
+            value={description}
+            maxLength={DESCRIPTION_MAX_LENGTH}
+            onChangeText={(text) => {
+              setDescription(text);
+              setErrors(prev => ({ ...prev, description: '' }));
+            }}
             multiline placeholder="Enter description" placeholderTextColor="#CBD5E1"
           />
+          {errors.description ? (
+            <Text style={styles.error}>{errors.description}</Text>
+          ) : null}
+          <Text style={{ color: "#94A3B8", fontSize: 12, alignSelf: "flex-end", marginTop: 4 }}>{description.length}/{DESCRIPTION_MAX_LENGTH}</Text>
 
           <Text style={styles.label}>Circular Number</Text>
           <TextInput
-            style={styles.input} value={circularNumber} onChangeText={setCircularNumber}
-            placeholder="e.g. GO-2024-001" placeholderTextColor="#CBD5E1"
+            style={styles.input}
+            value={circularNumber}
+            keyboardType="number-pad"
+            onChangeText={(text) => {
+              // Only allow digits
+              const filtered = text.replace(/[^0-9]/g, '');
+              setCircularNumber(filtered);
+              setErrors(prev => ({ ...prev, circularNumber: '' }));
+            }}
+            placeholder="e.g. 2024001"
+            placeholderTextColor="#CBD5E1"
           />
+          {errors.circularNumber ? (
+            <Text style={styles.error}>{errors.circularNumber}</Text>
+          ) : null}
 
           <Text style={styles.label}>Publish Date</Text>
           <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
@@ -383,4 +428,3 @@ const AddCircularScreen = ({ route, navigation }) => {
 };
 
 export default AddCircularScreen;
-

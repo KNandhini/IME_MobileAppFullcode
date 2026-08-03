@@ -14,4 +14,5 @@ public class JobPostingUpdateRequest
     public string? VacancyClosingDate { get; set; }
     public string? SalaryPackage { get; set; }
     public string? ModifiedBy { get; set; }
+    public string? Website { get; set; }
 }

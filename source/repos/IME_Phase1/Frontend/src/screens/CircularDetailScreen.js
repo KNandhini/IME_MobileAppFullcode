@@ -1,12 +1,83 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Linking, Share, Image, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, StyleSheet, Alert, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { circularService } from '../services/circularService';
 import api from '../utils/api';
 import { CircularDetailScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+// Fallback styles for pieces not yet defined in CircularDetailScreenStyles
+// (badge / chip / description card). These merge on top of `styles.*` so
+// if those keys get added to the stylesheet later, this still works —
+// array styles let the later object win on any overlapping keys.
+const local = StyleSheet.create({
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: '#FEF3E2',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+  badgeText: {
+    color: GOLD,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  chipWrap: {
+    marginBottom: 6,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: '#EAF1FB',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  chipText: {
+    color: NAVY,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  descCard: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  descLabel: {
+    color: GOLD,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  descText: {
+    color: '#334155',
+    fontSize: 14,
+    lineHeight: 20,
+  },
+});
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
 // strip the trailing "/api" so we get the plain server root to prefix
@@ -25,11 +96,31 @@ const toPublicUrl = (filePath) => {
   return `${API_BASE}/${relative}`;
 };
 
+const MIME_TYPES = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  mp4: 'video/mp4',
+};
+
+const getMimeType = (fileName = '') => {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+};
+
 const CircularDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
   const [attachments, setAttachments] = useState([]);
   const [loading,     setLoading]     = useState(true);
   const [imgViewer,   setImgViewer]   = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   if (!item) return null;
 
@@ -48,20 +139,81 @@ const CircularDetailScreen = ({ route, navigation }) => {
 
   const isImage = (path = '') => /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(path);
 
+  const handleDownloadAttachment = async (att) => {
+    const filePath = att.filePath ?? att.FilePath ?? '';
+    const url = toPublicUrl(filePath);
+    const fileName = att.fileName ?? filePath.split(/[\\/]/).pop() ?? 'attachment';
+    const rowId = att.attachmentId ?? fileName;
+    if (!url) return;
+
+    setDownloadingId(rowId);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const tempUri = FileSystem.cacheDirectory + fileName;
+      const downloadResult = await FileSystem.downloadAsync(url, tempUri, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      if (downloadResult.status !== 200) {
+        let serverMessage = `HTTP ${downloadResult.status}`;
+        try {
+          const body = await FileSystem.readAsStringAsync(tempUri);
+          if (body) serverMessage = body.slice(0, 300);
+        } catch (readErr) { }
+        await FileSystem.deleteAsync(tempUri, { idempotent: true });
+        throw new Error(serverMessage);
+      }
+
+      const mimeType = getMimeType(fileName);
+
+      if (Platform.OS === 'android') {
+        const perm = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(
+            'Permission needed',
+            'Storage permission is required to save the file. Please try again and allow access.'
+          );
+          return;
+        }
+
+        const fileContent = await FileSystem.readAsStringAsync(tempUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          perm.directoryUri,
+          fileName.replace(/\.[^/.]+$/, ''),
+          mimeType
+        );
+        await FileSystem.writeAsStringAsync(destUri, fileContent, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        Alert.alert('Saved', `"${fileName}" was saved to the folder you selected.`);
+      } else {
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert('Saved', `"${fileName}" was downloaded, but sharing isn't available on this device.`);
+          return;
+        }
+        await Sharing.shareAsync(tempUri, {
+          mimeType,
+          dialogTitle: `Save "${fileName}"`,
+        });
+      }
+    } catch (err) {
+      console.error('Attachment download error:', err);
+      Alert.alert('Download Failed', err.message || 'Could not download the attachment.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   const publishDate = item.publishDate
     ? new Date(item.publishDate).toLocaleDateString('en-IN', {
         day: '2-digit', month: 'long', year: 'numeric',
       })
     : '';
-
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `${item.title}\n\n${item.description || ''}\n\nPublished: ${publishDate}`,
-        title: item.title,
-      });
-    } catch {}
-  };
 
   return (
     <View style={styles.root}>
@@ -73,19 +225,23 @@ const CircularDetailScreen = ({ route, navigation }) => {
           <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Circular</Text>
-        <TouchableOpacity onPress={handleShare} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="share-variant-outline" size={20} color="#fff" />
-        </TouchableOpacity>
+        <View style={styles.headerBtn} />
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
+        {/* Badge */}
+        <View style={[styles.badge, local.badge]}>
+          <MaterialCommunityIcons name="file-document-outline" size={14} color={GOLD} />
+          <Text style={[styles.badgeText, local.badgeText]}>Circular</Text>
+        </View>
+
         {/* Circular number chip */}
         {item.circularNumber ? (
-          <View style={styles.chipWrap}>
-            <View style={styles.chip}>
-              <MaterialCommunityIcons name="file-document-outline" size={14} color={NAVY} />
-              <Text style={styles.chipText}>{item.circularNumber}</Text>
+          <View style={[styles.chipWrap, local.chipWrap]}>
+            <View style={[styles.chip, local.chip]}>
+              <MaterialCommunityIcons name="tag-outline" size={14} color={NAVY} />
+              <Text style={[styles.chipText, local.chipText]}>{item.circularNumber}</Text>
             </View>
           </View>
         ) : null}
@@ -102,7 +258,10 @@ const CircularDetailScreen = ({ route, navigation }) => {
 
         {/* Description */}
         {item.description ? (
-          <Text style={styles.description}>{item.description}</Text>
+          <View style={[styles.descCard, local.descCard]}>
+            <Text style={[styles.descLabel, local.descLabel]}>About this circular</Text>
+            <Text style={[styles.descText, local.descText]}>{item.description}</Text>
+          </View>
         ) : (
           <Text style={styles.noDesc}>No additional details provided.</Text>
         )}
@@ -136,14 +295,24 @@ const CircularDetailScreen = ({ route, navigation }) => {
               ) : (
                 <TouchableOpacity
                   key={att.attachmentId ?? index}
-                  style={styles.downloadBtn}
-                  onPress={() => Linking.openURL(url)}
-                  activeOpacity={0.8}
+                  style={[
+                    styles.downloadBtn,
+                    downloadingId === (att.attachmentId ?? att.fileName) && { opacity: 0.7 },
+                  ]}
+                  onPress={() => handleDownloadAttachment(att)}
+                  disabled={downloadingId === (att.attachmentId ?? att.fileName)}
+                  activeOpacity={0.85}
                 >
-                  <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-                  <Text style={styles.downloadText}>
-                    {att.fileName ?? 'Download Attachment'}
-                  </Text>
+                  {downloadingId === (att.attachmentId ?? att.fileName)
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : (
+                      <>
+                        <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                        <Text style={styles.downloadText}>
+                          {att.fileName ?? 'Download Attachment'}
+                        </Text>
+                      </>
+                    )}
                 </TouchableOpacity>
               );
             })

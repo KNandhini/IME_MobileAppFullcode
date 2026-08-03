@@ -26,5 +26,6 @@ namespace IME.Core.Models
         public DateTime CreatedDate { get; set; }
         public string? ModifiedBy { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public string? Website { get; set; }
     }
 }

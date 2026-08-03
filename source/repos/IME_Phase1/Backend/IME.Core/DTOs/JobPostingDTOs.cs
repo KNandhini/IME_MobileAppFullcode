@@ -23,6 +23,9 @@ namespace IME.Core.DTOs
         public string CreatedBy { get; set; } = string.Empty;
         public DateTime CreatedDate { get; set; }
         public string? AttachmentPath { get; set; }   // first attachment URL for list card preview
+        public string? Website { get; set; }
+        public string? AboutRole { get; set; }
+        public string? RequiredSkillsExperience { get; set; }
     }
 
     /// <summary>Used in detail view (GET /api/jobpostings/{id})</summary>
@@ -47,6 +50,7 @@ namespace IME.Core.DTOs
         public DateTime? ModifiedDate { get; set; }
         public string? AttachmentPath { get; set; }   // first attachment URL (convenience alias)
         public List<AttachmentDTO> Attachments { get; set; } = [];
+        public string? Website { get; set; }
     }
 
     // AttachmentDTO is already defined in your project (used by Achievements).

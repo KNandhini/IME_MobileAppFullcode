@@ -107,6 +107,7 @@ public class JobPostingsController : ControllerBase
                 ContactInfo = request.ContactInfo,
                 VacancyClosingDate = DateTime.TryParse(request.VacancyClosingDate, out var dt) ? dt : DateTime.Now,
                 SalaryPackage = request.SalaryPackage,
+                Website = request.Website,
                 CreatedBy = request.CreatedBy,
             };
 
@@ -147,10 +148,10 @@ public class JobPostingsController : ControllerBase
                 ContactInfo = request.ContactInfo,
                 VacancyClosingDate = DateTime.TryParse(request.VacancyClosingDate, out var dt) ? dt : DateTime.Now,
                 SalaryPackage = request.SalaryPackage,
+                Website = request.Website,
                 ModifiedBy = request.ModifiedBy,
                 ModifiedDate = DateTime.Now,
             });
-
             return Ok(new ApiResponse<object>
             {
                 Success = success,
