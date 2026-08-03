@@ -15,4 +15,5 @@ public class JobPostingCreateRequest
     public string? VacancyClosingDate { get; set; }
     public string? SalaryPackage { get; set; }
     public string CreatedBy { get; set; } = string.Empty;
+    public string? Website { get; set; }
 }

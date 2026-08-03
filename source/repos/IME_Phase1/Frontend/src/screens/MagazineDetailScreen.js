@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, ActivityIndicator, Modal, Alert, Platform, TextInput, KeyboardAvoidingView } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, ActivityIndicator, Modal, Alert, Platform, TextInput, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,6 +10,28 @@ import { MagazineDetailScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+// Fallback styles for the download button, in case MagazineDetailScreenStyles
+// doesn't define these yet. Array styles let a later `styles.*` entry win if
+// those keys do exist, so this is safe to keep either way.
+const local = StyleSheet.create({
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: NAVY,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 14,
+  },
+  downloadText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+});
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 // filePath from the server is a raw disk path like "Uploads\magazines\xyz.jpg" —
@@ -27,6 +49,7 @@ const MagazineDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
 
@@ -139,9 +162,11 @@ console.log(userData,"user");
   const isImage = (path) => path?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
 
   const handleAttachmentDownload = async (attachment) => {
+    const fileName = attachment.fileName;
+    const rowId = attachment.attachmentId ?? fileName;
+    setDownloadingId(rowId);
     try {
       const token = await AsyncStorage.getItem("authToken");
-      const fileName = attachment.fileName;
       const url = toPublicUrl(attachment.filePath);
       const tempUri = FileSystem.cacheDirectory + fileName;
 
@@ -196,10 +221,17 @@ console.log(userData,"user");
 
         Alert.alert("Success", `${fileName} saved successfully.`);
       } else {
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert("Saved", `"${fileName}" was downloaded, but sharing isn't available on this device.`);
+          return;
+        }
         await Sharing.shareAsync(tempUri);
       }
     } catch (e) {
       Alert.alert('Error', getSafeErrorMessage(e));
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -221,45 +253,50 @@ console.log(userData,"user");
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : (StatusBar.currentHeight || 0) + 56}
       >
         <ScrollView contentContainerStyle={styles.body} ref={scrollRef}>
+<View style={styles.headerCard}>
+  {/* Tag row: badge + category together */}
+  <View style={styles.tagRow}>
+    <View style={styles.badge}>
+      <MaterialCommunityIcons name="book-open-page-variant-outline" size={12} color="#B7791F" />
+      <Text style={styles.badgeText}>Magazine</Text>
+    </View>
+    {!!item.category && (
+      <View style={styles.categoryPill}>
+        <Text style={styles.categoryText}>{item.category}</Text>
+      </View>
+    )}
+  </View>
+  <Text style={styles.title}>{item.title}</Text>
+ <View style={styles.metaRow}>
+  {!!item.issueNumber && (
+    <View style={styles.metaItem}>
+      <MaterialCommunityIcons name="book" size={15} color={GOLD} />
+      <Text style={styles.metaText}>{item.issueNumber}</Text>
+    </View>
+  )}
+</View>
+  <View style={styles.metaRow}>
+    {!!item.authorName && (
+      <View style={styles.metaItem}>
+        <MaterialCommunityIcons name="account-outline" size={15} color={GOLD} />
+        <Text style={styles.metaText}>{item.authorName}</Text>
+      </View>
+    )}
+    {!!dateStr && (
+      <View style={styles.metaItem}>
+        <MaterialCommunityIcons name="calendar-outline" size={15} color={GOLD} />
+        <Text style={styles.metaText}>{dateStr}</Text>
+      </View>
+    )}
+  </View>
 
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>📖 Magazine</Text>
-          </View>
-
-          <Text style={styles.title}>{item.title}</Text>
-
-          {!!item.issueNumber && (
-            <Text style={styles.issue}>{item.issueNumber}</Text>
-          )}
-
-          <View style={styles.metaRow}>
-            {!!item.authorName && (
-              <View style={styles.metaItem}>
-                <MaterialCommunityIcons name="account-outline" size={16} color="#64748B" />
-                <Text style={styles.metaText}>{item.authorName}</Text>
-              </View>
-            )}
-            {!!dateStr && (
-              <View style={styles.metaItem}>
-                <MaterialCommunityIcons name="calendar-outline" size={16} color="#64748B" />
-                <Text style={styles.metaText}>{dateStr}</Text>
-              </View>
-            )}
-          </View>
-
-          {!!item.category && (
-            <View style={styles.categoryPill}>
-              <Text style={styles.categoryText}>{item.category}</Text>
-            </View>
-          )}
-
-          {!!item.description && (
-            <View style={styles.descBlock}>
-              <Text style={styles.descLabel}>DESCRIPTION</Text>
-              <Text style={styles.descText}>{item.description}</Text>
-            </View>
-          )}
-
+  {!!item.description && (
+    <View style={styles.descBlock}>
+      <Text style={styles.descLabel}>Description</Text>
+      <Text style={styles.descText}>{item.description}</Text>
+    </View>
+  )}
+</View>
           <Text style={styles.attachLabel}>ATTACHMENTS</Text>
           {loading ? (
             <ActivityIndicator color={NAVY} style={{ marginVertical: 20 }} />
@@ -269,9 +306,10 @@ console.log(userData,"user");
             <View style={styles.attachSection}>
               {attachments.map((a) => {
                 const url = toPublicUrl(a.filePath);
+                const rowId = a.attachmentId ?? a.fileName;
                 return isImage(a.filePath) ? (
                   <TouchableOpacity
-                    key={a.attachmentId}
+                    key={rowId}
                     onPress={() => {
                       setPreviewImage(url);
                       setPreviewVisible(true);
@@ -284,19 +322,30 @@ console.log(userData,"user");
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
-                    key={a.attachmentId}
-                    style={styles.downloadBtn}
+                    key={rowId}
+                    style={[
+                      styles.downloadBtn,
+                      local.downloadBtn,
+                      downloadingId === rowId && { opacity: 0.7 },
+                    ]}
                     onPress={() => handleAttachmentDownload(a)}
-                    activeOpacity={0.8}
+                    disabled={downloadingId === rowId}
+                    activeOpacity={0.85}
                   >
-                    <MaterialCommunityIcons
-                      name={isPdf(a.filePath) ? "file-pdf-box" : "download-outline"}
-                      size={18}
-                      color="#fff"
-                    />
-                    <Text style={styles.downloadText} numberOfLines={1}>
-                      {a.fileName || 'Download Attachment'}
-                    </Text>
+                    {downloadingId === rowId ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                        <MaterialCommunityIcons
+                          name={isPdf(a.filePath) ? "file-pdf-box" : "download-outline"}
+                          size={18}
+                          color="#fff"
+                        />
+                        <Text style={[styles.downloadText, local.downloadText]}>
+                          {a.fileName ?? 'Download Attachment'}
+                        </Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 );
               })}

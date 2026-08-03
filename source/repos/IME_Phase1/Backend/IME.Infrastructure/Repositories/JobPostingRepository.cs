@@ -54,6 +54,7 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
             CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
             ModifiedBy = reader.IsDBNull(reader.GetOrdinal("ModifiedBy")) ? null : reader.GetString(reader.GetOrdinal("ModifiedBy")),
             ModifiedDate = reader.IsDBNull(reader.GetOrdinal("ModifiedDate")) ? null : reader.GetDateTime(reader.GetOrdinal("ModifiedDate")),
+            Website = reader.IsDBNull(reader.GetOrdinal("Website")) ? null : reader.GetString(reader.GetOrdinal("Website")),
             Attachments = []
         };
         reader.Close();
@@ -81,6 +82,7 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
         command.Parameters.AddWithValue("@ContactInfo", jp.ContactInfo);
         command.Parameters.AddWithValue("@VacancyClosingDate", jp.VacancyClosingDate);
         command.Parameters.AddWithValue("@SalaryPackage", (object?)jp.SalaryPackage ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Website", (object?)jp.Website ?? DBNull.Value);
         command.Parameters.AddWithValue("@CreatedBy", jp.CreatedBy);
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt32(result);
@@ -103,6 +105,7 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
         command.Parameters.AddWithValue("@ContactInfo", jp.ContactInfo);
         command.Parameters.AddWithValue("@VacancyClosingDate", jp.VacancyClosingDate);
         command.Parameters.AddWithValue("@SalaryPackage", (object?)jp.SalaryPackage ?? DBNull.Value);
+        command.Parameters.AddWithValue("@Website", (object?)jp.Website ?? DBNull.Value);
         command.Parameters.AddWithValue("@ModifiedBy", jp.ModifiedBy ?? string.Empty);
         using var reader = await command.ExecuteReaderAsync();
         if (await reader.ReadAsync())
@@ -186,12 +189,15 @@ public class JobPostingRepository(DatabaseContext dbContext) : IJobPostingReposi
             ClubId = r.GetInt32(r.GetOrdinal("ClubId")),
             JobTitle = r.GetString(r.GetOrdinal("JobTitle")),
             CompanyName = r.GetString(r.GetOrdinal("CompanyName")),
-               ContactInfo = r.GetString(r.GetOrdinal("ContactInfo")), 
+            ContactInfo = r.GetString(r.GetOrdinal("ContactInfo")),
             Location = r.GetString(r.GetOrdinal("Location")),
             EmploymentType = r.GetString(r.GetOrdinal("EmploymentType")),
             WorkingHours = r.IsDBNull(r.GetOrdinal("WorkingHours")) ? null : r.GetString(r.GetOrdinal("WorkingHours")),
             WorkMode = r.GetString(r.GetOrdinal("WorkMode")),
+            AboutRole = r.IsDBNull(r.GetOrdinal("AboutRole")) ? null : r.GetString(r.GetOrdinal("AboutRole")),
+            RequiredSkillsExperience = r.IsDBNull(r.GetOrdinal("RequiredSkillsExperience")) ? null : r.GetString(r.GetOrdinal("RequiredSkillsExperience")),
             SalaryPackage = r.IsDBNull(r.GetOrdinal("SalaryPackage")) ? null : r.GetString(r.GetOrdinal("SalaryPackage")),
+            Website = r.IsDBNull(r.GetOrdinal("Website")) ? null : r.GetString(r.GetOrdinal("Website")),
             VacancyClosingDate = r.GetDateTime(r.GetOrdinal("VacancyClosingDate")),
             CreatedBy = r.GetString(r.GetOrdinal("CreatedBy")),
             CreatedDate = r.GetDateTime(r.GetOrdinal("CreatedDate")),

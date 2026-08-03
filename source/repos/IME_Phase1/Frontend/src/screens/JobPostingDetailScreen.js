@@ -1,30 +1,94 @@
 // Place in: src/screens/JobPostingDetailScreen.js
-// Mirrors AchievementDetailScreen.js structure exactly.
+// Attachments section now mirrors CircularDetailScreen.js: images open in a
+// viewer modal, non-image files (pdf/doc/xls/etc.) get a download button.
 
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal } from 'react-native';
+import {
+  View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal,
+  ActivityIndicator, StyleSheet, Alert, Platform,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jobPostingService } from '../services/jobpostingService';
+import api from '../utils/api';
 import { JobPostingDetailScreenStyles as styles } from './screenStyles';
 
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
+
+// Fallback styles for pieces not (yet) defined in JobPostingDetailScreenStyles
+// (download button / empty state). These merge on top of `styles.*` so if
+// those keys get added to the stylesheet later, this still works — array
+// styles let the later object win on any overlapping keys.
+const local = StyleSheet.create({
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: NAVY,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  downloadText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  noAttach: {
+    color: '#94A3B8',
+    fontSize: 13,
+    marginTop: 4,
+  },
+});
+
+// api.defaults.baseURL is usually something like "http://host:port/api" —
+// strip the trailing "/api" so we get the plain server root to prefix the
+// raw disk-style paths ("Uploads\JobPostings-4\xyz.jpg") that come back
+// from the backend.
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
-import api from '../utils/api';
-// filePath from the server is a raw disk path like "Uploads\JobPostings-4\xyz.jpg" —
-// convert it into a URL the app can actually load/display/download.
+
+// filePath from the server can be a raw disk path like "Uploads\JobPostings-4\xyz.jpg"
+// (or "uploads/JobPostings-4/xyz.jpg") — convert it into a URL the app can
+// actually load/display/download.
 const toPublicUrl = (filePath) => {
   if (!filePath) return null;
   if (filePath.startsWith('http')) return filePath;
-  const idx = filePath.indexOf('Uploads\\');
+  const idx = filePath.search(/uploads[\\/]/i);
   if (idx === -1) return filePath;
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
 };
+
+const MIME_TYPES = {
+  pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  xls: 'application/vnd.ms-excel',
+  xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  gif: 'image/gif',
+  webp: 'image/webp',
+  mp4: 'video/mp4',
+};
+
+const getMimeType = (fileName = '') => {
+  const ext = fileName.split('.').pop()?.toLowerCase();
+  return MIME_TYPES[ext] || 'application/octet-stream';
+};
+
 const JobPostingDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
-  const [imgViewer,    setImgViewer]    = useState(null);
-  const [attachments,  setAttachments]  = useState([]);
+  const [imgViewer,     setImgViewer]     = useState(null);
+  const [attachments,   setAttachments]   = useState([]);
+  const [loading,       setLoading]       = useState(true);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   if (!item) return null;
 
@@ -36,10 +100,82 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
       if (res?.data) setAttachments(res.data);
     } catch (err) {
       console.log('ATTACHMENT ERROR', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   const isImage = (path = '') => /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(path);
+
+  const handleDownloadAttachment = async (attachment) => {
+    const filePath = attachment.filePath ?? attachment.FilePath ?? '';
+    const url = toPublicUrl(filePath);
+    const fileName = attachment.fileName ?? filePath.split(/[\\/]/).pop() ?? 'attachment';
+    const rowId = attachment.attachmentId ?? fileName;
+    if (!url) return;
+
+    setDownloadingId(rowId);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const tempUri = FileSystem.cacheDirectory + fileName;
+      const downloadResult = await FileSystem.downloadAsync(url, tempUri, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      if (downloadResult.status !== 200) {
+        let serverMessage = `HTTP ${downloadResult.status}`;
+        try {
+          const body = await FileSystem.readAsStringAsync(tempUri);
+          if (body) serverMessage = body.slice(0, 300);
+        } catch (readErr) { }
+        await FileSystem.deleteAsync(tempUri, { idempotent: true });
+        throw new Error(serverMessage);
+      }
+
+      const mimeType = getMimeType(fileName);
+
+      if (Platform.OS === 'android') {
+        const perm = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(
+            'Permission needed',
+            'Storage permission is required to save the file. Please try again and allow access.'
+          );
+          return;
+        }
+
+        const fileContent = await FileSystem.readAsStringAsync(tempUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          perm.directoryUri,
+          fileName.replace(/\.[^/.]+$/, ''),
+          mimeType
+        );
+        await FileSystem.writeAsStringAsync(destUri, fileContent, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        Alert.alert('Saved', `"${fileName}" was saved to the folder you selected.`);
+      } else {
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert('Saved', `"${fileName}" was downloaded, but sharing isn't available on this device.`);
+          return;
+        }
+        await Sharing.shareAsync(tempUri, {
+          mimeType,
+          dialogTitle: `Save "${fileName}"`,
+        });
+      }
+    } catch (err) {
+      console.error('Attachment download error:', err);
+      Alert.alert('Download Failed', err.message || 'Could not download the attachment.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   const isClosed = item.vacancyClosingDate
     ? new Date(item.vacancyClosingDate) < new Date()
@@ -76,9 +212,6 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
       </View>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
-
-        {/* ── Hero: briefcase icon ── */}
-       
 
         {/* ── Job title ── */}
         <Text style={styles.jobTitle}>{item.jobTitle}</Text>
@@ -138,42 +271,59 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
           </View>
         ) : null}
 
-        {/* ── Attachments (same as AchievementDetailScreen) ── */}
-        {attachments.length > 0 && (
-          <View style={styles.attachSection}>
-            <Text style={styles.attachLabel}>Attachments</Text>
-           {attachments.map((attachment, index) => {
-  const filePath = attachment.filePath;
-  const url = toPublicUrl(filePath);
-  return isImage(filePath) ? (
-    <TouchableOpacity
-      key={attachment.attachmentId || index}
-      onPress={() => setImgViewer(url)}
-      activeOpacity={0.85}
-      style={{ marginBottom: 14 }}
-    >
-      <Image
-        source={{ uri: url }}
-        style={styles.attachImage}
-        resizeMode="contain"
-      />
-      <Text style={styles.attachHint}>Tap to enlarge</Text>
-    </TouchableOpacity>
-  ) : (
-    <TouchableOpacity
-      key={attachment.attachmentId || index}
-      style={styles.downloadBtn}
-      onPress={() => Linking.openURL(url)}
-    >
-      <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-      <Text style={styles.downloadText}>
-        {attachment.fileName || 'Download Attachment'}
-      </Text>
-    </TouchableOpacity>
-  );
-})}
-          </View>
-        )}
+        {/* ── Attachments ── */}
+        <View style={styles.attachSection}>
+          <Text style={styles.attachLabel}>Attachments</Text>
+
+          {loading ? (
+            <ActivityIndicator size="small" color={NAVY} style={{ marginTop: 10 }} />
+          ) : attachments.length === 0 ? (
+            <Text style={[styles.noAttach, local.noAttach]}>No attachments.</Text>
+          ) : (
+            attachments.map((attachment, index) => {
+              const filePath = attachment.filePath ?? attachment.FilePath ?? '';
+              const url = toPublicUrl(filePath);
+              return isImage(filePath) ? (
+                <TouchableOpacity
+                  key={attachment.attachmentId ?? index}
+                  onPress={() => setImgViewer(url)}
+                  activeOpacity={0.85}
+                  style={{ marginBottom: 14 }}
+                >
+                  <Image
+                    source={{ uri: url }}
+                    style={styles.attachImage}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.attachHint}>Tap to enlarge</Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  key={attachment.attachmentId ?? index}
+                  style={[
+                    styles.downloadBtn,
+                    local.downloadBtn,
+                    downloadingId === (attachment.attachmentId ?? attachment.fileName) && { opacity: 0.7 },
+                  ]}
+                  onPress={() => handleDownloadAttachment(attachment)}
+                  disabled={downloadingId === (attachment.attachmentId ?? attachment.fileName)}
+                  activeOpacity={0.85}
+                >
+                  {downloadingId === (attachment.attachmentId ?? attachment.fileName)
+                    ? <ActivityIndicator size="small" color="#fff" />
+                    : (
+                      <>
+                        <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                        <Text style={[styles.downloadText, local.downloadText]}>
+                          {attachment.fileName ?? 'Download Attachment'}
+                        </Text>
+                      </>
+                    )}
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </View>
       </ScrollView>
 
       {/* ── Image viewer modal ── */}
@@ -183,13 +333,13 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
           <TouchableOpacity style={styles.viewerClose} onPress={() => setImgViewer(null)}>
             <MaterialCommunityIcons name="close" size={26} color="#fff" />
           </TouchableOpacity>
-          <Image source={{ uri: imgViewer }} style={styles.viewerImage} resizeMode="contain" />
+          {imgViewer && (
+            <Image source={{ uri: imgViewer }} style={styles.viewerImage} resizeMode="contain" />
+          )}
         </View>
       </Modal>
     </View>
   );
 };
-
-
 
 export default JobPostingDetailScreen;

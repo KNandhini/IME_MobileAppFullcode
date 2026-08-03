@@ -22,6 +22,34 @@ const toPublicUrl = (filePath) => {
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
 };
+// Field max lengths
+const MAX_TITLE       = 150;
+const MAX_DESCRIPTION = 500;
+const MAX_ISSUE_NO    = 50;   // adjust if you need a different cap
+const MAX_AUTHOR      = 150;
+
+// Title: letters, numbers, spaces — free text but capped, no special char restriction
+// (if you DO want to restrict title like Job Title, use TITLE_REGEX below)
+const TITLE_REGEX = /^[A-Za-z0-9\s.-]*$/; // permissive, blocks stray junk chars
+
+// Description: fully free text, no character restriction — only length capped
+
+// Issue Number: letters, numbers, spaces, dot, comma, hyphen (e.g. "Issue-12", "Vol. 3, No. 4")
+const ISSUE_NO_REGEX = /^[A-Za-z0-9\s.,-]*$/;
+
+// Author Name: letters, numbers, spaces, dot, hyphen (e.g. "Dr. A.K. Sharma-Rao")
+const AUTHOR_REGEX = /^[A-Za-z0-9\s.-]*$/;
+
+const sanitizeTitle = (v) =>
+  v.replace(/[^A-Za-z0-9\s.,'"!?()&-]/g, '').slice(0, MAX_TITLE);
+
+const sanitizeDescription = (v) => v.slice(0, MAX_DESCRIPTION); // free text, only length capped
+
+const sanitizeIssueNo = (v) =>
+  v.replace(/[^A-Za-z0-9\s.,-]/g, '').slice(0, MAX_ISSUE_NO);
+
+const sanitizeAuthor = (v) =>
+  v.replace(/[^A-Za-z0-9\s.-]/g, '').slice(0, MAX_AUTHOR);
 
 // ── Field wrapper — local styles.field (matches Achievement Form Screen) ──
 function Field({ label, required, children, error, hint, charCount, maxChars }) {
@@ -149,7 +177,33 @@ const MagazineFormScreen = ({ route, navigation }) => {
 
   const handleSave = async () => {
   const e = {};
-  if (!title.trim()) e.title = 'Title is required.';
+
+  if (!title.trim()) {
+    e.title = 'Title is required.';
+  } else if (title.trim().length > MAX_TITLE) {
+    e.title = `Title must be ${MAX_TITLE} characters or fewer.`;
+  } else if (!TITLE_REGEX.test(title.trim())) {
+    e.title = 'Title contains invalid characters.';
+  }
+
+  if (description.trim().length > MAX_DESCRIPTION) {
+    e.description = `Description must be ${MAX_DESCRIPTION} characters or fewer.`;
+  }
+
+  if (issueNumber.trim() && !ISSUE_NO_REGEX.test(issueNumber.trim())) {
+    e.issueNumber = 'Only letters, numbers, spaces, "." "," and "-" are allowed.';
+  } else if (issueNumber.trim().length > MAX_ISSUE_NO) {
+    e.issueNumber = `Issue Number must be ${MAX_ISSUE_NO} characters or fewer.`;
+  }
+
+  if (!authorName.trim()) {
+    e.authorName = 'Author Name is required.';
+  } else if (authorName.trim().length > MAX_AUTHOR) {
+    e.authorName = `Author Name must be ${MAX_AUTHOR} characters or fewer.`;
+  } else if (!AUTHOR_REGEX.test(authorName.trim())) {
+    e.authorName = 'Only letters, numbers, "." and "-" are allowed.';
+  }
+
   setErrors(e);
   if (Object.keys(e).length > 0) return;
 
@@ -203,39 +257,65 @@ const totalAttachments = existingAttachments.length + attachments.length;
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
-        <Field label="Magazine Title" required error={errors.title}>
-          <StyledInput
-            placeholder="Enter magazine title"
-            value={title}
-            onChangeText={(t) => { setTitle(t); if (errors.title) setErrors(p => ({ ...p, title: null })); }}
-            hasError={!!errors.title}
-          />
-        </Field>
+       {/* ── Title ── */}
+<Field label="Title" required error={errors.title} charCount={title.length} maxChars={MAX_TITLE}>
+  <StyledInput
+    placeholder="Enter Magazine Title"
+    value={title}
+    maxLength={MAX_TITLE}
+    onChangeText={(t) => {
+      const clean = sanitizeTitle(t);
+      setTitle(clean);
+      if (errors.title) setErrors(p => ({ ...p, title: '' }));
+    }}
+    hasError={!!errors.title}
+  />
+</Field>
 
-        <Field label="Description">
-          <StyledInput
-            placeholder="Enter description"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-          />
-        </Field>
+{/* ── Description ── */}
+<Field label="Description" error={errors.description} charCount={description.length} maxChars={MAX_DESCRIPTION}>
+  <StyledInput
+    placeholder="Enter Description"
+    value={description}
+    maxLength={MAX_DESCRIPTION}
+    onChangeText={(t) => {
+      setDescription(sanitizeDescription(t));
+      if (errors.description) setErrors(p => ({ ...p, description: '' }));
+    }}
+    multiline
+    hasError={!!errors.description}
+  />
+</Field>
 
-        <Field label="Issue Number">
-          <StyledInput
-            placeholder="e.g. Vol. 12, Issue 4"
-            value={issueNumber}
-            onChangeText={setIssueNumber}
-          />
-        </Field>
+{/* ── Issue Number ── */}
+<Field label="Issue Number" error={errors.issueNumber} hint="e.g. Vol. 3, No. 12-2026">
+  <StyledInput
+    placeholder="e.g. Issue-12"
+    value={issueNumber}
+    maxLength={MAX_ISSUE_NO}
+    onChangeText={(t) => {
+      const clean = sanitizeIssueNo(t);
+      setIssueNumber(clean);
+      if (errors.issueNumber) setErrors(p => ({ ...p, issueNumber: '' }));
+    }}
+    hasError={!!errors.issueNumber}
+  />
+</Field>
 
-        <Field label="Author Name">
-          <StyledInput
-            placeholder="Enter author name"
-            value={authorName}
-            onChangeText={setAuthorName}
-          />
-        </Field>
+{/* ── Author Name ── */}
+<Field label="Author Name" required error={errors.authorName} charCount={authorName.length} maxChars={MAX_AUTHOR}>
+  <StyledInput
+    placeholder="Enter Author Name"
+    value={authorName}
+    maxLength={MAX_AUTHOR}
+    onChangeText={(t) => {
+      const clean = sanitizeAuthor(t);
+      setAuthorName(clean);
+      if (errors.authorName) setErrors(p => ({ ...p, authorName: '' }));
+    }}
+    hasError={!!errors.authorName}
+  />
+</Field>
 
         <Field label="Category">
           <StyledInput
