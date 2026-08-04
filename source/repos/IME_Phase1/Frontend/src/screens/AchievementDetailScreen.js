@@ -1,4 +1,4 @@
-import React, { useEffect,useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../utils/api';
@@ -19,44 +19,57 @@ const toPublicUrl = (filePath) => {
   return `${API_BASE}/${relative}`;
 };
 const AchievementDetailScreen = ({ route, navigation }) => {
- // const { item } = route.params || {};
- const { item, memberPhoto } = route.params || {};
+  // const { item } = route.params || {};
+  const { item, memberPhoto } = route.params || {};
   const [imgViewer, setImgViewer] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [attachmentsError, setAttachmentsError] = useState(null); // ← ADD: track load failures
 
   useEffect(() => {
     loadAttachments();
   }, [item?.achievementId]);
 
-const loadAttachments = async () => {
-  setLoading(true);
-  try {
-    const res = await achievementService.getAttachments(
-      item.achievementId
-    );
+  const loadAttachments = async () => {
+    setLoading(true);
+    setAttachmentsError(null); // ← ADD: reset error on each attempt
+    try {
+      const res = await achievementService.getAttachments(
+        item.achievementId
+      );
 
-    console.log('ATTACHMENTS API:', res);
+      console.log('ATTACHMENTS API:', res);
 
-    if (res?.data) {
-      setAttachments(res.data);
+      if (res?.data) {
+        setAttachments(res.data);
+      }
+    } catch (err) {
+      console.log('ATTACHMENT ERROR', err);
+      // ← ADD: surface a friendly message instead of failing silently
+      setAttachmentsError(
+        err?.message === 'Network Error' || !err?.response
+          ? 'Could not connect to the server. Check your internet connection and try again.'
+          : 'Something went wrong while loading attachments.'
+      );
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.log('ATTACHMENT ERROR', err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (!item) return null;
 
   const dateStr = item.achievementDate
     ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
-        day: '2-digit', month: 'long', year: 'numeric',
-      })
+      day: '2-digit', month: 'long', year: 'numeric',
+    })
     : '';
 
   const isImage = (path = '') => /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(path);
+
+  const handleDownload = (url) => {
+    if (!url) return;
+    Linking.openURL(url);
+  };
 
   return (
     <View style={styles.root}>
@@ -77,62 +90,62 @@ const loadAttachments = async () => {
           <Text style={styles.loadingText}>Loading achievement...</Text>
         </View>
       ) : (
-      <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
-        {/* Member circular photo */}
-        <View style={styles.heroSection}>
-          {/*{item.memberPhotoPath ? (
+          {/* Member circular photo */}
+          <View style={styles.heroSection}>
+            {/*{item.memberPhotoPath ? (
             <Image source={{ uri: item.memberPhotoPath }} style={styles.heroAvatar} />
           ) : (*/}
-         {memberPhoto ? (
-    <Image
-      source={{ uri: memberPhoto }}
-      style={styles.heroAvatar}
-    />
-  ) : (
-    <View style={[styles.heroAvatar, styles.heroAvatarFallback]}>
-      <Text style={styles.heroInitials}>
-        {(item.memberName || 'M')
-          .split(' ')
-          .map(w => w[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase()}
-      </Text>
-    </View>
-  )}
-          <View style={styles.trophyCircle}>
-            <Text style={{ fontSize: 18 }}>🏆</Text>
+            {memberPhoto ? (
+              <Image
+                source={{ uri: memberPhoto }}
+                style={styles.heroAvatar}
+              />
+            ) : (
+              <View style={[styles.heroAvatar, styles.heroAvatarFallback]}>
+                <Text style={styles.heroInitials}>
+                  {(item.memberName || 'M')
+                    .split(' ')
+                    .map(w => w[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <View style={styles.trophyCircle}>
+              <Text style={{ fontSize: 18 }}>🏆</Text>
+            </View>
           </View>
-        </View>
 
-        {/* Member name */}
-        <Text style={styles.memberName}>{item.memberName || 'Member'}</Text>
+          {/* Member name */}
+          <Text style={styles.memberName}>{item.memberName || 'Member'}</Text>
 
-        {/* Gold divider */}
-        <View style={styles.goldDivider} />
+          {/* Gold divider */}
+          <View style={styles.goldDivider} />
 
-        {/* Achievement title */}
-        <Text style={styles.achTitle}>{item.title}</Text>
+          {/* Achievement title */}
+          <Text style={styles.achTitle}>{item.title}</Text>
 
-        {/* Date */}
-        {dateStr ? (
-          <View style={styles.metaRow}>
-            <MaterialCommunityIcons name="calendar-check-outline" size={16} color={GOLD} />
-            <Text style={styles.metaText}>{dateStr}</Text>
-          </View>
-        ) : null}
+          {/* Date */}
+          {dateStr ? (
+            <View style={styles.metaRow}>
+              <MaterialCommunityIcons name="calendar-check-outline" size={16} color={GOLD} />
+              <Text style={styles.metaText}>{dateStr}</Text>
+            </View>
+          ) : null}
 
-        {/* Description */}
-        {item.description ? (
-          <View style={styles.descCard}>
-            <Text style={styles.descLabel}>About this achievement</Text>
-            <Text style={styles.descText}>{item.description}</Text>
-          </View>
-        ) : null}
+          {/* Description */}
+          {item.description ? (
+            <View style={styles.descCard}>
+              <Text style={styles.descLabel}>About this achievement</Text>
+              <Text style={styles.descText}>{item.description}</Text>
+            </View>
+          ) : null}
 
-        {/* Attachment */}
-        {/*{item.attachmentPath ? (
+          {/* Attachment */}
+          {/*{item.attachmentPath ? (
           <View style={styles.attachSection}>
             <Text style={styles.attachLabel}>Attachment</Text>
             {isImage(item.attachmentPath) ? (
@@ -151,34 +164,75 @@ const loadAttachments = async () => {
             )}
           </View>
         ) : null}*/}
-   <View style={styles.attachSection}>
-  <Text style={styles.attachLabel}>Attachments</Text>
 
-  {attachments.map((attachment, index) => {
-    const filePath = attachment.filePath;
-    const url = toPublicUrl(filePath);
+          {/* ← ADD: attachment load error + retry, shown instead of a blank/empty section */}
+          {attachmentsError ? (
+            <View style={styles.attachSection}>
+              <Text style={styles.attachLabel}>Attachments</Text>
+              <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+                <MaterialCommunityIcons name="wifi-off" size={28} color="#D9534F" />
+                <Text style={{ color: '#D9534F', textAlign: 'center', marginTop: 6, marginBottom: 10 }}>
+                  {attachmentsError}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.downloadBtn, { backgroundColor: NAVY }]}
+                  onPress={loadAttachments}
+                  activeOpacity={0.8}
+                >
+                  <MaterialCommunityIcons name="reload" size={18} color="#fff" />
+                  <Text style={styles.downloadText}>Retry</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : attachments.length > 0 && (
+            <View style={styles.attachSection}>
+              <Text style={styles.attachLabel}>Attachments</Text>
 
-    return isImage(filePath) ? (
-      <TouchableOpacity
-        key={attachment.attachmentId || index}
-        onPress={() => setImgViewer(url)}
-        activeOpacity={0.85}
-        style={{ marginBottom: 14 }}
-      >
-        <Image
-          source={{ uri: url }}
-          style={styles.attachImage}
-          resizeMode="contain"
-        />
+              {attachments.map((attachment, index) => {
+                const filePath = attachment.filePath;
+                const url = toPublicUrl(filePath);
 
-        <Text style={styles.attachHint}>
-          Tap to enlarge
-        </Text>
-      </TouchableOpacity>
-    ) : null;
-  })}
-</View>
-      </ScrollView>
+                return isImage(filePath) ? (
+                  <View key={attachment.attachmentId || index} style={{ marginBottom: 14 }}>
+                    <TouchableOpacity
+                      onPress={() => setImgViewer(url)}
+                      activeOpacity={0.85}
+                    >
+                      <Image
+                        source={{ uri: url }}
+                        style={styles.attachImage}
+                        resizeMode="contain"
+                      />
+
+                      <Text style={styles.attachHint}>
+                        Tap to enlarge
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.downloadBtn}
+                      onPress={() => handleDownload(url)}
+                      activeOpacity={0.8}
+                    >
+                      <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                      <Text style={styles.downloadText}>Download Attachment</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    key={attachment.attachmentId || index}
+                    style={[styles.downloadBtn, { marginBottom: 14 }]}
+                    onPress={() => handleDownload(url)}
+                    activeOpacity={0.8}
+                  >
+                    <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                    <Text style={styles.downloadText}>Download Attachment</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          )}
+        </ScrollView>
       )}
 
       {/* Image viewer modal */}
@@ -188,8 +242,8 @@ const loadAttachments = async () => {
             <MaterialCommunityIcons name="close" size={26} color="#fff" />
           </TouchableOpacity>
           <Image
-           // source={{ uri: item.attachmentPath }}
-           source={{ uri: imgViewer }}
+            // source={{ uri: item.attachmentPath }}
+            source={{ uri: imgViewer }}
             style={styles.viewerImage}
             resizeMode="contain"
           />

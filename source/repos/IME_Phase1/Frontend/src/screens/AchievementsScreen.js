@@ -33,7 +33,7 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
     .toUpperCase();
 
   const dateStr = item.achievementDate
-    ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
+    ? new Date(item.achievementDate).toLocaleDateString('en-GB', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -45,7 +45,8 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
   const showPhoto = photoUri && !imgError;
 
   return (
-    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
+    // Card is no longer tappable as a whole — only the "View More" button navigates.
+    <View style={s.card}>
       {/* ── TOP ROW: badge + actions ── */}
       <View style={s.cardTopRow}>
         <View style={s.badge}>
@@ -84,17 +85,25 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
 
       {/* ── CONTENT ROW ── */}
       <View style={s.cardRow}>
-        {showPhoto ? (
-          <Image
-            source={{ uri: photoUri }}
-            style={s.photo}
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <View style={[s.photoPlaceholder, { backgroundColor: bg }]}>
-            <Text style={s.photoPlaceholderText}>{initials}</Text>
+        {/* Left column: photo + View More button */}
+        <View style={{ alignItems: 'flex-start', width: 72 }}>
+          <View style={{ alignSelf: 'center' }}>
+            {showPhoto ? (
+              <Image
+                source={{ uri: photoUri }}
+                style={s.photo}
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <View style={[s.photoPlaceholder, { backgroundColor: bg }]}>
+                <Text style={s.photoPlaceholderText}>{initials}</Text>
+              </View>
+            )}
           </View>
-        )}
+          
+</View>
+
+        {/* Right column: name + title + date only */}
         <View style={s.textContainer}>
           <Text style={s.memberName} numberOfLines={1}>
             {item.memberName || 'Member'}
@@ -102,19 +111,44 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
           <Text style={s.achTitle} numberOfLines={2}>
             {item.title}
           </Text>
-          {!!item.description && (
-            <Text style={s.description} numberOfLines={2}>
-              {item.description}
-            </Text>
-          )}
-          {!!dateStr && (
-            <View style={s.metaRow}>
-              <Text style={s.date}>{dateStr}</Text>
-            </View>
-          )}
+         <View
+  style={{
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 0,
+    width: '100%',
+  }}
+>
+  <Text style={[s.date, { flex: 1, textAlign: 'left' }]}>
+    {dateStr}
+  </Text>
+
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={0.8}
+    style={{
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+      borderRadius: 14,
+      backgroundColor: NAVY,
+      marginLeft: 10,
+    }}
+  >
+    <Text
+      style={{
+        color: '#fff',
+        fontSize: 11,
+        fontWeight: '600',
+      }}
+    >
+      View More
+    </Text>
+  </TouchableOpacity>
+</View>
         </View>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 };
 
@@ -127,11 +161,11 @@ const AchievementsScreen = ({ navigation }) => {
   const [search, setSearch] = useState('');
   const [userRole, setUserRole] = useState(null);  // ← ADD
   const { user } = useAuth();
-const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
   const query = search.trim().toLowerCase();
   const filteredAchievements = query
     ? achievements.filter((item) => [item.memberName, item.title, item.description]
-        .some((value) => String(value ?? '').toLowerCase().includes(query)))
+      .some((value) => String(value ?? '').toLowerCase().includes(query)))
     : achievements;
   // ── Load role once on mount ───────────────────────────────────────────────
   useEffect(() => {                                                     // ← ADD
@@ -226,7 +260,7 @@ const insets = useSafeAreaInsets();
   };
 
   return (
-        <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search achievements..." />
@@ -278,7 +312,7 @@ const insets = useSafeAreaInsets();
       {/* FAB — Admin only */}
       {userRole === 'Admin' && (                        // ← ADD
         <TouchableOpacity
-          style={[s.fab,, { bottom: 24 + insets.bottom }]}
+          style={[s.fab, , { bottom: 24 + insets.bottom }]}
           onPress={() => navigation.navigate('AchievementForm')}
           activeOpacity={0.85}
         >
