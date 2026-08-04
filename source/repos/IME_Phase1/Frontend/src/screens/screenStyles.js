@@ -1210,17 +1210,14 @@ export const ActivityDetailScreenStyles = (() => {
     descLabel: { fontSize: 11, fontWeight: '700', color: GOLD, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
     descText: { fontSize: 14, color: '#334155', lineHeight: 22 },
 
-    attachSection: { width: '100%', marginBottom: 20 },
-    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
+     attachSection: { width: '100%', marginTop: 8 },
+    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
     noAttach: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-
-    attachImage: {
-      width: '100%',
-      height: 220,
-      borderRadius: 12,
-      backgroundColor: '#fff',
-    },
+    attachImage: { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#fff' },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
+    downloadBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10 },
+    downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8, flex: 1 },
+
 
     ...Common.lightboxSimple({ zIndex: 10 }),
   });
@@ -4229,49 +4226,131 @@ export const LoginScreenStyles = (() => {
   });
 })();
 
+
 // MagazineDetailScreen
+
 export const MagazineDetailScreenStyles = (() => {
   const NAVY = COLORS.navy;
-
   const GOLD = COLORS.gold;
 
-
   return createScreenStyles({
-    root: { flex: 1, backgroundColor: '#F7F9FC' },
+    root: { flex: 1, backgroundColor: '#F0F4F8' },
+    center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F4F8' },
+    errorText: { fontSize: 15, color: '#888' },
+
     header: {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: NAVY, paddingTop: (StatusBar.currentHeight || 0) + 6,
+      backgroundColor: NAVY,
+      paddingTop: (StatusBar.currentHeight || 0) + 6,
       paddingBottom: 12, paddingHorizontal: 12,
     },
     headerBtn: { padding: 6, borderRadius: 20 },
     headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+
     body: { padding: 20, paddingBottom: 20 },
+
+    // ---------- Badge / Title / Meta (plain, sits directly on page bg) ----------
+    tagRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap',
+      gap: 8,
+      marginBottom: 10,
+    },
     badge: {
-      alignSelf: 'flex-start', backgroundColor: '#FEF9EC', borderRadius: 6,
-      paddingHorizontal: 8, paddingVertical: 3, marginBottom: 10,
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 4,
+  alignSelf: 'flex-start',
+  backgroundColor: '#FEF9EC',
+  borderRadius: 6,
+  paddingHorizontal: 8,
+  paddingVertical: 4,
+  height: 22,
+},
+badgeText: {
+  fontSize: 10,
+  color: '#B7791F',
+  fontWeight: '700',
+  textTransform: 'uppercase',
+  letterSpacing: 0.5,
+  includeFontPadding: false,
+  textAlignVertical: 'center',
+  lineHeight: 12,
+},
+
+    title: {
+      fontSize: 20, fontWeight: '800', color: NAVY,
+      marginBottom: 4, letterSpacing: -0.3,
     },
-    badgeText: { fontSize: 10, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-    title: { fontSize: 20, fontWeight: '800', color: '#1A202C', marginBottom: 4 },
-    issue: { fontSize: 13, color: GOLD, fontWeight: '700', marginBottom: 10 },
-    metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 10 },
-    metaItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    metaText: { fontSize: 13, color: '#64748B' },
+
+    issueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginBottom: 12,
+    },
+    issue: {
+      fontSize: 13, color: GOLD, fontWeight: '700',
+    },
+
+    goldDivider: {
+      width: 56, height: 3, backgroundColor: GOLD,
+      borderRadius: 2, marginBottom: 16,
+    },
+
+    metaRow: {
+      flexDirection: 'row', flexWrap: 'wrap', gap: 16, marginBottom: 16,
+    },
+    metaItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+    metaText: { fontSize: 14, color: '#334155', fontWeight: '500' },
+
     categoryPill: {
-      alignSelf: 'flex-start', backgroundColor: '#EFF6FF', borderRadius: 6,
-      paddingHorizontal: 10, paddingVertical: 4, marginBottom: 16,
+  alignSelf: 'flex-start',
+  backgroundColor: '#EFF6FF',
+  borderRadius: 8,
+  paddingHorizontal: 10,
+  justifyContent: 'center',
+  height: 22,
+},
+categoryText: {
+  fontSize: 12,
+  color: '#2563EB',
+  fontWeight: '600',
+  includeFontPadding: false,
+  textAlignVertical: 'center',
+},
+
+    // ---------- Description card (white card, gold label) ----------
+    descBlock: {
+      width: '100%', backgroundColor: '#fff',
+      borderRadius: 12, padding: 16, marginBottom: 20,
+      elevation: 2, shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
     },
-    categoryText: { fontSize: 12, color: '#2563EB', fontWeight: '600' },
-    descBlock: { marginBottom: 24 },
-    descLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 6, letterSpacing: 0.6 },
-    descText: { fontSize: 14, color: '#334155', lineHeight: 21 },
-    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, letterSpacing: 0.6, marginTop: 8 },
+    descLabel: {
+      fontSize: 11, fontWeight: '700', color: GOLD, letterSpacing: 1,
+      marginBottom: 8, textTransform: 'uppercase',
+    },
+    descText: { fontSize: 14, color: '#334155', lineHeight: 22 },
+
+    // ---------- Attachments (white card wrapping image/list) ----------
+    attachLabel: {
+      fontSize: 12, fontWeight: '700', color: '#64748B',
+      textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10, marginTop: 4,
+    },
     noAttach: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-    attachSection: { width: '100%', marginBottom: 20 },
+    attachSection: {
+      width: '100%', backgroundColor: '#fff',
+      borderRadius: 12, padding: 16, marginBottom: 20,
+      elevation: 2, shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
+    },
     attachImage: {
       width: '100%',
       height: 220,
       borderRadius: 12,
-      backgroundColor: '#fff',
+      backgroundColor: '#F1F5F9',
     },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
     downloadBtn: {
@@ -4301,7 +4380,7 @@ export const MagazineDetailScreenStyles = (() => {
       borderTopLeftRadius: 2,
     },
     chatName: { fontSize: 12, fontWeight: '700', color: NAVY, marginBottom: 2 },
-    chatContent: { fontSize: 14, color: '#1A202C', lineHeight: 20 },
+    chatContent: { fontSize: 14, color: '#0F172A', lineHeight: 20 },
     chatDate: { fontSize: 10, color: '#94A3B8', marginTop: 4, textAlign: 'right' },
 
     inputBar: {
@@ -4312,7 +4391,6 @@ export const MagazineDetailScreenStyles = (() => {
       backgroundColor: '#fff',
       borderTopWidth: 1,
       borderTopColor: '#E2E8F0',
-      
     },
     input: {
       flex: 1,
@@ -4321,10 +4399,10 @@ export const MagazineDetailScreenStyles = (() => {
       paddingHorizontal: 14,
       paddingVertical: 10,
       fontSize: 14,
-      color: '#1A202C',
-      minHeight: 100,   // Initial height
-      maxHeight: 150,  // Maximum height when typing
-      textAlignVertical: 'top', // Android: starts text at the top
+      color: '#0F172A',
+      minHeight: 100,
+      maxHeight: 150,
+      textAlignVertical: 'top',
     },
     sendBtn: {
       width: 40,
@@ -4346,7 +4424,6 @@ export const MagazineDetailScreenStyles = (() => {
     closeButton: { position: "absolute", top: 50, right: 20, zIndex: 100 },
   });
 })();
-
 // MagazineFormScreen
 export const MagazineFormScreenStyles = (() => {
   const NAVY = COLORS.navy;

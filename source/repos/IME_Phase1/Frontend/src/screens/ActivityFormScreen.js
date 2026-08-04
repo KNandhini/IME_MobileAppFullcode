@@ -10,6 +10,47 @@ import { BASE_URL } from '../utils/api';
 import { ActivityFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
+// ─────────────────────────────────────────────────────────────────────────
+// ── Validation & Sanitization Helpers ──────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
+
+// Field max lengths
+const MAX_ACTIVITY_NAME = 200;
+const MAX_DESCRIPTION   = 500;
+const MAX_VENUE         = 100;
+const MAX_COORDINATOR   = 150;
+const MAX_CHIEF_GUEST   = 150;
+
+// Activity Name: letters, numbers, spaces, dot, comma, hyphen
+const ACTIVITY_NAME_REGEX = /^[A-Za-z0-9\s.,-]*$/;
+
+// Venue: letters, numbers, spaces, dot, comma, hyphen
+const VENUE_REGEX = /^[A-Za-z0-9\s.,-]*$/;
+
+// Time: digits, letters (AM/PM), colon, dot, hyphen, spaces
+// e.g. "10.00 AM - 11.00 PM", "10 am - 11pm"
+const TIME_REGEX = /^[0-9A-Za-z:.\s-]*$/;
+
+// Coordinator / Chief Guest: letters, spaces, dot, hyphen (names — no numbers)
+const NAME_REGEX = /^[A-Za-z\s.-]*$/;
+
+const sanitizeActivityName = (v) =>
+  v.replace(/[^A-Za-z0-9\s.,-]/g, '').slice(0, MAX_ACTIVITY_NAME);
+
+const sanitizeDescription = (v) => v.slice(0, MAX_DESCRIPTION); // free text, only length capped
+
+const sanitizeVenue = (v) =>
+  v.replace(/[^A-Za-z0-9\s.,-]/g, '').slice(0, MAX_VENUE);
+
+const sanitizeTime = (v) =>
+  v.replace(/[^0-9A-Za-z:.\s-]/g, '');
+
+const sanitizeCoordinator = (v) =>
+  v.replace(/[^A-Za-z\s.-]/g, '').slice(0, MAX_COORDINATOR);
+
+const sanitizeChiefGuest = (v) =>
+  v.replace(/[^A-Za-z\s.-]/g, '').slice(0, MAX_CHIEF_GUEST);
+
 // ─── Build a displayable URL from a stored FilePath ───────────────────────
 const buildFileUrl = (filePath) => {
   if (!filePath) return null;
@@ -321,22 +362,59 @@ const ActivityFormScreen = ({ route, navigation }) => {
 
   const handleSave = async () => {
     const e = {};
-    if (!formData.activityName.trim()) e.activityName = 'Title is required.';
-    if (!formData.description.trim())  e.description  = 'Description is required.';
-    if (!formData.venue.trim())        e.venue        = 'Venue is required.';
-    if (!activityDate)                 e.activityDate = 'Activity date is required.';
+
+    if (!formData.activityName.trim()) {
+      e.activityName = 'Title is required.';
+    } else if (formData.activityName.trim().length > MAX_ACTIVITY_NAME) {
+      e.activityName = `Title must be ${MAX_ACTIVITY_NAME} characters or fewer.`;
+    } else if (!ACTIVITY_NAME_REGEX.test(formData.activityName.trim())) {
+      e.activityName = 'Only letters, numbers, spaces, "." "," and "-" are allowed.';
+    }
+
+    if (!formData.description.trim()) {
+      e.description = 'Description is required.';
+    } else if (formData.description.trim().length > MAX_DESCRIPTION) {
+      e.description = `Description must be ${MAX_DESCRIPTION} characters or fewer.`;
+    }
+
+    if (!formData.venue.trim()) {
+      e.venue = 'Venue is required.';
+    } else if (formData.venue.trim().length > MAX_VENUE) {
+      e.venue = `Venue must be ${MAX_VENUE} characters or fewer.`;
+    } else if (!VENUE_REGEX.test(formData.venue.trim())) {
+      e.venue = 'Only letters, numbers, spaces, "." "," and "-" are allowed.';
+    }
+
+    if (formData.time.trim() && !TIME_REGEX.test(formData.time.trim())) {
+      e.time = 'Only numbers, letters, ":" "." and "-" are allowed (e.g. 10.00 AM - 11.00 PM).';
+    }
+
+    if (formData.coordinator.trim().length > MAX_COORDINATOR) {
+      e.coordinator = `Coordinator must be ${MAX_COORDINATOR} characters or fewer.`;
+    } else if (formData.coordinator.trim() && !NAME_REGEX.test(formData.coordinator.trim())) {
+      e.coordinator = 'Only letters, spaces, "." and "-" are allowed.';
+    }
+
+    if (formData.chiefGuest.trim().length > MAX_CHIEF_GUEST) {
+      e.chiefGuest = `Chief Guest must be ${MAX_CHIEF_GUEST} characters or fewer.`;
+    } else if (formData.chiefGuest.trim() && !NAME_REGEX.test(formData.chiefGuest.trim())) {
+      e.chiefGuest = 'Only letters, spaces, "." and "-" are allowed.';
+    }
+
+    if (!activityDate) e.activityDate = 'Activity date is required.';
+
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
     setSaving(true);
     try {
       const payload = {
-        activityName: formData.activityName,
-        description: formData.description,
-        venue: formData.venue,
-        time: formData.time,
-        chiefGuest: formData.chiefGuest,
-        coordinator: formData.coordinator,
+        activityName: formData.activityName.trim(),
+        description: formData.description.trim(),
+        venue: formData.venue.trim(),
+        time: formData.time.trim(),
+        chiefGuest: formData.chiefGuest.trim(),
+        coordinator: formData.coordinator.trim(),
         status: formData.status,
         visibility: formData.visibility,
         activityDate: toDateOnlyString(activityDate),
@@ -409,59 +487,99 @@ const ActivityFormScreen = ({ route, navigation }) => {
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
         {/* ── Activity Details ── */}
-        <Field label="Title" required error={errors.activityName}>
+        <Field
+          label="Title"
+          required
+          error={errors.activityName}
+          charCount={formData.activityName.length}
+          maxChars={MAX_ACTIVITY_NAME}
+        >
           <StyledInput
             placeholder="Enter activity title"
             value={formData.activityName}
-            onChangeText={(v) => update('activityName', v)}
+            maxLength={MAX_ACTIVITY_NAME}
+            onChangeText={(v) => update('activityName', sanitizeActivityName(v))}
             hasError={!!errors.activityName}
             returnKeyType="next"
           />
         </Field>
 
-        <Field label="Description" required error={errors.description}>
+        <Field
+          label="Description"
+          required
+          error={errors.description}
+          charCount={formData.description.length}
+          maxChars={MAX_DESCRIPTION}
+        >
           <StyledInput
             placeholder="Describe the activity…"
             value={formData.description}
-            onChangeText={(v) => update('description', v)}
+            maxLength={MAX_DESCRIPTION}
+            onChangeText={(v) => update('description', sanitizeDescription(v))}
             hasError={!!errors.description}
             multiline
           />
         </Field>
 
-        <Field label="Venue" required error={errors.venue}>
+        <Field
+          label="Venue"
+          required
+          error={errors.venue}
+          charCount={formData.venue.length}
+          maxChars={MAX_VENUE}
+        >
           <StyledInput
             placeholder="Enter venue"
             value={formData.venue}
-            onChangeText={(v) => update('venue', v)}
+            maxLength={MAX_VENUE}
+            onChangeText={(v) => update('venue', sanitizeVenue(v))}
             hasError={!!errors.venue}
             returnKeyType="next"
           />
         </Field>
 
-        <Field label="Coordinator">
+        <Field
+          label="Coordinator"
+          error={errors.coordinator}
+          charCount={formData.coordinator.length}
+          maxChars={MAX_COORDINATOR}
+        >
           <StyledInput
             placeholder="Enter coordinator name"
             value={formData.coordinator}
-            onChangeText={(v) => update('coordinator', v)}
+            maxLength={MAX_COORDINATOR}
+            onChangeText={(v) => update('coordinator', sanitizeCoordinator(v))}
+            hasError={!!errors.coordinator}
             returnKeyType="next"
           />
         </Field>
 
-        <Field label="Chief Guest">
+        <Field
+          label="Chief Guest"
+          error={errors.chiefGuest}
+          charCount={formData.chiefGuest.length}
+          maxChars={MAX_CHIEF_GUEST}
+        >
           <StyledInput
             placeholder="Enter chief guest name"
             value={formData.chiefGuest}
-            onChangeText={(v) => update('chiefGuest', v)}
+            maxLength={MAX_CHIEF_GUEST}
+            onChangeText={(v) => update('chiefGuest', sanitizeChiefGuest(v))}
+            hasError={!!errors.chiefGuest}
             returnKeyType="next"
           />
         </Field>
 
-        <Field label="Time">
+        <Field
+          label="Time"
+          error={errors.time}
+          hint="e.g. 10.00 AM - 11.00 PM or 10 am - 11pm"
+        >
           <StyledInput
-            placeholder="e.g. 10:00 AM"
+            placeholder="e.g. 10:00 AM - 11:00 PM"
             value={formData.time}
-            onChangeText={(v) => update('time', v)}
+            onChangeText={(v) => update('time', sanitizeTime(v))}
+            hasError={!!errors.time}
             returnKeyType="done"
           />
         </Field>
