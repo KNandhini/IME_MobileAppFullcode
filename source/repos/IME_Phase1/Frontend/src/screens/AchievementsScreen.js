@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,9 +12,9 @@ import { BASE_URL } from '../utils/api';                                // ← A
 import { AchievementsScreenS as s } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ListSearchBar from '../components/ListSearchBar';
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const AVATAR_COLORS = ['#1E3A5F', '#D4A017', '#27AE60', '#8E44AD', '#E67E22', '#2980B9'];
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
+const AVATAR_COLORS = [COLORS.dark, COLORS.accent, '#27AE60', '#8E44AD', '#E67E22', '#2980B9'];
 
 const blobToDataUri = (blob) => {
   if (!blob) return null;
@@ -33,7 +34,7 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
     .toUpperCase();
 
   const dateStr = item.achievementDate
-    ? new Date(item.achievementDate).toLocaleDateString('en-GB', {
+    ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -45,8 +46,7 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
   const showPhoto = photoUri && !imgError;
 
   return (
-    // Card is no longer tappable as a whole — only the "View More" button navigates.
-    <View style={s.card}>
+    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
       {/* ── TOP ROW: badge + actions ── */}
       <View style={s.cardTopRow}>
         <View style={s.badge}>
@@ -64,7 +64,7 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
               <MaterialCommunityIcons
                 name="pencil-outline"
                 size={22}
-                color="#1E3A5F"
+                color={COLORS.dark}
               />
             </TouchableOpacity>
 
@@ -85,25 +85,17 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
 
       {/* ── CONTENT ROW ── */}
       <View style={s.cardRow}>
-        {/* Left column: photo + View More button */}
-        <View style={{ alignItems: 'flex-start', width: 72 }}>
-          <View style={{ alignSelf: 'center' }}>
-            {showPhoto ? (
-              <Image
-                source={{ uri: photoUri }}
-                style={s.photo}
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <View style={[s.photoPlaceholder, { backgroundColor: bg }]}>
-                <Text style={s.photoPlaceholderText}>{initials}</Text>
-              </View>
-            )}
+        {showPhoto ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={s.photo}
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <View style={[s.photoPlaceholder, { backgroundColor: bg }]}>
+            <Text style={s.photoPlaceholderText}>{initials}</Text>
           </View>
-          
-</View>
-
-        {/* Right column: name + title + date only */}
+        )}
         <View style={s.textContainer}>
           <Text style={s.memberName} numberOfLines={1}>
             {item.memberName || 'Member'}
@@ -111,44 +103,52 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
           <Text style={s.achTitle} numberOfLines={2}>
             {item.title}
           </Text>
-         <View
+
+          <View
+            style={{
+              marginTop: 0,
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            {!!dateStr && (
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: '#64748B',
+                }}
+              >
+                {dateStr}
+              </Text>
+            )}
+
+            <TouchableOpacity
+  onPress={onPress}
+  activeOpacity={0.8}
   style={{
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: '#1C3A5F',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
     alignItems: 'center',
-    marginTop: 0,
-    width: '100%',
+    justifyContent: 'center',
   }}
 >
-  <Text style={[s.date, { flex: 1, textAlign: 'left' }]}>
-    {dateStr}
-  </Text>
-
-  <TouchableOpacity
-    onPress={onPress}
-    activeOpacity={0.8}
+  <Text
     style={{
-      paddingVertical: 5,
-      paddingHorizontal: 10,
-      borderRadius: 14,
-      backgroundColor: NAVY,
-      marginLeft: 10,
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '600',
     }}
   >
-    <Text
-      style={{
-        color: '#fff',
-        fontSize: 11,
-        fontWeight: '600',
-      }}
-    >
-      View More
-    </Text>
-  </TouchableOpacity>
-</View>
+    View More
+  </Text>
+</TouchableOpacity>
+          </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

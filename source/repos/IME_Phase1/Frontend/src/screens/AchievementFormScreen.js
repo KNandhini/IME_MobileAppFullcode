@@ -395,20 +395,46 @@ const AchievementFormScreen = ({ route, navigation }) => {
         recordId = item.achievementId;
       } else {
         res = await achievementService.createWithMedia(formData);
-        recordId = res?.data?.achievementId ?? res?.data?.AchievementId;
+        // ── Cover every likely response shape so create-mode never loses the new id ──
+        console.log('CREATE RESPONSE:', JSON.stringify(res));
+        recordId =
+          res?.data?.achievementId ??
+          res?.data?.AchievementId ??
+          res?.achievementId ??
+          res?.AchievementId ??
+          res?.data?.data?.achievementId ??
+          res?.data?.data?.AchievementId ??
+          res?.data?.id ??
+          res?.id;
       }
 
       if (!res?.success) { Alert.alert('Error', getSafeErrorMessage(res)); return; }
 
-      for (const file of attachments) {
-        try {
-          const fd = new FormData();
-          fd.append('file', { uri: file.uri, name: file.fileName, type: file.mimeType });
-          fd.append('moduleName', 'Achievements');
-          fd.append('recordId', String(recordId));
-          await achievementService.uploadFile(fd);
-        } catch (e) {
-          console.warn('Attachment upload failed:', e.message);
+      if (attachments.length > 0) {
+        if (!recordId) {
+          console.warn('No recordId resolved after save — attachments cannot be uploaded.');
+          Alert.alert('Warning', 'Achievement was saved, but the attachment(s) could not be uploaded (no record id returned).');
+        } else {
+          let failedUploads = 0;
+          for (const file of attachments) {
+            try {
+              const fd = new FormData();
+              fd.append('file', { uri: file.uri, name: file.fileName, type: file.mimeType });
+              fd.append('moduleName', 'Achievements');
+              fd.append('recordId', String(recordId));
+              const uploadRes = await achievementService.uploadFile(fd);
+              console.log('UPLOAD RESPONSE:', JSON.stringify(uploadRes));
+              if (uploadRes && uploadRes.success === false) {
+                failedUploads++;
+              }
+            } catch (e) {
+              failedUploads++;
+              console.warn('Attachment upload failed:', e.message);
+            }
+          }
+          if (failedUploads > 0) {
+            Alert.alert('Note', `${failedUploads} of ${attachments.length} attachment(s) failed to upload.`);
+          }
         }
       }
 

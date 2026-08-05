@@ -194,29 +194,78 @@ const AchievementDetailScreen = ({ route, navigation }) => {
 
                 return isImage(filePath) ? (
                   <View key={attachment.attachmentId || index} style={{ marginBottom: 14 }}>
-                    <TouchableOpacity
-                      onPress={() => setImgViewer(url)}
-                      activeOpacity={0.85}
+                    (
+                    <View
+                      key={attachment.attachmentId || index}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        borderRadius: 12,
+                        padding: 15,
+                        marginBottom: 14,
+                        borderWidth: 1,
+                        borderColor: '#E5E7EB',
+                      }}
                     >
-                      <Image
-                        source={{ uri: url }}
-                        style={styles.attachImage}
-                        resizeMode="contain"
-                      />
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <View
+                          style={{
+                            flex: 1,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            marginRight: 10,
+                          }}
+                        >
+                          <MaterialCommunityIcons
+                            name="file-pdf-box"
+                            size={36}
+                            color="#D32F2F"
+                          />
 
-                      <Text style={styles.attachHint}>
-                        Tap to enlarge
-                      </Text>
-                    </TouchableOpacity>
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              marginLeft: 10,
+                              flex: 1,
+                              fontSize: 14,
+                              color: '#334155',
+                              fontWeight: '600',
+                            }}
+                          >
+                            {filePath.split('/').pop().split('\\').pop()}
+                          </Text>
+                        </View>
 
-                    <TouchableOpacity
-                      style={styles.downloadBtn}
-                      onPress={() => handleDownload(url)}
-                      activeOpacity={0.8}
-                    >
-                      <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-                      <Text style={styles.downloadText}>Download Attachment</Text>
-                    </TouchableOpacity>
+                        <TouchableOpacity
+                          onPress={() => handleDownload(url)}
+                          activeOpacity={0.8}
+                          style={{
+                            backgroundColor: NAVY,
+                            paddingHorizontal: 16,
+                            paddingVertical: 8,
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              color: '#FFFFFF',
+                              fontWeight: '700',
+                              fontSize: 13,
+                            }}
+                          >
+                            Download
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    )
+
+
                   </View>
                 ) : (
                   <TouchableOpacity
