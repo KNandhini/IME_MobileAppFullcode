@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, FlatList, RefreshControl, Image, TouchableOpacity } from 'react-native';
@@ -213,8 +214,8 @@ const NewsScreen = () => {
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#2196F3',
-        tabBarIndicatorStyle: { backgroundColor: '#2196F3' },
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarIndicatorStyle: { backgroundColor: COLORS.primary },
       }}
     >
       <Tab.Screen name="News" component={NewsTab} />

@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, Dimensions, Linking } from 'react-native';
 import { Card, IconButton, Chip } from 'react-native-paper';
@@ -65,7 +67,7 @@ const MediaDetailScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -104,7 +106,7 @@ const MediaDetailScreen = ({ route }) => {
                 )
               }
             >
-              <IconButton icon="play-circle" iconColor="#fff" size={80} />
+              <IconButton icon="play-circle" iconColor={COLORS.white} size={80} />
             </TouchableOpacity>
           </View>
         ) : (
@@ -125,7 +127,7 @@ const MediaDetailScreen = ({ route }) => {
           <View style={styles.controls}>
             <IconButton
               icon="chevron-left"
-              iconColor="#fff"
+              iconColor={COLORS.white}
               size={30}
               onPress={() =>
                 setSelectedImage((prev) =>
@@ -141,7 +143,7 @@ const MediaDetailScreen = ({ route }) => {
             </View>
             <IconButton
               icon="chevron-right"
-              iconColor="#fff"
+              iconColor={COLORS.white}
               size={30}
               onPress={() =>
                 setSelectedImage((prev) =>
@@ -155,7 +157,7 @@ const MediaDetailScreen = ({ route }) => {
       </View>
 
       <View style={styles.content}>
-        <View style={styles.header}>
+        <GradientHeader style={styles.header}>
           <Chip
             icon={isVideo ? 'video' : 'image'}
             style={[
@@ -167,7 +169,7 @@ const MediaDetailScreen = ({ route }) => {
             {media.mediaType}
           </Chip>
           <Text style={styles.date}>{formatDate(media.uploadDate)}</Text>
-        </View>
+        </GradientHeader>
 
         <Text style={styles.title}>{media.title}</Text>
 
@@ -221,7 +223,7 @@ const MediaDetailScreen = ({ route }) => {
                   />
                   {isVideo && (
                     <View style={styles.thumbnailOverlay}>
-                      <IconButton icon="play" iconColor="#fff" size={24} />
+                      <IconButton icon="play" iconColor={COLORS.white} size={24} />
                     </View>
                   )}
                 </TouchableOpacity>
@@ -238,7 +240,7 @@ const MediaDetailScreen = ({ route }) => {
             <Text style={styles.externalLinkText}>
               {isVideo ? 'Watch on YouTube' : 'View Original'}
             </Text>
-            <IconButton icon="open-in-new" size={20} iconColor="#2196F3" />
+            <IconButton icon="open-in-new" size={20} iconColor={COLORS.primary} />
           </TouchableOpacity>
         )}
       </View>

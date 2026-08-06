@@ -14,10 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NumberedItem, BulletItem } from './Accordion';
+import { COLORS, RADIUS, SHADOW, SPACING } from '../screens/theme';
 
-const NAVY = '#003366';
-const ROYAL = '#0055AA';
-const GOLD = '#D4AF37';
+const NAVY = COLORS.primary;
+const ROYAL = COLORS.dark;
+const GOLD = COLORS.accent;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // Matches the parent ScrollView's horizontal padding (16 on each side, see
@@ -170,7 +171,7 @@ const WelcomeCard = ({ onViewMore }) => {
                             style={styles.slideHeader}
                         >
                             <View style={styles.iconBadge}>
-                                <MaterialIcons name={item.icon} size={18} color="#fff" />
+                                <MaterialIcons name={item.icon} size={18} color={COLORS.white} />
                             </View>
                             <Text style={styles.slideLabel}>{item.label}</Text>
                         </LinearGradient>
@@ -229,11 +230,11 @@ const WelcomeCard = ({ onViewMore }) => {
                                         onPress={closeDetail}
                                         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                                     >
-                                        <MaterialIcons name="arrow-back" size={22} color="#fff" />
+                                        <MaterialIcons name="arrow-back" size={22} color={COLORS.white} />
                                     </TouchableOpacity>
                                     <View style={styles.modalHeaderLeft}>
                                         <View style={styles.iconBadgeLg}>
-                                            <MaterialIcons name={modalItem.icon} size={20} color="#fff" />
+                                            <MaterialIcons name={modalItem.icon} size={20} color={COLORS.white} />
                                         </View>
                                         <Text style={styles.modalTitle}>{modalItem.label}</Text>
                                     </View>
@@ -277,21 +278,17 @@ const WelcomeCard = ({ onViewMore }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 16,
-        paddingTop: 18,
-        paddingHorizontal: 18,
-        paddingBottom: 12,
-        marginBottom: 14,
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
+        backgroundColor: COLORS.white,
+        borderRadius: RADIUS.xl,
+        paddingTop: SPACING.xl,
+        paddingHorizontal: SPACING.xl,
+        paddingBottom: SPACING.md,
+        marginBottom: SPACING.lg,
+        ...SHADOW.lg,
         overflow: 'hidden',
     },
     welcome: { fontSize: 15, fontWeight: '800', color: NAVY, marginBottom: 4 },
-    tagline: { fontSize: 12, fontWeight: '600', color: GOLD, marginBottom: 14 },
+    tagline: { fontSize: 12, fontWeight: '600', color: GOLD, marginBottom: SPACING.lg },
 
     // Carousel sits edge-to-edge by cancelling out the card's own horizontal padding
     carousel: { marginHorizontal: -18 },
@@ -301,11 +298,11 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         alignSelf: 'flex-start',
-        borderRadius: 20,
-        paddingVertical: 6,
-        paddingHorizontal: 12,
-        marginBottom: 12,
-        gap: 8,
+        borderRadius: RADIUS.pill,
+        paddingVertical: SPACING.sm,
+        paddingHorizontal: SPACING.md,
+        marginBottom: SPACING.md,
+        gap: SPACING.sm,
     },
     iconBadge: {
         width: 24,
@@ -315,9 +312,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    slideLabel: { color: '#fff', fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
+    slideLabel: { color: COLORS.white, fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
 
-    desc: { fontSize: 13, color: '#4A5568', lineHeight: 20, marginBottom: 14, minHeight: 80 },
+    desc: { fontSize: 13, color: COLORS.text, lineHeight: 20, marginBottom: SPACING.lg, minHeight: 80 },
 
     btn: {
         alignSelf: 'flex-start',
@@ -331,17 +328,17 @@ const styles = StyleSheet.create({
         gap: 6,
         marginTop: 6,
     },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D9E2EC' },
-    dotActive: { backgroundColor: NAVY, width: 18, borderRadius: 3 },
+    dot: { width: 6, height: 6, borderRadius: RADIUS.xs, backgroundColor: COLORS.border },
+    dotActive: { backgroundColor: COLORS.primary, width: 18, borderRadius: 3 },
 
     // Full-screen detail view (for Mission / Core Objectives)
     modalOverlay: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
     },
     modalSheet: {
         flex: 1,
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -359,16 +356,16 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    modalTitle: { color: '#fff', fontWeight: '800', fontSize: 17, letterSpacing: 0.3 },
+    modalTitle: { color: COLORS.white, fontWeight: '800', fontSize: 17, letterSpacing: 0.3 },
     modalBody: { flex: 1, paddingHorizontal: 20 },
     modalBodyContent: { paddingVertical: 20, paddingBottom: 32 },
-    modalText: { fontSize: 14.5, lineHeight: 23, color: '#334155' },
+    modalText: { fontSize: 14.5, lineHeight: 23, color: COLORS.secondary },
 
     groupBlock: {
-        backgroundColor: '#F5F7FA',
-        borderRadius: 12,
-        padding: 16,
-        marginBottom: 14,
+        backgroundColor: COLORS.bg,
+        borderRadius: RADIUS.lg,
+        padding: SPACING.lg,
+        marginBottom: SPACING.lg,
     },
     groupTitle: { fontSize: 15, fontWeight: '800', color: ROYAL, marginBottom: 10 },
 });

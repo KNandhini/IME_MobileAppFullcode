@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, StatusBar, Image } from 'react-native';
 import { Button, Card } from 'react-native-paper';
@@ -8,8 +10,8 @@ import api from '../utils/api';
 import { ProfileScreenStyles as styles } from './screenStyles';
 
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 const ProfileScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
@@ -72,10 +74,10 @@ const ProfileScreen = ({ navigation }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
 
         {/* ── Profile Photo ── */}
         {profilePhoto ? (
@@ -92,7 +94,7 @@ const ProfileScreen = ({ navigation }) => {
 
         <Text style={styles.name}>{user?.fullName || 'User'}</Text>
         <Text style={styles.email}>{user?.email}</Text>
-      </View>
+      </GradientHeader>
 
       {/* ── Account Info ── */}
       <Card style={styles.card}>
@@ -150,7 +152,7 @@ const ProfileScreen = ({ navigation }) => {
           onPress={handleLogout}
           style={[styles.button, styles.logoutButton]}
           buttonColor="#f80511"
-          textColor={"#fff"}
+          textColor={COLORS.white}
         >
           Logout
         </Button>

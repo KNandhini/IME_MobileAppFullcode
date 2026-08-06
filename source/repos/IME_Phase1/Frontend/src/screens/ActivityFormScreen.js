@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking, TextInput } from 'react-native';
 import { Card, Chip } from 'react-native-paper';
@@ -153,7 +155,7 @@ const DateField = ({ label, required, value, onChange, error }) => {
           style={{
             fontSize: 15,
             fontWeight: '500',
-            color: value ? '#1E293B' : '#CBD5E1',
+            color: value ? COLORS.dark : '#CBD5E1',
           }}
         >
           {value ? formatDate(value) : 'Select date'}
@@ -464,7 +466,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
   return (
   <View style={styles.root}>
     {/* ── Top navbar ── */}
-    <View style={styles.navbar}>
+    <GradientHeader style={styles.navbar}>
       <TouchableOpacity
         onPress={() => navigation.goBack()}
         style={styles.navSide}
@@ -475,10 +477,10 @@ const ActivityFormScreen = ({ route, navigation }) => {
       <Text style={styles.navTitle}>{isEditMode ? 'Edit Activity' : 'Add Activity'}</Text>
       <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
         {saving
-          ? <ActivityIndicator size="small" color="#D4A017" />
+          ? <ActivityIndicator size="small" color={COLORS.accent} />
           : <Text style={styles.navSave}>{isEditMode ? 'Update' : 'Save'}</Text>}
       </TouchableOpacity>
-    </View>
+    </GradientHeader>
 
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}

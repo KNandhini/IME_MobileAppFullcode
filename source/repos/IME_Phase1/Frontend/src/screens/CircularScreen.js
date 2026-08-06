@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { circularService } from '../services/circularService';
@@ -8,8 +9,8 @@ import { useCallback } from 'react';
 import { CircularScreenStyles as styles } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ListSearchBar from '../components/ListSearchBar';
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 const CircularScreen = ({ navigation }) => {
   const [circulars,  setCirculars]  = useState([]);

@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
 import { List, Divider, Badge } from 'react-native-paper';
@@ -83,7 +84,7 @@ const NotificationsScreen = () => {
             <List.Icon
               {...props}
               icon={item.isRead ? 'bell-outline' : 'bell'}
-              color={item.isRead ? '#999' : '#2196F3'}
+              color={item.isRead ? '#999' : COLORS.primary}
             />
           )}
           right={() => (

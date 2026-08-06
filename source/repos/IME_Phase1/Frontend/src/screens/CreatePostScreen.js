@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -96,10 +98,10 @@ const CreatePostScreen = ({ navigation }) => {
       style={styles.root}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.cancelBtn} activeOpacity={0.7}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
@@ -111,11 +113,11 @@ const CreatePostScreen = ({ navigation }) => {
           activeOpacity={0.8}
         >
           {posting
-            ? <ActivityIndicator size="small" color="#fff" />
+            ? <ActivityIndicator size="small" color={COLORS.white} />
             : <Text style={styles.postBtnText}>Post</Text>
           }
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
 
@@ -224,7 +226,7 @@ const CreatePostScreen = ({ navigation }) => {
   );
 };
 
-const BLUE  = '#1E3A5F';
+const BLUE  = COLORS.dark;
 const BLUE2 = '#2C5F8A';
 const LIGHT = '#EAF1FA';
 

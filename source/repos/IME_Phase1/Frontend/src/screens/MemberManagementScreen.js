@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, FlatList, RefreshControl, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
@@ -183,9 +184,9 @@ const MemberManagementScreen = ({ navigation }) => {
 
   const getStatusTextColor = (status) => {
     switch (status) {
-      case 'Active': return '#FFFFFF';     // white on green
+      case 'Active': return COLORS.white;     // white on green
       case 'Pending': return '#EF6C00';
-      case 'Inactive': return '#FFFFFF';   // white on red
+      case 'Inactive': return COLORS.white;   // white on red
       default: return '#424242';
     }
   };
@@ -235,7 +236,7 @@ const MemberManagementScreen = ({ navigation }) => {
                 <MaterialCommunityIcons
                   name="pencil-outline"
                   size={22}
-                  color="#1E3A5F"
+                  color={COLORS.dark}
                 />
               </TouchableOpacity>
 
@@ -286,7 +287,7 @@ const MemberManagementScreen = ({ navigation }) => {
         placeholder="Search members..."
         onChangeText={setSearchQuery}
         value={searchQuery}
-        style={[styles.searchBar, { backgroundColor: '#fff' }]}
+        style={[styles.searchBar, { backgroundColor: COLORS.white }]}
       />
 
       <View style={styles.filters}>
@@ -308,7 +309,7 @@ const MemberManagementScreen = ({ navigation }) => {
 
       {loading && filteredMembers.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#1E3A5F" />
+          <ActivityIndicator size="large" color={COLORS.dark} />
         </View>
       ) : (
         <FlatList
@@ -332,7 +333,7 @@ const MemberManagementScreen = ({ navigation }) => {
         icon="account-plus"
         label="Add Admin"
         style={[styles.fab, { bottom: 24 + insets.bottom }]}
-        color="#fff"
+        color={COLORS.fabIcon}
         onPress={() => navigation.navigate('AdminSignup')}
       />
     </View>

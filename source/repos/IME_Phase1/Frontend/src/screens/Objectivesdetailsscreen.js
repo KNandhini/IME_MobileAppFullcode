@@ -1,12 +1,14 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { ObjectivesdetailsscreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const LIGHT = '#F0F4F8';
-const WHITE = '#FFFFFF';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
+const LIGHT = COLORS.bg;
+const WHITE = COLORS.white;
 const GREY = '#6B7A8D';
 
 const OBJECTIVES = [
@@ -24,8 +26,8 @@ const OBJECTIVES = [
 
 const ObjectivesDetailsScreen = ({ navigation }) => (
     <View style={styles.root}>
-        <View style={styles.header}>
-            <StatusBar barStyle="light-content" backgroundColor={NAVY} />
+        <GradientHeader style={styles.header}>
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
 
             <View style={styles.headerRow}>
                 <TouchableOpacity
@@ -45,7 +47,7 @@ const ObjectivesDetailsScreen = ({ navigation }) => (
 
 
 
-        </View>
+        </GradientHeader>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
             <Text style={styles.introText}>

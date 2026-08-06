@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, StyleSheet, Alert, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -8,8 +10,8 @@ import { circularService } from '../services/circularService';
 import api from '../utils/api';
 import { CircularDetailScreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 // Fallback styles for pieces not yet defined in CircularDetailScreenStyles
 // (badge / chip / description card). These merge on top of `styles.*` so
@@ -53,7 +55,7 @@ const local = StyleSheet.create({
     fontWeight: '600',
   },
   descCard: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderRadius: 14,
     padding: 16,
     marginTop: 16,
@@ -73,7 +75,7 @@ const local = StyleSheet.create({
     marginBottom: 8,
   },
   descText: {
-    color: '#334155',
+    color: COLORS.secondary,
     fontSize: 14,
     lineHeight: 20,
   },
@@ -217,16 +219,16 @@ const CircularDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Header */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Circular</Text>
         <View style={styles.headerBtn} />
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
@@ -304,10 +306,10 @@ const CircularDetailScreen = ({ route, navigation }) => {
                   activeOpacity={0.85}
                 >
                   {downloadingId === (att.attachmentId ?? att.fileName)
-                    ? <ActivityIndicator size="small" color="#fff" />
+                    ? <ActivityIndicator size="small" color={COLORS.white} />
                     : (
                       <>
-                        <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                        <MaterialCommunityIcons name="download-outline" size={18} color={COLORS.white} />
                         <Text style={styles.downloadText}>
                           {att.fileName ?? 'Download Attachment'}
                         </Text>
@@ -330,7 +332,7 @@ const CircularDetailScreen = ({ route, navigation }) => {
       >
         <View style={styles.viewerOverlay}>
           <TouchableOpacity style={styles.viewerClose} onPress={() => setImgViewer(null)}>
-            <MaterialCommunityIcons name="close" size={26} color="#fff" />
+            <MaterialCommunityIcons name="close" size={26} color={COLORS.white} />
           </TouchableOpacity>
           {imgViewer && (
             <Image

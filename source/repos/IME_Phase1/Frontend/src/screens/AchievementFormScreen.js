@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -13,8 +15,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
@@ -452,9 +454,9 @@ const AchievementFormScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
@@ -464,7 +466,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
             ? <ActivityIndicator size="small" color={GOLD} />
             : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
@@ -527,12 +529,12 @@ const AchievementFormScreen = ({ route, navigation }) => {
             activeOpacity={0.8}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={date ? { fontSize: 15, color: '#1E293B', fontWeight: '500' } : { fontSize: 15, color: '#CBD5E1', fontWeight: '500' }}>
+              <Text style={date ? { fontSize: 15, color: COLORS.dark, fontWeight: '500' } : { fontSize: 15, color: '#CBD5E1', fontWeight: '500' }}>
                 {date
                   ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
                   : 'Select achievement date'}
               </Text>
-              <MaterialCommunityIcons name="calendar-outline" size={18} color={date ? NAVY : '#94A3B8'} />
+              <MaterialCommunityIcons name="calendar-outline" size={18} color={date ? NAVY : COLORS.placeholder} />
             </View>
           </TouchableOpacity>
         </Field>
@@ -630,9 +632,9 @@ const AchievementFormScreen = ({ route, navigation }) => {
           onPress={handleSave} disabled={loading} activeOpacity={0.85}
         >
           {loading
-            ? <ActivityIndicator color="#fff" />
+            ? <ActivityIndicator color={COLORS.white} />
             : <>
-              <MaterialCommunityIcons name="check" size={20} color="#fff" />
+              <MaterialCommunityIcons name="check" size={20} color={COLORS.white} />
               <Text style={styles.saveBtnText}>{isEdit ? 'Update Achievement' : 'Save Achievement'}</Text>
             </>
           }

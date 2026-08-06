@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     View, Text, ScrollView, Animated,
@@ -12,11 +13,11 @@ import { MembershipBenefitsScreenStyles as styles } from './screenStyles';
 
 const { width } = Dimensions.get('window');
 
-const NAVY = '#1E3A5F';
-const NAVY_DEEP = '#12253D';
-const GOLD = '#D4A017';
-const BG = '#F5F7FA';
-const INK = '#334155';
+const NAVY = COLORS.primary;
+const NAVY_DEEP = COLORS.headerEnd;
+const GOLD = COLORS.accent;
+const BG = COLORS.bg;
+const INK = COLORS.secondary;
 const MUTED = '#64748B';
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -79,15 +80,19 @@ const MembershipBenefitsScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.root}>
-            <StatusBar backgroundColor={NAVY_DEEP} barStyle="light-content" />
+            <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
 
                 {/* ── Hero ── */}
-                <LinearGradient colors={[NAVY_DEEP, NAVY]} style={styles.hero}>
+                <LinearGradient
+                    colors={[COLORS.headerStart, NAVY_DEEP]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.hero}>
                     {navigation?.canGoBack?.() && (
                         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-                            <MaterialCommunityIcons name="arrow-left" size={20} color="#fff" />
+                            <MaterialCommunityIcons name="arrow-left" size={20} color={COLORS.white} />
                         </TouchableOpacity>
                     )}
 
@@ -288,7 +293,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                             disabled={!accepted}
                             onPress={handleContinue}>
                             <Text style={styles.continueBtnText}>Continue to Registration</Text>
-                            <MaterialCommunityIcons name="arrow-right" size={18} color="#fff" />
+                            <MaterialCommunityIcons name="arrow-right" size={18} color={COLORS.white} />
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => navigation.navigate('Login')}>

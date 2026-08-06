@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import { useAuth } from '../context/AuthContext';
@@ -184,10 +186,10 @@ const ChatScreen = ({ navigation, route }) => {
   return (
     // SafeAreaView (default edges) — matches the working LawBotScreen/Chat.js pattern.
     <SafeAreaView style={styles.container} edges={['left', 'right', 'bottom']}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Header */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
@@ -199,7 +201,7 @@ const ChatScreen = ({ navigation, route }) => {
         <View style={styles.headerInfo}>
           <Text style={styles.headerName}>{otherMemberName || 'Chat'}</Text>
         </View>
-      </View>
+      </GradientHeader>
 
       {/* Messages + input bar share one KeyboardAvoidingView so they move
           together above the keyboard, same as LawBotScreen/Chat.js. */}
@@ -209,7 +211,7 @@ const ChatScreen = ({ navigation, route }) => {
       >
         {initialLoad ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color="#1E3A5F" />
+            <ActivityIndicator size="large" color={COLORS.dark} />
           </View>
         ) : (
           <FlatList
@@ -253,7 +255,7 @@ const ChatScreen = ({ navigation, route }) => {
             activeOpacity={0.8}
           >
             {sending
-              ? <ActivityIndicator size="small" color="#fff" />
+              ? <ActivityIndicator size="small" color={COLORS.white} />
               : <Text style={styles.sendIcon}>➤</Text>
             }
           </TouchableOpacity>

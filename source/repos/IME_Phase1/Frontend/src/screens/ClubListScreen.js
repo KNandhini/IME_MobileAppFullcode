@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { Searchbar, Chip } from 'react-native-paper';
@@ -116,7 +117,7 @@ const insets = useSafeAreaInsets();
               <MaterialCommunityIcons
                 name="pencil-outline"
                 size={20}
-                color="#1E3A5F"
+                color={COLORS.dark}
               />
             </TouchableOpacity>
 
@@ -158,8 +159,8 @@ const insets = useSafeAreaInsets();
 
   if (loading) {
     return (
-      <View style={[styles.centered,{ backgroundColor: '#fff' }]}>
-        <ActivityIndicator size="large" color="#1E3A5F" />
+      <View style={[styles.centered,{ backgroundColor: COLORS.white }]}>
+        <ActivityIndicator size="large" color={COLORS.dark} />
       </View>
     );
   }
@@ -169,7 +170,7 @@ const insets = useSafeAreaInsets();
   placeholder="Search clubs..."
   value={search}
   onChangeText={handleSearch}
-  style={[styles.searchbar, { backgroundColor: '#fff' }]}
+  style={[styles.searchbar, { backgroundColor: COLORS.white }]}
   inputStyle={{ fontSize: 14 }}
 />
 

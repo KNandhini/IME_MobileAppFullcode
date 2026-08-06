@@ -1,3 +1,4 @@
+import { COLORS, RADIUS, SHADOW } from '../screens/theme';
 import React, { useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
@@ -26,8 +27,7 @@ const toPublicUrl = (filePath) => {
 };
 
 const AVATAR_COLORS = [
-  '#1E3A5F', '#D4A017', '#27AE60', '#8E44AD',
-  '#E67E22', '#2980B9', '#C0392B', '#16A085',
+  COLORS.primary, COLORS.accent, COLORS.secondary, COLORS.dark,
 ];
 
 const TYPE_LABELS = {
@@ -372,7 +372,7 @@ const FeedCard = ({ item, navigation }) => {
         <View style={styles.commentsSection}>
           {loadingComments ? (
             <View style={styles.commentsLoadingRow}>
-              <ActivityIndicator size="small" color="#1E3A5F" />
+              <ActivityIndicator size="small" color={COLORS.primary} />
               <Text style={styles.commentsLoadingText}>Loading comments...</Text>
             </View>
           ) : comments.length === 0 ? (
@@ -405,7 +405,7 @@ const FeedCard = ({ item, navigation }) => {
             <TextInput
               style={styles.commentInput}
               placeholder="Write a comment..."
-              placeholderTextColor="#999"
+              placeholderTextColor={COLORS.placeholder}
               value={commentText}
               onChangeText={setCommentText}
               multiline
@@ -421,7 +421,7 @@ const FeedCard = ({ item, navigation }) => {
               activeOpacity={0.7}
             >
               {postingComment ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={COLORS.white} />
               ) : (
                 <Text style={styles.commentSendText}>Send</Text>
               )}
@@ -439,77 +439,73 @@ const carousel = StyleSheet.create({
   wrapper: { position: 'relative' },
   slide: { width: SCREEN_WIDTH, height: 280 },
   image: { width: '100%', height: '100%' },
-  videoPlaceholder: { flex: 1, backgroundColor: '#111', justifyContent: 'center', alignItems: 'center' },
-  videoPlay: { fontSize: 48, color: '#fff' },
+  videoPlaceholder: { flex: 1, backgroundColor: COLORS.dark, justifyContent: 'center', alignItems: 'center' },
+  videoPlay: { fontSize: 48, color: COLORS.white },
   videoLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 8, letterSpacing: 1 },
   counter: {
     position: 'absolute',
     top: 10,
     right: 12,
-    backgroundColor: 'rgba(0,0,0,0.55)',
+    backgroundColor: COLORS.overlayDark,
     borderRadius: 12,
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  counterText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  counterText: { color: COLORS.white, fontSize: 12, fontWeight: '700' },
   dots: { flexDirection: 'row', justifyContent: 'center', paddingVertical: 8 },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#ccc', marginHorizontal: 3 },
-  dotActive: { backgroundColor: '#1E3A5F', width: 16 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.border, marginHorizontal: 3 },
+  dotActive: { backgroundColor: COLORS.primary, width: 16 },
 });
 
 // ── Single image styles ────────────────────────────────────────────────────────
 const single = StyleSheet.create({
-  image: { width: '100%', height: 220, backgroundColor: '#eee' },
+  image: { width: '100%', height: 220, backgroundColor: COLORS.bgAlt },
 });
 
 // ── Card styles ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     marginBottom: 8,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    ...SHADOW.sm,
   },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
   avatar: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
-  avatarLetter: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  avatarLetter: { color: COLORS.white, fontSize: 18, fontWeight: '700' },
   headerMeta: { flex: 1, marginLeft: 10 },
-  memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  memberNameLink: { color: '#1E3A5F' },
+  memberName: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
+  memberNameLink: { color: COLORS.dark },
   metaRow: { flexDirection: 'row', alignItems: 'center' },
   typeBadge: {
-    backgroundColor: '#EEF2FF',
-    borderRadius: 20,
+    backgroundColor: COLORS.selected,
+    borderRadius: RADIUS.pill,
     paddingHorizontal: 8,
     paddingVertical: 2,
   },
-  typeBadgeText: { fontSize: 11, color: '#1E3A5F', fontWeight: '600' },
-  timeAgo: { fontSize: 11, color: '#999' },
+  typeBadgeText: { fontSize: 11, color: COLORS.dark, fontWeight: '600' },
+  timeAgo: { fontSize: 11, color: COLORS.textMuted },
   dotMenuBtn: { padding: 4 },
-  dotMenuIcon: { fontSize: 22, color: '#555', fontWeight: '700' },
+  dotMenuIcon: { fontSize: 22, color: COLORS.dark, fontWeight: '700' },
 
   // Body
   body: { paddingHorizontal: 14, paddingTop: 10, paddingBottom: 8 },
-  postTitle: { fontSize: 15, fontWeight: '700', color: '#1E3A5F', marginBottom: 4 },
-  description: { fontSize: 14, color: '#333', lineHeight: 20 },
+  postTitle: { fontSize: 15, fontWeight: '700', color: COLORS.dark, marginBottom: 4 },
+  description: { fontSize: 14, color: COLORS.text, lineHeight: 20 },
 
   // Stats
   statsRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingVertical: 8 },
-  statsText: { fontSize: 12, color: '#888' },
+  statsText: { fontSize: 12, color: COLORS.textMuted },
 
-  divider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 14 },
+  divider: { height: 1, backgroundColor: COLORS.borderSoft, marginHorizontal: 14 },
 
   // Actions
   actionsRow: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 8 },
   actionBtn: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 6 },
   actionIcon: { fontSize: 16, marginRight: 5 },
-  actionLabel: { fontSize: 13, color: '#555', fontWeight: '600' },
-  actionLabelActive: { color: '#1E3A5F', fontWeight: '700' },
+  actionLabel: { fontSize: 13, color: COLORS.text, fontWeight: '600' },
+  actionLabelActive: { color: COLORS.primary, fontWeight: '700' },
 
   // Comments thread
   commentsSection: {
@@ -517,19 +513,19 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: COLORS.borderSoft,
   },
   commentsLoadingRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12 },
-  commentsLoadingText: { fontSize: 12, color: '#999', marginLeft: 8 },
-  noCommentsText: { fontSize: 12, color: '#aaa', fontStyle: 'italic', paddingVertical: 10 },
+  commentsLoadingText: { fontSize: 12, color: COLORS.textMuted, marginLeft: 8 },
+  noCommentsText: { fontSize: 12, color: COLORS.textMuted, fontStyle: 'italic', paddingVertical: 10 },
   commentRow: { flexDirection: 'row', marginTop: 10 },
   commentAvatar: {
     width: 30, height: 30, borderRadius: 15,
     justifyContent: 'center', alignItems: 'center', marginRight: 8,
   },
-  commentAvatarLetter: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  commentAvatarLetter: { color: COLORS.white, fontSize: 13, fontWeight: '700' },
   commentBubble: {
-    flex: 1, backgroundColor: '#F5F5F7', borderRadius: 12,
+    flex: 1, backgroundColor: COLORS.bgSoft, borderRadius: RADIUS.lg,
     paddingHorizontal: 12, paddingVertical: 8,
   },
   commentHeaderRow: {
@@ -538,24 +534,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 2,
   },
-  commentName: { fontSize: 12, fontWeight: '700', color: '#1E3A5F' },
-  commentText: { fontSize: 13, color: '#333', lineHeight: 18 },
-  commentTime: { fontSize: 10, color: '#999', marginLeft: 8 },
+  commentName: { fontSize: 12, fontWeight: '700', color: COLORS.dark },
+  commentText: { fontSize: 13, color: COLORS.text, lineHeight: 18 },
+  commentTime: { fontSize: 10, color: COLORS.textMuted, marginLeft: 8 },
   commentInputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12 },
   commentInput: {
     flex: 1,
-    backgroundColor: '#F5F5F7',
+    backgroundColor: COLORS.bgSoft,
     borderRadius: 18,
     paddingHorizontal: 14,
     paddingVertical: 8,
     fontSize: 13,
-    color: '#1a1a1a',
+    color: COLORS.text,
     maxHeight: 90,
     marginRight: 8,
   },
-  commentSendBtn: { backgroundColor: '#1E3A5F', borderRadius: 18, paddingHorizontal: 16, paddingVertical: 9 },
-  commentSendBtnDisabled: { backgroundColor: '#B0BEC5' },
-  commentSendText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  commentSendBtn: { backgroundColor: COLORS.primary, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 9 },
+  commentSendBtnDisabled: { backgroundColor: COLORS.disabled },
+  commentSendText: { color: COLORS.white, fontSize: 13, fontWeight: '700' },
 });
 
 export default FeedCard;
