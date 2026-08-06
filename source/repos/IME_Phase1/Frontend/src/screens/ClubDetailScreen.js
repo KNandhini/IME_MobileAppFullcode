@@ -8,8 +8,8 @@ import { clubService } from '../services/clubService';
 import api from '../utils/api';
 import { ClubDetailScreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = '#252943';
+const GOLD = '#A0C878';
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 

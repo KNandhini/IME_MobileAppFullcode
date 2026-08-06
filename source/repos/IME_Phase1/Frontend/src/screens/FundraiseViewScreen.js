@@ -10,7 +10,7 @@ import api from '../utils/api';
 import { FundraiseViewScreenStyles as styles, FundraiseViewScreenSc as sc, FundraiseViewScreenIr as ir, FundraiseViewScreenPb as pb } from './screenStyles';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-const PRIMARY = '#1E3A5F';
+const PRIMARY = '#252943';
 const ACCENT  = '#2E86DE';
 const SUCCESS = '#27AE60';
 const DANGER  = '#E74C3C';

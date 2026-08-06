@@ -123,7 +123,7 @@ const HomeScreen = ({ navigation }) => {
     <View>
       {loadingMore && (
         <View style={styles.footerLoader}>
-          <ActivityIndicator size="small" color="#1E3A5F" />
+          <ActivityIndicator size="small" color="#252943" />
           <Text style={styles.footerText}>Loading more posts...</Text>
         </View>
       )}
@@ -156,10 +156,10 @@ const HomeScreen = ({ navigation }) => {
   if (initialLoad) {
     return (
       <View style={styles.container}>
-        <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+        <StatusBar backgroundColor="#252943" barStyle="light-content" />
         {renderAppHeader()}
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#1E3A5F" />
+          <ActivityIndicator size="large" color="#252943" />
           <Text style={styles.centerText}>Loading feed...</Text>
         </View>
       </View>
@@ -170,7 +170,7 @@ const HomeScreen = ({ navigation }) => {
   if (error && posts.length === 0) {
     return (
       <View style={styles.container}>
-        <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+        <StatusBar backgroundColor="#252943" barStyle="light-content" />
         {renderAppHeader()}
         <View style={styles.centerBox}>
           <Text style={styles.errorIcon}>⚠️</Text>
@@ -185,7 +185,7 @@ const HomeScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor="#252943" barStyle="light-content" />
 
       {renderAppHeader()}
 
@@ -204,8 +204,8 @@ const HomeScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#1E3A5F']}
-            tintColor="#1E3A5F"
+            colors={['#252943']}
+            tintColor="#252943"
           />
         }
         ListEmptyComponent={

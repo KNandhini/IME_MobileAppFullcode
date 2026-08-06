@@ -37,7 +37,7 @@ const AdminDashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor="#252943" barStyle="light-content" />
 
       {/* ── IME Header (same as HomeScreen) ── */}
       <View style={styles.appHeader}>

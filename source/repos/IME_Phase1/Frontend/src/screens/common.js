@@ -66,17 +66,17 @@ export function fab(extra = {}, bottomInset = 0) {
     position: 'absolute',
     right: 20,
     bottom: 24 + bottomInset,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 56,
+    height: 56,
+    borderRadius: RADIUS.circle,
     backgroundColor: COLORS.fabBackground,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
+    ...SHADOW.lg,
     ...extra,
   };
 }
-export const fabText = { color: COLORS.fabIcon, fontSize: 24, fontWeight: '700', lineHeight: 28 };
+export const fabText = { color: COLORS.fabIcon, fontSize: 28, fontWeight: '600', lineHeight: 32 };
 
 /* ---------------------------------------------------------------------- */
 /* Full-screen image lightbox / viewer                                    */
@@ -173,7 +173,7 @@ export const radioOption = {
 export function card(extra = {}) {
   return {
     backgroundColor: COLORS.white,
-    borderRadius: RADIUS.lg,
+    borderRadius: RADIUS.xl,
     padding: 16,
     ...SHADOW.md,
     ...extra,
@@ -183,9 +183,9 @@ export function card(extra = {}) {
 /* ---------------------------------------------------------------------- */
 /* Small rounded status/category badge                                    */
 /* ---------------------------------------------------------------------- */
-export function badge({ bg = '#FEF9EC', color = '#B7791F' } = {}) {
+export function badge({ bg = COLORS.accent, color = COLORS.dark } = {}) {
   return {
-    badge: { backgroundColor: bg, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+    badge: { backgroundColor: bg, borderRadius: RADIUS.pill, paddingHorizontal: 10, paddingVertical: 4 },
     badgeText: { fontSize: 10, color, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
   };
 }
@@ -205,8 +205,9 @@ export const emptyState = {
 /* ---------------------------------------------------------------------- */
 export function input(extra = {}) {
   return {
-    backgroundColor: COLORS.bg,
-    borderRadius: 12,
+    minHeight: 52,
+    backgroundColor: COLORS.white,
+    borderRadius: RADIUS.xl,
     paddingHorizontal: 16,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
     fontSize: 15,

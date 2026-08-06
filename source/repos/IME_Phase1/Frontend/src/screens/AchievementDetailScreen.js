@@ -5,8 +5,8 @@ import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
 import { AchievementDetailScreenStyles as styles } from './screenStyles';
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = '#252943';
+const GOLD = '#A0C878';
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 // filePath from the server is a raw disk path like "Uploads\achievements\xyz.jpg" —
 // convert it into a URL the app can actually load/display/download.

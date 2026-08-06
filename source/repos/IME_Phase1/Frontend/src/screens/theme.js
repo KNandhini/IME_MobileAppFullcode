@@ -1,7 +1,7 @@
 // Central IME design system. Keep application chrome and shared components
 // connected to these semantic tokens instead of declaring local brand colors.
 export const COLORS = {
-  primary: '#4379F2',
+  primary: '#3A4EFB',
   secondary: '#33A4FA',
   dark: '#252943',
   accent: '#A0C878',
@@ -10,12 +10,12 @@ export const COLORS = {
   navy: '#252943',
   gold: '#F7AD19',
   green: '#A0C878',
-  blue: '#4379F2',
+  blue: '#3A4EFB',
   skyBlue: '#33A4FA',
 
-  bg: '#F7F8FF',
-  bgAlt: '#F4F6FF',
-  bgSoft: '#F8FAFF',
+  bg: '#F6FAFF',
+  bgAlt: '#EEF3FF',
+  bgSoft: '#F6FAFF',
   white: '#FFFFFF',
 
   text: '#252943',
@@ -39,9 +39,9 @@ export const COLORS = {
 
   headerStart: '#33A4FA',
   headerEnd: '#252943',
-  fabBackground: '#252943',
-  fabIcon: '#A0C878',
-  focus: '#4379F2',
+  fabBackground: '#3A4EFB',
+  fabIcon: '#FFFFFF',
+  focus: '#33A4FA',
   pressed: '#252943',
   selected: '#F0F6E9',
   tableAlternate: '#F7F8FF',
@@ -67,7 +67,7 @@ export const RADIUS = {
   sm: 8,
   md: 10,
   lg: 12,
-  xl: 16,
+  xl: 18,
   pill: 20,
   circle: 9999,
 };
@@ -128,10 +128,10 @@ export const COMPONENTS = {
     justifyContent: 'center',
   },
   input: {
-    minHeight: 48,
-    borderRadius: RADIUS.lg,
+    minHeight: 52,
+    borderRadius: RADIUS.xl,
     borderWidth: 1,
-    borderColor: COLORS.primary,
+    borderColor: COLORS.border,
     color: COLORS.text,
     backgroundColor: COLORS.white,
   },
