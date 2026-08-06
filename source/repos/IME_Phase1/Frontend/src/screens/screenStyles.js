@@ -481,6 +481,81 @@ backBtn: {
     paddingHorizontal: 40,
     lineHeight: 17,
   },
+  
+membershipFeeInfoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#DCE5EF',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+
+    shadowOffset: {
+        width: 0,
+        height: 3,
+    },
+
+    elevation: 3,
+},
+
+membershipFeeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    paddingBottom: 13,
+    marginBottom: 5,
+
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8EDF3',
+},
+
+membershipFeeTitle: {
+    marginLeft: 9,
+
+    fontSize: 16,
+    fontWeight: '700',
+
+    color: '#1E3A5F',
+},
+
+membershipFeeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    paddingVertical: 13,
+},
+
+membershipFeeCategory: {
+    flex: 1,
+
+    paddingRight: 12,
+
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+
+    color: '#334155',
+},
+
+membershipFeeAmount: {
+    fontSize: 15,
+    fontWeight: '800',
+
+    color: '#1E3A5F',
+},
+
+membershipFeeDivider: {
+    height: 1,
+
+    backgroundColor: '#E8EDF3',
+},
+
+
 });
 // AboutScreen
 export const AboutScreenStyles = (() => {
@@ -1595,19 +1670,41 @@ export const AdminDashboardScreenStyles = (() => {
 
     // IME header
     appHeader: {
-      backgroundColor: '#1E3A5F',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 14,
-      paddingTop: 44,
-      paddingBottom: 10,
-    },
-    headerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
+  backgroundColor: '#1E3A5F',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 14,
+  paddingTop: 44,
+  paddingBottom: 10,
+},
+headerLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  marginRight: 8,
+},
+headerRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+},
+iconBtn: {
+  padding: 8,
+  marginLeft: 4,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+iconBtnText: {
+  fontSize: 20,
+  textAlign: 'center',
+},
+kebabIcon: {
+  fontSize: 22,
+  color: '#fff',
+  fontWeight: '700',
+  textAlign: 'center',
+},
     logoBox: {
       width: 40,
       height: 40,
@@ -1641,6 +1738,23 @@ export const AdminDashboardScreenStyles = (() => {
     cardContent: { alignItems: 'center', paddingVertical: 20 },
     icon: { fontSize: 36, marginBottom: 8 },
     cardTitle: { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
+    lawBotCard: {
+      backgroundColor: '#ffffff',
+      marginHorizontal: 11,
+      marginBottom: 8,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 0.9,
+      borderColor: '#5da1e6',
+    },
+    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+    lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
+menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
+    menuItemText: { fontSize: 14, color: '#222' },
+    menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
+
+    
+
   });
 })();
 
@@ -6923,5 +7037,159 @@ export const PaymentReportsScreenStyles = (() => {
       marginTop: 18,
     },
     downloadBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  });
+})();
+export const ClubDetailScreenStyles = {
+  safe: { flex: 1, backgroundColor: '#fff' },
+  fullCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+  errorText: { fontSize: 15, color: '#64748B', marginBottom: 12 },
+  backBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#1E3A5F', borderRadius: 8 },
+  backBtnText: { color: '#fff', fontWeight: '600' },
+
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#1E3A5F', paddingHorizontal: 12, paddingVertical: 14,
+  },
+  closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  closeIcon: { color: '#fff', fontSize: 20, fontWeight: '600' },
+  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
+
+  badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 8 },
+  badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  badgeActive: { backgroundColor: '#DCFCE7' },
+  badgeInactive: { backgroundColor: '#FEE2E2' },
+  badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  badgeTextActive: { color: '#15803D' },
+  badgeTextInactive: { color: '#B91C1C' },
+  typePill: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  typePillText: { fontSize: 11, fontWeight: '600', color: '#334155' },
+
+  titleBlock: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
+  avatar: { width: 64, height: 64, borderRadius: 32, marginRight: 14, backgroundColor: '#F1F5F9' },
+  avatarPlaceholder: {
+    width: 64, height: 64, borderRadius: 32, marginRight: 14,
+    backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center',
+  },
+  avatarLetter: { color: '#fff', fontSize: 26, fontWeight: '700' },
+  titleMeta: { flex: 1 },
+  title: { fontSize: 19, fontWeight: '700', color: '#0F172A' },
+  clubCode: { fontSize: 13, color: '#64748B', marginTop: 2 },
+
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 },
+  statBox: {
+    flex: 1, minWidth: 90, backgroundColor: '#F8FAFC', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 12,
+  },
+  statLabel: { fontSize: 11, color: '#94A3B8', marginBottom: 3 },
+  statValue: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
+
+  section: { marginBottom: 18 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#94A3B8', letterSpacing: 0.5, marginBottom: 8 },
+  descriptionText: { fontSize: 14, color: '#334155', lineHeight: 21 },
+
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  infoText: { fontSize: 14, color: '#334155', flexShrink: 1 },
+  linkText: { color: '#1E3A5F' },
+};
+
+// MemberDashboardScreen
+// MemberDashboardScreen
+export const MemberDashboardScreenStyles = (() => {
+  return createScreenStyles({
+    container: { flex: 1, backgroundColor: '#F0F2F5' },
+    scrollContent: { paddingBottom: 24 },
+
+    // IME header
+    appHeader: {
+  backgroundColor: '#1E3A5F',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 14,
+  paddingTop: 44,
+  paddingBottom: 10,
+},
+headerLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  marginRight: 8,
+},
+headerRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+},
+iconBtn: {
+  padding: 8,
+  marginLeft: 4,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+iconBtnText: {
+  fontSize: 20,
+  textAlign: 'center',
+},
+kebabIcon: {
+  fontSize: 22,
+  color: '#fff',
+  fontWeight: '700',
+  textAlign: 'center',
+},
+    logoBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: '#D4A017',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    logoText: { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+    appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
+    appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
+    backBtn: { padding: 8 },
+    backIcon: { color: '#fff', fontSize: 22, fontWeight: '700' },
+
+    // Header right (notification + kebab menu)
+  
+    
+   
+    menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
+    menuItemText: { fontSize: 14, color: '#222' },
+    menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
+
+    // Welcome strip
+    welcomeStrip: {
+      backgroundColor: '#fff',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      marginBottom: 8,
+      elevation: 1,
+    },
+    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#1E3A5F' },
+    welcomeSub: { fontSize: 13, color: '#888', marginTop: 2 },
+
+    // Grid
+    grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, paddingTop: 4, justifyContent: 'space-between' },
+    card: { width: '48%', marginBottom: 14 },
+    cardInner: { elevation: 2, backgroundColor: '#fff' },
+    cardContent: { alignItems: 'center', paddingVertical: 20 },
+    icon: { fontSize: 36, marginBottom: 8 },
+    cardTitle: { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
+     lawBotCard: {
+      backgroundColor: '#ffffff',
+      marginHorizontal: 11,
+      marginBottom: 8,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 0.9,
+      borderColor: '#5da1e6',
+    },
+    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+    lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
   });
 })();

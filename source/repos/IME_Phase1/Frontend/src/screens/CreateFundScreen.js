@@ -12,33 +12,59 @@ import { CreateFundScreenS as s } from './screenStyles';
 //const API_BASE_URL = "http://10.0.2.2:51150/api";
 const API_BASE_URL = 'https://imei.co.in/api';
 
-// Static file host (same host as API, no /api segment) — used to build direct
-// image URLs the same way AchievementFormScreen's buildPhotoUrl does.
+// Static file host (same host as API, but WITHOUT the /api segment) — used to
+// build direct image URLs. Fixed: previously this still had "/api" in it,
+// which produced broken image URLs like ".../api/Uploads/...".
 //const STATIC_BASE_URL = "http://10.0.2.2:51150";
-const STATIC_BASE_URL = "https://imei.co.in/api";
+const STATIC_BASE_URL = "https://imei.co.in";
 //const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
-/**   
+
+/**
  * Parse comma-separated DB string into raw path array.
- * Keeps original paths exactly as stored (e.g. "Fundraise-5\\abc.png").
+ * Keeps original paths exactly as stored (e.g. "\\Uploads\\Fundraise-5\\abc.png").
  */
 const parseServerPaths = (raw) => {
   if (!raw) return [];
   return raw.split(",").map(p => p.trim()).filter(Boolean);
 };
 
-/** "Fundraise-5\\abc.png" → "Fundraise-5/abc.png" for the API ?path= param */
-const toApiPath = (storedPath) => storedPath.replace(/\\/g, "/");
+/** "\\Uploads\\Fundraise-5\\abc.png" → "Uploads/Fundraise-5/abc.png" for the API ?path= param */
+const toApiPath = (storedPath) => {
+  if (!storedPath) return "";
+  const normalized = storedPath.replace(/\\/g, "/");
+  const idx = normalized.search(/uploads\//i);
+  return idx === -1 ? normalized.replace(/^\/+/, "") : normalized.substring(idx);
+};
 
 /**
- * Builds a direct, unauthenticated image URL from a stored server path —
- * same approach as AchievementFormScreen's buildPhotoUrl.
- *   "Fundraise-5\\abc.png" → "http://10.0.2.2:51150/Uploads/Fundraise-5/abc.png"
+ * Builds a direct, unauthenticated image URL from a stored server path.
+ * Handles paths in ANY of these shapes (server has been inconsistent):
+ *   "Fundraise-5\\abc.png"
+ *   "\\Uploads\\Fundraise-5\\abc.png"
+ *   "C:\\inetpub\\wwwroot\\Uploads\\Fundraise-5\\abc.png"
+ * by locating "Uploads/" (or "Uploads\") anywhere in the string and slicing
+ * from there — same approach as the working toPublicUrl() in
+ * FundraiseViewScreen / MagazineFormScreen.
+ *   → "https://imei.co.in/Uploads/Fundraise-5/abc.png"
  */
 const buildPhotoUrl = (photoPath) => {
   if (!photoPath) return null;
   if (photoPath.startsWith("http")) return photoPath;
-  const clean = photoPath.replace(/\\/g, "/").replace(/^Uploads\/?/i, "");
-  return `${STATIC_BASE_URL}/Uploads/${clean}`;
+
+  const normalized = photoPath.replace(/\\/g, "/");
+  const uploadsIdx = normalized.toLowerCase().indexOf("uploads/");
+
+  const relative = uploadsIdx === -1
+    ? `Uploads/${normalized.replace(/^\/+/, "")}`
+    : normalized.substring(uploadsIdx);
+
+  return `${STATIC_BASE_URL}/${relative}`;
+};
+
+// For displaying just the filename in lists (doc rows, alt text, etc.)
+const getDisplayName = (path) => {
+  if (!path) return "";
+  return path.replace(/\\/g, "/").split("/").pop();
 };
 
 // ─── Palette ──────────────────────────────────────────────────────────────────
@@ -333,13 +359,121 @@ export default function CreateFundScreen() {
 
   const removeNewPhoto = idx => setPhotoFiles(prev => prev.filter((_, i) => i !== idx));
   const removeNewDoc = idx => setDocFiles(prev => prev.filter((_, i) => i !== idx));
-  const removeExistingPhoto = idx => setExistingPhotos(prev => prev.filter((_, i) => i !== idx));
-  const removeExistingDoc = idx => setExistingDocs(prev => prev.filter((_, i) => i !== idx));
+  const removeExistingPhoto = (idx) => {
+    const path = existingPhotos[idx];
+
+    Alert.alert(
+      "Delete Photo",
+      "Are you sure you want to delete this photo?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await fundraiseService.deleteFile(
+                data.id,
+                path
+              );
+
+              if (!response?.success) {
+                Alert.alert(
+                  "Error",
+                  response?.message || "Failed to delete photo."
+                );
+                return;
+              }
+
+              setExistingPhotos((prev) =>
+                prev.filter((_, index) => index !== idx)
+              );
+
+              Alert.alert("Success", "Photo deleted successfully.");
+            } catch (error) {
+              console.log(
+                "Delete photo error:",
+                error?.response?.data || error?.message
+              );
+
+              Alert.alert(
+                "Error",
+                error?.response?.data?.message ||
+                  "Failed to delete photo."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
+
+  const removeExistingDoc = (idx) => {
+    const path = existingDocs[idx];
+
+    Alert.alert(
+      "Delete Document",
+      "Are you sure you want to delete this document?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await fundraiseService.deleteFile(
+                data.id,
+                path
+              );
+
+              if (!response?.success) {
+                Alert.alert(
+                  "Error",
+                  response?.message || "Failed to delete document."
+                );
+                return;
+              }
+
+              setExistingDocs((prev) =>
+                prev.filter((_, index) => index !== idx)
+              );
+
+              Alert.alert("Success", "Document deleted successfully.");
+            } catch (error) {
+              console.log(
+                "Delete document error:",
+                error?.response?.data || error?.message
+              );
+
+              Alert.alert(
+                "Error",
+                error?.response?.data?.message ||
+                  "Failed to delete document."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // ── Upload files via fetch (fixes axios multipart boundary bug) ───────────
+  // ✅ FIX: now RETURNS the parsed server response (previously discarded).
+  // The response contains the FINAL, server-authoritative comma-joined
+  // Photos/Documents lists (existing + newly uploaded), which is the only
+  // reliable source of truth right after an upload — existingPhotos/
+  // existingDocs in local state were captured BEFORE this upload ran, so
+  // they never include the file(s) just picked in this session.
   const uploadFiles = async (id) => {
     const allFiles = [...photoFiles, ...docFiles];
-    if (allFiles.length === 0) return;
+    if (allFiles.length === 0) return null;
 
     console.log(
       "📤 Uploading",
@@ -383,7 +517,7 @@ export default function CreateFundScreen() {
 
     const result = await response.json().catch(() => ({}));
     console.log("✅ Upload success:", result);
-    return result;
+    return result; // ✅ now returned to the caller
   };
 
   // ── Validation ────────────────────────────────────────────────────────────
@@ -426,7 +560,11 @@ export default function CreateFundScreen() {
         urgencyLevel: form.urgencyLevel,
         startDate: form.startDate.toISOString().slice(0, 19),
         endDate: form.endDate.toISOString().slice(0, 19),
-        // existingPhotos/Docs store raw server paths — join directly
+        // existingPhotos/Docs store raw server paths — join directly.
+        // NOTE: these reflect only what was already saved BEFORE this submit
+        // (i.e. after any deletions above), and do NOT yet include files
+        // picked in photoFiles/docFiles — those get merged in below from the
+        // upload response once the upload completes.
         beneficiaryPhotoUrl: existingPhotos.length ? existingPhotos.join(",") : null,
         supportingDocumentUrl: existingDocs.length ? existingDocs.join(",") : null,
         ...bank,
@@ -445,9 +583,10 @@ export default function CreateFundScreen() {
       }
 
       // Upload new files if any
+      let uploadResult = null;
       if (photoFiles.length > 0 || docFiles.length > 0) {
         try {
-          await uploadFiles(fundId);
+          uploadResult = await uploadFiles(fundId);
         } catch (uploadErr) {
           console.warn(
             "Upload error:",
@@ -462,9 +601,39 @@ export default function CreateFundScreen() {
         }
       }
 
+      // ✅ FIX: pull the server's authoritative, fully-merged file lists out
+      // of the upload response (existing + newly uploaded) instead of
+      // trusting the pre-upload `payload` values, which never include files
+      // picked in this session. Handles both camelCase (ASP.NET Core's
+      // default JSON casing) and PascalCase (the raw anonymous object shape
+      // from FundraiseController.UploadFiles) just in case.
+      const finalPhotos =
+        uploadResult?.data?.photos ?? uploadResult?.data?.Photos ?? null;
+      const finalDocs =
+        uploadResult?.data?.documents ?? uploadResult?.data?.Documents ?? null;
+
+      const finalPhotoUrl = finalPhotos?.length
+        ? finalPhotos.join(",")
+        : payload.beneficiaryPhotoUrl;
+      const finalDocUrl = finalDocs?.length
+        ? finalDocs.join(",")
+        : payload.supportingDocumentUrl;
+
       const updatedItem = isEdit
-        ? { ...data, ...payload, id: fundId }
-        : { ...payload, id: fundId };
+        ? {
+            ...data,
+            ...payload,
+            id: fundId,
+            beneficiaryPhotoUrl: finalPhotoUrl,
+            supportingDocumentUrl: finalDocUrl,
+          }
+        : {
+            ...payload,
+            id: fundId,
+            beneficiaryPhotoUrl: finalPhotoUrl,
+            supportingDocumentUrl: finalDocUrl,
+          };
+
       Alert.alert("Success", isEdit ? "Fund updated!" : "Fund created!");
       navigation.navigate('FundraiseList', { changedItem: updatedItem, isEdit });
     } catch (ex) {
@@ -729,6 +898,7 @@ export default function CreateFundScreen() {
         </View>
 
         {/* ══ PHOTOS ══════════════════════════════════════════════════════════ */}
+     {/* ══ PHOTOS ══════════════════════════════════════════════════════════ */}
         <View style={s.card}>
           <SectionHeader
             icon="🖼️"
@@ -742,11 +912,12 @@ export default function CreateFundScreen() {
             <Text style={s.addZoneSub}>Tap to select one or more images</Text>
           </TouchableOpacity>
 
-          {/* ── Server photos ── */}
-          {existingPhotos.length > 0 && (
+          {/* ── All photos in ONE row: server photos first, then new local ones ── */}
+          {(existingPhotos.length > 0 || photoFiles.length > 0) && (
             <View style={{ marginTop: 12 }}>
               <Text style={s.groupLabel}>
-                Saved on server ({existingPhotos.length})
+                {existingPhotos.length + photoFiles.length} photo(s) total
+                {photoFiles.length > 0 ? ` · ${photoFiles.length} ready to upload` : ''}
               </Text>
               <ScrollView
                 horizontal
@@ -770,20 +941,7 @@ export default function CreateFundScreen() {
                     </View>
                   </View>
                 ))}
-              </ScrollView>
-            </View>
-          )}
 
-          {/* ── New local photos ── */}
-          {photoFiles.length > 0 && (
-            <View style={{ marginTop: 12 }}>
-              <Text style={s.groupLabel}>
-                Ready to upload ({photoFiles.length})
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-              >
                 {photoFiles.map((f, idx) => (
                   <View key={`np-${idx}`} style={s.thumbWrap}>
                     <Image
@@ -833,11 +991,9 @@ export default function CreateFundScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={s.docName} numberOfLines={1}>
-                  {path.split("/").pop()}
+                  {getDisplayName(path)}
                 </Text>
-                <Text style={[s.docSub, { color: C.teal }]}>
-                  Saved on server
-                </Text>
+                
               </View>
               <TouchableOpacity
                 onPress={() => removeExistingDoc(idx)}
@@ -950,5 +1106,3 @@ export default function CreateFundScreen() {
     </View>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────

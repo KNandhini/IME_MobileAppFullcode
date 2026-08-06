@@ -54,7 +54,7 @@ const insets = useSafeAreaInsets();
     ]);
   };
 
- const renderCircular = ({ item }) => (
+const renderCircular = ({ item }) => (
   <TouchableOpacity
     style={styles.card}
     onPress={() => navigation.navigate('CircularDetail', { item })}
@@ -118,7 +118,12 @@ const insets = useSafeAreaInsets();
           ? new Date(item.publishDate).toLocaleDateString('en-IN')
           : ''}
       </Text>
-      <Text style={styles.viewHint}>Tap to view ›</Text>
+      <TouchableOpacity
+        onPress={(e) => { e.stopPropagation(); navigation.navigate('CircularDetail', { item }); }}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      >
+        <Text style={styles.viewHint}>Tap to view ›</Text>
+      </TouchableOpacity>
     </View>
   </TouchableOpacity>
 );

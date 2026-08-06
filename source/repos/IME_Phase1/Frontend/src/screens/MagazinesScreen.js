@@ -68,11 +68,16 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
           <Text style={s.title} numberOfLines={2}>{item.title}</Text>
           {!!item.issueNumber && <Text style={s.issue}>{item.issueNumber}</Text>}
           {!!item.authorName && <Text style={s.author} numberOfLines={1}>By {item.authorName}</Text>}
-          <View style={s.metaRow}>
-            {!!item.category && (
-              <View style={s.categoryPill}><Text style={s.categoryText}>{item.category}</Text></View>
-            )}
-            {!!dateStr && <Text style={s.date}>{dateStr}</Text>}
+          <View style={[s.metaRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+              {!!item.category && (
+                <View style={s.categoryPill}><Text style={s.categoryText}>{item.category}</Text></View>
+              )}
+              {!!dateStr && <Text style={s.date}>📅 {dateStr}</Text>}
+            </View>
+            <Text style={s.viewHint || { color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>
+              Tap to view ›
+            </Text>
           </View>
         </View>
       </View>
@@ -180,7 +185,7 @@ const handleEdit = (item) => {
         />
       )}
 
-      {userRole === 'Admin' && (
+    
         <TouchableOpacity
           style={[s.fab,{ bottom: 24 + insets.bottom }]}
           onPress={() => navigation.navigate('MagazineForm')}
@@ -188,7 +193,7 @@ const handleEdit = (item) => {
         >
           <Text style={s.fabText}>+</Text>
         </TouchableOpacity>
-      )}
+      
     </SafeAreaView>
   );
 };

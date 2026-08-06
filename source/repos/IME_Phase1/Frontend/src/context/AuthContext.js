@@ -22,14 +22,14 @@ export const AuthProvider = ({ children }) => {
     const interval = setInterval(async () => {
       const token = await AsyncStorage.getItem('authToken');
       const expiresAt = await AsyncStorage.getItem('tokenExpiresAt');
-      console.log('[DEBUG poll]', {
+     /* console.log('[DEBUG poll]', {
       token: !!token,
       expiresAt,
       now: new Date().toString(),       // ← add this
       nowEpoch: Date.now(),              // ← add this
       expiryEpoch: new Date(expiresAt).getTime(), // ← add this
       expired: isTokenExpired(expiresAt),
-    });
+    });*/
       if (token && isTokenExpired(expiresAt)) {
         await forceLogout();
       }

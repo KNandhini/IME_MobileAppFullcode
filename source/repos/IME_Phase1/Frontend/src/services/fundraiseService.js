@@ -81,8 +81,13 @@ uploadAttachments: async (id, formData) => {
     return response.data;
   },
 
-  deleteFile: async (params = {}) => {
-    const response = await api.delete('/Fundraise/file', { params });
-    return response.data;
-  },
+ deleteFile: async (id, path) => {
+  debugger;
+
+  const response = await api.delete(`/Fundraise/${id}/file`, {
+    params: { path },
+  });
+
+  return response.data;
+},
 };

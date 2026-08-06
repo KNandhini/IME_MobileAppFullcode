@@ -1,11 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Linking, Modal } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Modal, Alert, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { supportService } from '../services/supportService';
 import { clubService } from '../services/clubService';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { SupportDetailScreenStyles as styles } from './screenStyles';
+import { getSafeErrorMessage } from '../utils/errorHandler';
+
+const NAVY = '#1E3A5F';
+
+// Fallback styles for the download button, in case SupportDetailScreenStyles
+// doesn't define these yet. Array styles let a later `styles.*` entry win if
+// those keys do exist, so this is safe to keep either way.
+const local = StyleSheet.create({
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: NAVY,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 14,
+  },
+  downloadText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  attachImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+  },
+  attachHint: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+});
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
@@ -33,6 +74,9 @@ const formatDate = (str) => {
 const formatAmount = (val) =>
   val != null ? `₹${Number(val).toLocaleString('en-IN')}` : null;
 
+const isImagePath = (path) => path?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+const isPdfPath = (path) => path?.toLowerCase().endsWith('.pdf');
+
 const SupportDetailScreen = ({ navigation, route }) => {
   const { supportId, item: preloadedItem } = route.params || {};
 
@@ -40,6 +84,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
   const [loading,      setLoading]      = useState(!preloadedItem);
   const [imgError,     setImgError]     = useState(false);
   const [viewer,       setViewer]       = useState({ visible: false, uri: null });
+  const [downloadingId, setDownloadingId] = useState(null);
   // ── Club logo: seed from the enriched image already passed by the list ──
   const [clubLogoUri,  setClubLogoUri]  = useState(preloadedItem?.image ?? null);
 
@@ -94,13 +139,78 @@ const SupportDetailScreen = ({ navigation, route }) => {
   const getAttachmentSrc = (a) =>
     toPublicUrl(a.filePath) ?? supportService.getAttachmentUrl(a.attachmentId);
 
-  const openAttachment = (a) => {
-    const uri  = getAttachmentSrc(a);
-    const type = a.mediaType?.trim();
-    if (type === 'image') {
-      setViewer({ visible: true, uri });
-    } else {
-      Linking.openURL(uri);
+  // ── Download / share a non-image attachment — same pattern as MagazineDetailScreen ──
+  const handleAttachmentDownload = async (attachment) => {
+    const fileName = attachment.fileName || 'attachment';
+    const rowId = attachment.attachmentId ?? fileName;
+    setDownloadingId(rowId);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const url = getAttachmentSrc(attachment);
+      const tempUri = FileSystem.cacheDirectory + fileName;
+
+      const result = await FileSystem.downloadAsync(url, tempUri, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+
+      if (result.status !== 200) {
+        Alert.alert('Error', 'Failed to download file.');
+        return;
+      }
+
+      if (Platform.OS === 'android') {
+        const permission =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+        if (!permission.granted) {
+          Alert.alert('Permission Required', 'Please allow access to save the file.');
+          return;
+        }
+
+        const base64 = await FileSystem.readAsStringAsync(tempUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        let mimeType = 'application/octet-stream';
+        switch (extension) {
+          case 'pdf': mimeType = 'application/pdf'; break;
+          case 'jpg':
+          case 'jpeg': mimeType = 'image/jpeg'; break;
+          case 'png': mimeType = 'image/png'; break;
+          case 'doc': mimeType = 'application/msword'; break;
+          case 'docx':
+            mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            break;
+          case 'xls': mimeType = 'application/vnd.ms-excel'; break;
+          case 'xlsx':
+            mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            break;
+        }
+
+        const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          permission.directoryUri,
+          fileName.replace(/\.[^/.]+$/, ''),
+          mimeType
+        );
+
+        await FileSystem.writeAsStringAsync(destUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        Alert.alert('Success', `${fileName} saved successfully.`);
+      } else {
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert('Saved', `"${fileName}" was downloaded, but sharing isn't available on this device.`);
+          return;
+        }
+        await Sharing.shareAsync(tempUri);
+      }
+    } catch (e) {
+      Alert.alert('Error', getSafeErrorMessage(e));
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -223,36 +333,49 @@ const SupportDetailScreen = ({ navigation, route }) => {
           </View>
         )}
 
-        {/* ── Attachments ── */}
+        {/* ── Attachments — Magazine-style: images inline w/ "Tap to enlarge", files as download buttons ── */}
         {attachments.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionLabel}>ATTACHMENTS ({attachments.length})</Text>
-            <View style={styles.attachGrid}>
+            <View style={styles.attachSection}>
               {attachments.map((a) => {
-                const type = a.mediaType?.trim();
-                const uri  = getAttachmentSrc(a);
-                return (
+                const url = getAttachmentSrc(a);
+                const rowId = a.attachmentId ?? a.fileName;
+                return isImagePath(a.filePath) ? (
                   <TouchableOpacity
-                    key={a.attachmentId}
-                    style={styles.thumb}
-                    onPress={() => openAttachment(a)}
-                    activeOpacity={0.8}
+                    key={rowId}
+                    onPress={() => setViewer({ visible: true, uri: url })}
+                    activeOpacity={0.85}
+                    style={{ marginBottom: 14 }}
                   >
-                    {type === 'image' ? (
-                      <Image
-                        source={{ uri }}
-                        style={styles.thumbImg}
-                        resizeMode="cover"
-                      />
+                    <Image source={{ uri: url }} style={[styles.attachImage, local.attachImage]} resizeMode="contain" />
+                    <Text style={[styles.attachHint, local.attachHint]}>Tap to enlarge</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    key={rowId}
+                    style={[
+                      styles.downloadBtn,
+                      local.downloadBtn,
+                      downloadingId === rowId && { opacity: 0.7 },
+                    ]}
+                    onPress={() => handleAttachmentDownload(a)}
+                    disabled={downloadingId === rowId}
+                    activeOpacity={0.85}
+                  >
+                    {downloadingId === rowId ? (
+                      <ActivityIndicator size="small" color="#fff" />
                     ) : (
-                      <View style={styles.thumbDoc}>
-                        <Text style={styles.thumbDocIcon}>
-                          {type === 'video' ? '🎬' : '📄'}
+                      <>
+                        <MaterialCommunityIcons
+                          name={isPdfPath(a.filePath) ? 'file-pdf-box' : 'download-outline'}
+                          size={18}
+                          color="#fff"
+                        />
+                        <Text style={[styles.downloadText, local.downloadText]}>
+                          {a.fileName ?? 'Download Attachment'}
                         </Text>
-                        <Text style={styles.thumbDocName} numberOfLines={2}>
-                          {a.fileName}
-                        </Text>
-                      </View>
+                      </>
                     )}
                   </TouchableOpacity>
                 );

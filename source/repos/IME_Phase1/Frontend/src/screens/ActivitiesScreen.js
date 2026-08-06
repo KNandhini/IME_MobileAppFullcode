@@ -67,8 +67,12 @@ const insets = useSafeAreaInsets();
     ]);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
+ const renderItem = ({ item }) => (
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.85}
+      onPress={() => navigation.navigate('ActivityDetail', { activityId: item.activityId })}
+    >
       {/* ── Card header: status badge on the left, edit/delete on the top-right ── */}
       <View style={styles.cardHeader}>
         {item.status ? (
@@ -82,9 +86,10 @@ const insets = useSafeAreaInsets();
         {isAdmin && (
           <View style={styles.actionRow}>
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('ActivityForm', { activityId: item.activityId })
-              }
+              onPress={(e) => {
+                e.stopPropagation();
+                navigation.navigate('ActivityForm', { activityId: item.activityId });
+              }}
               style={{ padding: 4, marginRight: 2 }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -96,7 +101,10 @@ const insets = useSafeAreaInsets();
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => handleDelete(item.activityId, item.activityName)}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleDelete(item.activityId, item.activityName);
+              }}
               style={{ padding: 4 }}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
@@ -110,24 +118,28 @@ const insets = useSafeAreaInsets();
         )}
       </View>
 
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate('ActivityDetail', { activityId: item.activityId })}>
+      <View>
         <Text style={styles.title}>{item.activityName}</Text>
         {item.description ? (
           <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
         ) : null}
-        <View style={styles.metaRow}>
-          {item.activityDate && (
-            <Text style={styles.metaText}>
-              📅 {new Date(item.activityDate).toLocaleDateString('en-IN')}
-            </Text>
-          )}
-          {item.venue ? <Text style={styles.metaText}>📍 {item.venue}</Text> : null}
-        </View>
-      </TouchableOpacity>
-    </View>
 
+        <View style={[styles.metaRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+            {item.activityDate && (
+              <Text style={styles.metaText}>
+                📅 {new Date(item.activityDate).toLocaleDateString('en-IN')}
+              </Text>
+            )}
+            {item.venue ? <Text style={styles.metaText}>📍 {item.venue}</Text> : null}
+          </View>
+
+          <Text style={styles.viewHint || { color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>
+            Tap to view ›
+          </Text>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (

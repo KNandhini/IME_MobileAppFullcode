@@ -2,23 +2,19 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, StatusBar } from 'react-native';
 import { Card, Title, Menu } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
-import { AdminDashboardScreenStyles as styles } from './screenStyles.js';
+import { MemberDashboardScreenStyles as styles } from './screenStyles.js';
 
-const ADMIN_MENU = [
-  { title: 'Activity',          route: 'Activities',        icon: '📅', params: {} },
-  { title: 'Members',           route: 'MemberManagement',  icon: '👥', params: {} },
-  { title: 'Payment Reports',   route: 'PaymentReports',    icon: '📊', params: {} },
-  { title: 'GO & Circulars',    route: 'Circular',          icon: '📋', params: {} },
-  { title: 'Achievements',      route: 'Achievements',      icon: '🏆', params: {} },
-  { title: 'Organisation',      route: 'Organisation',      icon: '🏢', params: {} },
-  { title: 'Support Services',  route: 'Support',           icon: '🤝', params: {} },
-  { title: 'Set Annual Fee',    route: 'SetAnnualFee',      icon: '💰', params: {} },
-  { title: 'Fund Raise',        route: 'FundraiseList',     icon: '💸', params: {} },
-  { title: 'Club List',         route: 'ClubList',          icon: '🏢', params: {} },
-  { title: 'Job Postings',      route: 'JobPostingList',    icon: '💼', params: {} },
+const MEMBER_MENU = [
+  { title: 'Support Services',   route: 'Support',        icon: '🤝', params: {} },
+  { title: 'Fund Raise',         route: 'FundScreen',  icon: '💸', params: {} },
+  { title: 'Organisation',       route: 'Organisation',   icon: '🏢', params: {} },
+  { title: 'Achievements',       route: 'Achievements',   icon: '🏆', params: {} },
+  { title: 'Magazine',           route: 'Magazines',      icon: '📰', params: {} },
+  { title: 'Job Postings',       route: 'JobPostingList', icon: '💼', params: {} },
+  { title: 'Health & Nutrition', route: 'HealthNutrition',icon: '🥗', params: {} },
 ];
 
-const AdminDashboardScreen = ({ navigation }) => {
+const MemberDashboardScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);
 
@@ -39,7 +35,7 @@ const AdminDashboardScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
 
-      {/* ── IME Header (same as HomeScreen) ── */}
+      {/* ── IME Header (same as HomeScreen/AdminDashboard) ── */}
       <View style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
@@ -75,9 +71,9 @@ const AdminDashboardScreen = ({ navigation }) => {
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.welcomeStrip}>
-           <Text style={styles.welcomeTitle}>Welcome, {user?.fullName || 'Admin'}</Text>
-          <Text style={styles.welcomeSub}>Admin Dashboard</Text>
-         
+        <Text style={styles.welcomeTitle}>Welcome, {user?.fullName || 'Member'}</Text>
+          <Text style={styles.welcomeSub}>Member Dashboard</Text>
+          
         </View>
 
         {/* Law Bot card */}
@@ -93,7 +89,7 @@ const AdminDashboardScreen = ({ navigation }) => {
         </TouchableOpacity>
 
         <View style={styles.grid}>
-          {ADMIN_MENU.map((item, index) => (
+          {MEMBER_MENU.map((item, index) => (
             <TouchableOpacity key={index} style={styles.card} onPress={() => handlePress(item)} activeOpacity={0.75}>
               <Card style={styles.cardInner}>
                 <Card.Content style={styles.cardContent}>
@@ -111,4 +107,4 @@ const AdminDashboardScreen = ({ navigation }) => {
   );
 };
 
-export default AdminDashboardScreen;
+export default MemberDashboardScreen;

@@ -175,7 +175,7 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
           <Text style={styles.salaryText}>💰 {item.salaryPackage}</Text>
         ) : null}
 
-        <View style={styles.cardFooter}>
+        <View style={[styles.cardFooter, { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }]}>
           <Text style={[styles.closingText, isClosed(item.vacancyClosingDate) && styles.closedText]}>
   {isClosed(item.vacancyClosingDate) ? '⛔ Closed ' : '📅 Closes '}
   {item.vacancyClosingDate
@@ -184,6 +184,9 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
       })
     : ''}
 </Text>
+          <Text style={styles.viewHint || { color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>
+            Tap to view ›
+          </Text>
         </View>
       </View>
     </TouchableOpacity>

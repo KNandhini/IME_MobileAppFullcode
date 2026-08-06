@@ -876,7 +876,7 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
 
         {userRole === 'Admin' && canManageSupport && (
           <View style={s.cardActions}>
-            <TouchableOpacity onPress={() => onEdit(item)} style={s.iconBotton}>
+            <TouchableOpacity onPress={(e) => { e.stopPropagation(); onEdit(item); }} style={s.iconBotton}>
               <MaterialCommunityIcons
                 name="pencil-outline"
                 size={22}
@@ -884,7 +884,7 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
               />
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => onDelete(item)} style={s.iconBotton}>
+            <TouchableOpacity onPress={(e) => { e.stopPropagation(); onDelete(item); }} style={s.iconBotton}>
               <MaterialCommunityIcons
                 name="delete-outline"
                 size={22}
@@ -936,6 +936,12 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
             {!!item.supportDate && (
               <Text style={s.date}>{item.supportDate?.substring(0, 10)}</Text>
             )}
+          </View>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginTop: 4 }}>
+            <Text style={s.viewHint || { color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>
+              Tap to view ›
+            </Text>
           </View>
         </View>
       </View>

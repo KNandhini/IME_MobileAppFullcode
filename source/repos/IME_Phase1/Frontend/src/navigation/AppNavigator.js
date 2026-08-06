@@ -1,9 +1,10 @@
-import React, { useCallback, useState, useEffect, createContext } from 'react';
-import { ActivityIndicator, View, Text, StyleSheet } from 'react-native';
+import React, { useCallback, useState, useEffect, useRef, createContext } from 'react';
+import { ActivityIndicator, View, Text, StyleSheet, Animated } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,6 +15,7 @@ import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
+
 import ProfileScreen from '../screens/ProfileScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
 import ChangePasswordScreen from '../screens/ChangePasswordScreen';
@@ -33,6 +35,7 @@ import CircularScreen from '../screens/CircularScreen';
 import AchievementsScreen from '../screens/AchievementsScreen';
 import OrganisationScreen from '../screens/OrganisationScreen';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+import MemberDashboardScreen from '../screens/MemberDashboardScreen';
 import SetAnnualFeeScreen from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
@@ -46,6 +49,7 @@ import CreatePostScreen from '../screens/CreatePostScreen';
 import AddCircularScreen from '../screens/AddCircularScreen';
 import ClubListScreen from '../screens/ClubListScreen';
 import ClubFormScreen from '../screens/ClubFormScreen';
+import ClubDetailScreen from '../screens/ClubDetailScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
 import ChatScreen from '../screens/ChatScreen';
 import ChatsListScreen from '../screens/ChatsListScreen';
@@ -85,6 +89,26 @@ const Tab = createBottomTabNavigator();
 // reached later (e.g. Login after a logout) just fades in immediately
 // instead of waiting for a splash signal that will never come again.
 export const SplashFadeContext = createContext(true);
+
+// Small scale + color-pop animation used for the Feed tab icon so it
+// visibly reacts when the tab becomes active, similar to how Facebook's
+// bottom nav icons bounce on selection.
+const AnimatedTabIcon = ({ name, focused, color, activeColor, size = 24 }) => {
+  const scale = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.sequence([
+      Animated.spring(scale, { toValue: focused ? 1.25 : 1, friction: 3, useNativeDriver: true }),
+      Animated.spring(scale, { toValue: focused ? 1.1 : 1, friction: 3, useNativeDriver: true }),
+    ]).start();
+  }, [focused]);
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Ionicons name={name} size={size} color={focused ? activeColor : color} />
+    </Animated.View>
+  );
+};
 
 const HEADER_STYLE = {
   headerStyle: { backgroundColor: '#1E3A5F' },
@@ -142,6 +166,7 @@ const AuthStack = () => (
 
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
+  const { logout, user } = useAuth();
   const [restricted, setRestricted] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -172,6 +197,8 @@ const MainTabs = () => {
     );
   }
 
+  const HomeComponent = user?.roleName === 'Admin' ? AdminDashboardScreen : MemberDashboardScreen;
+
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
@@ -194,147 +221,97 @@ const MainTabs = () => {
           },
         }}
       >
-        {restricted ? (
-          <>
-            <Tab.Screen
-              name="MyPostTab"
-              component={HomeScreen}
-              options={{
-                headerShown: false,
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                   <Text style={{ fontSize: 22 }}>🏠</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Posts</Text>
-                  </View>
-                ),
-              }}
-            />
-             <Tab.Screen
-      name="JobsTab"
-      component={JobPostingListScreen}
-      options={{
-        headerShown: false,
-        tabBarIcon: ({ color, focused }) => (
-          <View style={{ alignItems: 'center' }}>
-            <Text style={{ fontSize: 22 }}>💼</Text>
-            <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Jobs</Text>
-          </View>
-        ),
-      }}
-    />
-            <Tab.Screen
-              name="SupportTab"
-              component={SupportScreen}
-              options={{
-                title: 'Support Services',
-                headerStyle: { backgroundColor: '#1E3A5F' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '700' },
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>🤝</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Support</Text>
-                  </View>
-                ),
-              }}
-            />
-            <Tab.Screen
-              name="FundTab"
-              component={FundScreen}
-              options={{
-                title: 'IME Fund',
-                headerStyle: { backgroundColor: '#1E3A5F' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '700' },
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>💰</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Fund</Text>
-                  </View>
-                ),
-              }}
-            />
-            
-          </>
-        ) : (
-          <>
-            <Tab.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{
-                headerShown: false,
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>🏠</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
-                  </View>
-                ),
-              }}
-            />
-            <Tab.Screen
-              name="SupportTab"
-              component={SupportScreen}
-              options={{
-                title: 'Support Services',
-                headerStyle: { backgroundColor: '#1E3A5F' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '700' },
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>🤝</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Support</Text>
-                  </View>
-                ),
-              }}
-            />
-            <Tab.Screen
-              name="FundTab"
-              component={FundScreen}
-              options={{
-                title: 'IME Fund',
-                headerStyle: { backgroundColor: '#1E3A5F' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '700' },
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>💰</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Fund</Text>
-                  </View>
-                ),
-              }}
-            />
-            <Tab.Screen
-              name="AchievementsTab"
-              component={AchievementsScreen}
-              options={{
-                title: 'Hall of Fame',
-                headerStyle: { backgroundColor: '#1E3A5F' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '700' },
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>🏆</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Achievements</Text>
-                  </View>
-                ),
-              }}
-            />
-            <Tab.Screen
-              name="ChatsTab"
-              component={ChatsListScreen}
-              options={{
-                title: 'Chats',
-                headerShown: false,
-                tabBarIcon: ({ color, focused }) => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ fontSize: 22 }}>📩</Text>
-                    <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
-                  </View>
-                ),
-              }}
-            />
-          </>
-        )}
+        <>
+          <Tab.Screen
+            name="Home"
+            component={HomeComponent}
+            options={{
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <View style={{ alignItems: 'center' }}>
+                  <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
+                </View>
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="Feed"
+            component={HomeScreen}
+            options={{
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <View style={{ alignItems: 'center' }}>
+                  <AnimatedTabIcon
+                    name={focused ? 'add-circle' : 'add-circle-outline'}
+                    focused={focused}
+                    color={color}
+                    activeColor="#1E3A5F"
+                  />
+                  <Text
+                    style={{
+                      fontSize: 10,
+                      color: focused ? '#1E3A5F' : color,
+                      fontWeight: focused ? '700' : '400',
+                      marginTop: 2,
+                    }}
+                  >
+                    Feed
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="AboutIMETab"
+            component={AboutIMEScreen}
+            options={{
+              title: 'About IME',
+              headerStyle: { backgroundColor: '#1E3A5F' },
+              headerTintColor: '#fff',
+              headerTitleStyle: { fontWeight: '700' },
+              tabBarIcon: ({ color, focused }) => (
+                <View style={{ alignItems: 'center' }}>
+                  <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
+                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>About IME</Text>
+                </View>
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="ChatsTab"
+            component={ChatsListScreen}
+            options={{
+              title: 'Chats',
+              headerShown: false,
+              tabBarIcon: ({ color, focused }) => (
+                <View style={{ alignItems: 'center' }}>
+                  <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={24} color={color} />
+                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
+                </View>
+              ),
+            }}
+          />
+          <Tab.Screen
+            name="LogoutTab"
+            component={View}
+            options={{
+              title: 'Logout',
+              tabBarIcon: ({ color, focused }) => (
+                <View style={{ alignItems: 'center' }}>
+                  <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />
+                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Logout</Text>
+                </View>
+              ),
+            }}
+            listeners={() => ({
+              tabPress: (e) => {
+                e.preventDefault();
+                logout();
+              },
+            })}
+          />
+        </>
       </Tab.Navigator>
 
       <View style={{ height: insets.bottom, backgroundColor: '#1E3A5F' }} />
@@ -375,6 +352,7 @@ const MainStack = () => (
     <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} options={{ headerShown: false }} />
     <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="MemberDashboard" component={MemberDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutIMEScreen} options={{ title: 'About IME' }} />
@@ -392,6 +370,8 @@ const MainStack = () => (
     <Stack.Screen name="RaiseFund" component={RaiseFundScreen} options={{ ...HEADER_STYLE, title: 'Raise Fund' }} />
     <Stack.Screen name="ClubList" component={ClubListScreen} options={{ ...HEADER_STYLE, title: 'Club List' }} />
     <Stack.Screen name="ClubForm" component={ClubFormScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="ClubDetail" component={ClubDetailScreen} options={{ headerShown: false }} />
+
     <Stack.Screen name="CreatePost" component={CreatePostScreen} options={{ headerShown: false }} />
     <Stack.Screen name="UserProfile" component={UserProfileScreen} options={{ headerShown: false }} />
     <Stack.Screen name="Chat" component={ChatScreen} options={{ headerShown: false }} />
@@ -407,6 +387,7 @@ const MainStack = () => (
     <Stack.Screen name="JobPostingDetail" component={JobPostingDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="JobPostingForm" component={JobPostingFormScreen} options={{ headerShown: false }} />
     <Stack.Screen name="JobPostingList" component={JobPostingListScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="FundScreen" component={FundScreen} options={{ title: 'Fund Raise' }} />
 
     {/* <Stack.Screen
       name="AddCircular"
