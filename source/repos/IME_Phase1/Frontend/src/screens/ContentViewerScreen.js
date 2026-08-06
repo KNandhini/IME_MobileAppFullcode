@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
 import RenderHtml from 'react-native-render-html';
@@ -27,7 +29,7 @@ const ContentViewerScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1E3A5F" />
+        <ActivityIndicator size="large" color={COLORS.dark} />
       </View>
     );
   }
@@ -45,16 +47,16 @@ const ContentViewerScreen = ({ route }) => {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-        <View style={styles.header}>
+        <GradientHeader style={styles.header}>
           <Text style={styles.headerTitle}>{content.pageTitle}</Text>
-        </View>
+        </GradientHeader>
         <View style={styles.body}>
           <RenderHtml
             contentWidth={width - 40}
             source={{ html: content.content }}
             tagsStyles={{
-              h1: { color: '#1E3A5F', fontSize: 22, fontWeight: '800', marginBottom: 10 },
-              h2: { color: '#1E3A5F', fontSize: 18, fontWeight: '700', marginTop: 16, marginBottom: 8 },
+              h1: { color: COLORS.dark, fontSize: 22, fontWeight: '800', marginBottom: 10 },
+              h2: { color: COLORS.dark, fontSize: 18, fontWeight: '700', marginTop: 16, marginBottom: 8 },
               p: { color: '#444', fontSize: 15, lineHeight: 24 },
               li: { color: '#444', fontSize: 15, lineHeight: 24 },
             }}

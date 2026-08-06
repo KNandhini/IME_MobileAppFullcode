@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, Dimensions, Linking } from 'react-native';
 import { Card, Chip, IconButton, List } from 'react-native-paper';
@@ -74,7 +76,7 @@ const NewsDetailScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -103,7 +105,7 @@ const NewsDetailScreen = ({ route }) => {
             <View style={styles.imageControls}>
               <IconButton
                 icon="chevron-left"
-                iconColor="#fff"
+                iconColor={COLORS.white}
                 size={30}
                 onPress={() =>
                   setSelectedImage((prev) =>
@@ -119,7 +121,7 @@ const NewsDetailScreen = ({ route }) => {
               </View>
               <IconButton
                 icon="chevron-right"
-                iconColor="#fff"
+                iconColor={COLORS.white}
                 size={30}
                 onPress={() =>
                   setSelectedImage((prev) =>
@@ -134,10 +136,10 @@ const NewsDetailScreen = ({ route }) => {
       )}
 
       <View style={styles.content}>
-        <View style={styles.header}>
+        <GradientHeader style={styles.header}>
           <Text style={styles.category}>{news.category}</Text>
           <Text style={styles.date}>{formatDate(news.publishDate)}</Text>
-        </View>
+        </GradientHeader>
 
         <Text style={styles.title}>{news.title}</Text>
 
@@ -220,7 +222,7 @@ const NewsDetailScreen = ({ route }) => {
                             ? 'file-excel'
                             : 'file-document'
                         }
-                        color="#2196F3"
+                        color={COLORS.primary}
                       />
                     )}
                     right={(props) => (
@@ -239,7 +241,7 @@ const NewsDetailScreen = ({ route }) => {
             style={styles.externalLink}
           >
             <Text style={styles.externalLinkText}>View Source</Text>
-            <IconButton icon="open-in-new" size={20} iconColor="#2196F3" />
+            <IconButton icon="open-in-new" size={20} iconColor={COLORS.primary} />
           </TouchableOpacity>
         )}
       </View>

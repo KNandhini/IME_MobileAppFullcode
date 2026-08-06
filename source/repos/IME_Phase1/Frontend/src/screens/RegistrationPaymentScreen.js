@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -129,25 +131,25 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           }
           .logo {
             width: 56px; height: 56px;
-            background: #1E3A5F;
+            background: ${COLORS.primary};
             border-radius: 50%;
             line-height: 56px;
             font-size: 28px;
             margin: 0 auto 12px;
           }
-          .title { font-size: 20px; font-weight: bold; color: #1E3A5F; }
+          .title { font-size: 20px; font-weight: bold; color: ${COLORS.dark}; }
           .subtitle { font-size: 13px; color: #888; margin-top: 4px; margin-bottom: 20px; }
           .amount-box {
-            background: #D4A017;
+            background: ${COLORS.accent};
             border-radius: 10px;
             padding: 14px;
             margin-bottom: 24px;
           }
-          .amount-label { font-size: 13px; color: #1E3A5F; font-weight: 600; }
-          .amount-value { font-size: 32px; font-weight: bold; color: #1E3A5F; }
+          .amount-label { font-size: 13px; color: ${COLORS.dark}; font-weight: 600; }
+          .amount-value { font-size: 32px; font-weight: bold; color: ${COLORS.dark}; }
           .spinner {
             border: 4px solid #e0e0e0;
-            border-top: 4px solid #1E3A5F;
+            border-top: 4px solid ${COLORS.primary};
             border-radius: 50%;
             width: 40px; height: 40px;
             animation: spin 0.8s linear infinite;
@@ -166,7 +168,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           }
           .retry-btn {
             margin-top: 12px;
-            background: #1E3A5F;
+            background: ${COLORS.primary};
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -250,7 +252,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
               name: 'IME Membership',
               description: 'Annual Membership Registration Fee',
               image: '${logoDataUri || ''}',
-              theme: { color: '#1E3A5F' },
+              theme: { color: COLORS.primary },
               prefill: {
                 name: '${(memberName || '').replace(/'/g, "\\'")}',
               },
@@ -405,7 +407,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             }}
             renderLoading={() => (
               <View style={styles.webViewLoading}>
-                <ActivityIndicator size="large" color="#1E3A5F" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
                 <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
               </View>
             )}
@@ -418,7 +420,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
         <Modal visible transparent animationType="fade">
           <View style={styles.processingOverlay}>
             <View style={styles.processingBox}>
-              <ActivityIndicator size="large" color="#1E3A5F" />
+              <ActivityIndicator size="large" color={COLORS.primary} />
               <Text style={styles.processingText}>Activating your account...</Text>
             </View>
           </View>
@@ -428,10 +430,10 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
 
         {/* Header */}
-        <View style={styles.header}>
+        <GradientHeader style={styles.header}>
           <Text style={styles.headerTitle}>Complete Payment</Text>
           <Text style={styles.headerSubtitle}>Hi {memberName}, one last step!</Text>
-        </View>
+        </GradientHeader>
 
         {/* Profile Photo Section */}
         <View style={styles.section}>

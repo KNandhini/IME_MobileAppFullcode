@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Modal, Alert, Platform, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -218,8 +220,8 @@ const SupportDetailScreen = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.fullCenter}>
-        <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
-        <ActivityIndicator size="large" color="#1E3A5F" />
+        <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
+        <ActivityIndicator size="large" color={COLORS.dark} />
       </View>
     );
   }
@@ -228,7 +230,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
   if (!detail) {
     return (
       <View style={styles.fullCenter}>
-        <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+        <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
         <Text style={styles.errorText}>Unable to load details.</Text>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backBtnText}>Go Back</Text>
@@ -243,10 +245,10 @@ const SupportDetailScreen = ({ navigation, route }) => {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.closeBtn}
@@ -256,7 +258,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Support Details</Text>
         <View style={{ width: 40 }} />
-      </View>
+      </GradientHeader>
 
       <ScrollView
         style={styles.scroll}

@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Linking, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -8,9 +10,9 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const BG = '#F0F4F8';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
+const BG = COLORS.bg;
 const GREEN = '#2D9B6F';
 const CRIMSON = '#C0392B';
 
@@ -154,12 +156,12 @@ const CorpDetailScreen = ({ route, navigation }) => {
     return (
       <View style={[styles.root, { alignItems: 'center', justifyContent: 'center' }]}>
         <MaterialCommunityIcons name="alert-circle-outline" size={52} color={CRIMSON} />
-        <Text style={{ fontSize: 15, fontWeight: '700', color: '#2D3748', marginTop: 14 }}>
+        <Text style={{ fontSize: 15, fontWeight: '700', color: COLORS.dark, marginTop: 14 }}>
           Corporation data missing
         </Text>
         <TouchableOpacity style={{ marginTop: 20, backgroundColor: NAVY, borderRadius: 20, paddingVertical: 10, paddingHorizontal: 28 }}
           onPress={() => navigation.goBack()}>
-          <Text style={{ color: '#fff', fontWeight: '600' }}>Go Back</Text>
+          <Text style={{ color: COLORS.white, fontWeight: '600' }}>Go Back</Text>
         </TouchableOpacity>
       </View>
     );
@@ -240,11 +242,11 @@ const CorpDetailScreen = ({ route, navigation }) => {
  
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
  
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle} numberOfLines={1}>{corp.corpName}</Text>
@@ -255,7 +257,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
         <TouchableOpacity style={styles.mapBtn} onPress={openMap}>
           <MaterialCommunityIcons name="google-maps" size={20} color={GOLD} />
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
  
       <View style={styles.strip}>
         {corp.wardCount != null && (
@@ -293,7 +295,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
               style={[styles.pill, activeTab === t.key && styles.pillActive]}
               onPress={() => setActiveTab(t.key)}>
               <MaterialCommunityIcons name={t.icon} size={14}
-                color={activeTab === t.key ? '#fff' : NAVY} />
+                color={activeTab === t.key ? COLORS.white : NAVY} />
               <Text style={[styles.pillText, activeTab === t.key && styles.pillTextActive]}>
                 {t.label}
               </Text>
@@ -327,7 +329,7 @@ const CorpDetailScreen = ({ route, navigation }) => {
             <Text style={styles.errTitle}>Could not fetch data</Text>
             <View style={styles.errMsg}><Text style={styles.errMsgText} selectable>{E}</Text></View>
             <TouchableOpacity style={styles.retryBtn} onPress={retryTab}>
-              <MaterialCommunityIcons name="refresh" size={16} color="#fff" />
+              <MaterialCommunityIcons name="refresh" size={16} color={COLORS.white} />
               <Text style={styles.retryText}> Retry</Text>
             </TouchableOpacity>
           </View>

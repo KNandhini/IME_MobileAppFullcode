@@ -1,11 +1,13 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React from 'react';
 import { View, Text, StatusBar, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PresentationScreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 const HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -17,7 +19,7 @@ const HTML = `<!DOCTYPE html>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
   :root{
-    --navy:#1E3A5F;--navy-deep:#0d1f33;--gold:#D4A017;
+    --navy:${COLORS.dark};--navy-deep:${COLORS.dark};--gold:${COLORS.accent};
     --gold-light:rgba(212,160,23,0.15);--white:#ffffff;
     --muted:rgba(255,255,255,0.6);--subtle:rgba(255,255,255,0.08);
     --border:rgba(255,255,255,0.12);
@@ -393,14 +395,14 @@ const HTML = `<!DOCTYPE html>
 
 const PresentationScreen = ({ navigation }) => (
   <View style={styles.root}>
-    <StatusBar barStyle="light-content" backgroundColor={NAVY} />
-    <View style={styles.header}>
+    <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
+    <GradientHeader style={styles.header}>
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} activeOpacity={0.8}>
-        <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+        <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
       </TouchableOpacity>
       <Text style={styles.headerTitle}>App Overview</Text>
       <View style={{ width: 40 }} />
-    </View>
+    </GradientHeader>
     <WebView
       source={{ html: HTML }}
       javaScriptEnabled

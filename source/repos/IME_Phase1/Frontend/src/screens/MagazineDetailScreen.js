@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, ActivityIndicator, Modal, Alert, Platform, TextInput, KeyboardAvoidingView, StyleSheet } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -8,8 +10,8 @@ import * as Sharing from "expo-sharing";
 import api from '../utils/api';
 import { MagazineDetailScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 // Fallback styles for the download button, in case MagazineDetailScreenStyles
 // doesn't define these yet. Array styles let a later `styles.*` entry win if
@@ -26,7 +28,7 @@ const local = StyleSheet.create({
     marginBottom: 14,
   },
   downloadText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 14,
     fontWeight: '600',
     flexShrink: 1,
@@ -237,15 +239,15 @@ console.log(userData,"user");
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Magazine Details</Text>
         <View style={{ width: 36 }} />
-      </View>
+      </GradientHeader>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -333,13 +335,13 @@ console.log(userData,"user");
                     activeOpacity={0.85}
                   >
                     {downloadingId === rowId ? (
-                      <ActivityIndicator size="small" color="#fff" />
+                      <ActivityIndicator size="small" color={COLORS.white} />
                     ) : (
                       <>
                         <MaterialCommunityIcons
                           name={isPdf(a.filePath) ? "file-pdf-box" : "download-outline"}
                           size={18}
-                          color="#fff"
+                          color={COLORS.white}
                         />
                         <Text style={[styles.downloadText, local.downloadText]}>
                           {a.fileName ?? 'Download Attachment'}
@@ -394,7 +396,7 @@ console.log(userData,"user");
           <TextInput
             style={styles.input}
             placeholder="Post your Answer..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={COLORS.placeholder}
             value={messageText}
             onChangeText={setMessageText}
             multiline
@@ -407,9 +409,9 @@ console.log(userData,"user");
             disabled={sending}
           >
             {sending ? (
-              <ActivityIndicator color="#fff" size="small" />
+              <ActivityIndicator color={COLORS.white} size="small" />
             ) : (
-              <MaterialCommunityIcons name="send" size={20} color="#fff" />
+              <MaterialCommunityIcons name="send" size={20} color={COLORS.white} />
             )}
           </TouchableOpacity>
         </View>
@@ -423,7 +425,7 @@ console.log(userData,"user");
       >
         <View style={styles.previewContainer}>
           <TouchableOpacity style={styles.closeButton} onPress={() => setPreviewVisible(false)}>
-            <MaterialCommunityIcons name="close-circle" size={38} color="#fff" />
+            <MaterialCommunityIcons name="close-circle" size={38} color={COLORS.white} />
           </TouchableOpacity>
           <Image source={{ uri: previewImage }} style={styles.previewImage} resizeMode="contain" />
         </View>

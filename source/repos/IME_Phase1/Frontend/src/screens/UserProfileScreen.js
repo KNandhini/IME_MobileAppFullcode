@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, Linking, RefreshControl, Alert, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -158,7 +160,7 @@ const UserProfileScreen = ({ navigation, route }) => {
     }
   };
 
-  const avatarColor = '#1E3A5F';
+  const avatarColor = COLORS.dark;
   const initial = (memberName || 'M').charAt(0).toUpperCase();
 
   const renderHeader = () => (
@@ -190,7 +192,7 @@ const UserProfileScreen = ({ navigation, route }) => {
             activeOpacity={0.8}
           >
             {chatLoading
-              ? <ActivityIndicator size="small" color="#fff" />
+              ? <ActivityIndicator size="small" color={COLORS.white} />
               : <Text style={styles.actionBtnText}>💬 Message</Text>
             }
           </TouchableOpacity>
@@ -274,7 +276,7 @@ const UserProfileScreen = ({ navigation, route }) => {
     <View>
       {loadingMore && (
         <View style={styles.footerLoader}>
-          <ActivityIndicator size="small" color="#1E3A5F" />
+          <ActivityIndicator size="small" color={COLORS.dark} />
         </View>
       )}
       {!hasMore && !loadingMore && posts.length > 0 && (
@@ -287,20 +289,20 @@ const UserProfileScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Header bar */}
-      <View style={styles.appHeader}>
+      <GradientHeader style={styles.appHeader}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{memberName || 'Profile'}</Text>
         <View style={{ width: 40 }} />
-      </View>
+      </GradientHeader>
 
       {initialLoad ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#1E3A5F" />
+          <ActivityIndicator size="large" color={COLORS.dark} />
         </View>
       ) : (
         <FlatList
@@ -318,8 +320,8 @@ const UserProfileScreen = ({ navigation, route }) => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={handleRefresh}
-              colors={['#1E3A5F']}
-              tintColor="#1E3A5F"
+              colors={[COLORS.dark]}
+              tintColor={COLORS.dark}
             />
           }
           ListEmptyComponent={

@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
@@ -9,8 +10,8 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 import { ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ListSearchBar from '../components/ListSearchBar';
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 const STATUS_COLORS = {
   Upcoming: '#DBEAFE',
@@ -96,7 +97,7 @@ const insets = useSafeAreaInsets();
               <MaterialCommunityIcons
                 name="pencil-outline"
                 size={20}
-                color="#1E3A5F"
+                color={COLORS.dark}
               />
             </TouchableOpacity>
 

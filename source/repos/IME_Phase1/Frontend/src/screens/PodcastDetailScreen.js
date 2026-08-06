@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, Linking } from 'react-native';
 import { Card, Chip, IconButton, List } from 'react-native-paper';
@@ -101,7 +103,7 @@ const PodcastDetailScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -118,7 +120,7 @@ const PodcastDetailScreen = ({ route }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         {podcast.coverImage ? (
           <Image
             source={{ uri: podcast.coverImage }}
@@ -127,14 +129,14 @@ const PodcastDetailScreen = ({ route }) => {
           />
         ) : (
           <View style={styles.coverPlaceholder}>
-            <IconButton icon="podcast" iconColor="#fff" size={80} />
+            <IconButton icon="podcast" iconColor={COLORS.white} size={80} />
           </View>
         )}
 
         <TouchableOpacity style={styles.playButton} onPress={handlePlayAudio}>
-          <IconButton icon="play-circle" iconColor="#2196F3" size={80} />
+          <IconButton icon="play-circle" iconColor={COLORS.primary} size={80} />
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <View style={styles.content}>
         <View style={styles.titleSection}>
@@ -156,7 +158,7 @@ const PodcastDetailScreen = ({ route }) => {
           <Card style={styles.speakerCard}>
             <Card.Content>
               <View style={styles.speakerRow}>
-                <IconButton icon="account-voice" size={24} iconColor="#2196F3" />
+                <IconButton icon="account-voice" size={24} iconColor={COLORS.primary} />
                 <View style={styles.speakerInfo}>
                   <Text style={styles.speakerLabel}>Speaker</Text>
                   <Text style={styles.speakerName}>{podcast.speaker}</Text>
@@ -222,7 +224,7 @@ const PodcastDetailScreen = ({ route }) => {
                             ? 'file-pdf-box'
                             : 'file-document'
                         }
-                        color="#2196F3"
+                        color={COLORS.primary}
                       />
                     )}
                     right={(props) => (
@@ -248,15 +250,15 @@ const PodcastDetailScreen = ({ route }) => {
 
         <View style={styles.actionsContainer}>
           <TouchableOpacity style={styles.actionButton}>
-            <IconButton icon="share-variant" size={24} iconColor="#2196F3" />
+            <IconButton icon="share-variant" size={24} iconColor={COLORS.primary} />
             <Text style={styles.actionText}>Share</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <IconButton icon="download" size={24} iconColor="#2196F3" />
+            <IconButton icon="download" size={24} iconColor={COLORS.primary} />
             <Text style={styles.actionText}>Download</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <IconButton icon="playlist-plus" size={24} iconColor="#2196F3" />
+            <IconButton icon="playlist-plus" size={24} iconColor={COLORS.primary} />
             <Text style={styles.actionText}>Add to Playlist</Text>
           </TouchableOpacity>
         </View>

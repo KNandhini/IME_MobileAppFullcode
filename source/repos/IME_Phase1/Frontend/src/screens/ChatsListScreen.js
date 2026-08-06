@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar,
@@ -11,7 +13,7 @@ import { memberService } from '../services/memberService';
 import { ChatsListScreenStyles as styles } from './screenStyles';
 
 const AVATAR_COLORS = [
-  '#1E3A5F', '#D4A017', '#27AE60', '#8E44AD',
+  COLORS.dark, COLORS.accent, '#27AE60', '#8E44AD',
   '#E67E22', '#2980B9', '#C0392B', '#16A085',
 ];
 
@@ -211,11 +213,11 @@ const ChatsListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <Text style={styles.headerTitle}>Chats</Text>
-      </View>
+      </GradientHeader>
 
       {/* ── Search chats by member name ── */}
       <View style={styles.chatSearchBox}>
@@ -223,7 +225,7 @@ const ChatsListScreen = ({ navigation }) => {
         <TextInput
           style={styles.chatSearchInput}
           placeholder="Search chats by name…"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={COLORS.placeholder}
           value={chatSearch}
           onChangeText={setChatSearch}
           autoCorrect={false}
@@ -237,7 +239,7 @@ const ChatsListScreen = ({ navigation }) => {
 
       {loading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#1E3A5F" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
@@ -301,7 +303,7 @@ const ChatsListScreen = ({ navigation }) => {
             <TextInput
               style={styles.searchInput}
               placeholder="Search members by name…"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={COLORS.placeholder}
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoFocus
@@ -316,7 +318,7 @@ const ChatsListScreen = ({ navigation }) => {
 
           {membersLoading ? (
             <View style={styles.centerBox}>
-              <ActivityIndicator size="small" color="#1E3A5F" />
+              <ActivityIndicator size="small" color={COLORS.primary} />
             </View>
           ) : (
             <FlatList

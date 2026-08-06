@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Pressable, SafeAreaView, StatusBar, Image, Dimensions, FlatList, ActivityIndicator, Modal, Animated, Alert, Platform } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
@@ -38,7 +40,7 @@ function getBadgeStyle(urgencyLevel, fundCategory) {
     return { badgeColor: "#16a34a", badgeBg: "#f0f9f0", fundColor: "#11998e" };
   if (fundCategory === "Medical")
     return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#e8623a" };
-  return { badgeColor: "#6366f1", badgeBg: "#eef2ff", fundColor: "#6366f1" };
+  return { badgeColor: COLORS.accent, badgeBg: "#eef2ff", fundColor: COLORS.accent };
 }
 
 function formatTimeAgo(dateString) {
@@ -353,7 +355,7 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
     resizeMode="cover"
 />
                 <View style={ms.expandHint}>
-                  <Ionicons name="expand-outline" size={16} color="#fff" />
+                  <Ionicons name="expand-outline" size={16} color={COLORS.white} />
                 </View>
                 {/* Slide counter badge */}
                 {mediaItems.length > 1 && (
@@ -379,7 +381,7 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
                 <Ionicons
                   name={isPdf ? "document-text" : "document-attach"}
                   size={36}
-                  color="#fff"
+                  color={COLORS.white}
                 />
               </View>
               <Text style={ms.docLabel}>Supporting Document</Text>
@@ -391,9 +393,9 @@ function MediaStrip({ mediaItems, onOpenViewer }) {
                 disabled={downloadingPath === item.path}
               >
                 {downloadingPath === item.path ? (
-                  <ActivityIndicator size="small" color="#fff" />
+                  <ActivityIndicator size="small" color={COLORS.white} />
                 ) : (
-                  <Ionicons name="download-outline" size={16} color="#fff" />
+                  <Ionicons name="download-outline" size={16} color={COLORS.white} />
                 )}
                 <Text style={ms.docDownloadText}>
                   {downloadingPath === item.path ? "Saving…" : "Download"}
@@ -528,7 +530,7 @@ function useAttachments(post) {
             if (!uri) {
               return (
                 <View style={[vw.imgWrap, { alignItems: "center", justifyContent: "center" }]}>
-                  <ActivityIndicator size="large" color="#fff" />
+                  <ActivityIndicator size="large" color={COLORS.white} />
                 </View>
               );
             }
@@ -541,7 +543,7 @@ function useAttachments(post) {
         />
         <TouchableOpacity style={vw.close} onPress={onClose}>
           <View style={vw.closeCircle}>
-            <Ionicons name="close" size={22} color="#fff" />
+            <Ionicons name="close" size={22} color={COLORS.white} />
           </View>
         </TouchableOpacity>
       </View>
@@ -596,7 +598,7 @@ function ImageViewer({
                         <Ionicons
                             name="close"
                             size={28}
-                            color="#fff"
+                            color={COLORS.white}
                         />
                     </View>
                 </TouchableOpacity>
@@ -618,7 +620,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
     <View style={card.root}>
 
       {/* Header */}
-      <View style={card.header}>
+      <GradientHeader style={card.header}>
         <Avatar initials={initials} active={post.status === "Active"} />
         <View style={card.headerInfo}>
           <Text style={card.name}>{post.fullName}</Text>
@@ -629,7 +631,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
             {post.urgencyLevel?.toUpperCase() || post.fundCategory?.toUpperCase()}
           </Text>
         </View>
-      </View>
+      </GradientHeader>
 
       {/* Title + description */}
       <View style={card.body}>
@@ -703,7 +705,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
             })
           }
         >
-          <Ionicons name="heart" size={14} color="#fff" />
+          <Ionicons name="heart" size={14} color={COLORS.white} />
           <Text style={card.fundBtnText}>Raise Fund</Text>
         </TouchableOpacity>
       </View>
@@ -765,7 +767,7 @@ export default function FeedScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.safe}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E3A5F" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
 
       <ScrollView
         style={s.feed}

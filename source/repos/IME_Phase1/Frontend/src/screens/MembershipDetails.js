@@ -1,12 +1,14 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React from 'react';
 import { View, Text, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MembershipDetailsStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const LIGHT = '#F0F4F8';
-const WHITE = '#FFFFFF';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
+const LIGHT = COLORS.bg;
+const WHITE = COLORS.white;
 const GREY = '#6B7A8D';
 
 const MEMBERSHIP_TIERS = [
@@ -45,13 +47,13 @@ const MEMBERSHIP_TIERS = [
 const MembershipDetailsScreen = ({ navigation }) => {
     return (
         <View style={styles.root}>
-            <StatusBar barStyle="light-content" backgroundColor={NAVY} />
-            <View style={styles.header}>
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
+            <GradientHeader style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <MaterialCommunityIcons name="arrow-left" size={22} color={WHITE} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Membership</Text>
-            </View>
+            </GradientHeader>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
                 <Text style={styles.introText}>

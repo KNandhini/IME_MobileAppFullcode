@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, Alert, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -8,8 +9,8 @@ import { activityService } from '../services/activityService';
 import api from '../utils/api';
 import { ActivityDetailScreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 // Some endpoints return a raw disk path like "Uploads\activities\xyz.jpg"
@@ -181,7 +182,7 @@ const ActivityDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Header */}
       
@@ -272,10 +273,10 @@ const ActivityDetailScreen = ({ route, navigation }) => {
                   activeOpacity={0.85}
                 >
                   {downloadingId === rowId
-                    ? <ActivityIndicator size="small" color="#fff" />
+                    ? <ActivityIndicator size="small" color={COLORS.white} />
                     : (
                       <>
-                        <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                        <MaterialCommunityIcons name="download-outline" size={18} color={COLORS.white} />
                         <Text style={styles.downloadText}>
                           {attachment.fileName ?? 'Download Attachment'}
                         </Text>
@@ -293,7 +294,7 @@ const ActivityDetailScreen = ({ route, navigation }) => {
       <Modal visible={!!imgViewer} transparent animationType="fade" onRequestClose={() => setImgViewer(null)}>
         <View style={styles.viewerOverlay}>
           <TouchableOpacity style={styles.viewerClose} onPress={() => setImgViewer(null)}>
-            <MaterialCommunityIcons name="close" size={26} color="#fff" />
+            <MaterialCommunityIcons name="close" size={26} color={COLORS.white} />
           </TouchableOpacity>
           <Image source={{ uri: imgViewer }} style={styles.viewerImage} resizeMode="contain" />
         </View>

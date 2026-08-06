@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StatusBar, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -11,8 +12,8 @@ import * as Sharing from 'expo-sharing';
 import { paymentService } from '../services/paymentService';
 import { PaymentHistoryScreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
@@ -154,13 +155,13 @@ const PaymentHistoryScreen = ({ navigation }) => {
   if (!hasAnyPayments) {
     return (
       <View style={styles.root}>
-        <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+        <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
         <View style={styles.centered}>
           <MaterialCommunityIcons name="file-document-outline" size={48} color="#CBD5E1" />
-          <Text style={{ marginTop: 12, fontSize: 16, fontWeight: '700', color: '#2D3748' }}>
+          <Text style={{ marginTop: 12, fontSize: 16, fontWeight: '700', color: COLORS.dark }}>
             No payment history
           </Text>
-          <Text style={{ marginTop: 4, fontSize: 14, color: '#94A3B8' }}>
+          <Text style={{ marginTop: 4, fontSize: 14, color: COLORS.placeholder }}>
             You haven't made any payments yet.
           </Text>
         </View>
@@ -170,7 +171,7 @@ const PaymentHistoryScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       
 
@@ -247,10 +248,10 @@ const PaymentHistoryScreen = ({ navigation }) => {
           activeOpacity={0.85}
         >
           {exporting
-            ? <ActivityIndicator size="small" color="#fff" />
+            ? <ActivityIndicator size="small" color={COLORS.white} />
             : (
               <>
-                <MaterialCommunityIcons name="microsoft-excel" size={18} color="#fff" />
+                <MaterialCommunityIcons name="microsoft-excel" size={18} color={COLORS.white} />
                 <Text style={styles.downloadBtnText}>Download Excel Report</Text>
               </>
             )}

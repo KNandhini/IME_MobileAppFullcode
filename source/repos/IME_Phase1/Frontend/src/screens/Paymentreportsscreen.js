@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 /**
  * PaymentReportsScreen.js
  * Admin -> Payment Reports for the logged-in admin's club.
@@ -215,7 +216,7 @@ const monthPickerStyles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
   },
   fieldText: {
     fontSize: 15,
@@ -234,7 +235,7 @@ const monthPickerStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E7ECF5',
     borderRadius: 12,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     paddingVertical: 12,
     paddingHorizontal: 10,
     shadowColor: '#000',
@@ -293,7 +294,7 @@ const monthPickerStyles = StyleSheet.create({
     fontWeight: '500',
   },
   monthCellTextSelected: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '700',
   },
   monthCellTextDisabled: {
@@ -471,7 +472,7 @@ const PaymentReportsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <MonthYearPicker
@@ -495,7 +496,7 @@ const PaymentReportsScreen = ({ navigation }) => {
           activeOpacity={0.85}
         >
           {loading
-            ? <ActivityIndicator size="small" color="#fff" />
+            ? <ActivityIndicator size="small" color={COLORS.white} />
             : <Text style={styles.getBtnText}>Get Payment</Text>
           }
         </TouchableOpacity>
@@ -530,7 +531,7 @@ const PaymentReportsScreen = ({ navigation }) => {
                   activeOpacity={0.85}
                 >
                   {exporting
-                    ? <ActivityIndicator size="small" color="#fff" />
+                    ? <ActivityIndicator size="small" color={COLORS.white} />
                     : <Text style={styles.downloadBtnText}> Download as Excel</Text>
                   }
                 </TouchableOpacity>

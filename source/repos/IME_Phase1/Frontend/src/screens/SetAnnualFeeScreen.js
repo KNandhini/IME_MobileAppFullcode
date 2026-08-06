@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -87,7 +88,7 @@ const SetAnnualFeeScreen = () => {
       <View style={styles.currentCard}>
         <Text style={styles.currentTitle}>Current Annual Fee</Text>
         {fetching ? (
-          <ActivityIndicator color="#fff" />
+          <ActivityIndicator color={COLORS.white} />
         ) : currentFee ? (
           <>
             <Text style={styles.currentAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
@@ -138,7 +139,7 @@ const SetAnnualFeeScreen = () => {
           disabled={loading}
         >
           {loading
-            ? <ActivityIndicator color="#fff" />
+            ? <ActivityIndicator color={COLORS.white} />
             : <Text style={styles.buttonText}>Set Annual Fee</Text>
           }
         </TouchableOpacity>

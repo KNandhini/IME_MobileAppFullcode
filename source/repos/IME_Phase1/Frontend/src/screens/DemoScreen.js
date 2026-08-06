@@ -1,13 +1,15 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Animated, StatusBar, Dimensions, ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DemoScreenStyles as styles } from './screenStyles';
 
 const { width: W, height: H } = Dimensions.get('window');
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const WHITE = '#FFFFFF';
-const LIGHT = '#F0F4F8';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
+const WHITE = COLORS.white;
+const LIGHT = COLORS.bg;
 
 const AUTO_ADVANCE_MS = 5000;
 
@@ -19,8 +21,8 @@ const SLIDES = [
     subtitle: 'Member Portal',
     desc: 'A unified platform for IME members to connect, collaborate, and stay informed. Available on Android and iOS.',
     icon: 'city-variant-outline',
-    color: '#1E3A5F',
-    accent: '#D4A017',
+    color: COLORS.primary,
+    accent: COLORS.accent,
     mockup: 'splash',
   },
   {
@@ -29,8 +31,8 @@ const SLIDES = [
     subtitle: 'Sign In Screen',
     desc: 'Launch the IME app to reach the sign-in screen. Tap "Sign In" with your registered email and password.',
     icon: 'login',
-    color: '#1E3A5F',
-    accent: '#D4A017',
+    color: COLORS.dark,
+    accent: COLORS.secondary,
     mockup: 'login',
   },
   {
@@ -39,8 +41,8 @@ const SLIDES = [
     subtitle: 'Email & Password',
     desc: 'Type your registered email address and password. Tap the eye icon to show/hide your password.',
     icon: 'form-textbox-password',
-    color: '#1565C0',
-    accent: '#42A5F5',
+    color: COLORS.primary,
+    accent: COLORS.secondary,
     mockup: 'credentials',
   },
   {
@@ -49,8 +51,8 @@ const SLIDES = [
     subtitle: 'Member Feed',
     desc: 'After logging in, explore the Home feed — see news, activities, circulars, and member posts in one place.',
     icon: 'home-outline',
-    color: '#2E7D32',
-    accent: '#66BB6A',
+    color: COLORS.dark,
+    accent: COLORS.accent,
     mockup: 'home',
   },
   {
@@ -59,8 +61,8 @@ const SLIDES = [
     subtitle: 'Manage Your Details',
     desc: 'View and edit your profile, update your photo, contact info, location, and membership details.',
     icon: 'account-circle-outline',
-    color: '#6A1B9A',
-    accent: '#AB47BC',
+    color: COLORS.primary,
+    accent: COLORS.accent,
     mockup: 'profile',
   },
   {
@@ -69,8 +71,8 @@ const SLIDES = [
     subtitle: 'Stay Engaged',
     desc: 'Browse upcoming workshops, seminars, and field events. Register with one tap and view past activity reports.',
     icon: 'calendar-star',
-    color: '#E65100',
-    accent: '#FFA726',
+    color: COLORS.dark,
+    accent: COLORS.secondary,
     mockup: 'activities',
   },
   {
@@ -79,8 +81,8 @@ const SLIDES = [
     subtitle: 'Get Help Anytime',
     desc: 'Raise support tickets, track their status, and chat directly with other members or the support team.',
     icon: 'headset',
-    color: '#00695C',
-    accent: '#26A69A',
+    color: COLORS.primary,
+    accent: COLORS.secondary,
     mockup: 'support',
   },
   {
@@ -89,8 +91,8 @@ const SLIDES = [
     subtitle: 'Contribute & Grow',
     desc: 'View active fundraising campaigns, make contributions, and track your donation history securely.',
     icon: 'hand-coin-outline',
-    color: '#AD1457',
-    accent: '#EC407A',
+    color: COLORS.dark,
+    accent: COLORS.accent,
     mockup: 'fund',
   },
   {
@@ -99,8 +101,8 @@ const SLIDES = [
     subtitle: 'Find Corporations',
     desc: 'Browse municipal corporations across India. Drill down by State → District → Corporation to view full details.',
     icon: 'map-search-outline',
-    color: '#1565C0',
-    accent: '#42A5F5',
+    color: COLORS.primary,
+    accent: COLORS.secondary,
     mockup: 'map',
   },
   {
@@ -109,8 +111,8 @@ const SLIDES = [
     subtitle: 'Start Your IME Journey',
     desc: 'Sign in with your member credentials to access all features. New member? Register to join the IME community.',
     icon: 'check-circle-outline',
-    color: '#1B5E20',
-    accent: '#69F0AE',
+    color: COLORS.dark,
+    accent: COLORS.accent,
     mockup: 'done',
   },
 ];
@@ -162,10 +164,10 @@ const MockupContent = ({ type, accent }) => {
           </View>
           <View style={{ backgroundColor: WHITE, borderRadius: 10, margin: 8, padding: 10 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 11, marginBottom: 6 }}>Sign In</Text>
-            <View style={{ height: 22, borderRadius: 6, borderWidth: 1, borderColor: '#BBDEFB', backgroundColor: '#F9FAFE', marginBottom: 6, paddingHorizontal: 6, justifyContent: 'center' }}>
+            <View style={{ height: 22, borderRadius: 6, borderWidth: 1, borderColor: COLORS.selected, backgroundColor: '#F9FAFE', marginBottom: 6, paddingHorizontal: 6, justifyContent: 'center' }}>
               <Text style={{ color: '#9E9E9E', fontSize: 8 }}>Email Address</Text>
             </View>
-            <View style={{ height: 22, borderRadius: 6, borderWidth: 1, borderColor: '#BBDEFB', backgroundColor: '#F9FAFE', marginBottom: 10, paddingHorizontal: 6, justifyContent: 'center' }}>
+            <View style={{ height: 22, borderRadius: 6, borderWidth: 1, borderColor: COLORS.selected, backgroundColor: '#F9FAFE', marginBottom: 10, paddingHorizontal: 6, justifyContent: 'center' }}>
               <Text style={{ color: '#9E9E9E', fontSize: 8 }}>Password</Text>
             </View>
             <View style={{ backgroundColor: NAVY, borderRadius: 6, paddingVertical: 6, alignItems: 'center' }}>
@@ -175,7 +177,7 @@ const MockupContent = ({ type, accent }) => {
           <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 6 }}>
             {['About', 'Demo', 'Map'].map(l => (
               <View key={l} style={{ alignItems: 'center' }}>
-                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: 'rgba(212,160,23,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.selected, alignItems: 'center', justifyContent: 'center' }}>
                   <MaterialCommunityIcons name="information-outline" size={12} color={GOLD} />
                 </View>
                 <Text style={{ color: WHITE, fontSize: 7, marginTop: 2 }}>{l}</Text>
@@ -193,7 +195,7 @@ const MockupContent = ({ type, accent }) => {
             <View style={{ height: 24, borderRadius: 6, borderWidth: 2, borderColor: NAVY, backgroundColor: '#F9FAFE', marginBottom: 6, paddingHorizontal: 6, justifyContent: 'center' }}>
               <Text style={{ color: NAVY, fontSize: 9 }}>member@ime.org</Text>
             </View>
-            <View style={{ height: 24, borderRadius: 6, borderWidth: 1, borderColor: '#BBDEFB', backgroundColor: '#F9FAFE', marginBottom: 12, paddingHorizontal: 6, justifyContent: 'center', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ height: 24, borderRadius: 6, borderWidth: 1, borderColor: COLORS.selected, backgroundColor: '#F9FAFE', marginBottom: 12, paddingHorizontal: 6, justifyContent: 'center', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Text style={{ color: NAVY, fontSize: 9 }}>••••••••</Text>
               <MaterialCommunityIcons name="eye-outline" size={12} color="#9E9E9E" />
             </View>
@@ -335,7 +337,7 @@ const MockupContent = ({ type, accent }) => {
           </View>
           <View style={{ flexDirection: 'row', padding: 6 }}>
             {['Countries', 'States', 'Districts', 'Corps'].map((l, i) => (
-              <View key={l} style={{ flex: 1, backgroundColor: i === 3 ? GOLD : 'rgba(30,58,95,0.12)', borderRadius: 10, paddingVertical: 3, marginRight: i < 3 ? 3 : 0, alignItems: 'center' }}>
+              <View key={l} style={{ flex: 1, backgroundColor: i === 3 ? GOLD : COLORS.infoLight, borderRadius: 10, paddingVertical: 3, marginRight: i < 3 ? 3 : 0, alignItems: 'center' }}>
                 <Text style={{ fontSize: 6, color: i === 3 ? NAVY : '#6B7A8D', fontWeight: '700' }}>{l}</Text>
               </View>
             ))}
@@ -362,7 +364,7 @@ const MockupContent = ({ type, accent }) => {
     case 'done':
       return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <MaterialCommunityIcons name="check-circle" size={52} color="#69F0AE" />
+          <MaterialCommunityIcons name="check-circle" size={52} color={COLORS.accent} />
           <Text style={{ color: WHITE, fontWeight: '900', fontSize: 14, marginTop: 10, textAlign: 'center' }}>
             Ready to Go!
           </Text>
@@ -470,10 +472,10 @@ const DemoScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={slide.color} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Top bar ── */}
-      <View style={[styles.topBar, { backgroundColor: slide.color }]}>
+      <GradientHeader style={[styles.topBar, { backgroundColor: slide.color }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color={WHITE} />
         </TouchableOpacity>
@@ -485,7 +487,7 @@ const DemoScreen = ({ navigation }) => {
             color={WHITE}
           />
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       {/* ── Slide progress strips ── */}
       <View style={[styles.stripsRow, { backgroundColor: slide.color }]}>

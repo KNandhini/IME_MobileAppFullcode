@@ -1,3 +1,4 @@
+import GradientHeader from '../components/GradientHeader';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator } from 'react-native';
 import { Menu } from 'react-native-paper';
@@ -12,7 +13,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 // Local color constants — GOLD/NAVY are only defined inside the
 // AddAdminScreenStyles closure, so the component needs its own copy.
-const NAVY = COLORS.navy;
+const NAVY = COLORS.primary;
 const GOLD = COLORS.gold;
 
 // ── Field wrapper — local styles.field (own copy, matches Activity Form) ──
@@ -76,7 +77,7 @@ function PasswordField({ label, required, value, onChangeText, error, hint, visi
           style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
+          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
       </View>
     </Field>
@@ -476,8 +477,8 @@ const handleSignup = async () => {
 };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
-      <View style={styles.navbar}>
+    <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
           <Text style={styles.navCancel}>Cancel</Text>
         </TouchableOpacity>
@@ -487,7 +488,7 @@ const handleSignup = async () => {
             ? <ActivityIndicator size="small" color={GOLD} />
             : <Text style={styles.navSave}>Save</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
@@ -628,7 +629,7 @@ const handleSignup = async () => {
                 style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <MaterialCommunityIcons name="calendar-outline" size={20} color="#94A3B8" />
+                <MaterialCommunityIcons name="calendar-outline" size={20} color={COLORS.placeholder} />
               </TouchableOpacity>
             </View>
           </Field>

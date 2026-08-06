@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -489,9 +491,9 @@ export default function ClubFormScreen({ route, navigation }) {
   return (
     <View style={styles.root}>
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         {/* <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <Ionicons name="close" size={22} color="#fff" />
+          <Ionicons name="close" size={22} color={COLORS.white} />
         </TouchableOpacity> */}
         <TouchableOpacity
                 onPress={() => navigation.goBack()}
@@ -503,10 +505,10 @@ export default function ClubFormScreen({ route, navigation }) {
         <Text style={styles.headerTitle}>{isEditMode ? 'Edit Club' : 'Add Club'}</Text>
         <TouchableOpacity onPress={handleSave} style={styles.headerBtn} disabled={saving || loading}>
           {saving || loading
-            ? <ActivityIndicator size="small" color="#D4A017" />
+            ? <ActivityIndicator size="small" color={COLORS.accent} />
             : <Text style={styles.saveText}>Save</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
@@ -553,7 +555,7 @@ export default function ClubFormScreen({ route, navigation }) {
               autoCapitalize="characters"
             />
             <TouchableOpacity style={styles.regenBtn} onPress={fetchNextCode} activeOpacity={0.75}>
-              <Ionicons name="refresh" size={18} color="#1E3A5F" />
+              <Ionicons name="refresh" size={18} color={COLORS.dark} />
             </TouchableOpacity>
           </View>
         </Field>
@@ -579,7 +581,7 @@ export default function ClubFormScreen({ route, navigation }) {
             <Text style={form.countryName ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.countryName || 'Select country'}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#94A3B8" />
+            <Ionicons name="chevron-down" size={16} color={COLORS.placeholder} />
           </TouchableOpacity>
         </Field>
 
@@ -591,7 +593,7 @@ export default function ClubFormScreen({ route, navigation }) {
             <Text style={form.stateName ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.stateName || (form.countryId ? 'Select state' : 'Select country first')}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#94A3B8" />
+            <Ionicons name="chevron-down" size={16} color={COLORS.placeholder} />
           </TouchableOpacity>
         </Field>
 
@@ -723,7 +725,7 @@ export default function ClubFormScreen({ route, navigation }) {
             <Text style={form.clubType ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.clubType || 'Select club type'}
             </Text>
-            <Ionicons name="chevron-down" size={16} color="#94A3B8" />
+            <Ionicons name="chevron-down" size={16} color={COLORS.placeholder} />
           </TouchableOpacity>
         </Field>
 
@@ -735,7 +737,7 @@ export default function ClubFormScreen({ route, navigation }) {
             <Text style={form.establishedDate ? styles.selectorValue : styles.selectorPlaceholder}>
               {form.establishedDate || 'Select date'}
             </Text>
-            <Ionicons name="calendar-outline" size={16} color="#94A3B8" />
+            <Ionicons name="calendar-outline" size={16} color={COLORS.placeholder} />
           </TouchableOpacity>
         </Field>
         {showDatePicker && (
@@ -852,7 +854,7 @@ export default function ClubFormScreen({ route, navigation }) {
                 });
               }}
             >
-              <Ionicons name="person-add-outline" size={17} color="#1E3A5F" />
+              <Ionicons name="person-add-outline" size={17} color={COLORS.dark} />
               <Text style={styles.addAdminButtonText}>
                 Click here to add new admin
               </Text>
@@ -880,7 +882,7 @@ export default function ClubFormScreen({ route, navigation }) {
               <Ionicons
                 name="people"
                 size={18}
-                color="#94A3B8"
+                color={COLORS.placeholder}
               />
             </TouchableOpacity>
           )}
@@ -916,7 +918,7 @@ export default function ClubFormScreen({ route, navigation }) {
                 <Ionicons
                   name="person-circle-outline"
                   size={20}
-                  color="#94A3B8"
+                  color={COLORS.placeholder}
                 />
               </View>
             </View>
@@ -974,8 +976,8 @@ export default function ClubFormScreen({ route, navigation }) {
           <Switch
             value={form.isActive}
             onValueChange={v => set('isActive', v)}
-            trackColor={{ false: '#ddd', true: '#1E3A5F' }}
-            thumbColor={form.isActive ? '#D4A017' : '#f4f3f4'}
+            trackColor={{ false: '#ddd', true: COLORS.dark }}
+            thumbColor={form.isActive ? COLORS.accent : '#f4f3f4'}
           />
         </View>
 
@@ -1042,7 +1044,7 @@ export default function ClubFormScreen({ route, navigation }) {
                       <Text style={[styles.modalItemText, selected && styles.modalItemTextSelected]}>{item.fullName}</Text>
                       {item.email ? <Text style={styles.modalItemSub}>{item.email}</Text> : null}
                     </View>
-                    {selected && <Ionicons name="checkmark-circle" size={20} color="#1E3A5F" />}
+                    {selected && <Ionicons name="checkmark-circle" size={20} color={COLORS.dark} />}
                   </TouchableOpacity>
                 );
               }}

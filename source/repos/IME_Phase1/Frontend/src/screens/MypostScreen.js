@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, Alert, Image } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -94,13 +96,13 @@ const MyPostScreen = ({ navigation }) => {
 
   // ── Header ─────────────────────────────────────────────
   const renderHeader = () => (
-    <View style={styles.appHeader}>
+    <GradientHeader style={styles.appHeader}>
       <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
         <Text style={styles.backIcon}>←</Text>
       </TouchableOpacity>
       <Text style={styles.headerTitle}>My Post</Text>
       <View style={styles.backBtn} />
-    </View>
+    </GradientHeader>
   );
 
   // ── Single post card (mirrors the feed card look, plus a delete icon) ──
@@ -163,7 +165,7 @@ const MyPostScreen = ({ navigation }) => {
     <View>
       {loadingMore && (
         <View style={styles.footerLoader}>
-          <ActivityIndicator size="small" color="#1E3A5F" />
+          <ActivityIndicator size="small" color={COLORS.dark} />
           <Text style={styles.footerLoaderText}>Loading more...</Text>
         </View>
       )}
@@ -178,10 +180,10 @@ const MyPostScreen = ({ navigation }) => {
   if (initialLoad) {
     return (
       <View style={styles.container}>
-        <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+        <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
         {renderHeader()}
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color="#1E3A5F" />
+          <ActivityIndicator size="large" color={COLORS.dark} />
           <Text style={styles.centerText}>Loading your posts...</Text>
         </View>
       </View>
@@ -191,7 +193,7 @@ const MyPostScreen = ({ navigation }) => {
   if (error && posts.length === 0) {
     return (
       <View style={styles.container}>
-        <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+        <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
         {renderHeader()}
         <View style={styles.centerBox}>
           <Text style={styles.errorIcon}>⚠️</Text>
@@ -206,7 +208,7 @@ const MyPostScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
       {renderHeader()}
 
       <FlatList
@@ -220,7 +222,7 @@ const MyPostScreen = ({ navigation }) => {
         contentContainerStyle={posts.length === 0 ? styles.emptyContent : styles.listContent}
         style={styles.list}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={['#1E3A5F']} tintColor="#1E3A5F" />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[COLORS.dark]} tintColor={COLORS.dark} />
         }
         ListEmptyComponent={
           <View style={styles.emptyWrap}>

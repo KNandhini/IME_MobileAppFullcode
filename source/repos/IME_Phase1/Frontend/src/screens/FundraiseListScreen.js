@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Alert, Animated, Image, ActivityIndicator, RefreshControl } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -16,12 +17,12 @@ const API_BASE_URL = "https://imei.co.in/api"; // ✅ ADDED — same pattern as 
 // directly-loadable static URL.
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
-const PRIMARY  = '#1E3A5F';
+const PRIMARY  = COLORS.dark;
 const ACCENT   = '#2E86DE';
 const SUCCESS  = '#27AE60';
 const DANGER   = '#E74C3C';
 const BG       = '#F0F4FA';
-const CARD_BG  = '#FFFFFF';
+const CARD_BG  = COLORS.white;
 const PAGE_SIZE = 10;
 
 const URGENCY = {

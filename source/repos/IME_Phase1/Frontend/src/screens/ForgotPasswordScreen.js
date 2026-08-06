@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { authService } from '../services/authService';
@@ -129,14 +131,14 @@ const ForgotPasswordScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.card}>
 
-        <View style={styles.header}>
+        <GradientHeader style={styles.header}>
           <Text style={styles.title}>Forgot Password</Text>
           <Text style={styles.subtitle}>
             {step === 1
               ? 'Enter your details to validate'
               : 'Enter new password'}
           </Text>
-        </View>
+        </GradientHeader>
 
         {step === 1 ? (
           <View style={styles.form}>
@@ -167,7 +169,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
               activeOpacity={0.85}
             >
               {loading
-                ? <ActivityIndicator color="#D4A017" />
+                ? <ActivityIndicator color={COLORS.accent} />
                 : <Text style={styles.buttonText}>Validate</Text>}
             </TouchableOpacity>
           </View>
@@ -198,7 +200,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
               activeOpacity={0.85}
             >
               {loading
-                ? <ActivityIndicator color="#D4A017" />
+                ? <ActivityIndicator color={COLORS.accent} />
                 : <Text style={styles.buttonText}>Reset Password</Text>}
             </TouchableOpacity>
           </View>

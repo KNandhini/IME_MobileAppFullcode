@@ -1,13 +1,15 @@
+import { COLORS } from './theme';
 import React, { useRef, useEffect } from 'react';
 import { View, Text, ScrollView, Animated, TouchableOpacity, StatusBar } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { AboutScreenStyles as styles } from './screenStyles';
 
 // ── Palette ────────────────────────────────────────────────────
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const LIGHT = '#F0F4F8';
-const WHITE = '#FFFFFF';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
+const LIGHT = COLORS.bg;
+const WHITE = COLORS.white;
 const GREY = '#6B7A8D';
 
 // ── Data ───────────────────────────────────────────────────────
@@ -119,13 +121,17 @@ const AboutScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar barStyle="light-content" backgroundColor={NAVY} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
         {/* ── Hero Banner ── */}
-        <View style={styles.hero}>
+        <LinearGradient
+          colors={[COLORS.headerStart, COLORS.headerEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.hero}>
           <FadeIn delay={0}>
             <Text style={styles.heroEyebrow}>PROPOSED INSTITUTION</Text>
           </FadeIn>
@@ -143,7 +149,7 @@ const AboutScreen = ({ navigation }) => {
           </FadeIn>
           <View style={styles.decorCircle1} />
           <View style={styles.decorCircle2} />
-        </View>
+        </LinearGradient>
 
         {/* ── Quick Stats ── */}
         <FadeIn delay={400}>

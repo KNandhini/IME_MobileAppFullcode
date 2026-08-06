@@ -28,7 +28,7 @@ export const detailHeader = {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.navy,
+    backgroundColor: COLORS.headerStart,
     paddingTop: (StatusBar.currentHeight || 0) + 6,
     paddingBottom: 12,
     paddingHorizontal: 12,
@@ -49,7 +49,7 @@ export const formNavbar = {
     paddingHorizontal: 12,
     paddingVertical: 12,
     paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-    backgroundColor: COLORS.navy,
+    backgroundColor: COLORS.headerStart,
   },
   navSide: { minWidth: 72, paddingHorizontal: 4 },
   navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: COLORS.white, textAlign: 'center' },
@@ -69,14 +69,14 @@ export function fab(extra = {}, bottomInset = 0) {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: COLORS.navy,
+    backgroundColor: COLORS.fabBackground,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 4,
     ...extra,
   };
 }
-export const fabText = { color: COLORS.gold, fontSize: 24, fontWeight: '700', lineHeight: 28 };
+export const fabText = { color: COLORS.fabIcon, fontSize: 24, fontWeight: '700', lineHeight: 28 };
 
 /* ---------------------------------------------------------------------- */
 /* Full-screen image lightbox / viewer                                    */
@@ -90,7 +90,7 @@ export const lightbox = {
     backgroundColor: 'rgba(255,255,255,0.2)', borderRadius: 20,
     width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10,
   },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  viewerCloseText: { color: COLORS.white, fontSize: 18, fontWeight: '700' },
 };
 
 /* Variant with a plain padded close icon (no background pill) */
@@ -130,11 +130,11 @@ export const attachmentGrid = {
     backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 8,
     width: 18, height: 18, alignItems: 'center', justifyContent: 'center',
   },
-  thumbRemoveText: { fontSize: 10, color: '#fff', fontWeight: '700' },
+  thumbRemoveText: { fontSize: 10, color: COLORS.white, fontWeight: '700' },
   thumbAdd: {
     width: 80, height: 80, borderRadius: 10, margin: 4,
     borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed',
-    alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC',
+    alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.bg,
   },
   thumbAddIcon: { fontSize: 22, marginBottom: 2 },
   thumbAddText: { fontSize: 9, color: COLORS.textMuted, textAlign: 'center', fontWeight: '500' },
@@ -149,9 +149,9 @@ export const radioOption = {
   radioOption: {
     flexDirection: 'row', alignItems: 'center',
     borderWidth: 1.5, borderColor: '#D1D5DB', borderRadius: 10,
-    padding: 14, backgroundColor: '#fff',
+    padding: 14, backgroundColor: COLORS.white,
   },
-  radioOptionSelected: { borderColor: COLORS.navy, backgroundColor: '#EFF6FF' },
+  radioOptionSelected: { borderColor: COLORS.navy, backgroundColor: COLORS.selected },
   radioCircle: {
     width: 20, height: 20, borderRadius: 10,
     borderWidth: 2, borderColor: '#9CA3AF',
@@ -196,7 +196,7 @@ export function badge({ bg = '#FEF9EC', color = '#B7791F' } = {}) {
 export const emptyState = {
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 60 },
   emptyIcon: { fontSize: 48, marginBottom: 12 },
-  emptyTitle: { fontSize: 16, fontWeight: '700', color: '#2D3748', marginTop: 12, marginBottom: 4 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: COLORS.dark, marginTop: 12, marginBottom: 4 },
   emptyText: { fontSize: 14, color: COLORS.placeholder },
 };
 
@@ -205,7 +205,7 @@ export const emptyState = {
 /* ---------------------------------------------------------------------- */
 export function input(extra = {}) {
   return {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: COLORS.bg,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: Platform.OS === 'ios' ? 12 : 10,
