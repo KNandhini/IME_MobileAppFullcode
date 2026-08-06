@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity, Alert, Animated, StatusBar, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,10 +8,11 @@ import WelcomeCard from '../components/WelcomeCard';
 import { SplashFadeContext } from '../navigation/AppNavigator';
 import { LoginScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 // ── Field wrapper — matches Achievement/JobPosting/Club/ChangePassword ──
 function Field({ label, children, error, hint }) {
@@ -43,7 +45,7 @@ function IconInputField({ leftIcon, rightIcon, onRightIconPress, hasError, style
         {...props}
       />
       <View style={{ position: 'absolute', left: 14, top: 0, bottom: 0, justifyContent: 'center' }}>
-        <MaterialCommunityIcons name={leftIcon} size={19} color="#94A3B8" />
+        <MaterialCommunityIcons name={leftIcon} size={19} color={COLORS.placeholder} />
       </View>
       {rightIcon && (
         <TouchableOpacity
@@ -51,7 +53,7 @@ function IconInputField({ leftIcon, rightIcon, onRightIconPress, hasError, style
           style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialCommunityIcons name={rightIcon} size={20} color="#94A3B8" />
+          <MaterialCommunityIcons name={rightIcon} size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
       )}
     </View>
@@ -137,10 +139,14 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <Animated.View style={[styles.root, { opacity: screenOpacity }]}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Hero / Logo section ── */}
-      <View style={styles.heroBg}>
+      <LinearGradient
+        colors={[COLORS.headerStart, COLORS.headerEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.heroBg}>
         <View style={styles.circle1} />
         <View style={styles.circle2} />
         <View style={styles.circle3} />
@@ -148,7 +154,7 @@ const LoginScreen = ({ navigation }) => {
           style={[styles.logoWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
           <IMELogo size="large" animated={false} />
         </Animated.View>
-      </View>
+      </LinearGradient>
 
       {/* ── Scrollable body ── */}
       <KeyboardAvoidingView
@@ -204,7 +210,7 @@ const LoginScreen = ({ navigation }) => {
               <MaterialCommunityIcons
                 name={loading ? 'loading' : 'login'}
                 size={18}
-                color="#fff"
+                color={COLORS.white}
                 style={styles.loginBtnIcon}
               />
               <Text style={styles.loginBtnText}>{loading ? 'Signing in…' : 'Sign In'}</Text>

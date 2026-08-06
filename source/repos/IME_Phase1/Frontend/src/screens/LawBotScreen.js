@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 /**
  * LawBotScreen.js
  * IME Law Bot — 74th Constitutional Amendment AI Assistant
@@ -140,12 +142,12 @@ const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={styles.safe}>
     <StatusBar
-  backgroundColor="#1E3A5F"
+  backgroundColor={COLORS.headerStart}
   barStyle="light-content"
   translucent={false}
 />
 
-    <View style={styles.header}>
+    <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
@@ -160,7 +162,7 @@ const insets = useSafeAreaInsets();
           <View style={styles.liveDot} />
           <Text style={styles.liveText}>AI</Text>
         </View>
-      </View>
+      </GradientHeader>
 
       
 
@@ -190,7 +192,7 @@ const insets = useSafeAreaInsets();
               <Text style={styles.botAvatarText}>⚖</Text>
             </View>
             <View style={styles.typingBubble}>
-              <ActivityIndicator size="small" color="#1E3A5F" />
+              <ActivityIndicator size="small" color={COLORS.dark} />
               <Text style={styles.typingText}>Searching the law book…</Text>
             </View>
           </View>
@@ -231,7 +233,7 @@ const insets = useSafeAreaInsets();
             activeOpacity={0.8}
           >
             {loading
-              ? <ActivityIndicator size="small" color="#fff" />
+              ? <ActivityIndicator size="small" color={COLORS.white} />
               : <Text style={styles.sendIcon}>➤</Text>
             }
           </TouchableOpacity>

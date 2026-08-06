@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -11,7 +13,7 @@ import { MagazineFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const NAVY = '#2b3139';
-const GOLD = '#D4A017';
+const GOLD = COLORS.accent;
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 const toPublicUrl = (filePath) => {
@@ -241,9 +243,9 @@ const MagazineFormScreen = ({ route, navigation }) => {
 const totalAttachments = existingAttachments.length + attachments.length;
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
@@ -253,7 +255,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
             ? <ActivityIndicator size="small" color={GOLD} />
             : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
@@ -333,7 +335,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
             activeOpacity={0.8}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 15, color: '#1E293B', fontWeight: '500' }}>
+              <Text style={{ fontSize: 15, color: COLORS.dark, fontWeight: '500' }}>
                 {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
               </Text>
               <MaterialCommunityIcons name="calendar-outline" size={18} color={NAVY} />

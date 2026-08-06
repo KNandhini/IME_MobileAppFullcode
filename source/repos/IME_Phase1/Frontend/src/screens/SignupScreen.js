@@ -5,14 +5,17 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import api from '../utils/api';
 import { clubService } from '../services/clubService';
+// Registration shares the nested field/input/picker style contract used by
+// AddAdminScreen (for example styles.field.wrapper and styles.styledInput.base).
 import { AddAdminScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { COLORS } from './theme'; // ← adjust this path to wherever COLORS actually lives
 
 // Local color constants — same design system as AdminSignupScreen.
-const NAVY = COLORS.navy;
+const NAVY = COLORS.primary;
 const GOLD = COLORS.gold;
 // Author Name: letters, numbers, spaces, dot, comma, hyphen
 const AUTHOR_REGEX = /^[A-Za-z0-9\s.,-]*$/;
@@ -77,7 +80,7 @@ function PasswordField({ label, required, value, onChangeText, error, hint, visi
           style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
+          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
       </View>
     </Field>
@@ -438,17 +441,21 @@ const SignupScreen = ({ navigation, route }) => {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
+    <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <LinearGradient
+        colors={[COLORS.headerStart, COLORS.headerEnd]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.header}>
         {navigation?.canGoBack?.() && (
           <TouchableOpacity style={styles.headerBackBtn} onPress={() => navigation.goBack()}>
-            <MaterialCommunityIcons name="arrow-left" size={20} color="#fff" />
+            <MaterialCommunityIcons name="arrow-left" size={20} color={COLORS.white} />
           </TouchableOpacity>
         )}
         <Text style={styles.headerTitle}>Create Account</Text>
         <Text style={styles.headerSubtitle}>Join IME to access member benefits</Text>
-      </View>
+      </LinearGradient>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
@@ -590,7 +597,7 @@ const SignupScreen = ({ navigation, route }) => {
                 style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               >
-                <MaterialCommunityIcons name="calendar-outline" size={20} color="#94A3B8" />
+                <MaterialCommunityIcons name="calendar-outline" size={20} color={COLORS.placeholder} />
               </TouchableOpacity>
             </View>
           </Field>
@@ -684,15 +691,15 @@ const SignupScreen = ({ navigation, route }) => {
 
           <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
             {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={COLORS.white} />
             ) : (
-              <Text style={{ color: '#fff', textAlign: 'center', fontWeight: '700', fontSize: 15 }}>Register</Text>
+              <Text style={{ color: COLORS.white, textAlign: 'center', fontWeight: '700', fontSize: 15 }}>Register</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
-          <Text style={{ color: NAVY, textAlign: 'center', fontWeight: '600', fontSize: 14 }}>
+          <Text style={{ color: COLORS.secondary, textAlign: 'center', fontWeight: '600', fontSize: 14 }}>
             Already have an account? Login
           </Text>
         </TouchableOpacity>

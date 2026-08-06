@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
+import { COLORS, SHADOW, SPACING } from '../screens/theme';
 
-const GOLD = '#D4AF37'; // Government Gold — aligned with theme.js accent
+const GOLD = COLORS.accent;
 
 const IMELogo = ({ size = 'large', animated = true }) => {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -56,15 +57,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   circle: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
-    shadowColor: '#0A1E33',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    elevation: 5,
+    marginBottom: SPACING.md,
+    ...SHADOW.lg,
   },
   acronym: {
     color: GOLD,
@@ -74,7 +71,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   orgName: {
-    color: '#FFFFFF',
+    color: COLORS.white,
     fontWeight: '800',
     fontSize: 16,
     letterSpacing: 0.3,

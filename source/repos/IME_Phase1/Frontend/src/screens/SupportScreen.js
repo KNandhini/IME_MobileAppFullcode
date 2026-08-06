@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -35,7 +37,7 @@ const FALLBACK_CATEGORIES = [
 // the ones where the shared style happens to be wired up correctly.
 const ERROR_STYLE = {
   borderWidth: 1.5,
-  borderColor: '#EF4444',
+  borderColor: COLORS.danger,
   backgroundColor: '#FEF2F2',
 };
 
@@ -106,7 +108,7 @@ function Dropdown({ label, options, value, onChange, placeholder = 'Select…', 
         onPress={() => !loading && setOpen(true)}
         activeOpacity={0.8}
       >
-        {loading ? <ActivityIndicator size="small" color="#3B82F6" /> : null}
+        {loading ? <ActivityIndicator size="small" color={COLORS.primary} /> : null}
 
         <Text style={[dd.triggerText, !selected && dd.placeholder]}>
           {loading ? 'Loading…' : selected ? selected.label : placeholder}
@@ -257,7 +259,7 @@ function StyledInput({ hasError, multiline, style, ...props }) {
         hasError && ERROR_STYLE,
         style,
       ]}
-      placeholderTextColor="#CBD5E1"
+      placeholderTextColor={COLORS.placeholder}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       multiline={multiline}
@@ -582,12 +584,12 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
 
   return (
     <Modal visible={visible} animationType="none" transparent={false} statusBarTranslucent onRequestClose={handleClose}>
-      <StatusBar barStyle="light-content" backgroundColor="#1E3A5F" />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
       <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
         <Animated.View style={[{ flex: 1 }, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
 
           {/* ── Navigation Bar with Cancel / Add buttons ── */}
-          <View style={fs.navbar}>
+          <GradientHeader style={fs.navbar}>
             <TouchableOpacity onPress={handleClose} style={fs.navSideBtn}>
               <Text style={fs.navCancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -597,7 +599,7 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
             <TouchableOpacity onPress={handleSubmit} style={fs.navSideBtn}>
               <Text style={fs.navSubmitText}>{editItem ? 'Update' : 'Save'}</Text>
             </TouchableOpacity>
-          </View>
+          </GradientHeader>
           <View style={fs.accentBar} />
 
           {/* ── Form Body ── */}
@@ -880,7 +882,7 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
               <MaterialCommunityIcons
                 name="pencil-outline"
                 size={22}
-                color="#1E3A5F"
+                color={COLORS.dark}
               />
             </TouchableOpacity>
 
@@ -888,7 +890,7 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
               <MaterialCommunityIcons
                 name="delete-outline"
                 size={22}
-                color="#D9534F"
+                color={COLORS.danger}
               />
             </TouchableOpacity>
           </View>
@@ -922,7 +924,7 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
         )}
 
         <View style={s.textContainer}>
-          <Text style={s.title} numberOfLines={1}>{item.title}</Text>
+          <Text style={s.title} numberOfLines={2}>{item.title}</Text>
           <Text style={s.clubName}>{item.clubName}</Text>
           <Text style={s.description} numberOfLines={2}>{item.description}</Text>
 
@@ -950,8 +952,8 @@ function SupportCard({ item, userRole, onEdit, onDelete, onPress, canManageSuppo
   );
 }
 function categoryColor(id) {
-  const map = { 1: '#3182CE', 2: '#805AD5', 3: '#38A169', 4: '#D97706', 5: '#DD6B20' };
-  return map[id] ?? '#718096';
+  const palette = [COLORS.primary, COLORS.secondary, COLORS.accent, COLORS.dark];
+  return palette[Math.abs(Number(id) || 0) % palette.length];
 }
 
 // ── Tab Content ───────────────────────────────────────────────────────────────
@@ -1044,7 +1046,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
   if (loading && !refreshing) {
     return (
       <View style={s.centered}>
-        <ActivityIndicator size="large" color="#2563EB" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
         <Text style={s.loadingText}>Loading…</Text>
       </View>
     );
@@ -1073,7 +1075,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
         keyExtractor={(item) => item.supportId?.toString() ?? Math.random().toString()}
         contentContainerStyle={s.list}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#2563EB" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
         ListEmptyComponent={
           <View style={s.centered}>
@@ -1208,7 +1210,7 @@ export default function SupportScreen({ navigation }) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centered}>
-          <ActivityIndicator size="large" color="#2563EB" />
+          <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       </SafeAreaView>
     );
@@ -1216,7 +1218,7 @@ export default function SupportScreen({ navigation }) {
 
   return (
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}
       <View style={s.tabBar}>
@@ -1281,7 +1283,7 @@ export default function SupportScreen({ navigation }) {
       {/* ── Saving overlay ── */}
       {submitting && (
         <View style={s.loadingOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={COLORS.white} />
           <Text style={s.loadingOverlayText}>Saving…</Text>
         </View>
       )}

@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 // Place in: src/screens/JobPostingListScreen.js
 
 import React, { useState, useCallback } from 'react';
@@ -21,8 +23,8 @@ const toPublicUrl = (filePath) => {
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
 };
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 const JobPostingListScreen = ({ navigation }) => {
   const { user } = useAuth();
@@ -194,17 +196,17 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      <View style={styles.appHeader}>
+      <GradientHeader style={styles.appHeader}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()} activeOpacity={0.75}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Job Postings</Text>
           {clubName ? <Text style={styles.headerSub}>{clubName}</Text> : null}
         </View>
-      </View>
+      </GradientHeader>
 
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search job postings..." />
 

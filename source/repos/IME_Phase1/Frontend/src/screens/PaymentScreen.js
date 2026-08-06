@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, ActivityIndicator, Modal } from 'react-native';
 import { WebView } from 'react-native-webview';
@@ -72,7 +73,7 @@ const PaymentScreen = ({ navigation }) => {
           }
           .logo {
             width: 56px; height: 56px;
-            background: #2196F3;
+            background: ${COLORS.primary};
             border-radius: 50%;
             line-height: 56px;
             font-size: 28px;
@@ -86,11 +87,11 @@ const PaymentScreen = ({ navigation }) => {
             padding: 14px;
             margin-bottom: 24px;
           }
-          .amount-label { font-size: 13px; color: #1976D2; }
+          .amount-label { font-size: 13px; color: ${COLORS.primary}; }
           .amount-value { font-size: 32px; font-weight: bold; color: #1565C0; }
           .spinner {
             border: 4px solid #e0e0e0;
-            border-top: 4px solid #2196F3;
+            border-top: 4px solid ${COLORS.primary};
             border-radius: 50%;
             width: 40px; height: 40px;
             animation: spin 0.8s linear infinite;
@@ -109,7 +110,7 @@ const PaymentScreen = ({ navigation }) => {
           }
           .retry-btn {
             margin-top: 12px;
-            background: #2196F3;
+            background: ${COLORS.primary};
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -192,7 +193,7 @@ const PaymentScreen = ({ navigation }) => {
               currency: 'INR',
               name: 'Membership Portal',
               description: 'Annual Membership Fee',
-              theme: { color: '#2196F3' },
+              theme: { color: COLORS.primary },
               prefill: {
                 name: '${(userData?.fullName || '').replace(/'/g, "\\'")}',
                 email: '${(userData?.email || '').replace(/'/g, "\\'")}',
@@ -300,7 +301,7 @@ const PaymentScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#2196F3" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -345,7 +346,7 @@ const PaymentScreen = ({ navigation }) => {
             }}
             renderLoading={() => (
               <View style={styles.webViewLoading}>
-                <ActivityIndicator size="large" color="#2196F3" />
+                <ActivityIndicator size="large" color={COLORS.primary} />
                 <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
               </View>
             )}
@@ -402,7 +403,7 @@ const PaymentScreen = ({ navigation }) => {
                 loading={processingPayment}
                 disabled={processingPayment}
                 style={styles.payButton}
-                buttonColor="#2196F3"
+                buttonColor={COLORS.primary}
                 icon="credit-card"
               >
                 Pay ₹2,500

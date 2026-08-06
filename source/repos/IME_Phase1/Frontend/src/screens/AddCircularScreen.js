@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Image, Modal, Linking, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,8 +12,8 @@ import api from '../utils/api';
 import { AddCircularScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
 // strip the trailing "/api" so we get the plain server root to prefix
@@ -213,7 +215,7 @@ const AddCircularScreen = ({ route, navigation }) => {
     <SafeAreaView style={styles.safe}>
 
       {/* Navbar */}
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
@@ -223,7 +225,7 @@ const AddCircularScreen = ({ route, navigation }) => {
             ? <ActivityIndicator size="small" color={GOLD} />
             : <Text style={styles.saveText}>{editData ? 'Update' : 'Save'}</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
@@ -251,7 +253,7 @@ const AddCircularScreen = ({ route, navigation }) => {
           {errors.title ? (
             <Text style={styles.error}>{errors.title}</Text>
           ) : null}
-          <Text style={{ color: "#94A3B8", fontSize: 12, alignSelf: "flex-end", marginTop: 4 }}>{title.length}/{TITLE_MAX_LENGTH}</Text>
+          <Text style={{ color: COLORS.placeholder, fontSize: 12, alignSelf: "flex-end", marginTop: 4 }}>{title.length}/{TITLE_MAX_LENGTH}</Text>
 
           <Text style={styles.label}>Description</Text>
           <TextInput
@@ -267,7 +269,7 @@ const AddCircularScreen = ({ route, navigation }) => {
           {errors.description ? (
             <Text style={styles.error}>{errors.description}</Text>
           ) : null}
-          <Text style={{ color: "#94A3B8", fontSize: 12, alignSelf: "flex-end", marginTop: 4 }}>{description.length}/{DESCRIPTION_MAX_LENGTH}</Text>
+          <Text style={{ color: COLORS.placeholder, fontSize: 12, alignSelf: "flex-end", marginTop: 4 }}>{description.length}/{DESCRIPTION_MAX_LENGTH}</Text>
 
           <Text style={styles.label}>Circular Number</Text>
           <TextInput
@@ -289,7 +291,7 @@ const AddCircularScreen = ({ route, navigation }) => {
 
           <Text style={styles.label}>Publish Date</Text>
           <TouchableOpacity onPress={() => setShowPicker(true)} style={styles.input}>
-            <Text style={{ color: '#1E293B', fontSize: 15 }}>
+            <Text style={{ color: COLORS.dark, fontSize: 15 }}>
               {publishDate
                 ? new Date(publishDate).toLocaleDateString('en-IN')
                 : 'Select Date'}

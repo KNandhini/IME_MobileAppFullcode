@@ -1,3 +1,4 @@
+import { COLORS, RADIUS, SHADOW, SPACING } from '../screens/theme';
 import React, { useState } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet,
@@ -9,8 +10,8 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const NAVY = '#003366';
-const GOLD = '#D4AF37';
+const NAVY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
     const [open, setOpen] = useState(defaultOpen);
@@ -25,7 +26,7 @@ export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
             <TouchableOpacity style={styles.header} onPress={toggle} activeOpacity={0.7}>
                 <View style={styles.headerLeft}>
                     <View style={styles.iconWrap}>
-                        <MaterialIcons name={icon} size={20} color={GOLD} />
+                        <MaterialIcons name={icon} size={20} color={COLORS.white} />
                     </View>
                     <Text style={styles.title}>{title}</Text>
                 </View>
@@ -74,14 +75,10 @@ export const BulletItem = ({ text }) => (
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#fff',
-        borderRadius: 14,
-        marginBottom: 12,
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.08,
-        shadowRadius: 6,
+        backgroundColor: COLORS.white,
+        borderRadius: RADIUS.xl,
+        marginBottom: SPACING.md,
+        ...SHADOW.md,
         overflow: 'hidden',
     },
     header: {
@@ -90,7 +87,7 @@ const styles = StyleSheet.create({
     },
     headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     iconWrap: {
-        width: 36, height: 36, borderRadius: 18, backgroundColor: NAVY,
+        width: 36, height: 36, borderRadius: 18, backgroundColor: COLORS.primary,
         alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
     title: { fontSize: 15, fontWeight: '700', color: NAVY, flex: 1 },
@@ -99,32 +96,32 @@ const styles = StyleSheet.create({
 
 const subStyles = StyleSheet.create({
     card: {
-        backgroundColor: '#F5F7FA',
-        borderRadius: 10,
+        backgroundColor: COLORS.bg,
+        borderRadius: RADIUS.md,
         marginBottom: 8,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: COLORS.border,
         overflow: 'hidden',
     },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingVertical: 11, paddingHorizontal: 14,
     },
-    title: { fontSize: 13.5, fontWeight: '700', color: '#0055AA', flex: 1 },
+    title: { fontSize: 13.5, fontWeight: '700', color: COLORS.primary, flex: 1 },
     body: { paddingHorizontal: 14, paddingBottom: 12 },
 });
 
 const itemStyles = StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
     numBadge: {
-        width: 22, height: 22, borderRadius: 11, backgroundColor: NAVY,
+        width: 22, height: 22, borderRadius: 11, backgroundColor: COLORS.primary,
         alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1,
     },
-    numText: { color: '#fff', fontSize: 11, fontWeight: '800' },
+    numText: { color: COLORS.white, fontSize: 11, fontWeight: '800' },
     bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
     bullet: {
         width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD,
         marginRight: 10, marginTop: 7,
     },
-    text: { flex: 1, fontSize: 13.5, color: '#334155', lineHeight: 20 },
+    text: { flex: 1, fontSize: 13.5, color: COLORS.text, lineHeight: 20 },
 });

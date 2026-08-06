@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,8 +9,9 @@ import { magazineService } from '../services/magazineService';
 import { MagazinesScreenS as s } from './screenStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ListSearchBar from '../components/ListSearchBar';
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const PRIMARY = COLORS.primary;
+const GOLD = COLORS.accent;
 
 // ── Magazine Card ─────────────────────────────────────────────────────────
 const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
@@ -37,7 +39,7 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
     <MaterialCommunityIcons
       name="pencil-outline"
       size={22}
-      color="#1E3A5F"
+      color={COLORS.dark}
     />
   </TouchableOpacity>
 
@@ -61,7 +63,7 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
           <Image source={{ uri: item.attachmentPath }} style={s.cover} />
         ) : (
           <View style={s.coverPlaceholder}>
-            <MaterialCommunityIcons name="file-pdf-box" size={28} color="#fff" />
+            <MaterialCommunityIcons name="file-pdf-box" size={28} color={COLORS.white} />
           </View>
         )}*/}
         <View style={s.textContainer}>
@@ -154,13 +156,13 @@ const handleEdit = (item) => {
 
   return (
         <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search magazines..." />
 
       {filteredMagazines.length === 0 && !refreshing ? (
         <View style={s.centered}>
-          <MaterialCommunityIcons name="book-open-page-variant-outline" size={56} color="#CBD5E1" />
+          <MaterialCommunityIcons name="book-open-page-variant-outline" size={56} color="#A0C878" />
           <Text style={s.emptyTitle}>No magazines yet</Text>
           <Text style={s.emptyText}>Tap + to add one!</Text>
         </View>
@@ -180,7 +182,7 @@ const handleEdit = (item) => {
           keyExtractor={(item) => item.magazineId.toString()}
           contentContainerStyle={s.list}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[NAVY]} />
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[PRIMARY]} />
           }
         />
       )}

@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, {
   useState,
   useEffect,
@@ -14,9 +16,9 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 
 // ─── constants ────────────────────────────────────────────────────────────────
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
-const BG   = '#F0F4F8';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
+const BG   = COLORS.bg;
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
@@ -1032,7 +1034,7 @@ const LEAFLET_HTML = `<!DOCTYPE html>
     .poly-lbl {
       display:inline-block; background:rgba(255,255,255,0.92);
       border-radius:5px; padding:3px 7px; font-family:sans-serif;
-      font-size:10px; font-weight:700; color:#1E3A5F; white-space:nowrap;
+      font-size:10px; font-weight:700; color:${COLORS.dark}; white-space:nowrap;
       transform:translate(-50%,-50%); position:relative; pointer-events:none;
       box-shadow:0 1px 4px rgba(0,0,0,0.28);
     }
@@ -1052,7 +1054,7 @@ var COLORS=[
   '#039BE5','#7CB342','#5E35B1','#FFB300','#C0CA33',
   '#546E7A','#FF7043','#26A69A','#EC407A','#42A5F5',
   '#6D4C41','#00BCD4','#8BC34A','#FF5722','#673AB7',
-  '#9C27B0','#2196F3','#4CAF50','#FF9800','#F44336'
+  '#9C27B0',COLORS.primary,'#4CAF50','#FF9800','#F44336'
 ];
 function post(o){ try{ window.ReactNativeWebView.postMessage(JSON.stringify(o)); }catch(e){} }
 window.addEventListener('load',function(){ post({type:'LOADED'}); });
@@ -1104,7 +1106,7 @@ window.showStateLevel = async function(items){
       var nm=f.properties.ST_NM||f.properties.NAME_1||f.properties.name||'';
       var item=matchItem(items,nm);
       var color=COLORS[ci++%COLORS.length];
-      var layer=L.geoJSON(f,{style:{color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.65,interactive:!!item}});
+      var layer=L.geoJSON(f,{style:{color:COLORS.white,weight:1.5,fillColor:color,fillOpacity:0.65,interactive:!!item}});
       if(item){ (function(id){ layer.on('click',function(){ post({type:'NAVIGATE',level:'STATE',id:id}); }); })(item.id); }
       layer.addTo(polyLayer);
       if(item){ addNavLabel(layer.getBounds().getCenter(),(item&&item.label)||nm,'STATE',item.id); }else{ addLabel(layer.getBounds().getCenter(),nm); }
@@ -1120,7 +1122,7 @@ window.showStateLevel = async function(items){
           var r=await fetch('https://nominatim.openstreetmap.org/search?format=json&q='+q+'&polygon_geojson=1&polygon_threshold=0.05&limit=1',{headers:{'User-Agent':'IMEApp/1.0 nandhinik.net@gmail.com'}});
           var d=await r.json();
           if(d.length>0&&d[0].geojson){
-            var layer=L.geoJSON(d[0].geojson,{style:{color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.65,interactive:true}});
+            var layer=L.geoJSON(d[0].geojson,{style:{color:COLORS.white,weight:1.5,fillColor:color,fillOpacity:0.65,interactive:true}});
             var id=item.id; layer.on('click',function(){ post({type:'NAVIGATE',level:'STATE',id:id}); });
             layer.addTo(polyLayer); addNavLabel(layer.getBounds().getCenter(),item.label,'STATE',item.id);
           }
@@ -1139,7 +1141,7 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
     if(it.lat!=null&&it.lng!=null) lblMarkers[it.id]=addNavLabel([it.lat,it.lng],it.label,'DISTRICT',it.id);
   });
   function districtStyle(color){
-    return {color:'#fff',weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
+    return {color:COLORS.white,weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
   }
   function isPolyGeo(g){
     return g&&(g.type==='Polygon'||g.type==='MultiPolygon');
@@ -1503,14 +1505,14 @@ const MunicipalMapScreen = ({ navigation }) => {
               style={[styles.corpNavBtn, { backgroundColor: typeColor, flex: 1 }]}
               onPress={() => openGoogleMapsForCorp(corp)}
             >
-              <MaterialCommunityIcons name="directions" size={15} color="#fff" />
+              <MaterialCommunityIcons name="directions" size={15} color={COLORS.white} />
               <Text style={styles.corpNavBtnText}>Open in Maps</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.corpNavBtn, { backgroundColor: NAVY, flex: 1, marginLeft: 8 }]}
               onPress={openDetails}
             >
-              <MaterialCommunityIcons name="information-outline" size={15} color="#fff" />
+              <MaterialCommunityIcons name="information-outline" size={15} color={COLORS.white} />
               <Text style={styles.corpNavBtnText}>View Details</Text>
             </TouchableOpacity>
           </View>
@@ -1614,12 +1616,12 @@ const MunicipalMapScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Header */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={goBack}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>{HEADER_LABELS[level] || 'Map'}</Text>
@@ -1636,7 +1638,7 @@ const MunicipalMapScreen = ({ navigation }) => {
           <MaterialCommunityIcons name="logout" size={18} color={NAVY} />
           <Text style={styles.loginBackBtnText}>Login</Text>
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       {/* Tab strip */}
       <View style={styles.levelRow}>

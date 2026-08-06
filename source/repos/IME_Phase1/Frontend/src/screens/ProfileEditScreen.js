@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, FlatList, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import { TextInput, Menu } from 'react-native-paper';
@@ -336,28 +338,28 @@ const ProfileEditScreen = ({ navigation }) => {
   if (pageLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1E3A5F" />
+        <ActivityIndicator size="large" color={COLORS.dark} />
       </View>
     );
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+    <View style={{ flex: 1, backgroundColor: COLORS.dark }}>
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Top navbar */}
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={saving}>
           <Text style={styles.navCancel}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>Edit Profile</Text>
         <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
           {saving
-            ? <ActivityIndicator size="small" color="#D4A017" />
+            ? <ActivityIndicator size="small" color={COLORS.accent} />
             : <Text style={styles.navSave}>Save</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.content}>

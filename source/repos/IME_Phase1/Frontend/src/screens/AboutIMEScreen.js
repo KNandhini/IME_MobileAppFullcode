@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useEffect, useRef, useState } from 'react';
 import {
     View, Text, StyleSheet, ScrollView, Animated,
@@ -8,10 +9,10 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Accordion, SubAccordion, NumberedItem, BulletItem } from '../components/Accordion';
 import IMELogo from '../components/IMELogo';
 
-const NAVY = '#003366';
-const ROYAL = '#0055AA';
-const GOLD = '#D4AF37';
-const BG = '#F5F7FA';
+const NAVY = COLORS.dark;
+const ROYAL = COLORS.primary;
+const GOLD = COLORS.accent;
+const BG = COLORS.bg;
 
 // ─────────────────────────────────────────────────────────────────────────
 // Section registry — drives both the quick-nav chips and the scroll targets.
@@ -52,12 +53,16 @@ const AboutIMEScreen = ({ navigation }) => {
 
     return (
         <SafeAreaView style={styles.root}>
-            <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+            <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
             {/* Top banner */}
-            <LinearGradient colors={[NAVY, ROYAL]} style={styles.banner}>
+            <LinearGradient
+                colors={[COLORS.headerStart, COLORS.headerEnd]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.banner}>
                 {/*<TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-                    <MaterialIcons name="arrow-back" size={22} color="#fff" />
+                    <MaterialIcons name="arrow-back" size={22} color={COLORS.white} />
                 </TouchableOpacity>*/}
                 <IMELogo size="small" animated={false} />
                 <Text style={styles.bannerTitle}>Institutional Profile (India)</Text>
@@ -80,7 +85,7 @@ const AboutIMEScreen = ({ navigation }) => {
                                 <MaterialIcons
                                     name={s.icon}
                                     size={15}
-                                    color={active ? '#fff' : ROYAL}
+                                    color={active ? COLORS.white : ROYAL}
                                 />
                                 <Text style={[styles.navChipText, active && styles.navChipTextActive]}>
                                     {s.label}
@@ -356,13 +361,13 @@ const styles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center',
     },
     bannerTitle: {
-        color: '#fff', fontSize: 18, fontWeight: '800',
+        color: COLORS.white, fontSize: 18, fontWeight: '800',
         marginTop: 8, letterSpacing: 0.3,
     },
 
     // Quick-nav chip bar
     navWrap: {
-        backgroundColor: '#fff',
+        backgroundColor: COLORS.white,
         borderBottomWidth: 1,
         borderBottomColor: '#E2E8F0',
         paddingVertical: 10,
@@ -376,13 +381,13 @@ const styles = StyleSheet.create({
     },
     navChipActive: { backgroundColor: ROYAL },
     navChipText: { fontSize: 12.5, fontWeight: '700', color: ROYAL },
-    navChipTextActive: { color: '#fff' },
+    navChipTextActive: { color: COLORS.white },
 
     scrollContent: { padding: 16, paddingBottom: 30 },
 
     // Quick facts strip
     factsCard: {
-        backgroundColor: '#fff', borderRadius: 14, padding: 14,
+        backgroundColor: COLORS.white, borderRadius: 14, padding: 14,
         marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0',
     },
     factRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
@@ -390,7 +395,7 @@ const styles = StyleSheet.create({
     factValue: { fontSize: 12.5, fontWeight: '700', color: NAVY },
     factDivider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 },
 
-    paragraph: { fontSize: 13.5, color: '#334155', lineHeight: 21 },
+    paragraph: { fontSize: 13.5, color: COLORS.secondary, lineHeight: 21 },
     docCard: {
         backgroundColor: BG, borderRadius: 10, padding: 14,
         borderWidth: 1, borderColor: '#E2E8F0',
@@ -400,7 +405,7 @@ const styles = StyleSheet.create({
     footer: { alignItems: 'center', marginTop: 20, paddingHorizontal: 10 },
     footerTitle: { color: NAVY, fontSize: 13, fontWeight: '800', textAlign: 'center' },
     footerTagline: { color: GOLD, fontSize: 12, fontWeight: '600', marginTop: 4, textAlign: 'center' },
-    footerCopy: { color: '#94A3B8', fontSize: 11, marginTop: 8 },
+    footerCopy: { color: COLORS.placeholder, fontSize: 11, marginTop: 8 },
 });
 
 export default AboutIMEScreen;

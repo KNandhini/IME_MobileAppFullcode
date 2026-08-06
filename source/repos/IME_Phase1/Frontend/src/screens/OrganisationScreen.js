@@ -1,3 +1,4 @@
+import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, FlatList, RefreshControl, Image, ActivityIndicator } from 'react-native';
 import { Card } from 'react-native-paper';
@@ -84,7 +85,7 @@ const MemberCard = ({ item, photoData }) => (
 </View>
 
 <View style={styles.row}>
-  <Icon name="account-tie" size={16} color="#2196F3" />
+  <Icon name="account-tie" size={16} color={COLORS.primary} />
   <Text style={styles.role}>
      {toTitleCase(item.roleName)}
   </Text>
@@ -187,8 +188,8 @@ const OrganisationScreen = () => {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.centered,{ backgroundColor: '#fff' }]}>
-        <ActivityIndicator size="large" color="#1E3A5F" />
+      <View style={[styles.centered,{ backgroundColor: COLORS.white }]}>
+        <ActivityIndicator size="large" color={COLORS.dark} />
       </View>
     );
   }

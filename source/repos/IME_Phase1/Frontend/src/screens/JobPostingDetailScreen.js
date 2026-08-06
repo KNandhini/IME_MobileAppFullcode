@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 // Place in: src/screens/JobPostingDetailScreen.js
 // Attachments section now mirrors CircularDetailScreen.js: images open in a
 // viewer modal, non-image files (pdf/doc/xls/etc.) get a download button.
@@ -15,8 +17,8 @@ import { jobPostingService } from '../services/jobpostingService';
 import api from '../utils/api';
 import { JobPostingDetailScreenStyles as styles } from './screenStyles';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 // Fallback styles for pieces not (yet) defined in JobPostingDetailScreenStyles
 // (download button / empty state). These merge on top of `styles.*` so if
@@ -34,13 +36,13 @@ const local = StyleSheet.create({
     marginBottom: 12,
   },
   downloadText: {
-    color: '#fff',
+    color: COLORS.white,
     fontSize: 14,
     fontWeight: '600',
     flexShrink: 1,
   },
   noAttach: {
-    color: '#94A3B8',
+    color: COLORS.placeholder,
     fontSize: 13,
     marginTop: 4,
   },
@@ -200,16 +202,16 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Job Posting</Text>
         <View style={{ width: 36 }} />
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
@@ -225,8 +227,8 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.employmentType}</Text>
           </View>
-          <View style={[styles.badge, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}>
-            <Text style={[styles.badgeText, { color: '#1D4ED8' }]}>{item.workMode}</Text>
+          <View style={[styles.badge, { backgroundColor: COLORS.selected, borderColor: '#BFDBFE' }]}>
+            <Text style={[styles.badgeText, { color: COLORS.primary }]}>{item.workMode}</Text>
           </View>
           {isClosed && (
             <View style={[styles.badge, { backgroundColor: '#FEF2F2', borderColor: '#FECACA' }]}>
@@ -310,10 +312,10 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
                   activeOpacity={0.85}
                 >
                   {downloadingId === (attachment.attachmentId ?? attachment.fileName)
-                    ? <ActivityIndicator size="small" color="#fff" />
+                    ? <ActivityIndicator size="small" color={COLORS.white} />
                     : (
                       <>
-                        <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
+                        <MaterialCommunityIcons name="download-outline" size={18} color={COLORS.white} />
                         <Text style={[styles.downloadText, local.downloadText]}>
                           {attachment.fileName ?? 'Download Attachment'}
                         </Text>
@@ -331,7 +333,7 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
         onRequestClose={() => setImgViewer(null)}>
         <View style={styles.viewerOverlay}>
           <TouchableOpacity style={styles.viewerClose} onPress={() => setImgViewer(null)}>
-            <MaterialCommunityIcons name="close" size={26} color="#fff" />
+            <MaterialCommunityIcons name="close" size={26} color={COLORS.white} />
           </TouchableOpacity>
           {imgViewer && (
             <Image source={{ uri: imgViewer }} style={styles.viewerImage} resizeMode="contain" />

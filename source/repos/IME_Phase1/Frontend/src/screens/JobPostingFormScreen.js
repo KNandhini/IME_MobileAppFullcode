@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 // Place in: src/screens/JobPostingFormScreen.js
 // Mirrors AchievementFormScreen.js structure exactly.
 
@@ -14,8 +16,8 @@ import api from '../utils/api';
 import { JobPostingFormScreenChip as chip, JobPostingFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
-const NAVY = '#1E3A5F';
-const GOLD = '#D4A017';
+const NAVY = COLORS.dark;
+const GOLD = COLORS.accent;
 
 const EMPLOYMENT_TYPES = ['Full Time', 'Contract', 'Part Time', 'Internship'];
 const WORK_MODES       = ['Remote', 'Hybrid', 'Office'];
@@ -388,9 +390,9 @@ const JobPostingFormScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={NAVY} barStyle="light-content" />
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
@@ -400,7 +402,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
             ? <ActivityIndicator size="small" color={GOLD} />
             : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
@@ -530,7 +532,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
             activeOpacity={0.8}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 15, color: '#1E293B', fontWeight: '500' }}>
+              <Text style={{ fontSize: 15, color: COLORS.dark, fontWeight: '500' }}>
                 {closingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
               </Text>
               <MaterialCommunityIcons name="calendar-outline" size={18} color={NAVY} />
@@ -663,10 +665,10 @@ const JobPostingFormScreen = ({ route, navigation }) => {
           onPress={handleSave} disabled={loading} activeOpacity={0.85}
         >
           {loading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={COLORS.white} />
           ) : (
             <>
-              <MaterialCommunityIcons name="check" size={20} color="#fff" />
+              <MaterialCommunityIcons name="check" size={20} color={COLORS.white} />
               <Text style={styles.saveBtnText}>{isEdit ? 'Update Job Posting' : 'Post Job'}</Text>
             </>
           )}

@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform } from 'react-native';
 import { Card } from 'react-native-paper';
@@ -232,7 +234,7 @@ const memberId = member.memberId || member.MemberId;
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1E3A5F" />
+        <ActivityIndicator size="large" color={COLORS.dark} />
       </View>
     );
   }
@@ -240,17 +242,17 @@ const memberId = member.memberId || member.MemberId;
   return (
     <View style={styles.root}>
       {/* ── Top navbar — same as Activity Form ── */}
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={handleClear} style={styles.navSide} disabled={saving}>
           <Text style={styles.navCancel}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>Edit Member</Text>
         <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
           {saving
-            ? <ActivityIndicator size="small" color="#D4A017" />
+            ? <ActivityIndicator size="small" color={COLORS.accent} />
             : <Text style={styles.navSave}>Update</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 

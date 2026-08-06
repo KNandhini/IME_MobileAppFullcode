@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -58,7 +60,7 @@ function PasswordField({ label, required, value, onChangeText, error, hint, visi
           style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94A3B8" />
+          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
       </View>
     </Field>
@@ -114,17 +116,17 @@ const ChangePasswordScreen = ({ navigation }) => {
   return (
     <View style={styles.root}>
       {/* ── Top navbar ── */}
-      <View style={styles.navbar}>
+      <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
           <Text style={styles.navCancel}>Cancel</Text>
         </TouchableOpacity>
         <Text style={styles.navTitle}>Change Password</Text>
         <TouchableOpacity onPress={handleChangePassword} style={styles.navSide} disabled={loading}>
           {loading
-            ? <ActivityIndicator size="small" color="#D4A017" />
+            ? <ActivityIndicator size="small" color={COLORS.accent} />
             : <Text style={styles.navSave}>Save</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">

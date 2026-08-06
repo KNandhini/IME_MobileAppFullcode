@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 // screens/RaiseFundScreen.jsx
 import React, { useState, useEffect } from 'react';
 import {
@@ -29,7 +31,7 @@ const LOGO_ASSET = logoAsset;
 const fsStyles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
   },
   header: {
     flexDirection: 'row',
@@ -38,7 +40,7 @@ const fsStyles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 8,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
   },
   closeBtn: {
     padding: 6,
@@ -55,7 +57,7 @@ const fsStyles = StyleSheet.create({
     paddingTop: 10,
     // extra breathing room at the bottom, more on iOS for the home indicator
     paddingBottom: Platform.OS === 'ios' ? 28 : 20,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
@@ -332,18 +334,18 @@ function AmountModal({ visible, post, onClose, onProceed }) {
       onRequestClose={onClose}
       presentationStyle="fullScreen"
     >
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
         <KeyboardAvoidingView
           style={[s.modalOverlay, fsStyles.overlay]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           {/* Full-screen header with close button */}
-          <View style={fsStyles.header}>
+          <GradientHeader style={fsStyles.header}>
             <Text style={[s.modalTitle, { marginBottom: 0 }]}>Support this cause</Text>
             <TouchableOpacity onPress={onClose} style={fsStyles.closeBtn}>
               <Ionicons name="close" size={24} color="#333" />
             </TouchableOpacity>
-          </View>
+          </GradientHeader>
 
           <ScrollView
             style={[s.modalSheet, fsStyles.sheet]}
@@ -414,7 +416,7 @@ function AmountModal({ visible, post, onClose, onProceed }) {
           {/* Fixed footer — Proceed to Pay always has bottom breathing room */}
           <View style={fsStyles.footer}>
             <TouchableOpacity style={s.proceedBtn} onPress={handleProceed} activeOpacity={0.85}>
-              <Ionicons name="heart" size={16} color="#fff" />
+              <Ionicons name="heart" size={16} color={COLORS.white} />
               <Text style={s.proceedBtnText}>
                 Proceed to Pay{amount ? ` ₹${Number(amount).toLocaleString('en-IN')}` : ''}
               </Text>
@@ -550,7 +552,7 @@ export default function RaiseFundScreen({ route, navigation }) {
     // Kept the spinner in brand orange (#e8623a) — a white spinner would be
     // invisible on a white background. Say the word if you want it changed.
     return (
-      <View style={[s.centered, { backgroundColor: '#fff' }]}>
+      <View style={[s.centered, { backgroundColor: COLORS.white }]}>
         <ActivityIndicator size="large" color="#e8623a" />
       </View>
     );
@@ -561,7 +563,7 @@ export default function RaiseFundScreen({ route, navigation }) {
 
       {/* ── Razorpay WebView Modal ── */}
       <Modal visible={showWebView} animationType="slide" onRequestClose={() => setShowWebView(false)}>
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: COLORS.white }}>
           <View style={s.wvHeader}>
             <Text style={s.wvTitle}>Secure Payment</Text>
             <TouchableOpacity onPress={() => setShowWebView(false)} style={s.wvClose}>
@@ -599,7 +601,7 @@ export default function RaiseFundScreen({ route, navigation }) {
       {/* Processing overlay */}
       {processingPayment && (
         <View style={s.processingOverlay}>
-          <ActivityIndicator size="large" color="#fff" />
+          <ActivityIndicator size="large" color={COLORS.white} />
           <Text style={s.processingText}>Recording your donation…</Text>
         </View>
       )}
@@ -675,7 +677,7 @@ export default function RaiseFundScreen({ route, navigation }) {
           onPress={() => setAmountModalVisible(true)}
           activeOpacity={0.85}
         >
-          <Ionicons name="heart" size={18} color="#fff" />
+          <Ionicons name="heart" size={18} color={COLORS.white} />
           <Text style={s.raiseFundBtnText}>Raise Fund</Text>
         </TouchableOpacity>
 

@@ -1,3 +1,5 @@
+import GradientHeader from '../components/GradientHeader';
+import { COLORS } from './theme';
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Image, Platform, ActivityIndicator, StatusBar } from 'react-native';
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -70,15 +72,15 @@ const getDisplayName = (path) => {
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
   bg: "#F7F8FC",
-  card: "#FFFFFF",
+  card: COLORS.white,
   navy: "#1A2E4A",
   teal: "#0D8A6E",
   tealLight: "#E6F5F1",
-  amber: "#F59E0B",
+  amber: COLORS.accent,
   red: "#E53E3E",
   border: "#E2E8F0",
-  muted: "#94A3B8",
-  text: "#1E293B",
+  muted: COLORS.placeholder,
+  text: COLORS.dark,
   sub: "#64748B",
 };
 
@@ -658,17 +660,17 @@ export default function CreateFundScreen() {
     <View style={{ flex: 1, backgroundColor: C.bg }}>
 
       {/* ── Top Navbar ── */}
-      <View style={s.navbar}>
+      <GradientHeader style={s.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.navSide}>
           <Text style={s.navCancel}>Cancel</Text>
         </TouchableOpacity>
         <Text style={s.navTitle}>{isEdit ? 'Edit Fund' : 'Create Fund'}</Text>
         <TouchableOpacity onPress={handleSubmit} style={s.navSide} disabled={submitting}>
           {submitting
-            ? <ActivityIndicator size="small" color="#D4A017" />
+            ? <ActivityIndicator size="small" color={COLORS.accent} />
             : <Text style={s.navSave}>{isEdit ? 'Update' : 'Save'}</Text>}
         </TouchableOpacity>
-      </View>
+      </GradientHeader>
 
       <ScrollView
         style={s.root}
