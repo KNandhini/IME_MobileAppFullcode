@@ -10,7 +10,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
     UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const NAVY = COLORS.primary;
+const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
 export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
@@ -75,15 +75,15 @@ export const BulletItem = ({ text }) => (
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.surface,
         borderRadius: RADIUS.xl,
         marginBottom: SPACING.md,
-        ...SHADOW.md,
+        ...SHADOW.lg,
         overflow: 'hidden',
     },
     header: {
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-        paddingVertical: 14, paddingHorizontal: 16,
+        minHeight: 64, paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg,
     },
     headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     iconWrap: {
@@ -96,9 +96,9 @@ const styles = StyleSheet.create({
 
 const subStyles = StyleSheet.create({
     card: {
-        backgroundColor: COLORS.bg,
-        borderRadius: RADIUS.md,
-        marginBottom: 8,
+        backgroundColor: COLORS.background,
+        borderRadius: RADIUS.lg,
+        marginBottom: SPACING.sm,
         borderWidth: 1,
         borderColor: COLORS.border,
         overflow: 'hidden',
@@ -107,17 +107,17 @@ const subStyles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingVertical: 11, paddingHorizontal: 14,
     },
-    title: { fontSize: 13.5, fontWeight: '700', color: COLORS.primary, flex: 1 },
+    title: { fontSize: 14, fontWeight: '600', color: COLORS.textPrimary, flex: 1 },
     body: { paddingHorizontal: 14, paddingBottom: 12 },
 });
 
 const itemStyles = StyleSheet.create({
     row: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
     numBadge: {
-        width: 22, height: 22, borderRadius: 11, backgroundColor: COLORS.primary,
+        width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.accent,
         alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1,
     },
-    numText: { color: COLORS.white, fontSize: 11, fontWeight: '800' },
+    numText: { color: COLORS.dark, fontSize: 11, fontWeight: '800' },
     bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
     bullet: {
         width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD,

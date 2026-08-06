@@ -8,24 +8,28 @@ export const COLORS = {
 
   // Backward-compatible semantic aliases used by existing screens.
   navy: '#252943',
-  gold: '#F7AD19',
+  gold: '#A0C878',
   green: '#A0C878',
   blue: '#3A4EFB',
   skyBlue: '#33A4FA',
 
-  bg: '#F6FAFF',
+  background: '#F7F9FC',
+  surface: '#FFFFFF',
+  bg: '#F7F9FC',
   bgAlt: '#EEF3FF',
   bgSoft: '#F6FAFF',
   white: '#FFFFFF',
 
+  textPrimary: '#252943',
+  textSecondary: '#6B7280',
+  textLight: '#FFFFFF',
   text: '#252943',
-  textSecondary: '#33A4FA',
-  textMuted: '#6F7892',
+  textMuted: '#6B7280',
   grey: '#81899E',
   placeholder: '#9299AA',
   disabled: '#CBD5E1',
 
-  border: '#E0E4F2',
+  border: '#E5EAF3',
   borderSoft: '#EDF0F8',
 
   success: '#A0C878',
@@ -33,7 +37,7 @@ export const COLORS = {
   danger: '#EF4444',
   dangerAlt: '#DC2626',
   crimson: '#B91C1C',
-  warning: '#A0C878',
+  warning: '#FFC857',
   info: '#33A4FA',
   infoLight: '#EEF7FE',
 
@@ -50,6 +54,9 @@ export const COLORS = {
   overlay: 'rgba(37,41,67,0.45)',
   overlayDark: 'rgba(37,41,67,0.65)',
   lightboxBg: 'rgba(37,41,67,0.95)',
+  textLightMuted: 'rgba(255,255,255,0.88)',
+  textLightSubtle: 'rgba(255,255,255,0.60)',
+  glass: 'rgba(255,255,255,0.25)',
 };
 
 export const SPACING = {

@@ -441,7 +441,7 @@ const carousel = StyleSheet.create({
   image: { width: '100%', height: '100%' },
   videoPlaceholder: { flex: 1, backgroundColor: COLORS.dark, justifyContent: 'center', alignItems: 'center' },
   videoPlay: { fontSize: 48, color: COLORS.white },
-  videoLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 13, marginTop: 8, letterSpacing: 1 },
+  videoLabel: { color: COLORS.textLightSubtle, fontSize: 13, marginTop: 8, letterSpacing: 1 },
   counter: {
     position: 'absolute',
     top: 10,
@@ -465,14 +465,17 @@ const single = StyleSheet.create({
 // ── Card styles ───────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: COLORS.white,
-    marginBottom: 8,
-    ...SHADOW.sm,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    marginHorizontal: 12,
+    marginBottom: 12,
+    overflow: 'hidden',
+    ...SHADOW.md,
   },
 
   // Header
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
+  avatar: { width: 42, height: 42, borderRadius: 21, borderWidth: 2, borderColor: COLORS.accent, justifyContent: 'center', alignItems: 'center', ...SHADOW.sm },
   avatarLetter: { color: COLORS.white, fontSize: 18, fontWeight: '700' },
   headerMeta: { flex: 1, marginLeft: 10 },
   memberName: { fontSize: 14, fontWeight: '700', color: COLORS.text, marginBottom: 4 },
@@ -540,8 +543,11 @@ const styles = StyleSheet.create({
   commentInputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 12 },
   commentInput: {
     flex: 1,
-    backgroundColor: COLORS.bgSoft,
-    borderRadius: 18,
+    minHeight: 52,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.xl,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     paddingHorizontal: 14,
     paddingVertical: 8,
     fontSize: 13,

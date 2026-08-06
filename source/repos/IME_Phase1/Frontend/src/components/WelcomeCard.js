@@ -278,7 +278,7 @@ const WelcomeCard = ({ onViewMore }) => {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.surface,
         borderRadius: RADIUS.xl,
         paddingTop: SPACING.xl,
         paddingHorizontal: SPACING.xl,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.25)',
+        backgroundColor: COLORS.glass,
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -334,11 +334,11 @@ const styles = StyleSheet.create({
     // Full-screen detail view (for Mission / Core Objectives)
     modalOverlay: {
         flex: 1,
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.surface,
     },
     modalSheet: {
         flex: 1,
-        backgroundColor: COLORS.white,
+        backgroundColor: COLORS.surface,
     },
     modalHeader: {
         flexDirection: 'row',
@@ -352,14 +352,14 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: 'rgba(255,255,255,0.25)',
+        backgroundColor: COLORS.glass,
         alignItems: 'center',
         justifyContent: 'center',
     },
     modalTitle: { color: COLORS.white, fontWeight: '800', fontSize: 17, letterSpacing: 0.3 },
     modalBody: { flex: 1, paddingHorizontal: 20 },
     modalBodyContent: { paddingVertical: 20, paddingBottom: 32 },
-    modalText: { fontSize: 14.5, lineHeight: 23, color: COLORS.secondary },
+    modalText: { fontSize: 15, lineHeight: 23, color: COLORS.textPrimary },
 
     groupBlock: {
         backgroundColor: COLORS.bg,

@@ -11,15 +11,16 @@ export default function ListSearchBar({ value, onChangeText, placeholder }) {
       style={{
         margin: SPACING.md,
         marginBottom: SPACING.sm,
-        borderRadius: RADIUS.lg,
-        backgroundColor: COLORS.white,
+        minHeight: 52,
+        borderRadius: RADIUS.xl,
+        backgroundColor: COLORS.surface,
         borderWidth: 1,
-        borderColor: COLORS.primary,
-        ...SHADOW.sm,
+        borderColor: COLORS.border,
+        ...SHADOW.md,
       }}
       iconColor={COLORS.secondary}
       placeholderTextColor={COLORS.placeholder}
-      inputStyle={{ fontSize: 14, color: COLORS.text }}
+      inputStyle={{ fontSize: 15, color: COLORS.textPrimary }}
     />
   );
 }
