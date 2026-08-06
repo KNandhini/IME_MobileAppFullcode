@@ -4223,15 +4223,14 @@ export const LoginScreenStyles = (() => {
   const GOLD = COLORS.gold;
 
   return createScreenStyles({
-    root: { flex: 1, backgroundColor: NAVY },
+    root: { flex: 1, },
 
     heroBg: {
-      backgroundColor: NAVY,
-      alignItems: 'center',
-      paddingTop: (StatusBar.currentHeight ?? 0) + 24,
-      paddingBottom: 28,
-      overflow: 'hidden',
-    },
+  alignItems: 'center',
+  paddingTop: (StatusBar.currentHeight ?? 0) + 24,
+  paddingBottom: 28,
+  overflow: 'hidden',
+},
     circle1: {
       position: 'absolute', width: 240, height: 240, borderRadius: 120,
       borderWidth: 1, borderColor: 'rgba(212,160,23,0.12)', top: -60, right: -60,
@@ -4249,16 +4248,15 @@ export const LoginScreenStyles = (() => {
     scrollContent: { paddingHorizontal: 16, paddingBottom: 30 },
 
     card: {
-      backgroundColor: '#fff',
-      borderRadius: 20,
-      padding: 22,
-      marginBottom: 14,
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-    },
+  backgroundColor: '#FFFFFF',
+  borderRadius: 20,
+  padding: 22,
+  marginBottom: 16,
+  elevation: 8,
+  shadowColor: '#252943',
+  shadowOpacity: 0.15,
+  shadowRadius: 12,
+},
     cardTitle: { fontSize: 22, fontWeight: '800', color: NAVY, marginBottom: 4 },
     cardSub: { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
 
@@ -4274,7 +4272,7 @@ export const LoginScreenStyles = (() => {
     // ── Styled TextInput — matches Achievement/JobPosting/Club/ChangePassword ──
     styledInput: {
       base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
-      focused: { borderColor: NAVY, backgroundColor: '#fff' },
+      focused: { borderColor: COLORS.accent, backgroundColor: '#fff' },
       errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
     },
 
@@ -4332,11 +4330,11 @@ export const LoginScreenStyles = (() => {
       borderColor: 'rgba(255,255,255,0.12)',
     },
     statItem: { flex: 1, alignItems: 'center' },
-    statValue: { color: GOLD, fontSize: 16, fontWeight: '800' },
+    statValue: { color: COLORS.accent, fontSize: 16, fontWeight: '800' },
     statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2, fontWeight: '500' },
     statsDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
 
-    footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 },
+    footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 , marginBottom: 12, },
   });
 })();
 

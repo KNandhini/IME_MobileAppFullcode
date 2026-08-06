@@ -25,7 +25,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // LoginScreen's `scrollContent` style) so the carousel exactly fills the card.
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// Single shared gradient so Vision, Mission, and Core Objectives all look consistent.
+// Single shared gradient so Vision, Mission, and Core Objectives modal headers
+// all look consistent with the rest of the app's header chrome.
 const HEADER_COLORS = [NAVY, ROYAL];
 
 const SLIDES = [
@@ -164,17 +165,13 @@ const WelcomeCard = ({ onViewMore }) => {
                 style={styles.carousel}
                 renderItem={({ item }) => (
                     <View style={[styles.slide, { width: CARD_WIDTH }]}>
-                        <LinearGradient
-                            colors={item.colors}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.slideHeader}
-                        >
+                        {/* Badge: tags/badges use the brand lime-green fill per the design system */}
+                        <View style={styles.slideHeader}>
                             <View style={styles.iconBadge}>
-                                <MaterialIcons name={item.icon} size={18} color={COLORS.white} />
+                                <MaterialIcons name={item.icon} size={18} color={ROYAL} />
                             </View>
                             <Text style={styles.slideLabel}>{item.label}</Text>
-                        </LinearGradient>
+                        </View>
 
                         <Text
                             style={styles.desc}
@@ -287,17 +284,20 @@ const styles = StyleSheet.create({
         ...SHADOW.lg,
         overflow: 'hidden',
     },
-    welcome: { fontSize: 15, fontWeight: '800', color: NAVY, marginBottom: 4 },
-    tagline: { fontSize: 12, fontWeight: '600', color: GOLD, marginBottom: SPACING.lg },
+    welcome: { fontSize: 15, fontWeight: '800', color: ROYAL, marginBottom: 4 },
+    tagline: { fontSize: 12, fontWeight: '600', color: COLORS.accent, marginBottom: SPACING.lg },
 
     // Carousel sits edge-to-edge by cancelling out the card's own horizontal padding
     carousel: { marginHorizontal: -18 },
     slide: { paddingHorizontal: 18 },
 
+    // Badge behind the "Vision" / "Mission" / "Core Objectives" label —
+    // uses the brand lime-green (tags/badges/light fills) per the design system.
     slideHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         alignSelf: 'flex-start',
+        backgroundColor: GOLD,
         borderRadius: RADIUS.pill,
         paddingVertical: SPACING.sm,
         paddingHorizontal: SPACING.md,
@@ -308,11 +308,12 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         borderRadius: 12,
-        backgroundColor: COLORS.glass,
+        backgroundColor: 'rgba(37,41,67,0.15)',
         alignItems: 'center',
         justifyContent: 'center',
     },
-    slideLabel: { color: COLORS.white, fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
+    // Dark navy text/icon for contrast against the light lime-green badge.
+    slideLabel: { color: ROYAL, fontWeight: '800', fontSize: 13, letterSpacing: 0.3 },
 
     desc: { fontSize: 13, color: COLORS.text, lineHeight: 20, marginBottom: SPACING.lg, minHeight: 80 },
 
@@ -331,7 +332,8 @@ const styles = StyleSheet.create({
     dot: { width: 6, height: 6, borderRadius: RADIUS.xs, backgroundColor: COLORS.border },
     dotActive: { backgroundColor: COLORS.primary, width: 18, borderRadius: 3 },
 
-    // Full-screen detail view (for Mission / Core Objectives)
+    // Full-screen detail view (for Mission / Core Objectives) — keeps the
+    // app-wide vivid-blue → dark-navy header gradient for consistency.
     modalOverlay: {
         flex: 1,
         backgroundColor: COLORS.surface,
