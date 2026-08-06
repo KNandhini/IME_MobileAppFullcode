@@ -167,7 +167,9 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                        
 {/* ── Registration Fee ── */}
 <View style={styles.section}>
-    <Text style={styles.eyebrow}>REGISTRATION FEE</Text>
+  <Text style={[styles.eyebrow, { marginBottom: 12 }]}>
+    REGISTRATION FEE
+</Text>
 
     {/* Membership Category Fees */}
     <View style={styles.membershipFeeInfoCard}>
