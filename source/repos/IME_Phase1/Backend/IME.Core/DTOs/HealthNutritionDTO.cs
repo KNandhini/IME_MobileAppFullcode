@@ -27,3 +27,15 @@ public class HealthNutritionDTO
 public class HealthNutritionDetailDTO : HealthNutritionDTO
 {
 }
+
+// Paginated envelope for GET /api/healthnutrition — matches what
+// healthNutritionService.js / HealthNutritionScreen.js expect:
+// data.items, data.pageNumber, data.totalPages.
+public class HealthNutritionListDTO
+{
+    public List<HealthNutritionDTO> Items { get; set; } = new();
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+}
