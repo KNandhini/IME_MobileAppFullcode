@@ -29,7 +29,7 @@ const ContentViewerScreen = ({ route }) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.dark} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }

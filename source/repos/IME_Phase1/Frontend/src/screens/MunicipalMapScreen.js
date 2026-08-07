@@ -1538,7 +1538,7 @@ const MunicipalMapScreen = ({ navigation }) => {
 
         {aiLoading ? (
           <View style={styles.carouselLoadingBox}>
-            <ActivityIndicator color={NAVY} />
+            <ActivityIndicator color={GOLD} />
             <Text style={styles.carouselLoadingText}>Fetching corporations via AI…</Text>
           </View>
         ) : aiCorps.length === 0 ? (
@@ -1579,7 +1579,7 @@ const MunicipalMapScreen = ({ navigation }) => {
   const renderBottomPanel = () => {
     if (loading) return (
       <View style={styles.bottomRow}>
-        <ActivityIndicator size="small" color={NAVY} />
+        <ActivityIndicator size="small" color={GOLD} />
         <Text style={styles.panelText}>  Loading…</Text>
       </View>
     );
@@ -1616,63 +1616,63 @@ const MunicipalMapScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
+  <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
-      {/* Header */}
-      <GradientHeader style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={goBack}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>{HEADER_LABELS[level] || 'Map'}</Text>
-          {crumbs.length > 0 && (
-            <Text style={styles.breadcrumb} numberOfLines={1}>
-              {crumbs.map(x => x.label).join(' › ')}
-            </Text>
-          )}
-        </View>
-        <TouchableOpacity onPress={loadMap} style={{ marginRight: 10 }}>
-          <MaterialCommunityIcons name="refresh" size={22} color={GOLD} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.loginBackBtn} onPress={goToLogin}>
-          <MaterialCommunityIcons name="logout" size={18} color={NAVY} />
-          <Text style={styles.loginBackBtnText}>Login</Text>
-        </TouchableOpacity>
-      </GradientHeader>
-
-      {/* Tab strip */}
-      <View style={styles.levelRow}>
-        {TAB_LABELS.map((label, i) => (
-          <View key={label} style={[styles.levelPill, i === activeTab && styles.levelPillActive]}>
-            <Text style={[styles.levelPillText, i === activeTab && styles.levelPillTextActive]}>
-              {label}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Map */}
-      <View style={styles.mapContainer}>
-        <WebView
-          ref={webViewRef}
-          style={styles.map}
-          source={{ html: LEAFLET_HTML }}
-          onMessage={onWebViewMessage}
-          javaScriptEnabled
-          domStorageEnabled
-          originWhitelist={['*']}
-          scrollEnabled={false}
-          bounces={false}
-          overScrollMode="never"
-          allowFileAccessFromFileURLs
-          mixedContentMode="always"
-        />
-        {renderCarouselOverlay()}
-      </View>
-
-      {/* Bottom panel */}
-      <View style={styles.bottomPanel}>{renderBottomPanel()}</View>
+  {/* Header */}
+  <GradientHeader style={styles.header}>
+    <TouchableOpacity style={styles.backBtn} onPress={goBack}>
+      <MaterialCommunityIcons name="arrow-left" size={22} color={COLORS.white} />
+    </TouchableOpacity>
+    <View style={{ flex: 1 }}>
+      <Text style={styles.headerTitle}>{HEADER_LABELS[level] || 'Map'}</Text>
+      {crumbs.length > 0 && (
+        <Text style={styles.breadcrumb} numberOfLines={1}>
+          {crumbs.map(x => x.label).join(' › ')}
+        </Text>
+      )}
     </View>
+    <TouchableOpacity onPress={loadMap} style={{ marginRight: 10 }}>
+      <MaterialCommunityIcons name="refresh" size={22} color={GOLD} />
+    </TouchableOpacity>
+    <TouchableOpacity style={styles.loginBackBtn} onPress={goToLogin}>
+      <MaterialCommunityIcons name="logout" size={18} color={NAVY} />
+      <Text style={styles.loginBackBtnText}>Login</Text>
+    </TouchableOpacity>
+  </GradientHeader>
+
+  {/* Tab strip — now on a gradient background */}
+  <GradientHeader style={styles.levelRow}>
+    {TAB_LABELS.map((label, i) => (
+      <View key={label} style={[styles.levelPill, i === activeTab && styles.levelPillActive]}>
+        <Text style={[styles.levelPillText, i === activeTab && styles.levelPillTextActive]}>
+          {label}
+        </Text>
+      </View>
+    ))}
+  </GradientHeader>
+
+  {/* Map */}
+  <View style={styles.mapContainer}>
+    <WebView
+      ref={webViewRef}
+      style={styles.map}
+      source={{ html: LEAFLET_HTML }}
+      onMessage={onWebViewMessage}
+      javaScriptEnabled
+      domStorageEnabled
+      originWhitelist={['*']}
+      scrollEnabled={false}
+      bounces={false}
+      overScrollMode="never"
+      allowFileAccessFromFileURLs
+      mixedContentMode="always"
+    />
+    {renderCarouselOverlay()}
+  </View>
+
+  {/* Bottom panel */}
+  <View style={styles.bottomPanel}>{renderBottomPanel()}</View>
+</View>
   );
 };
 

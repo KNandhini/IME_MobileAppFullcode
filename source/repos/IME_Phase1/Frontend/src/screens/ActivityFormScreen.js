@@ -606,22 +606,23 @@ const ActivityFormScreen = ({ route, navigation }) => {
 
         {/* ── Status ── */}
         <Text style={styles.sectionTitle}>Status</Text>
-        <View style={styles.statusRow}>
-          {STATUSES.map((s) => (
-            <TouchableOpacity key={s} onPress={() => update('status', s)}>
-              <Chip
-                selected={formData.status === s}
-                style={[styles.chip, formData.status === s && styles.chipSelected]}
-                textStyle={[
-                  styles.chipText,
-                  formData.status === s && styles.chipTextSelected,
-                ]}
-              >
-                {s}
-              </Chip>
-            </TouchableOpacity>
-          ))}
-        </View>
+     <View style={styles.statusRow}>
+  {STATUSES.map((s) => (
+    <TouchableOpacity key={s} onPress={() => update('status', s)}>
+      <Chip
+        selected={formData.status === s}
+        style={[styles.chip, formData.status === s && styles.chipSelected]}
+        textStyle={[
+          styles.chipText,
+          formData.status === s && styles.chipTextSelected,
+        ]}
+        selectedColor={formData.status === s ? '#FFFFFF' : undefined}
+      >
+        {s}
+      </Chip>
+    </TouchableOpacity>
+  ))}
+</View>
 
         {/* ── Visibility ── */}
         <Text style={styles.sectionTitle}>Visibility</Text>

@@ -276,7 +276,7 @@ const UserProfileScreen = ({ navigation, route }) => {
     <View>
       {loadingMore && (
         <View style={styles.footerLoader}>
-          <ActivityIndicator size="small" color={COLORS.dark} />
+          <ActivityIndicator size="small" color={COLORS.accent} />
         </View>
       )}
       {!hasMore && !loadingMore && posts.length > 0 && (
@@ -302,7 +302,7 @@ const UserProfileScreen = ({ navigation, route }) => {
 
       {initialLoad ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={COLORS.dark} />
+          <ActivityIndicator size="large" color={COLORS.accent} />
         </View>
       ) : (
         <FlatList

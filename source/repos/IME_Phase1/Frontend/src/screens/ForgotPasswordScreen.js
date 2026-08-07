@@ -2,6 +2,8 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState } from 'react';
 import { View, Text, Alert, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import IMELogo from '../components/IMELogo';
 import { authService } from '../services/authService';
 import { ForgotPasswordScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
@@ -128,17 +130,27 @@ const ForgotPasswordScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <LinearGradient
+      colors={[COLORS.headerStart, COLORS.headerEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.container, { backgroundColor: 'transparent' }]}
+    >
+      {/* ── Logo ── */}
+      <View style={{ alignItems: 'center', marginBottom: 16 }}>
+        <IMELogo size="medium" animated={false} />
+      </View>
+
       <View style={styles.card}>
 
-        <GradientHeader style={styles.header}>
-          <Text style={styles.title}>Forgot Password</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Change Password</Text>
           <Text style={styles.subtitle}>
             {step === 1
               ? 'Enter your details to validate'
               : 'Enter new password'}
           </Text>
-        </GradientHeader>
+        </View>
 
         {step === 1 ? (
           <View style={styles.form}>
@@ -214,7 +226,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
         </TouchableOpacity>
 
       </View>
-    </View>
+    </LinearGradient>
   );
 };
 

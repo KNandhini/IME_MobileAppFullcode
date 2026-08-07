@@ -175,7 +175,7 @@ const HealthNutritionScreen = ({ navigation }) => {
 
       {loading && items.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={NAVY} />
+          <ActivityIndicator size="large" color={GOLD} />
         </View>
       ) : items.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -191,7 +191,7 @@ const HealthNutritionScreen = ({ navigation }) => {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
           onEndReachedThreshold={0.4}
           onEndReached={onEndReached}
-          ListFooterComponent={loadingMore ? <ActivityIndicator style={{ margin: 16 }} color={NAVY} /> : null}
+          ListFooterComponent={loadingMore ? <ActivityIndicator style={{ margin: 16 }} color={GOLD} /> : null}
         />
       )}
 

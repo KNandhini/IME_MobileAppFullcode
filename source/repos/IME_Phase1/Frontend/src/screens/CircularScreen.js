@@ -134,7 +134,7 @@ const renderCircular = ({ item }) => (
     <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search circulars..." />
     {loading && circulars.length === 0 ? (
       <View style={styles.emptyContainer}>
-        <ActivityIndicator size="large" color={NAVY} />
+        <ActivityIndicator size="large" color={GOLD} />
       </View>
     ) : filteredCirculars.length === 0 ? (
       <View style={styles.emptyContainer}>

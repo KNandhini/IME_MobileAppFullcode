@@ -211,7 +211,7 @@ const ChatScreen = ({ navigation, route }) => {
       >
         {initialLoad ? (
           <View style={styles.centerBox}>
-            <ActivityIndicator size="large" color={COLORS.dark} />
+            <ActivityIndicator size="large" color={COLORS.accent} />
           </View>
         ) : (
           <FlatList

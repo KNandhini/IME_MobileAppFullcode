@@ -137,41 +137,69 @@ const LoginScreen = ({ navigation }) => {
     }
   };
 
-  return (
-    <Animated.View style={[styles.root, { opacity: screenOpacity }]}>
-      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
+ return (
+  <Animated.View style={{ flex: 1, opacity: screenOpacity }}>
+    <StatusBar
+      backgroundColor={COLORS.headerStart}
+      barStyle="light-content"
+    />
 
-      {/* ── Hero / Logo section ── */}
-      <LinearGradient
-        colors={[COLORS.headerStart, COLORS.headerEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.heroBg}>
-        <View style={styles.circle1} />
-        <View style={styles.circle2} />
-        <View style={styles.circle3} />
-        <Animated.View
-          style={[styles.logoWrap, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          <IMELogo size="large" animated={false} />
-        </Animated.View>
-      </LinearGradient>
-
-      {/* ── Scrollable body ── */}
+    <LinearGradient
+      colors={[COLORS.headerStart, COLORS.headerEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{ flex: 1 }}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}>
+        style={{ flex: 1 }}
+      >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* ---------- Hero ---------- */}
 
-          {/* Welcome / About card */}
-          <WelcomeCard onViewMore={() => navigation.navigate('AboutIME')} />
+          <View style={styles.heroBg}>
+            <View style={styles.circle1} />
+            <View style={styles.circle2} />
+            <View style={styles.circle3} />
 
-          {/* Login card */}
+            <Animated.View
+              style={[
+                styles.logoWrap,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: slideAnim }],
+                },
+              ]}
+            >
+              <IMELogo
+                size="large"
+                animated={false}
+              />
+            </Animated.View>
+          </View>
+
+          {/* ---------- Welcome ---------- */}
+
+          <WelcomeCard
+            onViewMore={() =>
+              navigation.navigate('AboutIME')
+            }
+          />
+
+          {/* ---------- Login Card ---------- */}
+
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Sign In</Text>
-            <Text style={styles.cardSub}>Welcome back to IME Portal</Text>
+            <Text style={styles.cardTitle}>
+              Sign In
+            </Text>
+
+            <Text style={styles.cardSub}>
+              Welcome back to IME Portal
+            </Text>
 
             <Field label="Email Address">
               <IconInputField
@@ -187,8 +215,14 @@ const LoginScreen = ({ navigation }) => {
             <Field label="Password">
               <IconInputField
                 leftIcon="lock-outline"
-                rightIcon={secureText ? 'eye-outline' : 'eye-off-outline'}
-                onRightIconPress={() => setSecureText(!secureText)}
+                rightIcon={
+                  secureText
+                    ? 'eye-outline'
+                    : 'eye-off-outline'
+                }
+                onRightIconPress={() =>
+                  setSecureText(!secureText)
+                }
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={secureText}
@@ -198,75 +232,134 @@ const LoginScreen = ({ navigation }) => {
 
             <TouchableOpacity
               style={styles.forgotWrap}
-              onPress={() => navigation.navigate('ForgotPassword')}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
+              onPress={() =>
+                navigation.navigate('ForgotPassword')
+              }
+            >
+              <Text style={styles.forgotText}>
+                Forgot Password?
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.loginBtn, loading && styles.loginBtnDisabled]}
+              style={[
+                styles.loginBtn,
+                loading && styles.loginBtnDisabled,
+              ]}
               onPress={handleLogin}
               disabled={loading}
-              activeOpacity={0.85}>
+              activeOpacity={0.85}
+            >
               <MaterialCommunityIcons
-                name={loading ? 'loading' : 'login'}
+                name={
+                  loading
+                    ? 'loading'
+                    : 'login'
+                }
                 size={18}
                 color={COLORS.white}
                 style={styles.loginBtnIcon}
               />
-              <Text style={styles.loginBtnText}>{loading ? 'Signing in…' : 'Sign In'}</Text>
+
+              <Text style={styles.loginBtnText}>
+                {loading
+                  ? 'Signing in...'
+                  : 'Sign In'}
+              </Text>
             </TouchableOpacity>
 
             <View style={styles.dividerRow}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>New here?</Text>
+
+              <Text style={styles.dividerText}>
+                New here?
+              </Text>
+
               <View style={styles.dividerLine} />
             </View>
 
             <TouchableOpacity
               style={styles.signupBtn}
-              onPress={() => navigation.navigate('MembershipBenefits')}>
-              <Text style={styles.signupBtnText}>Register New Member</Text>
+              onPress={() =>
+                navigation.navigate(
+                  'MembershipBenefits'
+                )
+              }
+            >
+              <Text style={styles.signupBtnText}>
+                Register New Member
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Quick action buttons */}
+          {/* ---------- Quick Actions ---------- */}
+
           <View style={styles.quickRow}>
             <QuickAction
               icon="information-outline"
               label="About IME"
-              onPress={() => navigation.navigate('About')}
+              onPress={() =>
+                navigation.navigate('About')
+              }
             />
+
             <QuickAction
               icon="play-circle-outline"
               label="Watch Demo"
-              onPress={() => navigation.navigate('Demo')}
+              onPress={() =>
+                navigation.navigate('Demo')
+              }
             />
+
             <QuickAction
               icon="map-search-outline"
               label="Explore Map"
-              onPress={() => navigation.navigate('MunicipalMap')}
+              onPress={() =>
+                navigation.navigate('MunicipalMap')
+              }
             />
           </View>
 
-          {/* Stats */}
+          {/* ---------- Stats ---------- */}
+
           <View style={styles.statsBar}>
-            <StatItem value="2,500+" label="Members" />
+            <StatItem
+              value="2,500+"
+              label="Members"
+            />
+
             <View style={styles.statsDivider} />
-            <StatItem value="150+" label="Engineers" />
+
+            <StatItem
+              value="150+"
+              label="Engineers"
+            />
+
             <View style={styles.statsDivider} />
-            <StatItem value="28+" label="States" />
+
+            <StatItem
+              value="28+"
+              label="States"
+            />
+
             <View style={styles.statsDivider} />
-            <StatItem value="1965" label="Founded" />
+
+            <StatItem
+              value="1965"
+              label="Founded"
+            />
           </View>
 
           <Text style={styles.footerText}>
-            © {new Date().getFullYear()} Institution of Municipal Engineers · All rights reserved
+            © {new Date().getFullYear()} Institution
+            of Municipal Engineers · All rights
+            reserved
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
-
-    </Animated.View>
-  );
+    </LinearGradient>
+  </Animated.View>
+);
 };
 
 // ── Sub-components ───────────────────────────────────────────────

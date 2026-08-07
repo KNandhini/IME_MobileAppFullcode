@@ -5,9 +5,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
+import { COLORS, RADIUS, SHADOW } from '../screens/theme';
 
 // Screens
 import AnimatedSplashScreen from '../screens/AnimatedSplashScreen';
@@ -113,12 +115,37 @@ const AnimatedTabIcon = ({ name, focused, color, activeColor, size = 24 }) => {
   );
 };
 
+// ── Shared gradient background for native stack headers ──
+// React Navigation's stack header can't take arbitrary child components the
+// way an in-screen <GradientHeader> can, but it exposes `headerBackground`
+// for exactly this — a component rendered behind the title/back button.
+// Pass this into `headerBackground` and leave `headerStyle` without a
+// backgroundColor (or set it to 'transparent') so the gradient shows through.
+const renderGradientHeaderBackground = () => (
+  <LinearGradient
+    colors={[COLORS.headerStart, COLORS.headerEnd]}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 0 }}
+    style={StyleSheet.absoluteFill}
+  />
+);
+
 const HEADER_STYLE = {
-  headerStyle: { backgroundColor: '#1E3A5F' },
-  headerTintColor: '#fff',
+  headerBackground: renderGradientHeaderBackground,
+  headerStyle: { backgroundColor: 'transparent' },
+  headerTintColor: COLORS.white,
   headerTitleStyle: { fontWeight: '700' },
   // Prevents the default white flash behind screens during transitions.
-  cardStyle: { backgroundColor: '#1E3A5F' },
+  cardStyle: { backgroundColor: COLORS.bg },
+};
+
+// Shorthand for the one-off screens below that previously set
+// headerStyle: { backgroundColor: COLORS.dark } individually.
+const GRADIENT_HEADER_OPTIONS = {
+  headerShown: true,
+  headerBackground: renderGradientHeaderBackground,
+  headerStyle: { backgroundColor: 'transparent' },
+  headerTintColor: COLORS.white,
 };
 
 const AuthStack = () => (
@@ -127,7 +154,7 @@ const AuthStack = () => (
       headerShown: false,
       //headerBackVisible: false,
       // Same fix as MainStack — no white flash before Login paints.
-      cardStyle: { backgroundColor: '#1E3A5F' },
+      cardStyle: { backgroundColor: COLORS.bg },
     }}
   >
     <Stack.Screen name="Login" component={LoginScreen} />
@@ -138,20 +165,16 @@ const AuthStack = () => (
       name="RegistrationPayment"
       component={RegistrationPaymentScreen}
       options={{
-        headerShown: true,
+        ...GRADIENT_HEADER_OPTIONS,
         title: 'Complete Payment',
-        headerStyle: { backgroundColor: '#1E3A5F' },
-        headerTintColor: '#fff',
       }}
     />
     <Stack.Screen
       name="About"
       component={AboutScreen}
       options={{
-        headerShown: true,
+        ...GRADIENT_HEADER_OPTIONS,
         title: 'About IMC',
-        headerStyle: { backgroundColor: '#1E3A5F' },
-        headerTintColor: '#fff',
       }}
     />
     <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
@@ -194,8 +217,8 @@ const MainTabs = () => {
 
   if (!checked) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E3A5F' }}>
-        <ActivityIndicator size="large" color="#D4A017" />
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.dark }}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
@@ -206,18 +229,18 @@ const MainTabs = () => {
     <View style={{ flex: 1 }}>
       <Tab.Navigator
         screenOptions={{
-          tabBarActiveTintColor: '#1E3A5F',
-          tabBarInactiveTintColor: '#999',
+          tabBarActiveTintColor: COLORS.dark,
+          tabBarInactiveTintColor: COLORS.inactive,
           tabBarShowLabel: false,
           tabBarStyle: {
             height: 64,
             paddingBottom: 6,
             paddingTop: 4,
             borderTopWidth: 1,
-            borderTopColor: '#E8E8E8',
-            backgroundColor: '#fff',
+            borderTopColor: COLORS.border,
+            backgroundColor: COLORS.white,
             elevation: 10,
-            shadowColor: '#000',
+            shadowColor: COLORS.dark,
             shadowOpacity: 0.08,
             shadowRadius: 8,
             shadowOffset: { width: 0, height: -2 },
@@ -249,12 +272,12 @@ const MainTabs = () => {
                     name={focused ? 'add-circle' : 'add-circle-outline'}
                     focused={focused}
                     color={color}
-                    activeColor="#1E3A5F"
+                    activeColor={COLORS.dark}
                   />
                   <Text
                     style={{
                       fontSize: 10,
-                      color: focused ? '#1E3A5F' : color,
+                      color: focused ? COLORS.dark : color,
                       fontWeight: focused ? '700' : '400',
                       marginTop: 2,
                     }}
@@ -270,8 +293,9 @@ const MainTabs = () => {
             component={AboutIMEScreen}
             options={{
               title: 'About IME',
-              headerStyle: { backgroundColor: '#1E3A5F' },
-              headerTintColor: '#fff',
+              headerBackground: renderGradientHeaderBackground,
+              headerStyle: { backgroundColor: 'transparent' },
+              headerTintColor: COLORS.white,
               headerTitleStyle: { fontWeight: '700' },
               tabBarIcon: ({ color, focused }) => (
                 <View style={{ alignItems: 'center' }}>
@@ -317,7 +341,7 @@ const MainTabs = () => {
         </>
       </Tab.Navigator>
 
-      <View style={{ height: insets.bottom, backgroundColor: '#1E3A5F' }} />
+      <View style={{ height: insets.bottom, backgroundColor: COLORS.dark }} />
     </View>
   );
 };
@@ -411,10 +435,8 @@ const MainStack = () => (
       name="RegistrationPayment"
       component={RegistrationPaymentScreen}
       options={{
-        headerShown: true,
+        ...GRADIENT_HEADER_OPTIONS,
         title: 'Complete Payment',
-        headerStyle: { backgroundColor: '#1E3A5F' },
-        headerTintColor: '#fff',
       }}
     />
     <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />
@@ -450,9 +472,9 @@ const AppNavigator = () => {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: '#1E3A5F',
+        backgroundColor: COLORS.dark,
       }}>
-      <ActivityIndicator size="large" color="#D4A017" />
+      <ActivityIndicator size="large" color={COLORS.accent} />
     </View>
   ) : isAuthenticated ? (
     <MainStack />
@@ -462,7 +484,7 @@ const AppNavigator = () => {
 
   return (
     <SplashFadeContext.Provider value={loginFadeIn}>
-      <View style={{ flex: 1, backgroundColor: '#1E3A5F' }}>
+      <View style={{ flex: 1, backgroundColor: COLORS.dark }}>
         {content}
 
         {showSplash && (

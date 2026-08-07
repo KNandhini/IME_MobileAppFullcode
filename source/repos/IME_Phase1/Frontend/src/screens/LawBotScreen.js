@@ -192,7 +192,7 @@ const insets = useSafeAreaInsets();
               <Text style={styles.botAvatarText}>⚖</Text>
             </View>
             <View style={styles.typingBubble}>
-              <ActivityIndicator size="small" color={COLORS.dark} />
+              <ActivityIndicator size="small" color={COLORS.accent} />
               <Text style={styles.typingText}>Searching the law book…</Text>
             </View>
           </View>

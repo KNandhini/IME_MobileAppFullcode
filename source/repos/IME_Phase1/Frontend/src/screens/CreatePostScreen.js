@@ -227,7 +227,7 @@ const CreatePostScreen = ({ navigation }) => {
 };
 
 const BLUE  = COLORS.dark;
-const BLUE2 = '#2C5F8A';
+const BLUE2 = '#33A4FA';
 const LIGHT = '#EAF1FA';
 
 

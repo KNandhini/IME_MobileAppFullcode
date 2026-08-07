@@ -291,25 +291,26 @@ const MemberManagementScreen = ({ navigation }) => {
       />
 
       <View style={styles.filters}>
-        {FILTER_STATUSES.map((status) => (
-          <TouchableOpacity key={status} onPress={() => setFilterStatus(status)}>
-            <Chip
-              selected={filterStatus === status}
-              style={[styles.chip, filterStatus === status && styles.chipSelected]}
-              textStyle={[
-                styles.chipText,
-                filterStatus === status && styles.chipTextSelected,
-              ]}
-            >
-              {status}
-            </Chip>
-          </TouchableOpacity>
-        ))}
-      </View>
+  {FILTER_STATUSES.map((status) => (
+    <TouchableOpacity key={status} onPress={() => setFilterStatus(status)}>
+      <Chip
+        selected={filterStatus === status}
+        style={[styles.chip, filterStatus === status && styles.chipSelected]}
+        textStyle={[
+          styles.chipText,
+          filterStatus === status && styles.chipTextSelected,
+        ]}
+        selectedColor={filterStatus === status ? '#FFFFFF' : undefined}
+      >
+        {status}
+      </Chip>
+    </TouchableOpacity>
+  ))}
+</View>
 
       {loading && filteredMembers.length === 0 ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.dark} />
+          <ActivityIndicator size="large" color={COLORS.accent} />
         </View>
       ) : (
         <FlatList

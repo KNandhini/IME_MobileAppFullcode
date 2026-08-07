@@ -88,7 +88,7 @@ const SetAnnualFeeScreen = () => {
       <View style={styles.currentCard}>
         <Text style={styles.currentTitle}>Current Annual Fee</Text>
         {fetching ? (
-          <ActivityIndicator color={COLORS.white} />
+          <ActivityIndicator color={COLORS.accent} />
         ) : currentFee ? (
           <>
             <Text style={styles.currentAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
@@ -139,7 +139,7 @@ const SetAnnualFeeScreen = () => {
           disabled={loading}
         >
           {loading
-            ? <ActivityIndicator color={COLORS.white} />
+            ? <ActivityIndicator color={COLORS.accent} />
             : <Text style={styles.buttonText}>Set Annual Fee</Text>
           }
         </TouchableOpacity>

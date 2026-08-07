@@ -33,7 +33,7 @@ const MemberDashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#1E3A5F" barStyle="light-content" />
+      <StatusBar backgroundColor="#252943" barStyle="light-content" />
 
       {/* ── IME Header (same as HomeScreen/AdminDashboard) ── */}
       <View style={styles.appHeader}>

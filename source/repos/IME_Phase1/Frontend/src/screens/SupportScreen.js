@@ -1046,7 +1046,7 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
   if (loading && !refreshing) {
     return (
       <View style={s.centered}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={s.loadingText}>Loading…</Text>
       </View>
     );
@@ -1210,7 +1210,7 @@ export default function SupportScreen({ navigation }) {
     return (
       <SafeAreaView style={s.safe}>
         <View style={s.centered}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.accent} />
         </View>
       </SafeAreaView>
     );
@@ -1287,7 +1287,7 @@ export default function SupportScreen({ navigation }) {
 
       {/* ── FAB — Material Design bottom-right ── */}
       {userRole === 'Admin' && canManageSupport && (
-        <TouchableOpacity style={[s.fab, { bottom: 0 + insets.bottom }]} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
+        <TouchableOpacity style={[s.fab, { bottom: 3 + insets.bottom }]} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
           <Text style={s.fabText}>+</Text>
         </TouchableOpacity>
       )}

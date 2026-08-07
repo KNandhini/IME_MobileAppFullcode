@@ -123,28 +123,11 @@ const AchievementCard = ({ item, onPress, onDelete, onEdit, index, photoMap, use
               </Text>
             )}
 
-            <TouchableOpacity
-  onPress={onPress}
-  activeOpacity={0.8}
-  style={{
-    backgroundColor: '#1C3A5F',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  }}
->
-  <Text
-    style={{
-      color: '#FFFFFF',
-      fontSize: 14,
-      fontWeight: '600',
-    }}
-  >
-    View More
-  </Text>
-</TouchableOpacity>
+           
+              <Text style={s.viewHint || { color:'#3B82F6', fontSize: 12, fontWeight: '600' }}>
+                Tap to view ›
+              </Text>
+          
           </View>
         </View>
       </View>

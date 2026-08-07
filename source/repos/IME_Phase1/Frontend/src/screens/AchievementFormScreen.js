@@ -95,7 +95,7 @@ function SimpleDropdown({ label, options, value, onChange, placeholder = 'Select
         activeOpacity={0.8}
       >
         {loading
-          ? <ActivityIndicator size="small" color={NAVY} style={{ marginRight: 8 }} />
+          ? <ActivityIndicator size="small" color={GOLD} style={{ marginRight: 8 }} />
           : null}
         <Text style={[drop.triggerText, !selected && drop.placeholder]}>
           {loading ? 'Loading…' : selected ? selected.label : placeholder}
@@ -476,7 +476,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
         {/* ── Member field ── */}
         {!roleResolved ? (
           <View style={styles.roleLoadingRow}>
-            <ActivityIndicator size="small" color={NAVY} />
+            <ActivityIndicator size="small" color={GOLD} />
             <Text style={styles.roleLoadingText}>Loading…</Text>
           </View>
         ) : userRole === 'Admin' ? (

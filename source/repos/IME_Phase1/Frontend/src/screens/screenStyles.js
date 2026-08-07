@@ -21,7 +21,7 @@ export const AboutIMEScreenStyles = (() => {
   const BG = '#F5F7FA';
 
 
-  const ROYAL = '#0055AA';
+  const ROYAL = '#3A4EFB';
 
   const NAVY = '#003366';
 
@@ -157,7 +157,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
   dividerDiamond: {
     width: 7,
     height: 7,
-    backgroundColor: '#D4A017',
+    backgroundColor: '#A0C878',
     transform: [{ rotate: '45deg' }],
     borderRadius: 1,
   },
@@ -180,7 +180,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#D4A017',
+    borderColor: '#A0C878',
 
     shadowColor: '#000',
     shadowOpacity: 0.12,
@@ -197,7 +197,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     marginTop: 8,
     fontSize: 11.5,
     fontWeight: '700',
-    color: '#1E3A5F',
+    color: '#252943',
     letterSpacing: 0.3,
   },
 
@@ -213,14 +213,14 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
   eyebrow: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#D4A017',
+    color: '#A0C878',
     letterSpacing: 1.4,
   },
 
   sectionTitle: {
     fontSize: 19,
     fontWeight: '800',
-    color: '#1E3A5F',
+    color: '#252943',
     marginTop: 4,
     marginBottom: 14,
   },
@@ -270,7 +270,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
   benefitTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#1E3A5F',
+    color: '#252943',
     marginBottom: 3,
   },
 
@@ -348,7 +348,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     justifyContent: 'center',
 
     borderWidth: 2,
-    borderColor: '#D4A017',
+    borderColor: '#A0C878',
   },
 
   feeCardBody: {
@@ -364,7 +364,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
 
   feeCardAmount: {
     fontSize: 28,
-    color: '#1E3A5F',
+    color: '#252943',
     fontWeight: '800',
     marginTop: 3,
   },
@@ -393,7 +393,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
 
   feeCardBadgeText: {
     fontSize: 11,
-    color: '#1E3A5F',
+    color: '#252943',
     fontWeight: '600',
   },
 
@@ -434,12 +434,12 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
 
     gap: 8,
 
-    backgroundColor: '#1E3A5F',
+    backgroundColor: '#252943',
 
     borderRadius: 14,
     paddingVertical: 15,
 
-    shadowColor: '#1E3A5F',
+    shadowColor: '#252943',
     shadowOpacity: 0.25,
     shadowRadius: 10,
     shadowOffset: {
@@ -463,7 +463,7 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
   },
 
   backLink: {
-    color: '#1E3A5F',
+    color: '#252943',
     fontSize: 13,
     fontWeight: '600',
     marginTop: 10,
@@ -481,6 +481,81 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     paddingHorizontal: 40,
     lineHeight: 17,
   },
+  
+membershipFeeInfoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#DCE5EF',
+
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+
+    shadowOffset: {
+        width: 0,
+        height: 3,
+    },
+
+    elevation: 3,
+},
+
+membershipFeeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    paddingBottom: 13,
+    marginBottom: 5,
+
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8EDF3',
+},
+
+membershipFeeTitle: {
+    marginLeft: 9,
+
+    fontSize: 16,
+    fontWeight: '700',
+
+    color: '#252943',
+},
+
+membershipFeeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+
+    paddingVertical: 13,
+},
+
+membershipFeeCategory: {
+    flex: 1,
+
+    paddingRight: 12,
+
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+
+    color: '#334155',
+},
+
+membershipFeeAmount: {
+    fontSize: 15,
+    fontWeight: '800',
+
+    color: '#252943',
+},
+
+membershipFeeDivider: {
+    height: 1,
+
+    backgroundColor: '#E8EDF3',
+},
+
+
 });
 // AboutScreen
 export const AboutScreenStyles = (() => {
@@ -1234,12 +1309,12 @@ export const ActivityFormScreenStyles = (() => {
       paddingHorizontal: 12,
       paddingVertical: 12,
       paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
     },
     navSide: { minWidth: 72, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
     navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+    navSave: { fontSize: 15, color: '#A0C878', fontWeight: '700', textAlign: 'right' },
 
     body: { padding: 18, paddingBottom: 40 },   // was container/card boxing — matches JobPosting
 
@@ -1263,8 +1338,8 @@ export const ActivityFormScreenStyles = (() => {
       marginRight: 8,
       marginBottom: 8,
     },
-    chipSelected: { backgroundColor: '#1E3A5F' },
-    chipText: { fontSize: 13, fontWeight: '600', color: '#1E3A5F' },
+    chipSelected: { backgroundColor: '#252943' },
+    chipText: { fontSize: 13, fontWeight: '600', color: '#252943' },
     chipTextSelected: { color: '#fff' },
 
     radioGroup: { gap: 10, marginBottom: 20 },
@@ -1278,7 +1353,7 @@ export const ActivityFormScreenStyles = (() => {
       backgroundColor: '#fff',
     },
     radioOptionSelected: {
-      borderColor: '#1E3A5F',
+      borderColor: '#252943',
       backgroundColor: '#EFF6FF',
     },
     radioCircle: {
@@ -1287,11 +1362,11 @@ export const ActivityFormScreenStyles = (() => {
       alignItems: 'center', justifyContent: 'center',
       marginRight: 12,
     },
-    radioCircleSelected: { borderColor: '#1E3A5F' },
-    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#1E3A5F' },
+    radioCircleSelected: { borderColor: '#252943' },
+    radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#252943' },
     radioTextWrap: { flex: 1 },
     radioLabel: { fontSize: 15, fontWeight: '600', color: '#374151' },
-    radioLabelSelected: { color: '#1E3A5F' },
+    radioLabelSelected: { color: '#252943' },
     radioSub: { fontSize: 12, color: '#9CA3AF', marginTop: 2 },
     radioSubSelected: { color: '#6B9CC7' },
     radioIcon: { fontSize: 20, marginLeft: 8 },
@@ -1501,12 +1576,12 @@ export const AddAdminScreenStyles = (() => {
       paddingHorizontal: 12,
       paddingVertical: 12,
       paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
     },
     navSide: { minWidth: 72, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
     navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+    navSave: { fontSize: 15, color: '#A0C878', fontWeight: '700', textAlign: 'right' },
   });
 })();
 
@@ -1595,29 +1670,51 @@ export const AdminDashboardScreenStyles = (() => {
 
     // IME header
     appHeader: {
-      backgroundColor: '#1E3A5F',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 14,
-      paddingTop: 44,
-      paddingBottom: 10,
-    },
-    headerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-    },
+  backgroundColor: '#252943',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 14,
+  paddingTop: 44,
+  paddingBottom: 10,
+},
+headerLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  marginRight: 8,
+},
+headerRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+},
+iconBtn: {
+  padding: 8,
+  marginLeft: 4,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+iconBtnText: {
+  fontSize: 20,
+  textAlign: 'center',
+},
+kebabIcon: {
+  fontSize: 22,
+  color: '#fff',
+  fontWeight: '700',
+  textAlign: 'center',
+},
     logoBox: {
       width: 40,
       height: 40,
       borderRadius: 10,
-      backgroundColor: '#D4A017',
+      backgroundColor: '#A0C878',
       justifyContent: 'center',
       alignItems: 'center',
       marginRight: 10,
     },
-    logoText: { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+    logoText: { color: '#252943', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
     appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
     appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
     backBtn: { padding: 8 },
@@ -1631,7 +1728,7 @@ export const AdminDashboardScreenStyles = (() => {
       marginBottom: 8,
       elevation: 1,
     },
-    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#1E3A5F' },
+    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#252943' },
     welcomeSub: { fontSize: 13, color: '#888', marginTop: 2 },
 
     // Grid
@@ -1640,7 +1737,24 @@ export const AdminDashboardScreenStyles = (() => {
     cardInner: { elevation: 2, backgroundColor: '#fff' },
     cardContent: { alignItems: 'center', paddingVertical: 20 },
     icon: { fontSize: 36, marginBottom: 8 },
-    cardTitle: { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
+    cardTitle: { fontSize: 13, textAlign: 'center', color: '#252943' },
+    lawBotCard: {
+      backgroundColor: '#ffffff',
+      marginHorizontal: 11,
+      marginBottom: 8,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 0.9,
+      borderColor: '#5da1e6',
+    },
+    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
+    lawBotSubtitle: { fontSize: 12, color: '#33A4FA', marginTop: 3 },
+menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
+    menuItemText: { fontSize: 14, color: '#222' },
+    menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
+
+    
+
   });
 })();
 
@@ -1680,8 +1794,8 @@ export const AnimatedSplashScreenStyles = (() => {
 })();
 //ChangePasswordScreen
 export const ChangePasswordScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
-  const GOLD = '#D4A017';
+  const NAVY = '#252943';
+  const GOLD = '#A0C878';
   return createScreenStyles({
     root: { flex: 1, backgroundColor: '#F7F9FC' },
 
@@ -1717,7 +1831,7 @@ export const ChangePasswordScreenStyles = (() => {
       padding: 16,
       marginTop: 4,
     },
-    reqTitle: { fontSize: 12, fontWeight: '700', color: '#1E3A5F', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 },
+    reqTitle: { fontSize: 12, fontWeight: '700', color: '#252943', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 },
     req: { fontSize: 13, color: '#334155', marginBottom: 4 },
 
     // ── Field wrapper — matches Achievement/JobPosting/Club ──
@@ -1749,7 +1863,7 @@ export const ChatScreenStyles = (() => {
 
     // Header
     header: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       flexDirection: 'row',
       alignItems: 'center',
       paddingTop: 44,
@@ -1760,11 +1874,11 @@ export const ChatScreenStyles = (() => {
     backIcon: { fontSize: 22, color: '#fff', fontWeight: '700' },
     headerAvatar: {
       width: 38, height: 38, borderRadius: 19,
-      backgroundColor: '#D4A017',
+      backgroundColor: '#A0C878',
       justifyContent: 'center', alignItems: 'center',
       marginRight: 10,
     },
-    headerAvatarLetter: { color: '#1E3A5F', fontSize: 16, fontWeight: '800' },
+    headerAvatarLetter: { color: '#252943', fontSize: 16, fontWeight: '800' },
     headerInfo: { flex: 1 },
     headerName: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
@@ -1787,7 +1901,7 @@ export const ChatScreenStyles = (() => {
       shadowRadius: 2,
       shadowOffset: { width: 0, height: 1 },
     },
-    bubbleOwn: { backgroundColor: '#1E3A5F', borderBottomRightRadius: 4 },
+    bubbleOwn: { backgroundColor: '#252943', borderBottomRightRadius: 4 },
     bubbleOther: { backgroundColor: '#fff', borderBottomLeftRadius: 4 },
 
     bubbleText: { fontSize: 15, lineHeight: 21 },
@@ -1823,7 +1937,7 @@ export const ChatScreenStyles = (() => {
     },
     sendBtn: {
       width: 44, height: 44, borderRadius: 22,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       justifyContent: 'center', alignItems: 'center',
     },
     sendBtnDisabled: { backgroundColor: '#B0BEC5' },
@@ -1837,7 +1951,7 @@ export const ChatsListScreenStyles = (() => {
     container: { flex: 1, backgroundColor: '#fff' },
 
     header: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       paddingTop: 44,
       paddingBottom: 12,
       paddingHorizontal: 16,
@@ -1872,110 +1986,110 @@ export const ChatsListScreenStyles = (() => {
     emptyIcon: { fontSize: 52, marginBottom: 14 },
     emptyText: { fontSize: 17, fontWeight: '700', color: '#555', marginBottom: 6 },
     emptySub: { fontSize: 13, color: '#aaa', textAlign: 'center', lineHeight: 20 },
-    // ── FAB ──
-    // ── FAB ──
-    fab: {
-      position: 'absolute',
-      right: 20,
-      bottom: 24,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: '#1E3A5F',
-      alignItems: 'center',
-      justifyContent: 'center',
-      elevation: 6,
-      shadowColor: '#000',
-      shadowOpacity: 0.25,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 3 },
-    },
-    fabIcon: { color: '#D4A017', fontSize: 28, fontWeight: '700', lineHeight: 30 },
-
-    // ── Member picker modal ──
-    modalOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.45)',
-    },
-    modalSheet: {
-      position: 'absolute',
-      left: 0, right: 0, bottom: 0,
-      backgroundColor: '#fff',
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      maxHeight: '75%',
-      paddingBottom: 20,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 18,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: '#F1F5F9',
-    },
-    modalTitle: { fontSize: 16, fontWeight: '700', color: '#1E3A5F' },
-    modalCloseBtn: {
-      width: 30, height: 30, borderRadius: 15,
-      backgroundColor: '#F0F2F5',
-      alignItems: 'center', justifyContent: 'center',
-    },
-    modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
-
-    searchBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#F5F7FA',
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginTop: 14,
-      marginBottom: 6,
-      paddingHorizontal: 12,
-    },
-    searchIcon: { fontSize: 14, marginRight: 8 },
-    searchInput: {
-      flex: 1,
-      paddingVertical: 12,
-      fontSize: 15,
-      color: '#1a1a1a',
-    },
-    searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
-
-    // ── Inline search box on the main Chats list (above the FlatList) ──
-    chatSearchBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#fff',
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginTop: 10,
-      marginBottom: 6,
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-    },
-    chatSearchInput: {
-      flex: 1,
-      paddingVertical: 10,
-      fontSize: 14,
-      color: '#1a1a1a',
-    },
-
-    memberRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 18,
-      paddingVertical: 12,
-    },
-    memberAvatar: {
-      width: 42, height: 42, borderRadius: 21,
-      alignItems: 'center', justifyContent: 'center',
-      marginRight: 12,
-    },
-    memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
-    memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-    memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
+   // ── FAB ──
+ // ── FAB ──
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#252943',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+  },
+  fabIcon: { color: '#A0C878', fontSize: 28, fontWeight: '700', lineHeight: 30 },
+ 
+  // ── Member picker modal ──
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  modalSheet: {
+    position: 'absolute',
+    left: 0, right: 0, bottom: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '75%',
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
+  modalCloseBtn: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: '#F0F2F5',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
+ 
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F7FA',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 14,
+    marginBottom: 6,
+    paddingHorizontal: 12,
+  },
+  searchIcon: { fontSize: 14, marginRight: 8 },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#1a1a1a',
+  },
+  searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
+ 
+  // ── Inline search box on the main Chats list (above the FlatList) ──
+  chatSearchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chatSearchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#1a1a1a',
+  },
+ 
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  memberAvatar: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 12,
+  },
+  memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+  memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
   });
 })();
 
@@ -2093,10 +2207,10 @@ export const ClubFormScreenStyles = (() => {
     root: { flex: 1, backgroundColor: '#F7F9FC' },   // was '#F0F2F5' — match Achievement's bg
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-    header: { backgroundColor: '#1E3A5F', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 44 : 54, paddingBottom: 14 },
+    header: { backgroundColor: '#252943', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: Platform.OS === 'android' ? 44 : 54, paddingBottom: 14 },
     headerTitle: { color: '#fff', fontSize: 17, fontWeight: '700' },
     headerBtn: { padding: 4, minWidth: 48 },
-    saveText: { color: '#D4A017', fontSize: 16, fontWeight: '700', textAlign: 'right' },
+    saveText: { color: '#A0C878', fontSize: 16, fontWeight: '700', textAlign: 'right' },
 
     scroll: { padding: 18, paddingBottom: 40 },   // was { paddingBottom: 40 } — match Achievement's body
 
@@ -2113,13 +2227,13 @@ export const ClubFormScreenStyles = (() => {
     logoPlaceholder: { flex: 1, justifyContent: 'center', alignItems: 'center' },
     logoPlaceholderText: { fontSize: 11, color: '#64748B', marginTop: 4, fontWeight: '500' },  // matches gridAddText
     changeLogoBtn: { marginTop: 10 },
-    changeLogoText: { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
+    changeLogoText: { fontSize: 13, color: '#252943', fontWeight: '600' },
 
     sectionHeader: { marginTop: 8, marginBottom: 4 },   // was boxed banner — now plain like Achievement's attachLabel
     sectionTitle: {
       fontSize: 12,
       fontWeight: '700',
-      color: '#64748B',                 // was '#1E3A5F' — match Achievement's label color
+      color: '#64748B',                 // was '#252943' — match Achievement's label color
       textTransform: 'uppercase',
       letterSpacing: 0.6,
     },
@@ -2169,17 +2283,17 @@ export const ClubFormScreenStyles = (() => {
     // Admin chips
     chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 8 },
     adminChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E0E7EF', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 6 },
-    adminChipText: { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
+    adminChipText: { fontSize: 13, color: '#252943', fontWeight: '600' },
 
     // Admin radio toggle
     radioRow: { flexDirection: 'row', gap: 20, marginTop: 4, marginBottom: 4 },
     radioOption: { flexDirection: 'row', alignItems: 'center' },
     radioOuter: { width: 18, height: 18, borderRadius: 9, borderWidth: 1.5, borderColor: '#bbb', alignItems: 'center', justifyContent: 'center', marginRight: 6 },
-    radioOuterActive: { borderColor: '#1E3A5F' },
-    radioInner: { width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#1E3A5F' },
+    radioOuterActive: { borderColor: '#252943' },
+    radioInner: { width: 9, height: 9, borderRadius: 4.5, backgroundColor: '#252943' },
     radioLabel: { fontSize: 13, color: '#333' },
     addAdminButton: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', gap: 8, backgroundColor: '#E0E7EF', borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', paddingHorizontal: 12, paddingVertical: 10 },
-    addAdminButtonText: { fontSize: 13, color: '#1E3A5F', fontWeight: '700' },
+    addAdminButtonText: { fontSize: 13, color: '#252943', fontWeight: '700' },
     embeddedAdminBox: { marginTop: 8, borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 12, backgroundColor: '#fff', padding: 4 },
 
     switchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
@@ -2187,7 +2301,7 @@ export const ClubFormScreenStyles = (() => {
 
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     modalSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-    modalTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 4 },
+    modalTitle: { fontSize: 17, fontWeight: '700', color: '#252943', marginBottom: 4 },
     modalSubtitle: { fontSize: 12, color: '#888', marginBottom: 10 },
     modalSearch: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 12, marginBottom: 10, fontSize: 14, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
 
@@ -2198,39 +2312,39 @@ export const ClubFormScreenStyles = (() => {
     modalItemSub: { fontSize: 12, color: '#888', marginTop: 2 },
     modalEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
 
-    modalDone: { marginTop: 14, backgroundColor: '#1E3A5F', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+    modalDone: { marginTop: 14, backgroundColor: '#252943', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
     modalDoneText: { color: '#fff', fontSize: 15, fontWeight: '700' },
     modalCancel: { marginTop: 12, backgroundColor: '#F8FAFC', borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1.5, borderColor: '#E2E8F0' },
-    modalCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+    modalCancelText: { fontSize: 15, color: '#252943', fontWeight: '600' },
     // ── Club Logo — restyled like AddAdminScreen's photoPickerRow ──
-    logoLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
-    logoPickerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#F8FAFC',
-      borderRadius: 12,
-      padding: 12,
-      marginBottom: 20,
-      borderWidth: 1.5,
-      borderColor: '#CBD5E1',
-      borderStyle: 'dashed',
-    },
-    logoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#E2E8F0' },
-    logoPlaceholderCircle: {
-      width: 60, height: 60, borderRadius: 30,
-      backgroundColor: '#E0E7EF',
-      justifyContent: 'center', alignItems: 'center',
-    },
-    logoPlaceholderIcon: { fontSize: 26 },
-    logoPickerText: { marginLeft: 14, flex: 1 },
-    logoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
-    logoPickerHint: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-    changeLogoBtn: { marginTop: 0 },
-    changeLogoText: { fontSize: 13, color: '#1E3A5F', fontWeight: '600' },
-    navSide: { minWidth: 64, paddingHorizontal: 4 },
-    navTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#fff' },
-    navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    //navSave: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+logoLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+logoPickerRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#F8FAFC',
+  borderRadius: 12,
+  padding: 12,
+  marginBottom: 20,
+  borderWidth: 1.5,
+  borderColor: '#CBD5E1',
+  borderStyle: 'dashed',
+},
+logoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#E2E8F0' },
+logoPlaceholderCircle: {
+  width: 60, height: 60, borderRadius: 30,
+  backgroundColor: '#E0E7EF',
+  justifyContent: 'center', alignItems: 'center',
+},
+logoPlaceholderIcon: { fontSize: 26 },
+logoPickerText: { marginLeft: 14, flex: 1 },
+logoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#252943' },
+logoPickerHint: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
+changeLogoBtn: { marginTop: 0 },
+changeLogoText: { fontSize: 13, color: '#252943', fontWeight: '600' },
+navSide: { minWidth: 64, paddingHorizontal: 4 },
+navTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#fff' },
+navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+//navSave: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
   });
 })();
 
@@ -2243,8 +2357,8 @@ export const ClubListScreenStyles = (() => {
     searchbar: { margin: 12, marginBottom: 6, elevation: 2, borderRadius: 10 },
     filterRow: { flexDirection: 'row', paddingHorizontal: 12, gap: 8, marginBottom: 8 },
     chip: { backgroundColor: '#E0E7EF' },
-    chipSelected: { backgroundColor: '#1E3A5F' },
-    chipText: { fontSize: 12, color: '#1E3A5F' },
+    chipSelected: { backgroundColor: '#252943' },
+    chipText: { fontSize: 12, color: '#252943' },
     chipTextSelected: { color: '#fff' },
 
     list: { paddingHorizontal: 12, paddingBottom: 100 },
@@ -2253,11 +2367,11 @@ export const ClubListScreenStyles = (() => {
     cardTop: { flexDirection: 'row', alignItems: 'flex-start' },
 
     logoImg: { width: 48, height: 48, borderRadius: 24, marginRight: 12, backgroundColor: '#F0F2F5' },
-    avatarBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
+    avatarBox: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#252943', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
     avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
 
     cardInfo: { flex: 1 },
-    clubName: { fontSize: 15, fontWeight: '700', color: '#1E3A5F', marginBottom: 2 },
+    clubName: { fontSize: 15, fontWeight: '700', color: '#252943', marginBottom: 2 },
     clubCode: { fontSize: 12, color: '#888', marginBottom: 2 },
     clubMeta: { fontSize: 12, color: '#555', marginBottom: 1 },
 
@@ -2280,7 +2394,7 @@ export const ClubListScreenStyles = (() => {
       marginTop: 2,
     },
     editBtn: { flex: 1, backgroundColor: '#EBF0FA', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
-    editBtnText: { color: '#1E3A5F', fontWeight: '600', fontSize: 13 },
+    editBtnText: { color: '#252943', fontWeight: '600', fontSize: 13 },
     deleteBtn: { flex: 1, backgroundColor: '#FFEBEE', borderRadius: 8, paddingVertical: 8, alignItems: 'center' },
     deleteBtnText: { color: '#C62828', fontWeight: '600', fontSize: 13 },
 
@@ -2299,9 +2413,9 @@ export const ContentViewerScreenStyles = (() => {
     container: { flex: 1, backgroundColor: '#fff' },
     center: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 30 },
     emptyIcon: { fontSize: 48, marginBottom: 12 },
-    emptyTitle: { fontSize: 18, fontWeight: '700', color: '#1E3A5F', marginBottom: 6 },
+    emptyTitle: { fontSize: 18, fontWeight: '700', color: '#252943', marginBottom: 6 },
     emptySubtitle: { fontSize: 14, color: '#999', textAlign: 'center' },
-    header: { backgroundColor: '#1E3A5F', padding: 24, paddingTop: 32 },
+    header: { backgroundColor: '#252943', padding: 24, paddingTop: 32 },
     headerTitle: { color: '#fff', fontSize: 24, fontWeight: '800' },
     body: { padding: 20 },
   });
@@ -2452,12 +2566,12 @@ export const CreateFundScreenS = (() => {
       paddingHorizontal: 12, paddingVertical: 12,
       paddingTop: (StatusBar.currentHeight ?? 0) + 12,
       borderBottomWidth: 0,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
     },
     navSide: { minWidth: 72, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
     navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+    navSave: { fontSize: 15, color: '#A0C878', fontWeight: '700', textAlign: 'right' },
 
     backBtn: {
       width: 36, height: 36, borderRadius: 18,
@@ -2663,7 +2777,7 @@ export const CreatePostScreenStyles = (() => {
   const LIGHT = '#EAF1FA';
 
 
-  const BLUE2 = '#2C5F8A';
+  const BLUE2 = '#33A4FA';
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: '#fff' },
@@ -2683,7 +2797,7 @@ export const CreatePostScreenStyles = (() => {
     cancelText: { color: 'rgba(255,255,255,0.8)', fontSize: 15 },
     headerTitle: { color: '#fff', fontSize: 16, fontWeight: '700' },
     postBtn: {
-      backgroundColor: '#D4A017',
+      backgroundColor: '#A0C878',
       paddingHorizontal: 20,
       paddingVertical: 7,
       borderRadius: 20,
@@ -3197,8 +3311,8 @@ export const FeesDetailsStyles = (() => {
 })();
 
 export const ForgotPasswordScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
-  const GOLD = '#D4A017';
+  const NAVY = '#252943';
+  const GOLD = '#A0C878';
   return createScreenStyles({
     container: {
       flex: 1,
@@ -3274,14 +3388,14 @@ export const FundScreenStyles = (() => {
     content: { padding: 16, paddingBottom: 32 },
 
     heroBanner: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       borderRadius: 16,
       padding: 28,
       alignItems: 'center',
       marginBottom: 16,
     },
     heroIcon: { fontSize: 48, marginBottom: 8 },
-    heroTitle: { fontSize: 26, fontWeight: '800', color: '#D4A017', marginBottom: 4 },
+    heroTitle: { fontSize: 26, fontWeight: '800', color: '#A0C878', marginBottom: 4 },
     heroSubtitle: { fontSize: 13, color: 'rgba(255,255,255,0.75)', textAlign: 'center' },
 
     card: {
@@ -3298,8 +3412,8 @@ export const FundScreenStyles = (() => {
     comingSoonCard: { opacity: 0.65 },
     comingSoonBadge: {
       alignSelf: 'flex-start',
-      backgroundColor: '#D4A017',
-      color: '#1E3A5F',
+      backgroundColor: '#A0C878',
+      color: '#252943',
       fontSize: 11,
       fontWeight: '700',
       paddingHorizontal: 8,
@@ -3308,19 +3422,19 @@ export const FundScreenStyles = (() => {
       marginBottom: 8,
       overflow: 'hidden',
     },
-    cardTitle: { fontSize: 16, fontWeight: '700', color: '#1E3A5F', marginBottom: 6 },
+    cardTitle: { fontSize: 16, fontWeight: '700', color: '#252943', marginBottom: 6 },
     cardDesc: { fontSize: 13, color: '#666', lineHeight: 20, marginBottom: 14 },
 
     btn: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       borderRadius: 8,
       paddingVertical: 12,
       alignItems: 'center',
     },
     btnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
-    btnOutline: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#1E3A5F' },
-    btnOutlineText: { color: '#1E3A5F', fontWeight: '700', fontSize: 14 },
+    btnOutline: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: '#252943' },
+    btnOutlineText: { color: '#252943', fontWeight: '700', fontSize: 14 },
   });
 })();
 
@@ -3347,7 +3461,7 @@ const _FundraiseListScreenStyleBundle = (() => {
       summaryLabel: { fontSize: 11, color: '#888', marginTop: 2 },
       summaryDivider: { width: 1, backgroundColor: '#E8ECF4' },
 
-      card: { backgroundColor: CARD_BG, borderRadius: 16, marginBottom: 14, padding: 16, elevation: 3, shadowColor: '#1E3A5F', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+      card: { backgroundColor: CARD_BG, borderRadius: 16, marginBottom: 14, padding: 16, elevation: 3, shadowColor: '#252943', shadowOpacity: 0.08, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
       cardTop: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12 },
       cardTopInfo: { flex: 1, marginLeft: 12 },
       titleRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 },
@@ -3438,7 +3552,7 @@ const _FundraiseViewScreenStyleBundle = (() => {
       heroCard: {
         backgroundColor: '#fff', borderRadius: 18, padding: 18,
         marginBottom: 14,
-        elevation: 4, shadowColor: '#1E3A5F',
+        elevation: 4, shadowColor: '#252943',
         shadowOpacity: 0.09, shadowRadius: 10,
         shadowOffset: { width: 0, height: 4 },
       },
@@ -3629,14 +3743,14 @@ export const HistoryDetailsStyles = (() => {
 // HomeScreen
 export const HomeScreenStyles = (() => {
   return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#1E3A5F' },
+    container: { flex: 1, backgroundColor: '#252943' },
     list: { flex: 1, backgroundColor: '#F0F2F5' },
     listContent: { paddingBottom: 20 },
     emptyContent: { flexGrow: 1 },
 
     // App header
     appHeader: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -3647,10 +3761,10 @@ export const HomeScreenStyles = (() => {
     headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
     logoBox: {
       width: 40, height: 40, borderRadius: 10,
-      backgroundColor: '#D4A017',
+      backgroundColor: '#A0C878',
       justifyContent: 'center', alignItems: 'center', marginRight: 10,
     },
-    logoText: { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+    logoText: { color: '#252943', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
     appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
     appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
     headerRight: { flexDirection: 'row', alignItems: 'center' },
@@ -3668,19 +3782,19 @@ export const HomeScreenStyles = (() => {
     },
     welcomeAvatar: {
       width: 46, height: 46, borderRadius: 23,
-      backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center', marginRight: 12,
+      backgroundColor: '#252943', justifyContent: 'center', alignItems: 'center', marginRight: 12,
     },
-    welcomeAvatarLetter: { color: '#D4A017', fontSize: 20, fontWeight: '800' },
+    welcomeAvatarLetter: { color: '#A0C878', fontSize: 20, fontWeight: '800' },
     welcomeTexts: { flex: 1 },
-    welcomeGreeting: { fontSize: 16, fontWeight: '700', color: '#1E3A5F' },
+    welcomeGreeting: { fontSize: 16, fontWeight: '700', color: '#252943' },
     welcomeSub: { fontSize: 12, color: '#888', marginTop: 2 },
     newPostBtn: {
       width: 36, height: 36, borderRadius: 18,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       justifyContent: 'center', alignItems: 'center',
       marginLeft: 8,
     },
-    newPostBtnText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+    newPostBtnText: { color: '#A0C878', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 
     // Footer
     footerLoader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 18 },
@@ -3693,7 +3807,7 @@ export const HomeScreenStyles = (() => {
     centerText: { marginTop: 14, fontSize: 14, color: '#888' },
     errorIcon: { fontSize: 48, marginBottom: 12 },
     errorText: { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 20 },
-    retryBtn: { backgroundColor: '#1E3A5F', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
+    retryBtn: { backgroundColor: '#252943', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
     retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
     // Empty
@@ -3710,8 +3824,8 @@ export const HomeScreenStyles = (() => {
       borderWidth: 0.5,
       borderColor: '#B5D4F4',
     },
-    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
-    lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
+    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
+    lawBotSubtitle: { fontSize: 12, color: '#33A4FA', marginTop: 3 },
   });
 })();
 
@@ -3778,7 +3892,7 @@ export const JobPostingDetailScreenStyles = (() => {
       borderWidth: 1, borderColor: '#BFDBFE',
     },
     contactLabel: { fontSize: 11, fontWeight: '700', color: '#1D4ED8', textTransform: 'uppercase', letterSpacing: 0.4 },
-    contactValue: { fontSize: 14, color: '#1E3A5F', fontWeight: '600', marginTop: 2 },
+    contactValue: { fontSize: 14, color: '#252943', fontWeight: '600', marginTop: 2 },
 
     attachSection: { width: '100%', marginBottom: 20 },
     attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
@@ -3951,20 +4065,17 @@ export const JobPostingListScreenStyles = (() => {
     emptyText: { fontSize: 15, color: '#888', fontWeight: '600' },
     emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
 
-    fab: {
-      position: 'absolute', right: 20, bottom: 24,
-      width: 56, height: 56, borderRadius: 28,
-      backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4,
-    },
+    fab: Common.fab({ zIndex: 100 }),
+     fabText: Common.fabText,
   });
 })();
 
 // LawBotScreen
 export const LawBotScreenStyles = (() => {
   const BG = '#F0F2F5';
-  const NAVY = '#1E3A5F';
-  const GOLD = '#D4A017';
-  const WHITE = '#FFFFFF';
+const NAVY = '#252943';
+const GOLD = '#A0C878';
+const WHITE = '#FFFFFF';
   return createScreenStyles({
     safe: { flex: 1, backgroundColor: BG },
 
@@ -4109,15 +4220,14 @@ export const LoginScreenStyles = (() => {
   const GOLD = COLORS.gold;
 
   return createScreenStyles({
-    root: { flex: 1, backgroundColor: NAVY },
+    root: { flex: 1, },
 
     heroBg: {
-      backgroundColor: NAVY,
-      alignItems: 'center',
-      paddingTop: (StatusBar.currentHeight ?? 0) + 24,
-      paddingBottom: 28,
-      overflow: 'hidden',
-    },
+  alignItems: 'center',
+  paddingTop: (StatusBar.currentHeight ?? 0) + 24,
+  paddingBottom: 28,
+  overflow: 'hidden',
+},
     circle1: {
       position: 'absolute', width: 240, height: 240, borderRadius: 120,
       borderWidth: 1, borderColor: 'rgba(212,160,23,0.12)', top: -60, right: -60,
@@ -4135,16 +4245,15 @@ export const LoginScreenStyles = (() => {
     scrollContent: { paddingHorizontal: 16, paddingBottom: 30 },
 
     card: {
-      backgroundColor: '#fff',
-      borderRadius: 20,
-      padding: 22,
-      marginBottom: 14,
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-    },
+  backgroundColor: '#FFFFFF',
+  borderRadius: 20,
+  padding: 22,
+  marginBottom: 16,
+  elevation: 8,
+  shadowColor: '#252943',
+  shadowOpacity: 0.15,
+  shadowRadius: 12,
+},
     cardTitle: { fontSize: 22, fontWeight: '800', color: NAVY, marginBottom: 4 },
     cardSub: { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
 
@@ -4160,7 +4269,7 @@ export const LoginScreenStyles = (() => {
     // ── Styled TextInput — matches Achievement/JobPosting/Club/ChangePassword ──
     styledInput: {
       base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500' },
-      focused: { borderColor: NAVY, backgroundColor: '#fff' },
+      focused: { borderColor: COLORS.accent, backgroundColor: '#fff' },
       errored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
     },
 
@@ -4218,11 +4327,11 @@ export const LoginScreenStyles = (() => {
       borderColor: 'rgba(255,255,255,0.12)',
     },
     statItem: { flex: 1, alignItems: 'center' },
-    statValue: { color: GOLD, fontSize: 16, fontWeight: '800' },
+    statValue: { color: COLORS.accent, fontSize: 16, fontWeight: '800' },
     statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2, fontWeight: '500' },
     statsDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
 
-    footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 },
+    footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 , marginBottom: 12, },
   });
 })();
 
@@ -4509,33 +4618,33 @@ export const MagazinesScreenS = (() => {
       shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
     },
-    cardTopRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: 10,
-    },
-    actionContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    iconButton: {
-      padding: 4,
-      marginLeft: 8,
-    },
-    badge: {
-      flexDirection: 'row',
-      alignSelf: 'flex-start',
-      backgroundColor: '#EEF2FF',
-      borderRadius: 12,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-    },
-    badgeText: {
-      fontSize: 12,
-      fontWeight: '600',
-      color: '#1E3A5F',
-    },
+   cardTopRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 10,
+},
+actionContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+},
+iconButton: {
+  padding: 4,
+  marginLeft: 8,
+},
+badge: {
+  flexDirection: 'row',
+  alignSelf: 'flex-start',
+  backgroundColor: '#EEF2FF',
+  borderRadius: 12,
+  paddingHorizontal: 10,
+  paddingVertical: 4,
+},
+badgeText: {
+  fontSize: 12,
+  fontWeight: '600',
+  color: '#252943',
+},
     iconBotton: { padding: 4 },
     cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
     cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
@@ -4768,12 +4877,12 @@ export const MemberEditScreenStyles = (() => {
       paddingHorizontal: 12,
       paddingVertical: 12,
       paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
     },
     navSide: { minWidth: 72, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
     navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+    navSave: { fontSize: 15, color: '#A0C878', fontWeight: '700', textAlign: 'right' },
 
     root: { flex: 1, backgroundColor: '#F5F5F5', },
     container: { flex: 1, backgroundColor: '#f5f5f5' },
@@ -4819,7 +4928,7 @@ export const MemberEditScreenStyles = (() => {
     dropdownMenu: { backgroundColor: '#fff', borderRadius: 12, borderWidth: 1.5, borderColor: '#E2E8F0', marginTop: 8, overflow: 'hidden' },
     dropdownItem: { paddingVertical: 12, paddingHorizontal: 16 },
     dropdownItemText: { fontSize: 15, color: '#334155' },
-    dropdownItemActive: { color: '#1E3A5F', fontWeight: '700' },
+    dropdownItemActive: { color: '#252943', fontWeight: '700' },
 
     // ── Attachment-style photo upload box (matches Activity Form Attachments exactly) ──
     attachGrid: {
@@ -4872,12 +4981,12 @@ export const MemberEditScreenStyles = (() => {
       paddingVertical: 15,
       alignItems: 'center',
       borderWidth: 1.5,
-      borderColor: '#1E3A5F',
+      borderColor: '#252943',
     },
-    clearBtnText: { color: '#1E3A5F', fontSize: 16, fontWeight: '700' },
+    clearBtnText: { color: '#252943', fontSize: 16, fontWeight: '700' },
     saveBtn: {
       flex: 1,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       borderRadius: 12,
       paddingVertical: 15,
       alignItems: 'center',
@@ -4906,7 +5015,7 @@ export const MemberManagementScreenStyles = (() => {
     designation: { fontSize: 13, color: '#999', fontStyle: 'italic', marginTop: 8 },
     emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
     emptyText: { fontSize: 16, color: '#999' },
-    fab: { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#1E3A5F' },
+    fab: { position: 'absolute', right: 16, bottom: 16, backgroundColor: '#252943' },
 
     // ── Top row: status badge (left) — Edit/Delete (right) ──
     cardTopRow: {
@@ -4938,8 +5047,8 @@ export const MemberManagementScreenStyles = (() => {
 
     // ── Filter chips — same pattern as Activity status chips ──
     chip: { marginRight: 8, marginBottom: 8, backgroundColor: '#E0E7EF' },
-    chipSelected: { backgroundColor: '#1E3A5F' },
-    chipText: { fontSize: 12, color: '#1E3A5F' },
+    chipSelected: { backgroundColor: '#252943' },
+    chipText: { fontSize: 12, color: '#252943' },
     chipTextSelected: { color: '#fff' },
   });
 })();
@@ -5038,18 +5147,27 @@ export const MunicipalMapScreenStyles = (() => {
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
     breadcrumb: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
-    levelRow: {
-      flexDirection: 'row', backgroundColor: NAVY,
-      paddingHorizontal: 12, paddingBottom: 12,
-    },
-    levelPill: {
-      flex: 1, paddingVertical: 6, borderRadius: 20,
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      alignItems: 'center', marginHorizontal: 3,
-    },
-    levelPillActive: { backgroundColor: GOLD },
-    levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
-    levelPillTextActive: { color: NAVY },
+ levelRow: {
+  flexDirection: 'row',
+  backgroundColor: NAVY,
+  paddingHorizontal: 12,
+  paddingBottom: 8,
+},
+levelPill: {
+  flex: 1,
+  paddingVertical: 3,       // ← slimmer height
+  paddingHorizontal: 6,
+  borderRadius: 16,          // ← slightly less rounded to match a shorter pill
+  backgroundColor: 'rgba(255,255,255,0.12)',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginHorizontal: 3,
+  // no minHeight — let it hug the text tightly
+},
+levelPillActive: { backgroundColor: GOLD },
+levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
+levelPillTextActive: { color: NAVY, fontWeight: '700' },
+//levelPillTextActive: { color: NAVY },
 
     mapContainer: { flex: 1 },
     map: { flex: 1 },
@@ -5107,13 +5225,13 @@ export const MunicipalMapScreenStyles = (() => {
 // MypostScreen
 export const MypostScreenStyles = (() => {
   return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#1E3A5F' },
+    container: { flex: 1, backgroundColor: '#252943' },
     list: { flex: 1, backgroundColor: '#F0F2F5' },
     listContent: { paddingBottom: 20 },
     emptyContent: { flexGrow: 1 },
 
     appHeader: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -5136,10 +5254,10 @@ export const MypostScreenStyles = (() => {
     cardTopRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, paddingBottom: 0 },
     avatar: {
       width: 38, height: 38, borderRadius: 19,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       justifyContent: 'center', alignItems: 'center', marginRight: 10,
     },
-    avatarLetter: { color: '#D4A017', fontSize: 16, fontWeight: '800' },
+    avatarLetter: { color: '#A0C878', fontSize: 16, fontWeight: '800' },
     cardTopTexts: { flex: 1 },
     memberName: { fontSize: 14, fontWeight: '700', color: '#222' },
     metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
@@ -5180,7 +5298,7 @@ export const MypostScreenStyles = (() => {
     centerText: { marginTop: 14, fontSize: 14, color: '#888' },
     errorIcon: { fontSize: 48, marginBottom: 12 },
     errorText: { fontSize: 15, color: '#555', textAlign: 'center', marginBottom: 20 },
-    retryBtn: { backgroundColor: '#1E3A5F', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
+    retryBtn: { backgroundColor: '#252943', paddingHorizontal: 32, paddingVertical: 12, borderRadius: 8 },
     retryBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
     emptyWrap: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 80 },
@@ -5703,8 +5821,8 @@ export const OrganisationScreenStyles = (() => {
 
 // PaymentHistoryScreen
 export const PaymentHistoryScreenStyles = (() => {
-  const NAVY = '#1E3A5F';
-  const GOLD = '#D4A017';
+  const NAVY = '#252943';
+  const GOLD = '#A0C878';
   return createScreenStyles({
     root: { flex: 1, backgroundColor: '#F7F9FC' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7F9FC' },
@@ -6052,12 +6170,12 @@ export const ProfileEditScreenStyles = (() => {
       flexDirection: 'row', alignItems: 'center',
       paddingHorizontal: 12, paddingVertical: 12,
       paddingTop: (StatusBar.currentHeight ?? 0) + 12,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
     },
     navSide: { minWidth: 72, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
     navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-    navSave: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
+    navSave: { fontSize: 15, color: '#A0C878', fontWeight: '700', textAlign: 'right' },
 
     scrollContainer: { flex: 1, backgroundColor: '#f5f5f5' },
     content: { padding: 16, paddingBottom: 40 },
@@ -6067,7 +6185,7 @@ export const ProfileEditScreenStyles = (() => {
       padding: 20, marginBottom: 16, elevation: 2,
     },
     sectionTitle: {
-      fontSize: 15, fontWeight: '700', color: '#1E3A5F',
+      fontSize: 15, fontWeight: '700', color: '#252943',
       marginBottom: 14, borderBottomWidth: 1,
       borderBottomColor: '#EEF2FF', paddingBottom: 8,
     },
@@ -6077,14 +6195,14 @@ export const ProfileEditScreenStyles = (() => {
 
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-    pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+    pickerTitle: { fontSize: 17, fontWeight: '700', color: '#252943', marginBottom: 12 },
     pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
     pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
     pickerItemText: { fontSize: 15, color: '#111' },
-    pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
+    pickerItemTextActive: { color: '#252943', fontWeight: '700' },
     pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
     pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-    pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+    pickerCancelText: { fontSize: 15, color: '#252943', fontWeight: '600' },
 
     profileContainer: { alignItems: 'center', marginBottom: 20 },
     profileImage: { width: 110, height: 110, borderRadius: 55, borderWidth: 3, borderColor: '#fff' },
@@ -6227,24 +6345,24 @@ export const RaiseFundScreenS = (() => {
 export const RegistrationPaymentScreenStyles = (() => {
   return createScreenStyles({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
-    header: { backgroundColor: '#1E3A5F', padding: 28, alignItems: 'center' },
+    header: { backgroundColor: '#252943', padding: 28, alignItems: 'center' },
     headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#fff' },
     headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
 
-    feeCard: { backgroundColor: '#D4A017', margin: 16, borderRadius: 12, padding: 24, alignItems: 'center' },
-    feeLabel: { color: '#1E3A5F', fontSize: 13, fontWeight: '600' },
-    feeAmount: { color: '#1E3A5F', fontSize: 40, fontWeight: 'bold', marginVertical: 4 },
-    feeNote: { color: '#1E3A5F', fontSize: 12, textAlign: 'center', marginTop: 4 },
+    feeCard: { backgroundColor: '#A0C878', margin: 16, borderRadius: 12, padding: 24, alignItems: 'center' },
+    feeLabel: { color: '#252943', fontSize: 13, fontWeight: '600' },
+    feeAmount: { color: '#252943', fontSize: 40, fontWeight: 'bold', marginVertical: 4 },
+    feeNote: { color: '#252943', fontSize: 12, textAlign: 'center', marginTop: 4 },
 
     section: { backgroundColor: '#fff', margin: 16, marginTop: 0, borderRadius: 12, padding: 16, elevation: 1 },
-    sectionTitle: { fontSize: 15, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+    sectionTitle: { fontSize: 15, fontWeight: '700', color: '#252943', marginBottom: 12 },
 
     // Profile photo
     photoRow: { flexDirection: 'row', alignItems: 'center' },
-    photoPreview: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#1E3A5F' },
+    photoPreview: { width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: '#252943' },
     photoPlaceholder: { width: 72, height: 72, borderRadius: 36, backgroundColor: '#E8EFF7', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#BBDEFB', borderStyle: 'dashed' },
     photoPlaceholderIcon: { fontSize: 32 },
-    photoBadge: { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center' },
+    photoBadge: { position: 'absolute', bottom: 0, right: 0, width: 22, height: 22, borderRadius: 11, backgroundColor: '#252943', justifyContent: 'center', alignItems: 'center' },
     photoBadgeText: { fontSize: 10 },
     photoInfo: { marginLeft: 16, flex: 1 },
     photoInfoTitle: { fontSize: 14, fontWeight: '600', color: '#333' },
@@ -6252,11 +6370,11 @@ export const RegistrationPaymentScreenStyles = (() => {
     photoOptional: { fontSize: 11, color: '#aaa', marginTop: 4, fontStyle: 'italic' },
 
     // Razorpay badge
-    razorpayBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 10, padding: 12, borderWidth: 1.5, borderColor: '#1E3A5F' },
+    razorpayBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F4FF', borderRadius: 10, padding: 12, borderWidth: 1.5, borderColor: '#252943' },
     razorpayIcon: { fontSize: 28 },
-    razorpayTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+    razorpayTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
     razorpaySubtitle: { fontSize: 12, color: '#666', marginTop: 2 },
-    razorpayActive: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#1E3A5F', justifyContent: 'center', alignItems: 'center' },
+    razorpayActive: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#252943', justifyContent: 'center', alignItems: 'center' },
     razorpayActiveText: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
 
     // Amount breakdown
@@ -6265,9 +6383,9 @@ export const RegistrationPaymentScreenStyles = (() => {
     breakdownValue: { fontSize: 14, color: '#333', fontWeight: '500' },
     breakdownDivider: { height: 1, backgroundColor: '#E0E0E0', marginVertical: 8 },
     breakdownTotal: { fontSize: 16, fontWeight: 'bold', color: '#222' },
-    breakdownTotalValue: { fontSize: 18, fontWeight: 'bold', color: '#1E3A5F' },
+    breakdownTotalValue: { fontSize: 18, fontWeight: 'bold', color: '#252943' },
 
-    button: { backgroundColor: '#1E3A5F', margin: 16, borderRadius: 10, padding: 16, alignItems: 'center' },
+    button: { backgroundColor: '#252943', margin: 16, borderRadius: 10, padding: 16, alignItems: 'center' },
     buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
     backLink: { alignItems: 'center', marginBottom: 30 },
     backLinkText: { color: '#1976D2', fontSize: 14 },
@@ -6281,7 +6399,7 @@ export const RegistrationPaymentScreenStyles = (() => {
     // Processing overlay
     processingOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
     processingBox: { backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center', minWidth: 200 },
-    processingText: { marginTop: 16, fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+    processingText: { marginTop: 16, fontSize: 15, color: '#252943', fontWeight: '600' },
   });
 })();
 
@@ -6289,12 +6407,12 @@ export const RegistrationPaymentScreenStyles = (() => {
 export const SetAnnualFeeScreenStyles = (() => {
   return createScreenStyles({
     container: { flex: 1, backgroundColor: '#f5f5f5' },
-    currentCard: { backgroundColor: '#1E3A5F', margin: 16, borderRadius: 12, padding: 24, alignItems: 'center' },
+    currentCard: { backgroundColor: '#252943', margin: 16, borderRadius: 12, padding: 24, alignItems: 'center' },
     currentTitle: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginBottom: 8 },
-    currentAmount: { color: '#D4A017', fontSize: 36, fontWeight: 'bold' },
+    currentAmount: { color: '#A0C878', fontSize: 36, fontWeight: 'bold' },
     currentDate: { color: 'rgba(255,255,255,0.7)', fontSize: 13, marginTop: 6 },
     form: { backgroundColor: '#fff', margin: 16, borderRadius: 12, padding: 20, elevation: 2 },
-    sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1E3A5F', marginBottom: 20 },
+    sectionTitle: { fontSize: 18, fontWeight: '700', color: '#252943', marginBottom: 20 },
     label: { fontSize: 14, color: '#333', marginBottom: 6, fontWeight: '600' },
     input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 15, marginBottom: 10, backgroundColor: '#fafafa' },
     error: { color: 'red', fontSize: 12, marginBottom: 8, marginLeft: 5 },
@@ -6302,7 +6420,7 @@ export const SetAnnualFeeScreenStyles = (() => {
     dateText: { fontSize: 15, color: '#333' },
     datePlaceholder: { fontSize: 15, color: '#aaa' },
     calendarIcon: { fontSize: 18 },
-    button: { backgroundColor: '#1E3A5F', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 8 },
+    button: { backgroundColor: '#252943', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 8 },
     buttonDisabled: { opacity: 0.6 },
     buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
   });
@@ -6318,7 +6436,7 @@ export const SignupScreenStyles = (() => {
 
     // ── Header ──
     header: {
-      backgroundColor: '#1E3A5F',
+     backgroundColor: '#252943',
       paddingTop: (StatusBar.currentHeight || 0) + 20,
       paddingBottom: 26,
       paddingHorizontal: 20,
@@ -6367,8 +6485,8 @@ export const SignupScreenStyles = (() => {
       overflow: 'hidden',
     },
 
-    input: { backgroundColor: '#fff' },
-    button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#1E3A5F' },
+   input: { backgroundColor: '#fff' },
+  button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#252943' },
     buttonLabel: { color: GOLD, fontWeight: '700', fontSize: 16 },   // ← NEW: Register text color
 
     linkButton: { marginTop: 10 },
@@ -6378,10 +6496,10 @@ export const SignupScreenStyles = (() => {
 
     // Occupation / Education sections
     sectionBox: { backgroundColor: '#F7F9FC', borderRadius: 12, padding: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E3EAF5' },
-    sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F', marginBottom: 10 },
+    sectionTitle: { fontSize: 14, fontWeight: '700', color: '#252943', marginBottom: 10 },
 
     // Profile Photo
-    photoLabel: { fontSize: 14, fontWeight: '600', color: '#1E3A5F', marginBottom: 8, marginTop: 4 },
+    photoLabel: { fontSize: 14, fontWeight: '600', color: '#252943', marginBottom: 8, marginTop: 4 },
     photoPickerRow: {
       flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 12,
       padding: 12, marginBottom: 16, borderWidth: 1, borderColor: '#BBDEFB', borderStyle: 'dashed',
@@ -6391,21 +6509,21 @@ export const SignupScreenStyles = (() => {
     photoPlaceholder: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#BBDEFB', justifyContent: 'center', alignItems: 'center' },
     photoPlaceholderIcon: { fontSize: 28 },
     photoPickerText: { marginLeft: 14, flex: 1 },
-    photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#1E3A5F' },
+    photoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#252943' },
     photoPickerHint: { fontSize: 12, color: '#888', marginTop: 2 },
 
     // Welcome Modal
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center', padding: 24 },
     modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 28, width: '100%', alignItems: 'center' },
-    modalTitle: { fontSize: 24, fontWeight: 'bold', color: '#1E3A5F', marginBottom: 4 },
+    modalTitle: { fontSize: 24, fontWeight: 'bold', color: '#252943', marginBottom: 4 },
     modalSubtitle: { fontSize: 14, color: '#666', marginBottom: 16 },
     modalBody: { fontSize: 14, color: '#444', textAlign: 'center', lineHeight: 22, marginBottom: 20 },
-    feeBox: { backgroundColor: '#1E3A5F', borderRadius: 12, padding: 20, alignItems: 'center', width: '100%', marginBottom: 20 },
+    feeBox: { backgroundColor: '#252943', borderRadius: 12, padding: 20, alignItems: 'center', width: '100%', marginBottom: 20 },
     feeLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13 },
-    feeAmount: { color: '#D4A017', fontSize: 32, fontWeight: 'bold', marginTop: 4 },
+    feeAmount: { color: '#A0C878', fontSize: 32, fontWeight: 'bold', marginTop: 4 },
     feeNote: { color: 'rgba(255,255,255,0.6)', fontSize: 11, marginTop: 6 },
     noFee: { color: '#999', fontSize: 13, marginBottom: 20 },
-    proceedBtn: { backgroundColor: '#1E3A5F', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
+    proceedBtn: { backgroundColor: '#252943', borderRadius: 10, padding: 14, width: '100%', alignItems: 'center', marginBottom: 12 },
     proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
     backLink: { color: '#1976D2', fontSize: 14 },
 
@@ -6413,34 +6531,34 @@ export const SignupScreenStyles = (() => {
     termsOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.55)', justifyContent: 'flex-end' },
     termsSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, maxHeight: '88%' },
     termsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-    termsTitle: { fontSize: 22, fontWeight: 'bold', color: '#1E3A5F' },
+    termsTitle: { fontSize: 22, fontWeight: 'bold', color: '#252943' },
     termsCloseButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F0F2F5' },
-    termsCloseText: { fontSize: 18, color: '#1E3A5F', fontWeight: '700' },
+    termsCloseText: { fontSize: 18, color: '#252943', fontWeight: '700' },
     termsSubtitle: { fontSize: 13, color: '#666', marginTop: 4, marginBottom: 14 },
     termsContent: { maxHeight: 260, borderWidth: 1, borderColor: '#E3EAF5', borderRadius: 12, padding: 14, backgroundColor: '#F7F9FC' },
     termsText: { fontSize: 14, color: '#333', lineHeight: 21, marginBottom: 12 },
     termsCheckRow: { flexDirection: 'row', alignItems: 'center', marginTop: 16, marginBottom: 2 },
-    termsCheckText: { flex: 1, fontSize: 14, color: '#1E3A5F', fontWeight: '600' },
+    termsCheckText: { flex: 1, fontSize: 14, color: '#252943', fontWeight: '600' },
     disabledButton: { backgroundColor: '#9CA9B8' },
 
     // Picker modals
     pickerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     pickerSheet: { backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
-    pickerTitle: { fontSize: 17, fontWeight: '700', color: '#1E3A5F', marginBottom: 12 },
+    pickerTitle: { fontSize: 17, fontWeight: '700', color: '#252943', marginBottom: 12 },
     pickerItem: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
     pickerItemActive: { backgroundColor: '#EBF0FA', paddingHorizontal: 8, borderRadius: 8 },
     pickerItemText: { fontSize: 15, color: '#111' },
-    pickerItemTextActive: { color: '#1E3A5F', fontWeight: '700' },
+    pickerItemTextActive: { color: '#252943', fontWeight: '700' },
     pickerEmpty: { textAlign: 'center', color: '#888', paddingVertical: 24 },
     pickerCancel: { marginTop: 12, backgroundColor: '#F0F2F5', borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
-    pickerCancelText: { fontSize: 15, color: '#1E3A5F', fontWeight: '600' },
+    pickerCancelText: { fontSize: 15, color: '#252943', fontWeight: '600' },
   });
 })();
 
 // SplashScreen
 export const SplashScreenStyles = (() => {
   return createScreenStyles({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1E3A5F' },
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#252943' },
     logo: { fontSize: 56, fontWeight: '900', color: '#fff', letterSpacing: 4 },
     subtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', textAlign: 'center', paddingHorizontal: 30, marginTop: 8 },
     loader: { marginTop: 40 },
@@ -6453,11 +6571,11 @@ export const SupportDetailScreenStyles = (() => {
     safe: { flex: 1, backgroundColor: '#F7F9FC' },
     fullCenter: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7F9FC' },
     errorText: { fontSize: 15, color: '#718096', marginBottom: 16 },
-    backBtn: { backgroundColor: '#1E3A5F', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
+    backBtn: { backgroundColor: '#252943', paddingHorizontal: 24, paddingVertical: 10, borderRadius: 8 },
     backBtnText: { color: '#fff', fontWeight: '700' },
 
     header: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -6616,14 +6734,14 @@ const _SupportScreenStyleBundle = (() => {
       remove: { fontSize: 12, color: '#EF4444', marginLeft: 6, fontWeight: '800' },
     }),
     SupportScreenFs: createScreenStyles({
-      safe: { flex: 1, backgroundColor: '#1E3A5F' },
-      navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: (StatusBar.currentHeight ?? 0) + 12, backgroundColor: '#1E3A5F' },
+      safe: { flex: 1, backgroundColor: '#252943' },
+      navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: (StatusBar.currentHeight ?? 0) + 12, backgroundColor: '#252943' },
       navSideBtn: { minWidth: 64, paddingHorizontal: 4, paddingVertical: 4 },
       navCenter: { flex: 1, alignItems: 'center' },
       navTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
       navCancelText: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-      navSubmitText: { fontSize: 15, color: '#D4A017', fontWeight: '700', textAlign: 'right' },
-      accentBar: { height: 3, backgroundColor: '#D4A017', opacity: 0.3 },
+      navSubmitText: { fontSize: 15, color: '#A0C878', fontWeight: '700', textAlign: 'right' },
+      accentBar: { height: 3, backgroundColor: '#A0C878', opacity: 0.3 },
       scroll: { flex: 1, backgroundColor: '#FAFBFC' },
       scrollContent: { paddingHorizontal: 20, paddingTop: 26, paddingBottom: 52 },
       attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6 },
@@ -6648,9 +6766,9 @@ const _SupportScreenStyleBundle = (() => {
       safe: { flex: 1, backgroundColor: '#F7F9FC' },
 
       headerBar: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#EDF2F7' },
-      headerTitle: { fontSize: 20, fontWeight: '700', color: '#1E3A5F' },
-      fab: { position: 'absolute', bottom: 24, right: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#1E3A5F', alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100 },
-      fabText: { color: '#D4A017', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+      headerTitle: { fontSize: 20, fontWeight: '700', color: '#252943' },
+      fab: { position: 'absolute', bottom: 24, right: 20, width: 36, height: 36, borderRadius: 18, backgroundColor: '#252943', alignItems: 'center', justifyContent: 'center', elevation: 4, zIndex: 100 },
+      fabText: { color: '#A0C878', fontSize: 24, fontWeight: '700', lineHeight: 28 },
       loadingOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.45)', alignItems: 'center', justifyContent: 'center', zIndex: 200 },
       loadingOverlayText: { color: '#fff', marginTop: 12, fontSize: 15, fontWeight: '600' },
 
@@ -6699,6 +6817,8 @@ const _SupportScreenStyleBundle = (() => {
       iconBotton: {
         marginLeft: 8,
       },
+       fab: Common.fab({ zIndex: 100 }),
+     fabText: Common.fabText,
       // Add this new one:
       cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
 
@@ -6729,13 +6849,13 @@ export const SupportScreenS = _SupportScreenStyleBundle.SupportScreenS;
 // UserProfileScreen
 export const UserProfileScreenStyles = (() => {
   return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#1E3A5F' },
+    container: { flex: 1, backgroundColor: '#252943' },
     list: { flex: 1, backgroundColor: '#F0F2F5' },
     listContent: { paddingBottom: 20 },
     emptyContent: { flexGrow: 1 },
 
     appHeader: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -6763,12 +6883,12 @@ export const UserProfileScreenStyles = (() => {
       width: 80, height: 80, borderRadius: 40,
       marginBottom: 12,
       borderWidth: 3,
-      borderColor: '#D4A017',
+      borderColor: '#A0C878',
     },
-    avatarLetter: { color: '#D4A017', fontSize: 32, fontWeight: '800' },
+    avatarLetter: { color: '#A0C878', fontSize: 32, fontWeight: '800' },
     nameRow: { alignItems: 'center', marginBottom: 16 },
     nameClubWrap: { alignItems: 'center', marginBottom: 12 },
-    memberName: { fontSize: 20, fontWeight: '800', color: '#1E3A5F' },
+    memberName: { fontSize: 20, fontWeight: '800', color: '#252943' },
     clubName: { fontSize: 13, fontWeight: '600', color: '#888', marginTop: 2 },
 
     actionBtns: { flexDirection: 'row', gap: 10 },
@@ -6780,8 +6900,8 @@ export const UserProfileScreenStyles = (() => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    messageBtn: { backgroundColor: '#1E3A5F' },
-    mailBtn: { backgroundColor: '#D4A017' },
+    messageBtn: { backgroundColor: '#252943' },
+    mailBtn: { backgroundColor: '#A0C878' },
     actionBtnText: { color: '#fff', fontWeight: '700', fontSize: 14 },
 
     postsLabelWrap: {
@@ -6791,7 +6911,7 @@ export const UserProfileScreenStyles = (() => {
       paddingTop: 12,
       marginTop: 4,
     },
-    postsLabel: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+    postsLabel: { fontSize: 14, fontWeight: '700', color: '#252943' },
 
     // ── Post card (mirrors home feed card, plus optional delete icon) ──
     card: {
@@ -6805,10 +6925,10 @@ export const UserProfileScreenStyles = (() => {
     cardTopRow: { flexDirection: 'row', alignItems: 'flex-start', padding: 14, paddingBottom: 0 },
     cardAvatar: {
       width: 38, height: 38, borderRadius: 19,
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       justifyContent: 'center', alignItems: 'center', marginRight: 10,
     },
-    cardAvatarLetter: { color: '#D4A017', fontSize: 16, fontWeight: '800' },
+    cardAvatarLetter: { color: '#A0C878', fontSize: 16, fontWeight: '800' },
     cardTopTexts: { flex: 1 },
     cardMemberName: { fontSize: 14, fontWeight: '700', color: '#222' },
     metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
@@ -6856,7 +6976,7 @@ export const PaymentReportsScreenStyles = (() => {
     container: { flex: 1, backgroundColor: '#F0F2F5' },
 
     header: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       flexDirection: 'row',
       alignItems: 'center',
       paddingTop: 44,
@@ -6870,8 +6990,8 @@ export const PaymentReportsScreenStyles = (() => {
     scrollContent: { padding: 16, paddingBottom: 40 },
 
     pickerBlock: { marginBottom: 18 },
-    pickerLabel: { fontSize: 14, fontWeight: '700', color: '#1E3A5F', marginBottom: 8 },
-
+    pickerLabel: { fontSize: 14, fontWeight: '700', color: '#252943', marginBottom: 8 },
+ 
     monthRow: { marginBottom: 8 },
     monthChip: {
       paddingHorizontal: 14, paddingVertical: 8,
@@ -6879,7 +6999,7 @@ export const PaymentReportsScreenStyles = (() => {
       borderWidth: 1, borderColor: '#E2E8F0',
       marginRight: 8,
     },
-    monthChipActive: { backgroundColor: '#1E3A5F', borderColor: '#1E3A5F' },
+    monthChipActive: { backgroundColor: '#252943', borderColor: '#252943' },
     monthChipText: { fontSize: 13, color: '#334155', fontWeight: '600' },
     monthChipTextActive: { color: '#fff' },
 
@@ -6890,12 +7010,12 @@ export const PaymentReportsScreenStyles = (() => {
       borderWidth: 1, borderColor: '#E2E8F0',
       marginRight: 8,
     },
-    yearChipActive: { backgroundColor: '#D4A017', borderColor: '#D4A017' },
+    yearChipActive: { backgroundColor: '#A0C878', borderColor: '#A0C878' },
     yearChipText: { fontSize: 13, color: '#334155', fontWeight: '600' },
-    yearChipTextActive: { color: '#1E3A5F' },
-
+    yearChipTextActive: { color: '#252943' },
+ 
     getBtn: {
-      backgroundColor: '#1E3A5F',
+      backgroundColor: '#252943',
       borderRadius: 12,
       paddingVertical: 14,
       alignItems: 'center',
@@ -6912,23 +7032,23 @@ export const PaymentReportsScreenStyles = (() => {
       marginBottom: 12,
     },
     summaryText: { fontSize: 13, color: '#64748B' },
-    summaryTotal: { fontSize: 15, fontWeight: '800', color: '#1E3A5F' },
-
+    summaryTotal: { fontSize: 15, fontWeight: '800', color: '#252943' },
+ 
     tableHeader: {
       flexDirection: 'row',
-      borderBottomWidth: 2, borderBottomColor: '#1E3A5F',
+      borderBottomWidth: 2, borderBottomColor: '#252943',
       paddingBottom: 8, marginBottom: 4,
     },
-    cellHeader: { fontSize: 12, fontWeight: '800', color: '#1E3A5F' },
-
+    cellHeader: { fontSize: 12, fontWeight: '800', color: '#252943' },
+ 
     tableRow: { flexDirection: 'row', paddingVertical: 10 },
     rowSeparator: { height: 1, backgroundColor: '#F1F5F9' },
     cell: { fontSize: 13, color: '#334155' },
-    cellSNo: { width: 40 },
-    cellName: { flex: 1, paddingRight: 6 },
-    cellDate: { width: 80 },
-    cellAmount: { width: 70, textAlign: 'right', fontWeight: '700', color: '#1E3A5F' },
-
+    cellSNo:   { width: 40 },
+    cellName:  { flex: 1, paddingRight: 6 },
+    cellDate:  { width: 80 },
+    cellAmount:{ width: 70, textAlign: 'right', fontWeight: '700', color: '#252943' },
+ 
     downloadBtn: {
       backgroundColor: '#27AE60',
       borderRadius: 12,
@@ -6939,46 +7059,61 @@ export const PaymentReportsScreenStyles = (() => {
     downloadBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   });
 })();
+export const ClubDetailScreenStyles = {
+  safe: { flex: 1, backgroundColor: '#fff' },
+  fullCenter: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
+  errorText: { fontSize: 15, color: '#64748B', marginBottom: 12 },
+  backBtn: { paddingHorizontal: 16, paddingVertical: 10, backgroundColor: '#252943', borderRadius: 8 },
+  backBtnText: { color: '#fff', fontWeight: '600' },
 
-export const HealthNutritionScreenStyles = (() => {
-  const NAVY = COLORS.navy;
-  const GOLD = COLORS.gold;
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: '#252943', paddingHorizontal: 12, paddingVertical: 14,
+  },
+  closeBtn: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  closeIcon: { color: '#fff', fontSize: 20, fontWeight: '600' },
+  headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
 
-  return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#F5F7FA' },
-    list: { padding: 12 },
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 32 },
 
-    card: {
-      backgroundColor: '#fff', borderRadius: 12, padding: 14,
-      marginBottom: 12, elevation: 2,
-      shadowColor: '#000', shadowOpacity: 0.06,
-      shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
-    },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14, gap: 8 },
+  badge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  badgeActive: { backgroundColor: '#DCFCE7' },
+  badgeInactive: { backgroundColor: '#FEE2E2' },
+  badgeText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.5 },
+  badgeTextActive: { color: '#15803D' },
+  badgeTextInactive: { color: '#B91C1C' },
+  typePill: { backgroundColor: '#F1F5F9', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  typePillText: { fontSize: 11, fontWeight: '600', color: '#334155' },
 
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  titleBlock: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
+  avatar: { width: 64, height: 64, borderRadius: 32, marginRight: 14, backgroundColor: '#F1F5F9' },
+  avatarPlaceholder: {
+    width: 64, height: 64, borderRadius: 32, marginRight: 14,
+    backgroundColor: '#252943', alignItems: 'center', justifyContent: 'center',
+  },
+  avatarLetter: { color: '#fff', fontSize: 26, fontWeight: '700' },
+  titleMeta: { flex: 1 },
+  title: { fontSize: 19, fontWeight: '700', color: '#0F172A' },
+  clubCode: { fontSize: 13, color: '#64748B', marginTop: 2 },
 
-    chip: {
-      flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-      backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
-    },
-    chipText: { fontSize: 11, fontWeight: '700', color: NAVY, letterSpacing: 0.3 },
+  statsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 18 },
+  statBox: {
+    flex: 1, minWidth: 90, backgroundColor: '#F8FAFC', borderRadius: 10,
+    paddingVertical: 10, paddingHorizontal: 12,
+  },
+  statLabel: { fontSize: 11, color: '#94A3B8', marginBottom: 3 },
+  statValue: { fontSize: 14, fontWeight: '700', color: '#0F172A' },
 
-    title: { fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 8 },
+  section: { marginBottom: 18 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#94A3B8', letterSpacing: 0.5, marginBottom: 8 },
+  descriptionText: { fontSize: 14, color: '#334155', lineHeight: 21 },
 
-    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-    metaText: { fontSize: 13, color: '#64748B', marginLeft: 2, flexShrink: 1 },
-
-    dateRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
-    date: { fontSize: 12, color: '#94A3B8', marginLeft: 2 },
-    viewHint: { fontSize: 11, fontWeight: '600', color: '#3B82F6' },
-
-    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, gap: 8 },
-    emptyText: { fontSize: 16, color: '#64748B', marginTop: 8 },
-
-    fab: Common.fab(),
-    fabText: Common.fabText,
-  });
-})();
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  infoText: { fontSize: 14, color: '#334155', flexShrink: 1 },
+  linkText: { color: '#252943' },
+};
 
 // HealthNutritionDetailScreen
 export const HealthNutritionDetailScreenStyles = (() => {
@@ -6986,60 +7121,94 @@ export const HealthNutritionDetailScreenStyles = (() => {
   const GOLD = COLORS.gold;
 
   return createScreenStyles({
-    root: { flex: 1, backgroundColor: '#F5F7FA' },
-    centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F7FA' },
+    container: { flex: 1, backgroundColor: '#F0F2F5' },
+    scrollContent: { paddingBottom: 24 },
 
-    header: {
-      flexDirection: 'row', alignItems: 'center',
-      backgroundColor: NAVY,
-      paddingTop: (StatusBar.currentHeight || 0) + 6,
-      paddingBottom: 12, paddingHorizontal: 12,
+    // IME header
+    appHeader: {
+  backgroundColor: '#252943',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 14,
+  paddingTop: 44,
+  paddingBottom: 10,
+},
+headerLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  marginRight: 8,
+},
+headerRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+},
+iconBtn: {
+  padding: 8,
+  marginLeft: 4,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+iconBtnText: {
+  fontSize: 20,
+  textAlign: 'center',
+},
+kebabIcon: {
+  fontSize: 22,
+  color: '#fff',
+  fontWeight: '700',
+  textAlign: 'center',
+},
+    logoBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: '#A0C878',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
     },
-    headerBtn: { padding: 6, borderRadius: 20, minWidth: 34 },
-    headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
+    logoText: { color: '#252943', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+    appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
+    appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
+    backBtn: { padding: 8 },
+    backIcon: { color: '#fff', fontSize: 22, fontWeight: '700' },
 
-    body: { padding: 20, paddingBottom: 44 },
-
-    badge: {
-      flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
-      backgroundColor: '#FEF3E2', paddingHorizontal: 10, paddingVertical: 5,
-      borderRadius: 20, marginBottom: 12,
-    },
-    badgeText: { color: GOLD, fontSize: 11, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase' },
-
-    title: { fontSize: 22, fontWeight: '800', color: '#0F172A', lineHeight: 30, marginBottom: 12 },
-
-    metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    metaText: { color: '#64748B', fontSize: 13, fontWeight: '500', marginLeft: 6 },
-    metaDot: { marginHorizontal: 8, color: '#94A3B8' },
-    goldDivider: { height: 3, width: 48, backgroundColor: GOLD, borderRadius: 2, marginBottom: 20 },
+    // Header right (notification + kebab menu)
+  
+    
+   
+    menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
+    menuItemText: { fontSize: 14, color: '#222' },
+    menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
 
     descCard: {
       backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 8,
       shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 }, elevation: 2,
     },
-    descLabel: { color: GOLD, fontSize: 12, fontWeight: '700', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 },
-    descText: { color: '#334155', fontSize: 14, lineHeight: 20 },
-    noDesc: { fontSize: 14, color: '#94A3B8', fontStyle: 'italic' },
+    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#1E3A5F' },
+    welcomeSub: { fontSize: 13, color: '#888', marginTop: 2 },
 
-    attachSection: { width: '100%', marginTop: 16 },
-    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-
-    mediaBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 16 },
-    mediaHint: { fontSize: 13, color: '#64748B', marginTop: 8 },
-
-    openPdfBtn: {
-      flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start',
-      borderWidth: 1.5, borderColor: '#E2E8F0', borderRadius: 10,
-      paddingHorizontal: 16, paddingVertical: 14,
+    // Grid
+    grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, paddingTop: 4, justifyContent: 'space-between' },
+    card: { width: '48%', marginBottom: 14 },
+    cardInner: { elevation: 2, backgroundColor: '#fff' },
+    cardContent: { alignItems: 'center', paddingVertical: 20 },
+    icon: { fontSize: 36, marginBottom: 8 },
+    cardTitle: { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
+     lawBotCard: {
+      backgroundColor: '#ffffff',
+      marginHorizontal: 11,
+      marginBottom: 8,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 0.9,
+      borderColor: '#5da1e6',
     },
-    openPdfText: { color: NAVY, fontSize: 14, fontWeight: '700' },
-
-    downloadBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-      backgroundColor: NAVY, borderRadius: 10, padding: 16, marginTop: 20, gap: 8,
-    },
-    downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
+    lawBotSubtitle: { fontSize: 12, color: '#33A4FA', marginTop: 3 },
   });
 })();

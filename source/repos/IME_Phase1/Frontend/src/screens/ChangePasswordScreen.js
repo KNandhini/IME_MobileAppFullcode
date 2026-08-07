@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import IMELogo from '../components/IMELogo';
 import { memberService } from '../services/memberService';
 import { ChangePasswordScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
@@ -114,7 +116,12 @@ const ChangePasswordScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.root}>
+    <LinearGradient
+      colors={[COLORS.headerStart, COLORS.headerEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{ flex: 1 }}
+    >
       {/* ── Top navbar ── */}
       <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
@@ -130,6 +137,12 @@ const ChangePasswordScreen = ({ navigation }) => {
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+
+          {/* ── Logo ── */}
+          <View style={{ alignItems: 'center', marginTop: 12, marginBottom: 8 }}>
+            <IMELogo size="small" animated={false} />
+          </View>
+
           <View style={styles.card}>
             <Text style={styles.title}>Change Password</Text>
             <Text style={styles.subtitle}>Please enter your current and new password.</Text>
@@ -170,7 +183,7 @@ const ChangePasswordScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </LinearGradient>
   );
 };
 

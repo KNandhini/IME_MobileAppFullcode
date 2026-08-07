@@ -234,7 +234,7 @@ const memberId = member.memberId || member.MemberId;
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={COLORS.dark} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }

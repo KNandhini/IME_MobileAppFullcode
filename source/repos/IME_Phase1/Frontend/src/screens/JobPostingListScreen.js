@@ -212,7 +212,7 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color={NAVY} />
+          <ActivityIndicator size="large" color={GOLD} />
         </View>
       ) : (
         <FlatList

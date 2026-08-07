@@ -14,7 +14,7 @@ import api from '../utils/api';
 import { SupportDetailScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
-const NAVY = '#1E3A5F';
+const NAVY = '#252943';
 
 // Fallback styles for the download button, in case SupportDetailScreenStyles
 // doesn't define these yet. Array styles let a later `styles.*` entry win if
@@ -221,7 +221,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.fullCenter}>
         <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
-        <ActivityIndicator size="large" color={COLORS.dark} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
