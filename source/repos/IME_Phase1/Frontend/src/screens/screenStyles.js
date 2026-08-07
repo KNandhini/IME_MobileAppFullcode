@@ -7189,7 +7189,7 @@ kebabIcon: {
       shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 }, elevation: 2,
     },
-    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#1E3A5F' },
+    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#252943' },
     welcomeSub: { fontSize: 13, color: '#888', marginTop: 2 },
 
     // Grid
@@ -7198,7 +7198,7 @@ kebabIcon: {
     cardInner: { elevation: 2, backgroundColor: '#fff' },
     cardContent: { alignItems: 'center', paddingVertical: 20 },
     icon: { fontSize: 36, marginBottom: 8 },
-    cardTitle: { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
+    cardTitle: { fontSize: 13, textAlign: 'center', color: '#252943' },
      lawBotCard: {
       backgroundColor: '#ffffff',
       marginHorizontal: 11,
