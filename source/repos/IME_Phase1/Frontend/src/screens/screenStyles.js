@@ -481,8 +481,8 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     paddingHorizontal: 40,
     lineHeight: 17,
   },
-  
-membershipFeeInfoCard: {
+
+  membershipFeeInfoCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 16,
@@ -495,14 +495,14 @@ membershipFeeInfoCard: {
     shadowRadius: 8,
 
     shadowOffset: {
-        width: 0,
-        height: 3,
+      width: 0,
+      height: 3,
     },
 
     elevation: 3,
-},
+  },
 
-membershipFeeHeader: {
+  membershipFeeHeader: {
     flexDirection: 'row',
     alignItems: 'center',
 
@@ -511,26 +511,26 @@ membershipFeeHeader: {
 
     borderBottomWidth: 1,
     borderBottomColor: '#E8EDF3',
-},
+  },
 
-membershipFeeTitle: {
+  membershipFeeTitle: {
     marginLeft: 9,
 
     fontSize: 16,
     fontWeight: '700',
 
     color: '#252943',
-},
+  },
 
-membershipFeeRow: {
+  membershipFeeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
 
     paddingVertical: 13,
-},
+  },
 
-membershipFeeCategory: {
+  membershipFeeCategory: {
     flex: 1,
 
     paddingRight: 12,
@@ -540,20 +540,20 @@ membershipFeeCategory: {
     fontWeight: '500',
 
     color: '#334155',
-},
+  },
 
-membershipFeeAmount: {
+  membershipFeeAmount: {
     fontSize: 15,
     fontWeight: '800',
 
     color: '#252943',
-},
+  },
 
-membershipFeeDivider: {
+  membershipFeeDivider: {
     height: 1,
 
     backgroundColor: '#E8EDF3',
-},
+  },
 
 
 });
@@ -1670,41 +1670,41 @@ export const AdminDashboardScreenStyles = (() => {
 
     // IME header
     appHeader: {
-  backgroundColor: '#252943',
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 14,
-  paddingTop: 44,
-  paddingBottom: 10,
-},
-headerLeft: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  flex: 1,
-  marginRight: 8,
-},
-headerRight: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-},
-iconBtn: {
-  padding: 8,
-  marginLeft: 4,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-iconBtnText: {
-  fontSize: 20,
-  textAlign: 'center',
-},
-kebabIcon: {
-  fontSize: 22,
-  color: '#fff',
-  fontWeight: '700',
-  textAlign: 'center',
-},
+      backgroundColor: '#252943',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingTop: 44,
+      paddingBottom: 10,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      marginRight: 8,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+    iconBtn: {
+      padding: 8,
+      marginLeft: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconBtnText: {
+      fontSize: 20,
+      textAlign: 'center',
+    },
+    kebabIcon: {
+      fontSize: 22,
+      color: '#fff',
+      fontWeight: '700',
+      textAlign: 'center',
+    },
     logoBox: {
       width: 40,
       height: 40,
@@ -1749,11 +1749,11 @@ kebabIcon: {
     },
     lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
     lawBotSubtitle: { fontSize: 12, color: '#33A4FA', marginTop: 3 },
-menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
+    menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
     menuItemText: { fontSize: 14, color: '#222' },
     menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
 
-    
+
 
   });
 })();
@@ -1986,110 +1986,110 @@ export const ChatsListScreenStyles = (() => {
     emptyIcon: { fontSize: 52, marginBottom: 14 },
     emptyText: { fontSize: 17, fontWeight: '700', color: '#555', marginBottom: 6 },
     emptySub: { fontSize: 13, color: '#aaa', textAlign: 'center', lineHeight: 20 },
-   // ── FAB ──
- // ── FAB ──
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#252943',
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  fabIcon: { color: '#A0C878', fontSize: 28, fontWeight: '700', lineHeight: 30 },
- 
-  // ── Member picker modal ──
-  modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  modalSheet: {
-    position: 'absolute',
-    left: 0, right: 0, bottom: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '75%',
-    paddingBottom: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
-  modalCloseBtn: {
-    width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#F0F2F5',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
- 
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F7FA',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginTop: 14,
-    marginBottom: 6,
-    paddingHorizontal: 12,
-  },
-  searchIcon: { fontSize: 14, marginRight: 8 },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#1a1a1a',
-  },
-  searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
- 
-  // ── Inline search box on the main Chats list (above the FlatList) ──
-  chatSearchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 6,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  chatSearchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#1a1a1a',
-  },
- 
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  memberAvatar: {
-    width: 42, height: 42, borderRadius: 21,
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 12,
-  },
-  memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-  memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
+    // ── FAB ──
+    // ── FAB ──
+    fab: {
+      position: 'absolute',
+      right: 20,
+      bottom: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: '#252943',
+      alignItems: 'center',
+      justifyContent: 'center',
+      elevation: 6,
+      shadowColor: '#000',
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 3 },
+    },
+    fabIcon: { color: '#A0C878', fontSize: 28, fontWeight: '700', lineHeight: 30 },
+
+    // ── Member picker modal ──
+    modalOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+    },
+    modalSheet: {
+      position: 'absolute',
+      left: 0, right: 0, bottom: 0,
+      backgroundColor: '#fff',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: '75%',
+      paddingBottom: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: '#F1F5F9',
+    },
+    modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
+    modalCloseBtn: {
+      width: 30, height: 30, borderRadius: 15,
+      backgroundColor: '#F0F2F5',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
+
+    searchBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#F5F7FA',
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginTop: 14,
+      marginBottom: 6,
+      paddingHorizontal: 12,
+    },
+    searchIcon: { fontSize: 14, marginRight: 8 },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: '#1a1a1a',
+    },
+    searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
+
+    // ── Inline search box on the main Chats list (above the FlatList) ──
+    chatSearchBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginTop: 10,
+      marginBottom: 6,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+    },
+    chatSearchInput: {
+      flex: 1,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: '#1a1a1a',
+    },
+
+    memberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 18,
+      paddingVertical: 12,
+    },
+    memberAvatar: {
+      width: 42, height: 42, borderRadius: 21,
+      alignItems: 'center', justifyContent: 'center',
+      marginRight: 12,
+    },
+    memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+    memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
   });
 })();
 
@@ -2317,34 +2317,34 @@ export const ClubFormScreenStyles = (() => {
     modalCancel: { marginTop: 12, backgroundColor: '#F8FAFC', borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 1.5, borderColor: '#E2E8F0' },
     modalCancelText: { fontSize: 15, color: '#252943', fontWeight: '600' },
     // ── Club Logo — restyled like AddAdminScreen's photoPickerRow ──
-logoLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
-logoPickerRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  backgroundColor: '#F8FAFC',
-  borderRadius: 12,
-  padding: 12,
-  marginBottom: 20,
-  borderWidth: 1.5,
-  borderColor: '#CBD5E1',
-  borderStyle: 'dashed',
-},
-logoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#E2E8F0' },
-logoPlaceholderCircle: {
-  width: 60, height: 60, borderRadius: 30,
-  backgroundColor: '#E0E7EF',
-  justifyContent: 'center', alignItems: 'center',
-},
-logoPlaceholderIcon: { fontSize: 26 },
-logoPickerText: { marginLeft: 14, flex: 1 },
-logoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#252943' },
-logoPickerHint: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
-changeLogoBtn: { marginTop: 0 },
-changeLogoText: { fontSize: 13, color: '#252943', fontWeight: '600' },
-navSide: { minWidth: 64, paddingHorizontal: 4 },
-navTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#fff' },
-navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
-//navSave: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
+    logoLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.6 },
+    logoPickerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#F8FAFC',
+      borderRadius: 12,
+      padding: 12,
+      marginBottom: 20,
+      borderWidth: 1.5,
+      borderColor: '#CBD5E1',
+      borderStyle: 'dashed',
+    },
+    logoPreview: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#E2E8F0' },
+    logoPlaceholderCircle: {
+      width: 60, height: 60, borderRadius: 30,
+      backgroundColor: '#E0E7EF',
+      justifyContent: 'center', alignItems: 'center',
+    },
+    logoPlaceholderIcon: { fontSize: 26 },
+    logoPickerText: { marginLeft: 14, flex: 1 },
+    logoPickerTitle: { fontSize: 14, fontWeight: '600', color: '#252943' },
+    logoPickerHint: { fontSize: 12, color: '#94A3B8', marginTop: 2 },
+    changeLogoBtn: { marginTop: 0 },
+    changeLogoText: { fontSize: 13, color: '#252943', fontWeight: '600' },
+    navSide: { minWidth: 64, paddingHorizontal: 4 },
+    navTitle: { flex: 1, textAlign: 'center', fontSize: 16, fontWeight: '700', color: '#fff' },
+    navCancel: { fontSize: 15, color: 'rgba(255,255,255,0.8)', fontWeight: '500' },
+    //navSave: { fontSize: 15, color: GOLD, fontWeight: '700', textAlign: 'right' },
   });
 })();
 
@@ -4066,16 +4066,16 @@ export const JobPostingListScreenStyles = (() => {
     emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
 
     fab: Common.fab({ zIndex: 100 }),
-     fabText: Common.fabText,
+    fabText: Common.fabText,
   });
 })();
 
 // LawBotScreen
 export const LawBotScreenStyles = (() => {
   const BG = '#F0F2F5';
-const NAVY = '#252943';
-const GOLD = '#A0C878';
-const WHITE = '#FFFFFF';
+  const NAVY = '#252943';
+  const GOLD = '#A0C878';
+  const WHITE = '#FFFFFF';
   return createScreenStyles({
     safe: { flex: 1, backgroundColor: BG },
 
@@ -4223,11 +4223,11 @@ export const LoginScreenStyles = (() => {
     root: { flex: 1, },
 
     heroBg: {
-  alignItems: 'center',
-  paddingTop: (StatusBar.currentHeight ?? 0) + 24,
-  paddingBottom: 28,
-  overflow: 'hidden',
-},
+      alignItems: 'center',
+      paddingTop: (StatusBar.currentHeight ?? 0) + 24,
+      paddingBottom: 28,
+      overflow: 'hidden',
+    },
     circle1: {
       position: 'absolute', width: 240, height: 240, borderRadius: 120,
       borderWidth: 1, borderColor: 'rgba(212,160,23,0.12)', top: -60, right: -60,
@@ -4245,15 +4245,15 @@ export const LoginScreenStyles = (() => {
     scrollContent: { paddingHorizontal: 16, paddingBottom: 30 },
 
     card: {
-  backgroundColor: '#FFFFFF',
-  borderRadius: 20,
-  padding: 22,
-  marginBottom: 16,
-  elevation: 8,
-  shadowColor: '#252943',
-  shadowOpacity: 0.15,
-  shadowRadius: 12,
-},
+      backgroundColor: '#FFFFFF',
+      borderRadius: 20,
+      padding: 22,
+      marginBottom: 16,
+      elevation: 8,
+      shadowColor: '#252943',
+      shadowOpacity: 0.15,
+      shadowRadius: 12,
+    },
     cardTitle: { fontSize: 22, fontWeight: '800', color: NAVY, marginBottom: 4 },
     cardSub: { fontSize: 13, color: '#6B7A8D', marginBottom: 18 },
 
@@ -4331,7 +4331,7 @@ export const LoginScreenStyles = (() => {
     statLabel: { color: 'rgba(255,255,255,0.6)', fontSize: 10, marginTop: 2, fontWeight: '500' },
     statsDivider: { width: 1, backgroundColor: 'rgba(255,255,255,0.15)', marginHorizontal: 4 },
 
-    footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4 , marginBottom: 12, },
+    footerText: { color: 'rgba(255,255,255,0.35)', fontSize: 10, textAlign: 'center', marginTop: 4, marginBottom: 12, },
   });
 })();
 
@@ -4618,33 +4618,33 @@ export const MagazinesScreenS = (() => {
       shadowColor: '#1A202C', shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
     },
-   cardTopRow: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  marginBottom: 10,
-},
-actionContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-},
-iconButton: {
-  padding: 4,
-  marginLeft: 8,
-},
-badge: {
-  flexDirection: 'row',
-  alignSelf: 'flex-start',
-  backgroundColor: '#EEF2FF',
-  borderRadius: 12,
-  paddingHorizontal: 10,
-  paddingVertical: 4,
-},
-badgeText: {
-  fontSize: 12,
-  fontWeight: '600',
-  color: '#252943',
-},
+    cardTopRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10,
+    },
+    actionContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    iconButton: {
+      padding: 4,
+      marginLeft: 8,
+    },
+    badge: {
+      flexDirection: 'row',
+      alignSelf: 'flex-start',
+      backgroundColor: '#EEF2FF',
+      borderRadius: 12,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    },
+    badgeText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: '#252943',
+    },
     iconBotton: { padding: 4 },
     cardRow: { flexDirection: 'row', alignItems: 'flex-start' },
     cover: { width: 52, height: 68, borderRadius: 6, marginRight: 14, borderWidth: 1, borderColor: '#E2E8F0' },
@@ -5147,27 +5147,27 @@ export const MunicipalMapScreenStyles = (() => {
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
     breadcrumb: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
- levelRow: {
-  flexDirection: 'row',
-  backgroundColor: NAVY,
-  paddingHorizontal: 12,
-  paddingBottom: 8,
-},
-levelPill: {
-  flex: 1,
-  paddingVertical: 3,       // ← slimmer height
-  paddingHorizontal: 6,
-  borderRadius: 16,          // ← slightly less rounded to match a shorter pill
-  backgroundColor: 'rgba(255,255,255,0.12)',
-  alignItems: 'center',
-  justifyContent: 'center',
-  marginHorizontal: 3,
-  // no minHeight — let it hug the text tightly
-},
-levelPillActive: { backgroundColor: GOLD },
-levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
-levelPillTextActive: { color: NAVY, fontWeight: '700' },
-//levelPillTextActive: { color: NAVY },
+    levelRow: {
+      flexDirection: 'row',
+      backgroundColor: NAVY,
+      paddingHorizontal: 12,
+      paddingBottom: 8,
+    },
+    levelPill: {
+      flex: 1,
+      paddingVertical: 3,       // ← slimmer height
+      paddingHorizontal: 6,
+      borderRadius: 16,          // ← slightly less rounded to match a shorter pill
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginHorizontal: 3,
+      // no minHeight — let it hug the text tightly
+    },
+    levelPillActive: { backgroundColor: GOLD },
+    levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
+    levelPillTextActive: { color: NAVY, fontWeight: '700' },
+    //levelPillTextActive: { color: NAVY },
 
     mapContainer: { flex: 1 },
     map: { flex: 1 },
@@ -6436,7 +6436,7 @@ export const SignupScreenStyles = (() => {
 
     // ── Header ──
     header: {
-     backgroundColor: '#252943',
+      backgroundColor: '#252943',
       paddingTop: (StatusBar.currentHeight || 0) + 20,
       paddingBottom: 26,
       paddingHorizontal: 20,
@@ -6485,8 +6485,8 @@ export const SignupScreenStyles = (() => {
       overflow: 'hidden',
     },
 
-   input: { backgroundColor: '#fff' },
-  button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#252943' },
+    input: { backgroundColor: '#fff' },
+    button: { marginTop: 20, paddingVertical: 6, borderRadius: 10, backgroundColor: '#252943' },
     buttonLabel: { color: GOLD, fontWeight: '700', fontSize: 16 },   // ← NEW: Register text color
 
     linkButton: { marginTop: 10 },
@@ -6817,8 +6817,8 @@ const _SupportScreenStyleBundle = (() => {
       iconBotton: {
         marginLeft: 8,
       },
-       fab: Common.fab({ zIndex: 100 }),
-     fabText: Common.fabText,
+      fab: Common.fab({ zIndex: 100 }),
+      fabText: Common.fabText,
       // Add this new one:
       cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
 
@@ -6991,7 +6991,7 @@ export const PaymentReportsScreenStyles = (() => {
 
     pickerBlock: { marginBottom: 18 },
     pickerLabel: { fontSize: 14, fontWeight: '700', color: '#252943', marginBottom: 8 },
- 
+
     monthRow: { marginBottom: 8 },
     monthChip: {
       paddingHorizontal: 14, paddingVertical: 8,
@@ -7013,7 +7013,7 @@ export const PaymentReportsScreenStyles = (() => {
     yearChipActive: { backgroundColor: '#A0C878', borderColor: '#A0C878' },
     yearChipText: { fontSize: 13, color: '#334155', fontWeight: '600' },
     yearChipTextActive: { color: '#252943' },
- 
+
     getBtn: {
       backgroundColor: '#252943',
       borderRadius: 12,
@@ -7033,22 +7033,22 @@ export const PaymentReportsScreenStyles = (() => {
     },
     summaryText: { fontSize: 13, color: '#64748B' },
     summaryTotal: { fontSize: 15, fontWeight: '800', color: '#252943' },
- 
+
     tableHeader: {
       flexDirection: 'row',
       borderBottomWidth: 2, borderBottomColor: '#252943',
       paddingBottom: 8, marginBottom: 4,
     },
     cellHeader: { fontSize: 12, fontWeight: '800', color: '#252943' },
- 
+
     tableRow: { flexDirection: 'row', paddingVertical: 10 },
     rowSeparator: { height: 1, backgroundColor: '#F1F5F9' },
     cell: { fontSize: 13, color: '#334155' },
-    cellSNo:   { width: 40 },
-    cellName:  { flex: 1, paddingRight: 6 },
-    cellDate:  { width: 80 },
-    cellAmount:{ width: 70, textAlign: 'right', fontWeight: '700', color: '#252943' },
- 
+    cellSNo: { width: 40 },
+    cellName: { flex: 1, paddingRight: 6 },
+    cellDate: { width: 80 },
+    cellAmount: { width: 70, textAlign: 'right', fontWeight: '700', color: '#252943' },
+
     downloadBtn: {
       backgroundColor: '#27AE60',
       borderRadius: 12,
@@ -7126,41 +7126,41 @@ export const HealthNutritionDetailScreenStyles = (() => {
 
     // IME header
     appHeader: {
-  backgroundColor: '#252943',
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-  paddingHorizontal: 14,
-  paddingTop: 44,
-  paddingBottom: 10,
-},
-headerLeft: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  flex: 1,
-  marginRight: 8,
-},
-headerRight: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'flex-end',
-},
-iconBtn: {
-  padding: 8,
-  marginLeft: 4,
-  alignItems: 'center',
-  justifyContent: 'center',
-},
-iconBtnText: {
-  fontSize: 20,
-  textAlign: 'center',
-},
-kebabIcon: {
-  fontSize: 22,
-  color: '#fff',
-  fontWeight: '700',
-  textAlign: 'center',
-},
+      backgroundColor: '#252943',
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 14,
+      paddingTop: 44,
+      paddingBottom: 10,
+    },
+    headerLeft: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      marginRight: 8,
+    },
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'flex-end',
+    },
+    iconBtn: {
+      padding: 8,
+      marginLeft: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    iconBtnText: {
+      fontSize: 20,
+      textAlign: 'center',
+    },
+    kebabIcon: {
+      fontSize: 22,
+      color: '#fff',
+      fontWeight: '700',
+      textAlign: 'center',
+    },
     logoBox: {
       width: 40,
       height: 40,
@@ -7177,9 +7177,9 @@ kebabIcon: {
     backIcon: { color: '#fff', fontSize: 22, fontWeight: '700' },
 
     // Header right (notification + kebab menu)
-  
-    
-   
+
+
+
     menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
     menuItemText: { fontSize: 14, color: '#222' },
     menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
@@ -7199,7 +7199,7 @@ kebabIcon: {
     cardContent: { alignItems: 'center', paddingVertical: 20 },
     icon: { fontSize: 36, marginBottom: 8 },
     cardTitle: { fontSize: 13, textAlign: 'center', color: '#252943' },
-     lawBotCard: {
+    lawBotCard: {
       backgroundColor: '#ffffff',
       marginHorizontal: 11,
       marginBottom: 8,
@@ -7210,5 +7210,44 @@ kebabIcon: {
     },
     lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
     lawBotSubtitle: { fontSize: 12, color: '#33A4FA', marginTop: 3 },
+  });
+})();
+export const HealthNutritionScreenStyles = (() => {
+  const NAVY = COLORS.navy;
+  const GOLD = COLORS.gold;
+
+  return createScreenStyles({
+    container: { flex: 1, backgroundColor: '#F5F7FA' },
+    list: { padding: 12 },
+
+    card: {
+      backgroundColor: '#fff', borderRadius: 12, padding: 14,
+      marginBottom: 12, elevation: 2,
+      shadowColor: '#000', shadowOpacity: 0.06,
+      shadowRadius: 4, shadowOffset: { width: 0, height: 2 },
+    },
+
+    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+
+    chip: {
+      flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+      backgroundColor: '#EFF6FF', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
+    },
+    chipText: { fontSize: 11, fontWeight: '700', color: NAVY, letterSpacing: 0.3 },
+
+    title: { fontSize: 16, fontWeight: '700', color: '#0F172A', marginBottom: 8 },
+
+    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+    metaText: { fontSize: 13, color: '#64748B', marginLeft: 2, flexShrink: 1 },
+
+    dateRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
+    date: { fontSize: 12, color: '#94A3B8', marginLeft: 2 },
+    viewHint: { fontSize: 11, fontWeight: '600', color: '#3B82F6' },
+
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 32, gap: 8 },
+    emptyText: { fontSize: 16, color: '#64748B', marginTop: 8 },
+
+    fab: Common.fab(),
+    fabText: Common.fabText,
   });
 })();
