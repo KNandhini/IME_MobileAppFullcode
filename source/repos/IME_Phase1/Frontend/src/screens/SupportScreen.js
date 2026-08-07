@@ -1226,9 +1226,9 @@ export default function SupportScreen({ navigation }) {
         onPress={() => navigation.navigate('HealthNutrition')}
         activeOpacity={0.85}
       >
-        <Text style={s.healthCardTitle}>🥗 Health & Nutrition</Text>
+        <Text style={s.healthCardTitle}>🎙️ Podcast</Text>
         <Text style={s.healthCardSubtitle}>
-          View Health & Nutrition articles and resources
+          Explore available podcast episodes and audio resources
         </Text>
       </TouchableOpacity>
 
