@@ -370,7 +370,7 @@ const MainStack = () => (
     />
     {/* Support & Circular */}
     <Stack.Screen name="Support" component={SupportScreen} options={{ title: 'Support Services' }} />
-    <Stack.Screen name="HealthNutrition" component={HealthNutritionScreen} options={{ title: 'Health & Nutrition' }} />
+    <Stack.Screen name="HealthNutrition" component={HealthNutritionScreen} options={{ title: 'Podcasts' }} />
     <Stack.Screen name="HealthNutritionDetail" component={HealthNutritionDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="HealthNutritionForm" component={HealthNutritionFormScreen} options={{ headerShown: false }} />
 

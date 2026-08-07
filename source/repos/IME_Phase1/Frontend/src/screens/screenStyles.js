@@ -7121,95 +7121,59 @@ export const HealthNutritionDetailScreenStyles = (() => {
   const GOLD = COLORS.gold;
 
   return createScreenStyles({
-    container: { flex: 1, backgroundColor: '#F0F2F5' },
-    scrollContent: { paddingBottom: 24 },
+    root: { flex: 1, backgroundColor: '#F0F4F8' },
+    centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0F4F8' },
 
-    // IME header
-    appHeader: {
-      backgroundColor: '#252943',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 14,
-      paddingTop: 44,
-      paddingBottom: 10,
+    header: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+      backgroundColor: NAVY,
+      paddingTop: (StatusBar.currentHeight || 0) + 6,
+      paddingBottom: 12, paddingHorizontal: 12,
     },
-    headerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      flex: 1,
-      marginRight: 8,
-    },
-    headerRight: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'flex-end',
-    },
-    iconBtn: {
-      padding: 8,
-      marginLeft: 4,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    iconBtnText: {
-      fontSize: 20,
-      textAlign: 'center',
-    },
-    kebabIcon: {
-      fontSize: 22,
-      color: '#fff',
-      fontWeight: '700',
-      textAlign: 'center',
-    },
-    logoBox: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      backgroundColor: '#A0C878',
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginRight: 10,
-    },
-    logoText: { color: '#252943', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
-    appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
-    appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
-    backBtn: { padding: 8 },
-    backIcon: { color: '#fff', fontSize: 22, fontWeight: '700' },
+    headerBtn: { padding: 6, borderRadius: 20 },
+    headerTitle: { flex: 1, textAlign: 'center', color: '#fff', fontSize: 16, fontWeight: '700' },
 
-    // Header right (notification + kebab menu)
+    body: { padding: 20, paddingBottom: 40 },
 
+    badge: {
+      flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+      backgroundColor: '#FEF9EC', borderRadius: 6,
+      paddingHorizontal: 8, paddingVertical: 3, marginBottom: 12,
+    },
+    badgeText: { fontSize: 11, color: '#B7791F', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginLeft: 4 },
 
+    title: { fontSize: 20, fontWeight: '800', color: '#0F172A', lineHeight: 28, marginBottom: 12 },
 
-    menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
-    menuItemText: { fontSize: 14, color: '#222' },
-    menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
+    metaRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    metaText: { color: '#64748B', fontSize: 13, fontWeight: '500', marginLeft: 6 },
+    metaDot: { color: '#CBD5E1', fontSize: 13, marginHorizontal: 8 },
+    goldDivider: { height: 3, width: 48, backgroundColor: GOLD, borderRadius: 2, marginBottom: 20 },
 
     descCard: {
-      backgroundColor: '#fff', borderRadius: 14, padding: 16, marginBottom: 8,
-      shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 }, elevation: 2,
+      width: '100%', backgroundColor: '#fff',
+      borderRadius: 12, padding: 16, marginBottom: 20,
+      elevation: 2, shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
     },
-    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#252943' },
-    welcomeSub: { fontSize: 13, color: '#888', marginTop: 2 },
+    descLabel: { fontSize: 11, fontWeight: '700', color: GOLD, letterSpacing: 1, marginBottom: 8, textTransform: 'uppercase' },
+    descText: { fontSize: 14, color: '#334155', lineHeight: 22 },
+    noDesc: { fontSize: 14, color: '#94A3B8', fontStyle: 'italic', marginBottom: 20 },
 
-    // Grid
-    grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, paddingTop: 4, justifyContent: 'space-between' },
-    card: { width: '48%', marginBottom: 14 },
-    cardInner: { elevation: 2, backgroundColor: '#fff' },
-    cardContent: { alignItems: 'center', paddingVertical: 20 },
-    icon: { fontSize: 36, marginBottom: 8 },
-    cardTitle: { fontSize: 13, textAlign: 'center', color: '#252943' },
-    lawBotCard: {
-      backgroundColor: '#ffffff',
-      marginHorizontal: 11,
-      marginBottom: 8,
-      borderRadius: 10,
-      padding: 12,
-      borderWidth: 0.9,
-      borderColor: '#5da1e6',
+    attachSection: { width: '100%', marginBottom: 20 },
+    attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+
+    mediaBox: {
+      width: '100%', minHeight: 160, borderRadius: 12,
+      backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center',
+      paddingVertical: 24, paddingHorizontal: 16,
     },
-    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#252943' },
-    lawBotSubtitle: { fontSize: 12, color: '#33A4FA', marginTop: 3 },
+    mediaHint: { fontSize: 12, color: '#64748B', marginTop: 10, textAlign: 'center' },
+
+    downloadBtn: {
+      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      backgroundColor: NAVY, borderRadius: 10, padding: 14, marginTop: 4,
+    },
+    downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
   });
 })();
 export const HealthNutritionScreenStyles = (() => {

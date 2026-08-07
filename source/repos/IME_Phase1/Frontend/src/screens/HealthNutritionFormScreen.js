@@ -242,7 +242,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           <MaterialCommunityIcons name="chevron-left" size={26} color="#fff" />
         </TouchableOpacity>
         <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>{isEdit ? 'Edit Post' : 'New Health & Nutrition Post'}</Text>
+          <Text style={styles.navTitle}>{isEdit ? 'Edit Post' : 'New Podcast'}</Text>
         </View>
         <View style={styles.navSideBtn} />
       </GradientHeader>

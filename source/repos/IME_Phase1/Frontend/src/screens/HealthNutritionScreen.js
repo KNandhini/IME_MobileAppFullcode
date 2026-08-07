@@ -171,7 +171,7 @@ const HealthNutritionScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search health & nutrition posts..." />
+      <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search Podcasts..." />
 
       {loading && items.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -180,7 +180,7 @@ const HealthNutritionScreen = ({ navigation }) => {
       ) : items.length === 0 ? (
         <View style={styles.emptyContainer}>
           <MaterialCommunityIcons name="food-apple-outline" size={40} color="#CBD5E1" />
-          <Text style={styles.emptyText}>No Health & Nutrition posts yet.</Text>
+          <Text style={styles.emptyText}>No Podcast posts yet.</Text>
         </View>
       ) : (
         <FlatList

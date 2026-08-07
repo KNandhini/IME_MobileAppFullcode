@@ -168,7 +168,7 @@ const HealthNutritionDetailScreen = ({ route, navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>Health & Nutrition</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>Podcasts</Text>
         <View style={styles.headerBtn} />
       </View>
 
