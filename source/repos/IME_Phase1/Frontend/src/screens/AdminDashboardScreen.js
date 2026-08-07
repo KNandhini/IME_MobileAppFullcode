@@ -3,6 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, StatusBar } from 'reac
 import { Card, Title, Menu } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { AdminDashboardScreenStyles as styles } from './screenStyles.js';
+import { COLORS } from './theme';
+import GradientHeader from '../components/GradientHeader';
 
 const ADMIN_MENU = [
   { title: 'Activity',          route: 'Activities',        icon: '📅', params: {} },
@@ -14,10 +16,10 @@ const ADMIN_MENU = [
   { title: 'Support Services',  route: 'Support',           icon: '🤝', params: {} },
   { title: 'Set Annual Fee',    route: 'SetAnnualFee',      icon: '💰', params: {} },
   { title: 'Fund Raise',        route: 'FundraiseList',     icon: '💸', params: {} },
-  { title: 'Club List',         route: 'ClubList',          icon: '🏢', params: {} },
+  { title: 'Club List',         route: 'ClubList',          icon: '🏛️', params: {} },
   { title: 'Job Postings',      route: 'JobPostingList',    icon: '💼', params: {} },
+  { title: 'Magazine',          route: 'Magazines',         icon: '📰', params: {} },
 ];
-
 const AdminDashboardScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);
@@ -37,10 +39,10 @@ const AdminDashboardScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar backgroundColor="#252943" barStyle="light-content" />
-
-      {/* ── IME Header (same as HomeScreen) ── */}
-      <View style={styles.appHeader}>
+      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
+ 
+      {/* ── IME Header (gradient, matches Chats screen) ── */}
+      <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
             <Text style={styles.logoText}>IME</Text>
@@ -50,12 +52,12 @@ const AdminDashboardScreen = ({ navigation }) => {
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>
-
+ 
         <View style={styles.headerRight}>
           <TouchableOpacity style={styles.iconBtn} onPress={() => navigation.navigate('Notifications')} activeOpacity={0.75}>
             <Text style={styles.iconBtnText}>🔔</Text>
           </TouchableOpacity>
-
+ 
           <Menu
             visible={menuVisible}
             onDismiss={() => setMenuVisible(false)}
@@ -71,15 +73,14 @@ const AdminDashboardScreen = ({ navigation }) => {
             <Menu.Item title="🚪  Logout" titleStyle={[styles.menuItemText, { color: '#C0392B' }]} onPress={handleLogout} />
           </Menu>
         </View>
-      </View>
-
+      </GradientHeader>
+ 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.welcomeStrip}>
-           <Text style={styles.welcomeTitle}>Welcome, {user?.fullName || 'Admin'}</Text>
+          <Text style={styles.welcomeTitle}>Welcome, {user?.fullName || 'Admin'}</Text>
           <Text style={styles.welcomeSub}>Admin Dashboard</Text>
-         
         </View>
-
+ 
         {/* Law Bot card */}
         <TouchableOpacity
           style={styles.lawBotCard}
@@ -91,10 +92,10 @@ const AdminDashboardScreen = ({ navigation }) => {
             Ask questions about the 74th Amendment Act
           </Text>
         </TouchableOpacity>
-
+ 
         <View style={styles.grid}>
           {ADMIN_MENU.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.card} onPress={() => handlePress(item)} activeOpacity={0.75}>
+            <TouchableOpacity key={index} style={styles.card} onPress={() => handlePress(item)} activeOpacity={1}>
               <Card style={styles.cardInner}>
                 <Card.Content style={styles.cardContent}>
                   <Text style={styles.icon}>{item.icon}</Text>

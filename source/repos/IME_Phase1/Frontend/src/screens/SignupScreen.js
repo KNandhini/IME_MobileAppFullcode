@@ -691,7 +691,7 @@ const SignupScreen = ({ navigation, route }) => {
 
           <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
             {loading ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
+              <ActivityIndicator size="small" color={COLORS.accent} />
             ) : (
               <Text style={{ color: COLORS.white, textAlign: 'center', fontWeight: '700', fontSize: 15 }}>Register</Text>
             )}

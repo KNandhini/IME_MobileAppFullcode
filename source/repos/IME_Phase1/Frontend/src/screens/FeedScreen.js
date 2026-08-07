@@ -171,7 +171,7 @@ function AuthImage({ path, style, resizeMode = "cover" }) {
   if (!uri) {
     return (
       <View style={[style, { backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator size="small" color="#e8623a" />
+        <ActivityIndicator size="small" color="#A0C878" />
       </View>
     );
   }
@@ -642,7 +642,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
       {/* Media strip */}
       {loadingMedia ? (
         <View style={card.mediaLoader}>
-          <ActivityIndicator size="small" color="#e8623a" />
+          <ActivityIndicator size="small" color="#A0C878" />
           <Text style={card.mediaLoaderText}>Loading media…</Text>
         </View>
       ) : (
@@ -749,7 +749,7 @@ export default function FeedScreen({ navigation }) {
   if (loading)
     return (
       <SafeAreaView style={[s.safe, s.center]}>
-        <ActivityIndicator size="large" color="#e8623a" />
+        <ActivityIndicator size="large" color="#A0C878" />
         <Text style={s.hint}>Loading fundraisers…</Text>
       </SafeAreaView>
     );

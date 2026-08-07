@@ -320,7 +320,7 @@ const insets = useSafeAreaInsets();
     if (data.length === 0) return null;
     if (refreshing) return (
       <View style={styles.footerWrap}>
-        <ActivityIndicator size="small" color={PRIMARY} />
+        <ActivityIndicator size="small" color={ACCENT} />
         <Text style={styles.footerText}>Loading next {PAGE_SIZE} records…</Text>
       </View>
     );
@@ -385,7 +385,7 @@ const insets = useSafeAreaInsets();
         ListEmptyComponent={
           loading ? (
             <View style={styles.emptyWrap}>
-              <ActivityIndicator size="large" color={PRIMARY} />
+              <ActivityIndicator size="large" color={ACCENT} />
             </View>
           ) : (
             <EmptyState onAdd={() => navigation.navigate('CreateFund')} />

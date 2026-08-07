@@ -301,7 +301,7 @@ const PaymentScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
@@ -346,7 +346,7 @@ const PaymentScreen = ({ navigation }) => {
             }}
             renderLoading={() => (
               <View style={styles.webViewLoading}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <ActivityIndicator size="large" color={COLORS.accent} />
                 <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
               </View>
             )}

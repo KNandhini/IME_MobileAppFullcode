@@ -149,7 +149,7 @@ const insets = useSafeAreaInsets();
     <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search activities..." />
     {loading && activities.length === 0 ? (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={NAVY} />
+        <ActivityIndicator size="large" color={GOLD} />
       </View>
     ) : (
       <FlatList
@@ -158,7 +158,7 @@ const insets = useSafeAreaInsets();
         keyExtractor={(item) => item.activityId?.toString()}
         contentContainerStyle={styles.list}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[NAVY]} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[GOLD]} />
         }
         ListEmptyComponent={
           !loading && (

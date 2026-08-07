@@ -301,7 +301,7 @@ console.log(userData,"user");
 </View>
           <Text style={styles.attachLabel}>ATTACHMENTS</Text>
           {loading ? (
-            <ActivityIndicator color={NAVY} style={{ marginVertical: 20 }} />
+            <ActivityIndicator color={GOLD} style={{ marginVertical: 20 }} />
           ) : attachments.length === 0 ? (
             <Text style={styles.noAttach}>No files attached.</Text>
           ) : (
@@ -359,7 +359,7 @@ console.log(userData,"user");
 
           <View style={styles.discussionBox}>
             {discussionLoading ? (
-              <ActivityIndicator color={NAVY} style={{ marginVertical: 20 }} />
+              <ActivityIndicator color={GOLD} style={{ marginVertical: 20 }} />
             ) : discussions.length === 0 ? (
               <Text style={styles.noAttach}>No discussion yet. Be the first to comment.</Text>
             ) : (

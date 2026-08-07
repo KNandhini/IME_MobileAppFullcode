@@ -165,7 +165,7 @@ const MyPostScreen = ({ navigation }) => {
     <View>
       {loadingMore && (
         <View style={styles.footerLoader}>
-          <ActivityIndicator size="small" color={COLORS.dark} />
+          <ActivityIndicator size="small" color={COLORS.accent} />
           <Text style={styles.footerLoaderText}>Loading more...</Text>
         </View>
       )}
@@ -183,7 +183,7 @@ const MyPostScreen = ({ navigation }) => {
         <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
         {renderHeader()}
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={COLORS.dark} />
+          <ActivityIndicator size="large" color={COLORS.accent} />
           <Text style={styles.centerText}>Loading your posts...</Text>
         </View>
       </View>

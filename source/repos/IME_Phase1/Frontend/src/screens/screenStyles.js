@@ -4065,11 +4065,8 @@ export const JobPostingListScreenStyles = (() => {
     emptyText: { fontSize: 15, color: '#888', fontWeight: '600' },
     emptySubText: { fontSize: 13, color: '#aaa', marginTop: 4 },
 
-    fab: {
-      position: 'absolute', right: 20, bottom: 24,
-      width: 56, height: 56, borderRadius: 28,
-      backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', elevation: 4,
-    },
+    fab: Common.fab({ zIndex: 100 }),
+     fabText: Common.fabText,
   });
 })();
 
@@ -5150,18 +5147,27 @@ export const MunicipalMapScreenStyles = (() => {
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
     breadcrumb: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
-    levelRow: {
-      flexDirection: 'row', backgroundColor: NAVY,
-      paddingHorizontal: 12, paddingBottom: 12,
-    },
-    levelPill: {
-      flex: 1, paddingVertical: 6, borderRadius: 20,
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      alignItems: 'center', marginHorizontal: 3,
-    },
-    levelPillActive: { backgroundColor: GOLD },
-    levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
-    levelPillTextActive: { color: NAVY },
+ levelRow: {
+  flexDirection: 'row',
+  backgroundColor: NAVY,
+  paddingHorizontal: 12,
+  paddingBottom: 8,
+},
+levelPill: {
+  flex: 1,
+  paddingVertical: 3,       // ← slimmer height
+  paddingHorizontal: 6,
+  borderRadius: 16,          // ← slightly less rounded to match a shorter pill
+  backgroundColor: 'rgba(255,255,255,0.12)',
+  alignItems: 'center',
+  justifyContent: 'center',
+  marginHorizontal: 3,
+  // no minHeight — let it hug the text tightly
+},
+levelPillActive: { backgroundColor: GOLD },
+levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
+levelPillTextActive: { color: NAVY, fontWeight: '700' },
+//levelPillTextActive: { color: NAVY },
 
     mapContainer: { flex: 1 },
     map: { flex: 1 },
@@ -6811,6 +6817,8 @@ const _SupportScreenStyleBundle = (() => {
       iconBotton: {
         marginLeft: 8,
       },
+       fab: Common.fab({ zIndex: 100 }),
+     fabText: Common.fabText,
       // Add this new one:
       cardTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
     }),

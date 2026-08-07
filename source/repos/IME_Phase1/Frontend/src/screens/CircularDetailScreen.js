@@ -273,7 +273,7 @@ const CircularDetailScreen = ({ route, navigation }) => {
           <Text style={styles.attachLabel}>Attachments</Text>
 
           {loading ? (
-            <ActivityIndicator size="small" color={NAVY} style={{ marginTop: 10 }} />
+            <ActivityIndicator size="small" color={GOLD} style={{ marginTop: 10 }} />
           ) : attachments.length === 0 ? (
             <Text style={styles.noAttach}>No attachments.</Text>
           ) : (

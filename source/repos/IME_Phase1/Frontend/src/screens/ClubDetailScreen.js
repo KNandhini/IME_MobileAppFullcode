@@ -7,6 +7,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { clubService } from '../services/clubService';
 import api from '../utils/api';
 import { ClubDetailScreenStyles as styles } from './screenStyles';
+import GradientHeader from '../components/GradientHeader';
 
 const NAVY = '#252943';
 const GOLD = '#A0C878';
@@ -58,7 +59,7 @@ const ClubDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.fullCenter}>
         <StatusBar backgroundColor={NAVY} barStyle="light-content" />
-        <ActivityIndicator size="large" color={NAVY} />
+        <ActivityIndicator size="large" color={GOLD} />
       </View>
     );
   }
@@ -90,7 +91,7 @@ const ClubDetailScreen = ({ navigation, route }) => {
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       {/* ── Header ── */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           style={styles.closeBtn}
@@ -100,7 +101,7 @@ const ClubDetailScreen = ({ navigation, route }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Club Details</Text>
         <View style={{ width: 40 }} />
-      </View>
+      </GradientHeader>
 
       <ScrollView
         style={styles.scroll}

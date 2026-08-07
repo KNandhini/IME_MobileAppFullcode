@@ -167,7 +167,7 @@ const ActivityDetailScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={NAVY} />
+        <ActivityIndicator size="large" color={GOLD} />
       </View>
     );
   }

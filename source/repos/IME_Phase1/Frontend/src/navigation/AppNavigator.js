@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -111,12 +112,37 @@ const AnimatedTabIcon = ({ name, focused, color, activeColor, size = 24 }) => {
   );
 };
 
+// ── Shared gradient background for native stack headers ──
+// React Navigation's stack header can't take arbitrary child components the
+// way an in-screen <GradientHeader> can, but it exposes `headerBackground`
+// for exactly this — a component rendered behind the title/back button.
+// Pass this into `headerBackground` and leave `headerStyle` without a
+// backgroundColor (or set it to 'transparent') so the gradient shows through.
+const renderGradientHeaderBackground = () => (
+  <LinearGradient
+    colors={[COLORS.headerStart, COLORS.headerEnd]}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 0 }}
+    style={StyleSheet.absoluteFill}
+  />
+);
+
 const HEADER_STYLE = {
-  headerStyle: { backgroundColor: COLORS.headerEnd },
+  headerBackground: renderGradientHeaderBackground,
+  headerStyle: { backgroundColor: 'transparent' },
   headerTintColor: COLORS.white,
   headerTitleStyle: { fontWeight: '700' },
   // Prevents the default white flash behind screens during transitions.
   cardStyle: { backgroundColor: COLORS.bg },
+};
+
+// Shorthand for the one-off screens below that previously set
+// headerStyle: { backgroundColor: COLORS.dark } individually.
+const GRADIENT_HEADER_OPTIONS = {
+  headerShown: true,
+  headerBackground: renderGradientHeaderBackground,
+  headerStyle: { backgroundColor: 'transparent' },
+  headerTintColor: COLORS.white,
 };
 
 const AuthStack = () => (
@@ -136,20 +162,16 @@ const AuthStack = () => (
       name="RegistrationPayment"
       component={RegistrationPaymentScreen}
       options={{
-        headerShown: true,
+        ...GRADIENT_HEADER_OPTIONS,
         title: 'Complete Payment',
-        headerStyle: { backgroundColor: COLORS.dark },
-        headerTintColor: COLORS.white,
       }}
     />
     <Stack.Screen
       name="About"
       component={AboutScreen}
       options={{
-        headerShown: true,
+        ...GRADIENT_HEADER_OPTIONS,
         title: 'About IMC',
-        headerStyle: { backgroundColor: COLORS.dark },
-        headerTintColor: COLORS.white,
       }}
     />
     <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
@@ -268,7 +290,8 @@ const MainTabs = () => {
             component={AboutIMEScreen}
             options={{
               title: 'About IME',
-              headerStyle: { backgroundColor: COLORS.dark },
+              headerBackground: renderGradientHeaderBackground,
+              headerStyle: { backgroundColor: 'transparent' },
               headerTintColor: COLORS.white,
               headerTitleStyle: { fontWeight: '700' },
               tabBarIcon: ({ color, focused }) => (
@@ -404,10 +427,8 @@ const MainStack = () => (
       name="RegistrationPayment"
       component={RegistrationPaymentScreen}
       options={{
-        headerShown: true,
+        ...GRADIENT_HEADER_OPTIONS,
         title: 'Complete Payment',
-        headerStyle: { backgroundColor: COLORS.dark },
-        headerTintColor: COLORS.white,
       }}
     />
     <Stack.Screen name="LawBot" component={LawBotScreen} options={{ headerShown: false }} />

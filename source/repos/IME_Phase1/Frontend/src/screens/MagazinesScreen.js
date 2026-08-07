@@ -1,6 +1,6 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,7 +14,7 @@ const PRIMARY = COLORS.primary;
 const GOLD = COLORS.accent;
 
 // ── Magazine Card ─────────────────────────────────────────────────────────
-const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
+const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole }) => {
   const dateStr = item.publishedDate
     ? new Date(item.publishedDate).toLocaleDateString('en-IN', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -30,32 +30,32 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
           <Text style={s.badgeText}>📖 Magazine</Text>
         </View>
         {userRole === 'Admin' && (
- <View style={s.actionContainer}>
-  <TouchableOpacity
-    onPress={() => onEdit(item)}
-    style={s.iconButton}
-    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-  >
-    <MaterialCommunityIcons
-      name="pencil-outline"
-      size={22}
-      color={COLORS.dark}
-    />
-  </TouchableOpacity>
+          <View style={s.actionContainer}>
+            <TouchableOpacity
+              onPress={() => onEdit(item)}
+              style={s.iconButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="pencil-outline"
+                size={22}
+                color={COLORS.dark}
+              />
+            </TouchableOpacity>
 
-  <TouchableOpacity
-    onPress={() => onDelete(item.magazineId)}
-    style={s.iconButton}
-    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-  >
-    <MaterialCommunityIcons
-      name="delete-outline"
-      size={22}
-      color="#D9534F"
-    />
-  </TouchableOpacity>
-</View>
-)}
+            <TouchableOpacity
+              onPress={() => onDelete(item.magazineId)}
+              style={s.iconButton}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons
+                name="delete-outline"
+                size={22}
+                color="#D9534F"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <View style={s.cardRow}>
@@ -91,14 +91,17 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit,index, userRole }) => {
 const MagazinesScreen = ({ navigation }) => {
   const [magazines, setMagazines] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const [search, setSearch] = useState('');
-const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+
   const query = search.trim().toLowerCase();
   const filteredMagazines = query
     ? magazines.filter((item) => [item.title, item.issueNumber, item.authorName, item.category]
         .some((value) => String(value ?? '').toLowerCase().includes(query)))
     : magazines;
+
   useFocusEffect(
     useCallback(() => {
       loadRole();
@@ -114,7 +117,8 @@ const insets = useSafeAreaInsets();
     setUserRole(role === 'admin' ? 'Admin' : 'Member');
   };
 
-  const load = async () => {
+  const load = async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
       const res = await magazineService.getAll();
       if (res?.success) setMagazines(res.data ?? []);
@@ -122,16 +126,18 @@ const insets = useSafeAreaInsets();
       console.error('Magazines load error:', e);
     } finally {
       setRefreshing(false);
+      setLoading(false);
     }
   };
 
   const onRefresh = () => {
-    setRefreshing(true);
-    load();
+    load(true);
   };
-const handleEdit = (item) => {
-  navigation.navigate('MagazineForm', { item });
-};
+
+  const handleEdit = (item) => {
+    navigation.navigate('MagazineForm', { item });
+  };
+
   const handleDelete = (id) => {
     Alert.alert(
       'Delete Magazine',
@@ -155,12 +161,16 @@ const handleEdit = (item) => {
   };
 
   return (
-        <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search magazines..." />
 
-      {filteredMagazines.length === 0 && !refreshing ? (
+      {loading ? (
+        <View style={s.centered}>
+          <ActivityIndicator size="large" color={GOLD} />
+        </View>
+      ) : filteredMagazines.length === 0 && !refreshing ? (
         <View style={s.centered}>
           <MaterialCommunityIcons name="book-open-page-variant-outline" size={56} color="#A0C878" />
           <Text style={s.emptyTitle}>No magazines yet</Text>
@@ -170,14 +180,14 @@ const handleEdit = (item) => {
         <FlatList
           data={filteredMagazines}
           renderItem={({ item, index }) => (
-           <MagazineCard
-  item={item}
-  index={index}
-  userRole={userRole}
-  onPress={() => navigation.navigate('MagazineDetail', { item })}
-  onDelete={handleDelete}
-  onEdit={handleEdit}   // ← ADD
-/>
+            <MagazineCard
+              item={item}
+              index={index}
+              userRole={userRole}
+              onPress={() => navigation.navigate('MagazineDetail', { item })}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
           )}
           keyExtractor={(item) => item.magazineId.toString()}
           contentContainerStyle={s.list}
@@ -187,19 +197,15 @@ const handleEdit = (item) => {
         />
       )}
 
-    
-        <TouchableOpacity
-          style={[s.fab,{ bottom: 24 + insets.bottom }]}
-          onPress={() => navigation.navigate('MagazineForm')}
-          activeOpacity={0.85}
-        >
-          <Text style={s.fabText}>+</Text>
-        </TouchableOpacity>
-      
+      <TouchableOpacity
+        style={[s.fab, { bottom: 24 + insets.bottom }]}
+        onPress={() => navigation.navigate('MagazineForm')}
+        activeOpacity={0.85}
+      >
+        <Text style={s.fabText}>+</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
-
-
 
 export default MagazinesScreen;

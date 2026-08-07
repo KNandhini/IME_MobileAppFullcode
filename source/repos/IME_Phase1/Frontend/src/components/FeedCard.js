@@ -372,7 +372,7 @@ const FeedCard = ({ item, navigation }) => {
         <View style={styles.commentsSection}>
           {loadingComments ? (
             <View style={styles.commentsLoadingRow}>
-              <ActivityIndicator size="small" color={COLORS.primary} />
+              <ActivityIndicator size="small" color={COLORS.accent} />
               <Text style={styles.commentsLoadingText}>Loading comments...</Text>
             </View>
           ) : comments.length === 0 ? (

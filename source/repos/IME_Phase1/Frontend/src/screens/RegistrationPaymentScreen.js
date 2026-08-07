@@ -407,7 +407,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             }}
             renderLoading={() => (
               <View style={styles.webViewLoading}>
-                <ActivityIndicator size="large" color={COLORS.primary} />
+                <ActivityIndicator size="large" color={COLORS.accent} />
                 <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
               </View>
             )}
@@ -420,7 +420,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
         <Modal visible transparent animationType="fade">
           <View style={styles.processingOverlay}>
             <View style={styles.processingBox}>
-              <ActivityIndicator size="large" color={COLORS.primary} />
+              <ActivityIndicator size="large" color={COLORS.accent} />
               <Text style={styles.processingText}>Activating your account...</Text>
             </View>
           </View>

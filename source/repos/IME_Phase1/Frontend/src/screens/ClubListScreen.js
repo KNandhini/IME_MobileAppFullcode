@@ -134,25 +134,46 @@ const insets = useSafeAreaInsets();
           </View>
         </View>
 
-        <View style={styles.cardTop}>
-          {logoUrl ? (
-            <Image source={{ uri: logoUrl }} style={styles.logoImg} />
-          ) : (
-            <View style={styles.avatarBox}>
-              <Text style={styles.avatarText}>{(item.clubName || 'C').charAt(0).toUpperCase()}</Text>
-            </View>
-          )}
-          <View style={styles.cardInfo}>
-            <Text style={styles.clubName}>{item.clubName}</Text>
-            {item.clubCode ? <Text style={styles.clubCode}>Code: {item.clubCode}</Text> : null}
-            {item.clubType ? <Text style={styles.clubMeta}>🏛 {item.clubType}</Text> : null}
-            {item.city || item.stateName
-              ? <Text style={styles.clubMeta}>📍 {[item.city, item.stateName].filter(Boolean).join(', ')}</Text>
-              : null}
-            {item.contactNumber ? <Text style={styles.clubMeta}>📞 {item.contactNumber}</Text> : null}
-            {item.adminMemberNames ? <Text style={styles.clubMeta}>👤 {item.adminMemberNames}</Text> : null}
-          </View>
-        </View>
+     <TouchableOpacity
+  style={styles.cardTop}
+  activeOpacity={0.7}
+  onPress={() => navigation.navigate('ClubDetail', { clubId: item.clubId, item })}
+>
+  {logoUrl ? (
+    <Image source={{ uri: logoUrl }} style={styles.logoImg} />
+  ) : (
+    <View style={styles.avatarBox}>
+      <Text style={styles.avatarText}>{(item.clubName || 'C').charAt(0).toUpperCase()}</Text>
+    </View>
+  )}
+
+  <View style={[styles.cardInfo, { flex: 1 }]}>
+    <Text style={styles.clubName}>{item.clubName}</Text>
+    {item.clubCode ? <Text style={styles.clubCode}>Code: {item.clubCode}</Text> : null}
+    {item.clubType ? <Text style={styles.clubMeta}>🏛 {item.clubType}</Text> : null}
+
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: 4,
+      }}
+    >
+      {item.city || item.stateName ? (
+        <Text style={[styles.clubMeta, { flex: 1 }]} numberOfLines={1}>
+          📍 {[item.city, item.stateName].filter(Boolean).join(', ')}
+        </Text>
+      ) : (
+        <View style={{ flex: 1 }} />
+      )}
+
+      <Text style={{ color: '#3B82F6', fontSize: 12, fontWeight: '600', marginLeft: 8 }}>
+        Tap to view ›
+      </Text>
+    </View>
+  </View>
+</TouchableOpacity>
       </View>
     );
   };
@@ -160,7 +181,7 @@ const insets = useSafeAreaInsets();
   if (loading) {
     return (
       <View style={[styles.centered,{ backgroundColor: COLORS.white }]}>
-        <ActivityIndicator size="large" color={COLORS.dark} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }
@@ -175,18 +196,19 @@ const insets = useSafeAreaInsets();
 />
 
       <View style={styles.filterRow}>
-        {FILTERS.map(f => (
-          <Chip
-            key={f}
-            selected={filter === f}
-            onPress={() => handleFilter(f)}
-            style={[styles.chip, filter === f && styles.chipSelected]}
-            textStyle={[styles.chipText, filter === f && styles.chipTextSelected]}
-          >
-            {f}
-          </Chip>
-        ))}
-      </View>
+  {FILTERS.map(f => (
+    <Chip
+      key={f}
+      selected={filter === f}
+      onPress={() => handleFilter(f)}
+      style={[styles.chip, filter === f && styles.chipSelected]}
+      textStyle={[styles.chipText, filter === f && styles.chipTextSelected]}
+      selectedColor={filter === f ? '#FFFFFF' : undefined}
+    >
+      {f}
+    </Chip>
+  ))}
+</View>
 
       <FlatList
         data={filtered}

@@ -5,6 +5,7 @@ import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
 import { AchievementDetailScreenStyles as styles } from './screenStyles';
+import GradientHeader from '../components/GradientHeader';
 const NAVY = '#252943';
 const GOLD = '#A0C878';
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
@@ -76,13 +77,13 @@ const AchievementDetailScreen = ({ route, navigation }) => {
       <StatusBar backgroundColor={NAVY} barStyle="light-content" />
 
       {/* Header */}
-      <View style={styles.header}>
+      <GradientHeader style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
           <MaterialCommunityIcons name="arrow-left" size={22} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>Achievement</Text>
         <View style={{ width: 36 }} />
-      </View>
+      </GradientHeader>
 
       {loading ? (
         <View style={styles.loadingContainer}>

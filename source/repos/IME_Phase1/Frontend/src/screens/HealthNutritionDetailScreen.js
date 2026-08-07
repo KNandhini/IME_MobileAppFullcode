@@ -67,7 +67,7 @@ function AudioPreview({ uri }) {
     <View style={styles.mediaBox}>
       <TouchableOpacity onPress={toggle} activeOpacity={0.8} disabled={loading}>
         {loading ? (
-          <ActivityIndicator size="large" color={NAVY} />
+          <ActivityIndicator size="large" color={GOLD} />
         ) : (
           <MaterialCommunityIcons
             name={isPlaying ? 'pause-circle' : 'play-circle'}

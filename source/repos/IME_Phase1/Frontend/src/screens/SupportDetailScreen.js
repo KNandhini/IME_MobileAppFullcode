@@ -221,7 +221,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
     return (
       <View style={styles.fullCenter}>
         <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
-        <ActivityIndicator size="large" color={COLORS.dark} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }

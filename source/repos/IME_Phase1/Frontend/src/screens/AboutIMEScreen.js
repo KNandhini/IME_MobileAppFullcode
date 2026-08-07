@@ -4,8 +4,8 @@ import {
     View, Text, StyleSheet, ScrollView, Animated,
     StatusBar, TouchableOpacity, SafeAreaView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
+import GradientHeader from '../components/GradientHeader';
 import { Accordion, SubAccordion, NumberedItem, BulletItem } from '../components/Accordion';
 import IMELogo from '../components/IMELogo';
 
@@ -56,17 +56,13 @@ const AboutIMEScreen = ({ navigation }) => {
             <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
             {/* Top banner */}
-            <LinearGradient
-                colors={[COLORS.headerStart, COLORS.headerEnd]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.banner}>
+            <GradientHeader style={styles.banner}>
                 {/*<TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
                     <MaterialIcons name="arrow-back" size={22} color={COLORS.white} />
                 </TouchableOpacity>*/}
                 <IMELogo size="small" animated={false} />
                 <Text style={styles.bannerTitle}>Institutional Profile (India)</Text>
-            </LinearGradient>
+            </GradientHeader>
 
             {/* Quick-nav chip bar */}
             <View style={styles.navWrap}>
@@ -85,7 +81,7 @@ const AboutIMEScreen = ({ navigation }) => {
                                 <MaterialIcons
                                     name={s.icon}
                                     size={15}
-                                    color={active ? COLORS.white : ROYAL}
+                                    color={active ? COLORS.white : GOLD}
                                 />
                                 <Text style={[styles.navChipText, active && styles.navChipTextActive]}>
                                     {s.label}
@@ -106,19 +102,25 @@ const AboutIMEScreen = ({ navigation }) => {
                 {/* Quick facts strip — the details people look up most, at a glance */}
                 <View style={styles.factsCard}>
                     <View style={styles.factRow}>
-                        <MaterialIcons name="place" size={16} color={ROYAL} />
+                        <View style={styles.factIconWrap}>
+                            <MaterialIcons name="place" size={16} color={GOLD} />
+                        </View>
                         <Text style={styles.factLabel}>Registered Office</Text>
                         <Text style={styles.factValue}>Chennai, Tamil Nadu</Text>
                     </View>
                     <View style={styles.factDivider} />
                     <View style={styles.factRow}>
-                        <MaterialIcons name="public" size={16} color={ROYAL} />
+                        <View style={styles.factIconWrap}>
+                            <MaterialIcons name="public" size={16} color={GOLD} />
+                        </View>
                         <Text style={styles.factLabel}>Jurisdiction</Text>
                         <Text style={styles.factValue}>All-India</Text>
                     </View>
                     <View style={styles.factDivider} />
                     <View style={styles.factRow}>
-                        <MaterialIcons name="star" size={16} color={ROYAL} />
+                        <View style={styles.factIconWrap}>
+                            <MaterialIcons name="star" size={16} color={GOLD} />
+                        </View>
                         <Text style={styles.factLabel}>Founding Chapter</Text>
                         <Text style={styles.factValue}>Tamil Nadu (Chennai)</Text>
                     </View>
@@ -376,11 +378,11 @@ const styles = StyleSheet.create({
     navChip: {
         flexDirection: 'row', alignItems: 'center', gap: 6,
         paddingVertical: 7, paddingHorizontal: 12,
-        borderRadius: 20, backgroundColor: '#EEF3FA',
+        borderRadius: 20,  backgroundColor: 'rgba(160,200,120,0.18)', 
         marginRight: 8,
     },
-    navChipActive: { backgroundColor: ROYAL },
-    navChipText: { fontSize: 12.5, fontWeight: '700', color: ROYAL },
+    navChipActive: { backgroundColor: GOLD },
+    navChipText: { fontSize: 12.5, fontWeight: '700', color: GOLD },
     navChipTextActive: { color: COLORS.white },
 
     scrollContent: { padding: 16, paddingBottom: 30 },
@@ -391,16 +393,21 @@ const styles = StyleSheet.create({
         marginBottom: 16, borderWidth: 1, borderColor: '#E2E8F0',
     },
     factRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 4 },
+    factIconWrap: {
+        width: 26, height: 26, borderRadius: 13,
+        backgroundColor: 'rgba(160,200,120,0.18)', // COLORS.accent (#A0C878) tinted
+        alignItems: 'center', justifyContent: 'center',
+    },
     factLabel: { fontSize: 12.5, color: '#64748B', flex: 1 },
     factValue: { fontSize: 12.5, fontWeight: '700', color: NAVY },
     factDivider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 },
 
-    paragraph: { fontSize: 13.5, color: COLORS.secondary, lineHeight: 21 },
+    paragraph: { fontSize: 13.5, color: '#1A1A1A', lineHeight: 21 },
     docCard: {
         backgroundColor: BG, borderRadius: 10, padding: 14,
         borderWidth: 1, borderColor: '#E2E8F0',
     },
-    docLabel: { fontSize: 12, fontWeight: '800', color: ROYAL, marginBottom: 4, letterSpacing: 0.5 },
+    docLabel: { fontSize: 12, fontWeight: '800', color: COLORS.text, marginBottom: 4, letterSpacing: 0.5 },
 
     footer: { alignItems: 'center', marginTop: 20, paddingHorizontal: 10 },
     footerTitle: { color: NAVY, fontSize: 13, fontWeight: '800', textAlign: 'center' },

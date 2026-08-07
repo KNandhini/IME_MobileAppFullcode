@@ -189,7 +189,7 @@ const OrganisationScreen = () => {
   if (loading && !refreshing) {
     return (
       <View style={[styles.centered,{ backgroundColor: COLORS.white }]}>
-        <ActivityIndicator size="large" color={COLORS.dark} />
+        <ActivityIndicator size="large" color={COLORS.accent} />
       </View>
     );
   }

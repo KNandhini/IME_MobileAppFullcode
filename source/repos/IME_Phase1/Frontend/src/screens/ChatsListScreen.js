@@ -239,7 +239,7 @@ const ChatsListScreen = ({ navigation }) => {
 
       {loading ? (
         <View style={styles.centerBox}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={COLORS.accent} />
         </View>
       ) : (
         <FlatList
@@ -318,7 +318,7 @@ const ChatsListScreen = ({ navigation }) => {
 
           {membersLoading ? (
             <View style={styles.centerBox}>
-              <ActivityIndicator size="small" color={COLORS.primary} />
+              <ActivityIndicator size="small" color={COLORS.accent} />
             </View>
           ) : (
             <FlatList
