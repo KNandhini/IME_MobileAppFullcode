@@ -42,35 +42,91 @@ public class HealthNutritionController : ControllerBase
     }
 
     // ── helpers ───────────────────────────────────────────────
+    // BuildFileUrl turns the stored relative path (e.g. "HealthNutrition-3/abc123.mp4",
+    // relative to the "Uploads" folder — see FileStorageService.SaveFileAsync) into an
+    // absolute URL the client can actually stream/download from. Program.cs maps that
+    // same "Uploads" folder to the public "/Uploads" static-files route, so the URL
+    // just needs {scheme}://{host}/Uploads/{relativePath}.
+    //
+    // Previously this returned a server-side filesystem path (e.g.
+    // "/home/site/wwwroot/HealthNutrition-3/abc123.mp4") — not a fetchable URL at all,
+    // and missing the "Uploads/" segment besides — which is why attachments wouldn't
+    // play or download on-device even though the file existed on disk.
     private string BuildFileUrl(string? relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath) || relativePath == "pending")
             return string.Empty;
 
-        return Path.Combine(
-            Directory.GetCurrentDirectory(),
-            relativePath.Replace('/', Path.DirectorySeparatorChar)
-                        .Replace('\\', Path.DirectorySeparatorChar));
+        var normalized = relativePath.Replace('\\', '/').TrimStart('/');
+
+        // Use the actual incoming request's scheme + host (port included) so this
+        // works correctly against both a local dev server (e.g. http://10.0.2.2:5000
+        // as seen from the Android emulator) and production (https://imei.co.in).
+        // NOTE: if this API is ever deployed behind a reverse proxy that terminates
+        // TLS without forwarding the original scheme/host (no UseForwardedHeaders
+        // configured), Request.Scheme can under-report as "http" — revisit this if
+        // that setup is introduced later.
+        return $"{Request.Scheme}://{Request.Host}/Uploads/{normalized}";
     }
 
     private string GetUserName() =>
         User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? "Unknown";
 
     // ── GET /api/healthnutrition ─────────────────────────────
+    // Accepts the same query params the app already sends
+    // (search, sortDirection, pageNumber, pageSize) and returns a
+    // paginated envelope: { items, pageNumber, pageSize, totalCount, totalPages }.
     [HttpGet]
-    public async Task<ActionResult<ApiResponse<List<HealthNutritionDTO>>>> GetAll()
+    public async Task<ActionResult<ApiResponse<HealthNutritionListDTO>>> GetAll(
+        [FromQuery] string? search = null,
+        [FromQuery] string sortDirection = "DESC",
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 20)
     {
         try
         {
             var items = await _repository.GetAllAsync();
-            foreach (var item in items)
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                items = items.Where(i =>
+                    (i.Title?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (i.Description?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+            }
+
+            items = string.Equals(sortDirection, "ASC", StringComparison.OrdinalIgnoreCase)
+                ? items.OrderBy(i => i.PostedBy).ToList()
+                : items.OrderByDescending(i => i.PostedBy).ToList();
+
+            var totalCount = items.Count;
+            var safePageSize = pageSize <= 0 ? 20 : pageSize;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)safePageSize);
+            var safePageNumber = pageNumber <= 0 ? 1 : pageNumber;
+
+            var pageItems = items
+                .Skip((safePageNumber - 1) * safePageSize)
+                .Take(safePageSize)
+                .ToList();
+
+            foreach (var item in pageItems)
                 item.AttachmentPath = BuildFileUrl(item.AttachmentPath);
 
-            return Ok(new ApiResponse<List<HealthNutritionDTO>> { Success = true, Data = items });
+            var result = new HealthNutritionListDTO
+            {
+                Items = pageItems,
+                PageNumber = safePageNumber,
+                PageSize = safePageSize,
+                TotalCount = totalCount,
+                TotalPages = totalPages,
+            };
+
+            return Ok(new ApiResponse<HealthNutritionListDTO> { Success = true, Data = result });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new ApiResponse<List<HealthNutritionDTO>>
+            return StatusCode(500, new ApiResponse<HealthNutritionListDTO>
             { Success = false, Message = $"Error: {ex.Message}" });
         }
     }

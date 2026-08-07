@@ -1220,6 +1220,18 @@ export default function SupportScreen({ navigation }) {
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
+      {/* ── Health & Nutrition card ── */}
+      <TouchableOpacity
+        style={s.healthCard}
+        onPress={() => navigation.navigate('HealthNutrition')}
+        activeOpacity={0.85}
+      >
+        <Text style={s.healthCardTitle}>🥗 Health & Nutrition</Text>
+        <Text style={s.healthCardSubtitle}>
+          View Health & Nutrition articles and resources
+        </Text>
+      </TouchableOpacity>
+
       {/* ── Tab Bar — driven by tbl_SupportCategory ── */}
       <View style={s.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.tabBarContent}>

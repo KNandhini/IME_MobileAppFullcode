@@ -123,7 +123,11 @@ const HealthNutritionDetailScreen = ({ route, navigation }) => {
       const res = await healthNutritionService.getById(id);
       if (res?.success) setItem(res.data);
     } catch (e) {
-      console.log('HealthNutrition detail load error:', e);
+      console.log("Status:", e.response?.status);
+      console.log("BaseURL:", e.config?.baseURL);
+      console.log("URL:", e.config?.url);
+      console.log("Full URL:", e.config?.baseURL + e.config?.url);
+      console.log("Response:", e.response?.data);
     } finally {
       setLoading(false);
     }
@@ -146,8 +150,8 @@ const HealthNutritionDetailScreen = ({ route, navigation }) => {
       case 'image': return <ImagePreview uri={item.attachmentPath} />;
       case 'audio': return <AudioPreview uri={item.attachmentPath} />;
       case 'video': return <VideoPreview uri={item.attachmentPath} />;
-      case 'pdf':   return <PdfPreview uri={item.attachmentPath} />;
-      default:      return <OtherFilePreview fileName={item.attachmentFileName} />;
+      case 'pdf': return <PdfPreview uri={item.attachmentPath} />;
+      default: return <OtherFilePreview fileName={item.attachmentFileName} />;
     }
   };
 

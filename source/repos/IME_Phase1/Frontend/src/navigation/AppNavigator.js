@@ -15,6 +15,9 @@ import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
+import HealthNutritionScreen from '../screens/HealthNutritionScreen';
+import HealthNutritionDetailScreen from '../screens/HealthNutritionDetailScreen';
+import HealthNutritionFormScreen from '../screens/HealthNutritionFormScreen';
 
 import ProfileScreen from '../screens/ProfileScreen';
 import ProfileEditScreen from '../screens/ProfileEditScreen';
@@ -343,6 +346,11 @@ const MainStack = () => (
     />
     {/* Support & Circular */}
     <Stack.Screen name="Support" component={SupportScreen} options={{ title: 'Support Services' }} />
+    <Stack.Screen name="HealthNutrition" component={HealthNutritionScreen} options={{ title: 'Health & Nutrition' }} />
+    <Stack.Screen name="HealthNutritionDetail" component={HealthNutritionDetailScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="HealthNutritionForm" component={HealthNutritionFormScreen} options={{ headerShown: false }} />
+
+
     <Stack.Screen name="Circular" component={CircularScreen} options={{ title: 'GO & Circular' }} />
     {/* Other */}
     <Stack.Screen name="Achievements" component={AchievementsScreen} options={{ title: 'Hall of Fame' }} />
@@ -387,7 +395,7 @@ const MainStack = () => (
     <Stack.Screen name="JobPostingDetail" component={JobPostingDetailScreen} options={{ headerShown: false }} />
     <Stack.Screen name="JobPostingForm" component={JobPostingFormScreen} options={{ headerShown: false }} />
     <Stack.Screen name="JobPostingList" component={JobPostingListScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="FundScreen" component={FundScreen} options={{ title: 'Fund Raise' }} />
+    <Stack.Screen name="FundScreen" component={FundScreen} options={{ title: 'Fund Raise' }} />
 
     {/* <Stack.Screen
       name="AddCircular"
@@ -418,7 +426,7 @@ const MainStack = () => (
     <Stack.Screen name="Magazines" component={MagazinesScreen} options={{ title: 'Magazines' }} />
     <Stack.Screen name="MagazineForm" component={MagazineFormScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MagazineDetail" component={MagazineDetailScreen} options={{ headerShown: false }} />
- <Stack.Screen name="PaymentReports" component={PaymentReportsScreen} />
+    <Stack.Screen name="PaymentReports" component={PaymentReportsScreen} />
   </Stack.Navigator>
 );
 
