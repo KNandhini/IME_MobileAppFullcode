@@ -18,6 +18,7 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 import logoAsset from '../../assets/logo-clean.png';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
+const GREEN = COLORS.accent;
 
 // Logo shown on the Razorpay checkout screen (the circular emblem in your
 // screenshot). Loaded from your local asset (assets/logo-clean.png, imported
@@ -91,16 +92,16 @@ function getRazorpayHTML({ amount, userData, post, logoUrl }) {
           max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,.10);text-align:center}
     .title{font-size:20px;font-weight:700;color:#1a1a2e}
     .sub{font-size:13px;color:#888;margin-top:4px;margin-bottom:20px}
-    .amt-box{background:#fef3ed;border-radius:12px;padding:14px;margin-bottom:24px}
-    .amt-label{font-size:13px;color:#e8623a}
-    .amt-value{font-size:36px;font-weight:700;color:#e8623a}
-    .spinner{border:4px solid #f0ede8;border-top:4px solid #e8623a;border-radius:50%;
+    .amt-box{background:#F0F6E9;border-radius:12px;padding:14px;margin-bottom:24px}
+    .amt-label{font-size:13px;color:#5C7A3A}
+    .amt-value{font-size:36px;font-weight:700;color:#5C7A3A}
+    .spinner{border:4px solid #f0ede8;border-top:4px solid #A0C878;border-radius:50%;
              width:40px;height:40px;animation:spin .8s linear infinite;margin:0 auto 12px}
     @keyframes spin{to{transform:rotate(360deg)}}
     #statusText{color:#555;font-size:15px;margin-bottom:8px}
     #errorBox{display:none;background:#ffebee;border-radius:10px;padding:16px;
               color:#c62828;font-size:14px;margin-top:12px}
-    .retry-btn{margin-top:12px;background:#e8623a;color:#fff;border:none;
+    .retry-btn{margin-top:12px;background:#A0C878;color:#fff;border:none;
                border-radius:8px;padding:10px 28px;font-size:15px;cursor:pointer}
     .secure{margin-top:16px;color:#aaa;font-size:12px}
   </style>
@@ -157,7 +158,7 @@ function openRazorpay(){
     name:'Raise Fund',
     image:'${logoUrl || ''}',
     description:'${(post?.title || 'Donation').replace(/'/g, "\\'")}',
-    theme:{color:'#e8623a'},
+    theme:{color:'#A0C878'},
     prefill:{name:'${name}',email:'${email}',contact:'${phone}'},
     handler:function(r){
       document.getElementById('statusText').innerText='Payment successful!';
@@ -377,7 +378,7 @@ function AmountModal({ visible, post, onClose, onProceed }) {
             {/* Display minimum amount as info only — no validation */}
             {minAmount > 1 && (
               <View style={s.minAmountBanner}>
-                <Ionicons name="information-circle-outline" size={15} color="#e8623a" />
+                <Ionicons name="information-circle-outline" size={15} color={GREEN} />
                 <Text style={s.minAmountText}>
                   Minimum donation: ₹{minAmount.toLocaleString('en-IN')}
                 </Text>
@@ -549,11 +550,9 @@ export default function RaiseFundScreen({ route, navigation }) {
   if (loadingMember) {
     // Background forced to white for the moment right after tapping
     // "Raise Fund" on the feed card, while the member profile loads.
-    // Kept the spinner in brand orange (#e8623a) — a white spinner would be
-    // invisible on a white background. Say the word if you want it changed.
     return (
       <View style={[s.centered, { backgroundColor: COLORS.white }]}>
-        <ActivityIndicator size="large" color="#e8623a" />
+        <ActivityIndicator size="large" color={GREEN} />
       </View>
     );
   }
@@ -587,7 +586,7 @@ export default function RaiseFundScreen({ route, navigation }) {
             allowsInlineMediaPlayback
             renderLoading={() => (
               <View style={s.centered}>
-                <ActivityIndicator size="large" color="#e8623a" />
+                <ActivityIndicator size="large" color={GREEN} />
               </View>
             )}
             onError={() => {
@@ -611,9 +610,11 @@ export default function RaiseFundScreen({ route, navigation }) {
 
         {/* Post card */}
         <View style={s.postCard}>
-          <View style={[s.badge, { backgroundColor: safePost.badgeBg }]}>
-            <Text style={[s.badgeText, { color: safePost.badgeColor }]}>{safePost.badge}</Text>
-          </View>
+          {(safePost.badge) && (
+            <View style={[s.badge, { backgroundColor: safePost.badgeBg || COLORS.selected }]}>
+              <Text style={[s.badgeText, { color: safePost.badgeColor || GREEN }]}>{safePost.badge}</Text>
+            </View>
+          )}
           <Text style={s.postTitle}>{safePost.title}</Text>
           <Text style={s.postBody}>{safePost.body}</Text>
         </View>
@@ -695,5 +696,3 @@ export default function RaiseFundScreen({ route, navigation }) {
     </SafeAreaView>
   );
 }
-
-// ─── Styles ───────────────────────────────────────────────────────────────────

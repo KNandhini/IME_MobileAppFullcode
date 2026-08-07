@@ -10,7 +10,7 @@ import { Checkbox } from 'react-native-paper';
 import IMELogo from '../components/IMELogo';
 import api from '../utils/api';
 import { MembershipBenefitsScreenStyles as styles } from './screenStyles';
-
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 const { width } = Dimensions.get('window');
 
 const NAVY = COLORS.primary;
@@ -133,18 +133,18 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                         <Text style={styles.sectionTitle}>Membership Benefits</Text>
 
                         <View style={styles.benefitsList}>
-                            {BENEFITS.map((b, i) => (
-                                <View key={b.title} style={styles.benefitCard}>
-                                    <View style={styles.benefitIconWrap}>
-                                        <MaterialCommunityIcons name={b.icon} size={22} color={NAVY} />
-                                    </View>
-                                    <View style={styles.benefitTextWrap}>
-                                        <Text style={styles.benefitTitle}>{b.title}</Text>
-                                        <Text style={styles.benefitBlurb}>{b.blurb}</Text>
-                                    </View>
-                                </View>
-                            ))}
-                        </View>
+    {BENEFITS.map((b, i) => (
+        <View key={b.title} style={styles.benefitCard}>
+            <View style={styles.benefitIconWrap}>
+                <MaterialCommunityIcons name={b.icon} size={22} color={GOLD} />
+            </View>
+            <View style={styles.benefitTextWrap}>
+                <Text style={styles.benefitTitle}>{b.title}</Text>
+                <Text style={styles.benefitBlurb}>{b.blurb}</Text>
+            </View>
+        </View>
+    ))}
+</View>
                     </View>
 
                     {/* ── Terms & Conditions (moved in from SignupScreen's Terms Modal, now inline) ── */}
@@ -182,7 +182,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
             <MaterialCommunityIcons
                 name="account-group-outline"
                 size={22}
-                color={NAVY}
+                color={GOLD}
             />
 
             <Text style={styles.membershipFeeTitle}>
@@ -232,7 +232,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                 <MaterialCommunityIcons
                     name="cash-check"
                     size={26}
-                    color={NAVY}
+                    color={GOLD}
                 />
             </View>
 

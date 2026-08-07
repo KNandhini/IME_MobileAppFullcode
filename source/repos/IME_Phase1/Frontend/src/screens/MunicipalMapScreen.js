@@ -1054,7 +1054,7 @@ var COLORS=[
   '#039BE5','#7CB342','#5E35B1','#FFB300','#C0CA33',
   '#546E7A','#FF7043','#26A69A','#EC407A','#42A5F5',
   '#6D4C41','#00BCD4','#8BC34A','#FF5722','#673AB7',
-  '#9C27B0',COLORS.primary,'#4CAF50','#FF9800','#F44336'
+  '#9C27B0','#3F51B5','#4CAF50','#FF9800','#F44336'
 ];
 function post(o){ try{ window.ReactNativeWebView.postMessage(JSON.stringify(o)); }catch(e){} }
 window.addEventListener('load',function(){ post({type:'LOADED'}); });
@@ -1140,9 +1140,9 @@ window.showDistrictLevel = async function(items,stateName,camLat,camLng){
   items.forEach(function(it){
     if(it.lat!=null&&it.lng!=null) lblMarkers[it.id]=addNavLabel([it.lat,it.lng],it.label,'DISTRICT',it.id);
   });
-  function districtStyle(color){
-    return {color:COLORS.white,weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
-  }
+ function districtStyle(color){
+  return {color:'#FFFFFF',weight:1.5,fillColor:color,fillOpacity:0.72,opacity:1};
+}
   function isPolyGeo(g){
     return g&&(g.type==='Polygon'||g.type==='MultiPolygon');
   }

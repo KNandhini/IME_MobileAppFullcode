@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
+    debugger;
     const response = await authService.login(email, password);
     if (response.success && response.data) {
       setUser(response.data);
