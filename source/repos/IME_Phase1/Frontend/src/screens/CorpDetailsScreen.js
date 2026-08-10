@@ -7,7 +7,7 @@ import api from '../utils/api';
 import { localBodyService } from '../services/localBodyService';
 import { CorpDetailsScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
-
+import { LinearGradient } from 'expo-linear-gradient';
 const OPENAI_API_KEY = process.env.EXPO_PUBLIC_OPENAI_API_KEY || '';
 
 const NAVY = COLORS.primary;
@@ -259,33 +259,37 @@ const CorpDetailScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </GradientHeader>
  
-      <View style={styles.strip}>
-        {corp.wardCount != null && (
-          <View style={styles.stripItem}>
-            <MaterialCommunityIcons name="grid" size={13} color={GOLD} />
-            <Text style={styles.stripText}>{corp.wardCount} Wards</Text>
-          </View>
-        )}
-        {corp.population && (
-          <View style={styles.stripItem}>
-            <MaterialCommunityIcons name="account-group" size={13} color={GOLD} />
-            <Text style={styles.stripText}>{corp.population}</Text>
-          </View>
-        )}
-        {corp.website ? (
-          <TouchableOpacity style={styles.stripItem} onPress={() => Linking.openURL(corp.website)}>
-            <MaterialCommunityIcons name="web" size={13} color={GOLD} />
-            <Text style={[styles.stripText, { textDecorationLine: 'underline' }]} numberOfLines={1}>
-              {corp.website.replace(/^https?:\/\/(www\.)?/, '')}
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.stripItem}>
-            <MaterialCommunityIcons name="web" size={13} color={GOLD} />
-            <Text style={styles.stripText}>Live • Official sites</Text>
-          </View>
-        )}
-      </View>
+      <LinearGradient
+  colors={[COLORS.headerStart, COLORS.headerEnd]}
+  start={{ x: 0, y: 0 }}
+  end={{ x: 1, y: 0 }}
+  style={[styles.strip, { borderBottomWidth: 0 }]}>
+  {corp.wardCount != null && (
+    <View style={styles.stripItem}>
+      <MaterialCommunityIcons name="grid" size={13} color={GOLD} />
+      <Text style={[styles.stripText, { color: COLORS.white }]}>{corp.wardCount} Wards</Text>
+    </View>
+  )}
+  {corp.population && (
+    <View style={styles.stripItem}>
+      <MaterialCommunityIcons name="account-group" size={13} color={GOLD} />
+      <Text style={[styles.stripText, { color: COLORS.white }]}>{corp.population}</Text>
+    </View>
+  )}
+  {corp.website ? (
+    <TouchableOpacity style={styles.stripItem} onPress={() => Linking.openURL(corp.website)}>
+      <MaterialCommunityIcons name="web" size={13} color={GOLD} />
+      <Text style={[styles.stripText, { color: COLORS.white, textDecorationLine: 'underline' }]} numberOfLines={1}>
+        {corp.website.replace(/^https?:\/\/(www\.)?/, '')}
+      </Text>
+    </TouchableOpacity>
+  ) : (
+    <View style={styles.stripItem}>
+      <MaterialCommunityIcons name="web" size={13} color={GOLD} />
+      <Text style={[styles.stripText, { color: COLORS.white }]}>Live • Official sites</Text>
+    </View>
+  )}
+</LinearGradient>
  
       <View style={styles.tabBar}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}
@@ -366,7 +370,7 @@ const safeStr = v => {
 
 const Card = ({ children }) => <View style={styles.card}>{children}</View>;
 
-const SecTitle = ({ icon, title, color = NAVY }) => (
+const SecTitle = ({ icon, title, color = GOLD }) => (
   <View style={styles.secRow}>
     <View style={[styles.secIcon, { backgroundColor: `${color}18` }]}>
       <MaterialCommunityIcons name={icon} size={14} color={color} />
@@ -436,9 +440,9 @@ const MasterDataCard = ({ m }) => {
       {/* Official website deep link */}
       {website && (
         <Card>
-          <SecTitle icon="web" title="Official Website" color={NAVY} />
+          <SecTitle icon="web" title="Official Website" color={GOLD} />
           <TouchableOpacity style={styles.websiteRow} onPress={() => Linking.openURL(website)}>
-            <MaterialCommunityIcons name="link-variant" size={14} color={NAVY} style={{ marginRight: 6 }} />
+            <MaterialCommunityIcons name="link-variant" size={14} color={GOLD} style={{ marginRight: 6 }} />
             <Text style={styles.websiteLink} numberOfLines={2}>{website}</Text>
             <MaterialCommunityIcons name="open-in-new" size={16} color={GREEN} />
           </TouchableOpacity>
@@ -467,17 +471,17 @@ const AboutTab = ({ data, corpWebsite, masterData, masterLoading }) => {
           {!masterData && (
             // Only show AI overview card when master data is absent
             <Card>
-              <SecTitle icon="information" title="Overview" />
-              <View style={styles.chipRow}>
-                {data.type && !['string','unknown','null','type'].includes(String(data.type).toLowerCase().trim()) &&
-                  <Chip label={data.type} color={GREEN} />}
-                {data.established && !isNaN(Number(data.established)) && Number(data.established) > 1800 &&
-                  <Chip label={`Est. ${data.established}`} color={GOLD} />}
-                {data.wards > 0 && <Chip label={`${data.wards} Wards`} />}
-                {data.area_sqkm > 0 && <Chip label={`${data.area_sqkm} km²`} />}
-              </View>
-              <Text style={styles.overview}>{data.overview}</Text>
-            </Card>
+  <SecTitle icon="information" title="Overview" />
+  <View style={styles.chipRow}>
+    {data.type && !['string','unknown','null','type'].includes(String(data.type).toLowerCase().trim()) &&
+      <Chip label={data.type} color={GREEN} />}
+    {data.established && !isNaN(Number(data.established)) && Number(data.established) > 1800 &&
+      <Chip label={`Est. ${data.established}`} color={GOLD} />}
+    {data.wards > 0 && <Chip label={`${data.wards} Wards`} color={NAVY} />}
+    {data.area_sqkm > 0 && <Chip label={`${data.area_sqkm} km²`} color={CRIMSON} />}
+  </View>
+  <Text style={styles.overview}>{data.overview}</Text>
+</Card>
           )}
           {data.key_facts?.length > 0 && (
             <Card>
@@ -486,15 +490,15 @@ const AboutTab = ({ data, corpWebsite, masterData, masterLoading }) => {
             </Card>
           )}
           {!masterData && websiteUrl && (
-            <Card>
-              <SecTitle icon="web" title="Official Website" color={NAVY} />
-              <TouchableOpacity style={styles.websiteRow} onPress={() => Linking.openURL(websiteUrl)}>
-                <MaterialCommunityIcons name="link-variant" size={14} color={NAVY} style={{ marginRight: 6 }} />
-                <Text style={styles.websiteLink} numberOfLines={2}>{websiteUrl}</Text>
-                <MaterialCommunityIcons name="open-in-new" size={16} color={GREEN} />
-              </TouchableOpacity>
-            </Card>
-          )}
+  <Card>
+    <SecTitle icon="web" title="Official Website" color={GOLD} />
+    <TouchableOpacity style={styles.websiteRow} onPress={() => Linking.openURL(websiteUrl)}>
+      <MaterialCommunityIcons name="link-variant" size={14} color={GOLD} style={{ marginRight: 6 }} />
+      <Text style={styles.websiteLink} numberOfLines={2}>{websiteUrl}</Text>
+      <MaterialCommunityIcons name="open-in-new" size={16} color={GREEN} />
+    </TouchableOpacity>
+  </Card>
+)}
         </>
       )}
     </>

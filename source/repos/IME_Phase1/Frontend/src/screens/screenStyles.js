@@ -1986,110 +1986,96 @@ export const ChatsListScreenStyles = (() => {
     emptyIcon: { fontSize: 52, marginBottom: 14 },
     emptyText: { fontSize: 17, fontWeight: '700', color: '#555', marginBottom: 6 },
     emptySub: { fontSize: 13, color: '#aaa', textAlign: 'center', lineHeight: 20 },
-    // ── FAB ──
-    // ── FAB ──
-    fab: {
-      position: 'absolute',
-      right: 20,
-      bottom: 24,
-      width: 56,
-      height: 56,
-      borderRadius: 28,
-      backgroundColor: '#252943',
-      alignItems: 'center',
-      justifyContent: 'center',
-      elevation: 6,
-      shadowColor: '#000',
-      shadowOpacity: 0.25,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 3 },
-    },
-    fabIcon: { color: '#A0C878', fontSize: 28, fontWeight: '700', lineHeight: 30 },
-
-    // ── Member picker modal ──
-    modalOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0,0,0,0.45)',
-    },
-    modalSheet: {
-      position: 'absolute',
-      left: 0, right: 0, bottom: 0,
-      backgroundColor: '#fff',
-      borderTopLeftRadius: 20,
-      borderTopRightRadius: 20,
-      maxHeight: '75%',
-      paddingBottom: 20,
-    },
-    modalHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 18,
-      paddingVertical: 16,
-      borderBottomWidth: 1,
-      borderBottomColor: '#F1F5F9',
-    },
-    modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
-    modalCloseBtn: {
-      width: 30, height: 30, borderRadius: 15,
-      backgroundColor: '#F0F2F5',
-      alignItems: 'center', justifyContent: 'center',
-    },
-    modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
-
-    searchBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#F5F7FA',
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginTop: 14,
-      marginBottom: 6,
-      paddingHorizontal: 12,
-    },
-    searchIcon: { fontSize: 14, marginRight: 8 },
-    searchInput: {
-      flex: 1,
-      paddingVertical: 12,
-      fontSize: 15,
-      color: '#1a1a1a',
-    },
-    searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
-
-    // ── Inline search box on the main Chats list (above the FlatList) ──
-    chatSearchBox: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#fff',
-      borderRadius: 12,
-      marginHorizontal: 16,
-      marginTop: 10,
-      marginBottom: 6,
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-    },
-    chatSearchInput: {
-      flex: 1,
-      paddingVertical: 10,
-      fontSize: 14,
-      color: '#1a1a1a',
-    },
-
-    memberRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 18,
-      paddingVertical: 12,
-    },
-    memberAvatar: {
-      width: 42, height: 42, borderRadius: 21,
-      alignItems: 'center', justifyContent: 'center',
-      marginRight: 12,
-    },
-    memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
-    memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-    memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
+   // ── FAB ──
+ // ── FAB ──
+  fab: Common.fab(),
+    fabText: Common.fabText,
+  fabIcon: { color: '#fff', fontSize: 28, fontWeight: '700', lineHeight: 30 },
+ 
+  // ── Member picker modal ──
+  modalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  modalSheet: {
+    position: 'absolute',
+    left: 0, right: 0, bottom: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '75%',
+    paddingBottom: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
+  modalCloseBtn: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: '#F0F2F5',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
+ 
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F7FA',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 14,
+    marginBottom: 6,
+    paddingHorizontal: 12,
+  },
+  searchIcon: { fontSize: 14, marginRight: 8 },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#1a1a1a',
+  },
+  searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
+ 
+  // ── Inline search box on the main Chats list (above the FlatList) ──
+  chatSearchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  chatSearchInput: {
+    flex: 1,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#1a1a1a',
+  },
+ 
+  memberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+  },
+  memberAvatar: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: 'center', justifyContent: 'center',
+    marginRight: 12,
+  },
+  memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+  memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
   });
 })();
 
@@ -2952,15 +2938,16 @@ export const CreatePostScreenStyles = (() => {
 })();
 
 // DemoScreen
+// DemoScreen
 export const DemoScreenStyles = (() => {
   const WHITE = COLORS.white;
+  const NAVY = COLORS.navy;
+  const GREEN = COLORS.green;
 
   const { width: W, height: H } = Dimensions.get('window');
 
-  const NAVY = COLORS.navy;
-
   return createScreenStyles({
-    root: { flex: 1 },
+    root: { flex: 1, backgroundColor: WHITE },
 
     topBar: {
       flexDirection: 'row',
@@ -2968,38 +2955,41 @@ export const DemoScreenStyles = (() => {
       paddingTop: (StatusBar.currentHeight || 0) + 8,
       paddingBottom: 8,
       paddingHorizontal: 12,
+      backgroundColor: WHITE,
+      borderBottomWidth: 1,
+      borderBottomColor: COLORS.borderSoft,
     },
     closeBtn: { padding: 4 },
     playBtn: { padding: 4 },
     topTitle: {
       flex: 1, textAlign: 'center',
-      color: WHITE, fontSize: 15, fontWeight: '700',
+      color: NAVY, fontSize: 15, fontWeight: '700',
     },
 
-    // Progress strips
     stripsRow: {
       flexDirection: 'row',
       paddingHorizontal: 12,
+      paddingTop: 8,
       paddingBottom: 8,
+      backgroundColor: WHITE,
     },
     stripWrap: { flex: 1, paddingHorizontal: 2 },
     stripBg: {
       height: 3, borderRadius: 2,
-      backgroundColor: 'rgba(255,255,255,0.3)',
+      backgroundColor: COLORS.border,
       overflow: 'hidden',
     },
-    stripFill: { height: '100%', borderRadius: 2 },
+    stripFill: { height: '100%', borderRadius: 2, backgroundColor: GREEN },
 
-    // Full colored content area
     contentArea: {
       flex: 1,
       alignItems: 'center',
       paddingTop: 10,
       paddingBottom: 14,
       paddingHorizontal: 12,
+      backgroundColor: WHITE,
     },
 
-    // Phone mockup — expands to fill space above bottom strip
     phoneMockupWrap: {
       flex: 1,
       alignItems: 'center',
@@ -3036,10 +3026,9 @@ export const DemoScreenStyles = (() => {
       backgroundColor: '#2A2A3E', marginTop: 10,
     },
 
-    // Bottom info strip (inside colored area)
     bottomStrip: {
       width: '100%',
-      backgroundColor: 'rgba(0,0,0,0.22)',
+      backgroundColor: NAVY,
       borderRadius: 18,
       paddingHorizontal: 16,
       paddingVertical: 12,
@@ -3052,17 +3041,17 @@ export const DemoScreenStyles = (() => {
       marginBottom: 4,
     },
     stepBadge: {
-      backgroundColor: 'rgba(0,0,0,0.3)',
       borderRadius: 10,
       paddingVertical: 2,
       paddingHorizontal: 10,
       marginRight: 8,
+      backgroundColor: 'rgba(160, 200, 120, 0.18)',
     },
-    stepText: { fontSize: 11, fontWeight: '700' },
+    stepText: { fontSize: 11, fontWeight: '700', color: GREEN },
 
     infoSubtitle: {
       fontSize: 11, fontWeight: '700',
-      color: 'rgba(255,255,255,0.65)',
+      color: 'rgba(255,255,255,0.55)',
       letterSpacing: 1,
       textTransform: 'uppercase',
       flex: 1,
@@ -3077,7 +3066,6 @@ export const DemoScreenStyles = (() => {
       lineHeight: 17,
     },
 
-    // Dots
     dotsRow: {
       flexDirection: 'row',
       justifyContent: 'center',
@@ -3089,10 +3077,10 @@ export const DemoScreenStyles = (() => {
     dot: {
       width: 6, height: 6, borderRadius: 3,
       marginHorizontal: 3,
+      backgroundColor: 'rgba(255,255,255,0.25)',
     },
-    dotActive: { width: 18, borderRadius: 3 },
+    dotActive: { width: 18, borderRadius: 3, backgroundColor: GREEN },
 
-    // Navigation
     navRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -3105,22 +3093,24 @@ export const DemoScreenStyles = (() => {
       paddingHorizontal: 14,
       borderRadius: 20,
       borderWidth: 1,
-      borderColor: 'rgba(255,255,255,0.35)',
+      borderColor: 'rgba(160, 200, 120, 0.4)',
       minWidth: 76,
       justifyContent: 'center',
     },
-    navBtnDisabled: { opacity: 0.3 },
+    navBtnDisabled: { opacity: 0.4 },
     navBtnNext: {
-      backgroundColor: WHITE,
-      borderColor: WHITE,
+      backgroundColor: GREEN,
+      borderColor: GREEN,
     },
     navBtnText: { fontSize: 13, fontWeight: '700', color: WHITE, marginHorizontal: 2 },
   });
 })();
 
 // FeedScreen
+// FeedScreen
 const _FeedScreenStyleBundle = (() => {
   const { width } = Dimensions.get("window");
+  const GREEN = COLORS.accent;
 
   return {
     FeedScreenS: createScreenStyles({
@@ -3129,7 +3119,7 @@ const _FeedScreenStyleBundle = (() => {
       center: { flex: 1, justifyContent: "center", alignItems: "center" },
       hint: { color: "#888", marginTop: 12, fontSize: 14 },
       retryBtn: {
-        marginTop: 16, backgroundColor: "#e8623a",
+        marginTop: 16, backgroundColor: GREEN,
         borderRadius: 12, paddingHorizontal: 24, paddingVertical: 10,
       },
       retryText: { color: "#fff", fontWeight: "600" },
@@ -3180,7 +3170,7 @@ const _FeedScreenStyleBundle = (() => {
       },
       docIconCircle: {
         width: 72, height: 72, borderRadius: 36,
-        backgroundColor: "#e8623a",
+        backgroundColor: GREEN,
         alignItems: "center", justifyContent: "center", marginBottom: 4,
       },
       docLabel: {
@@ -3193,7 +3183,7 @@ const _FeedScreenStyleBundle = (() => {
       },
       docDownloadBtn: {
         flexDirection: "row", alignItems: "center", gap: 8,
-        backgroundColor: "#e8623a",
+        backgroundColor: GREEN,
         borderRadius: 22, paddingHorizontal: 22, paddingVertical: 11, marginTop: 6,
       },
       docDownloadText: { color: "#fff", fontSize: 14, fontWeight: "700" },
@@ -3204,7 +3194,7 @@ const _FeedScreenStyleBundle = (() => {
         alignItems: "center", gap: 5, paddingVertical: 9,
       },
       dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#ddd" },
-      dotActive: { backgroundColor: "#e8623a", width: 18, borderRadius: 3 },
+      dotActive: { backgroundColor: GREEN, width: 18, borderRadius: 3 },
     }),
     FeedScreenCard: createScreenStyles({
       root: {
@@ -3790,11 +3780,11 @@ export const HomeScreenStyles = (() => {
     welcomeSub: { fontSize: 12, color: '#888', marginTop: 2 },
     newPostBtn: {
       width: 36, height: 36, borderRadius: 18,
-      backgroundColor: '#252943',
+      backgroundColor: '#3A4EFB',
       justifyContent: 'center', alignItems: 'center',
       marginLeft: 8,
     },
-    newPostBtnText: { color: '#A0C878', fontSize: 24, fontWeight: '700', lineHeight: 28 },
+    newPostBtnText: { color: '#fff', fontSize: 24, fontWeight: '700', lineHeight: 28 },
 
     // Footer
     footerLoader: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', paddingVertical: 18 },
@@ -5148,27 +5138,22 @@ export const MunicipalMapScreenStyles = (() => {
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
     breadcrumb: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
-    levelRow: {
-      flexDirection: 'row',
-      backgroundColor: NAVY,
-      paddingHorizontal: 12,
-      paddingBottom: 8,
-    },
-    levelPill: {
-      flex: 1,
-      paddingVertical: 3,       // ← slimmer height
-      paddingHorizontal: 6,
-      borderRadius: 16,          // ← slightly less rounded to match a shorter pill
-      backgroundColor: 'rgba(255,255,255,0.12)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginHorizontal: 3,
-      // no minHeight — let it hug the text tightly
-    },
-    levelPillActive: { backgroundColor: GOLD },
-    levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 10, fontWeight: '600' },
-    levelPillTextActive: { color: NAVY, fontWeight: '700' },
-    //levelPillTextActive: { color: NAVY },
+ levelRow: {
+  flexDirection: 'row',
+  backgroundColor: NAVY,
+  paddingHorizontal: 10,
+  paddingBottom: 8,
+  padding :20
+},
+levelPill: {
+  flex: 1, minHeight: 34, paddingVertical: 10, paddingHorizontal: 10, borderRadius: 20,
+  backgroundColor: 'rgba(255,255,255,0.12)',
+  alignItems: 'center', justifyContent: 'center', marginHorizontal: 3,
+},
+levelPillActive: { backgroundColor: GOLD },
+levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' },
+levelPillTextActive: { color: NAVY, fontWeight: '700' },
+//levelPillTextActive: { color: NAVY },
 
     mapContainer: { flex: 1 },
     map: { flex: 1 },
@@ -6264,7 +6249,11 @@ export const ProfileScreenStyles = (() => {
 })();
 
 // RaiseFundScreen
+// RaiseFundScreen
 export const RaiseFundScreenS = (() => {
+  const GREEN = COLORS.accent;
+  const GREEN_LIGHT = COLORS.selected;
+
   return createScreenStyles({
     safe: { flex: 1, backgroundColor: '#f5f4f0' },
     centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
@@ -6293,7 +6282,7 @@ export const RaiseFundScreenS = (() => {
 
     memberCard: { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
     memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-    memberAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#e8623a', alignItems: 'center', justifyContent: 'center' },
+    memberAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center' },
     memberAvatarText: { color: '#fff', fontSize: 18, fontWeight: '600' },
     memberName: { fontSize: 15, fontWeight: '600', color: '#111' },
     memberEmail: { fontSize: 12, color: '#888', marginTop: 2 },
@@ -6301,7 +6290,7 @@ export const RaiseFundScreenS = (() => {
     beneficiaryCard: { backgroundColor: '#fff', borderRadius: 20, padding: 16, marginBottom: 14, borderWidth: 0.5, borderColor: 'rgba(0,0,0,0.07)' },
     beneficiaryText: { fontSize: 14, color: '#333', marginBottom: 6 },
 
-    raiseFundBtn: { backgroundColor: '#e8623a', borderRadius: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
+    raiseFundBtn: { backgroundColor: GREEN, borderRadius: 16, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 },
     raiseFundBtnText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.3 },
     secureNote: { fontSize: 12, color: '#aaa', textAlign: 'center' },
 
@@ -6324,21 +6313,22 @@ export const RaiseFundScreenS = (() => {
     modalStatLabel: { fontSize: 11, color: '#888', marginTop: 2 },
     modalStatDivider: { width: 1, height: 32, backgroundColor: '#ddd' },
 
-    modalSectionLabel: { fontSize: 12, fontWeight: '600', color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-    quickRow: { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
+modalSectionLabel: { fontSize: 12, fontWeight: '600', color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+modalGoalBox: { backgroundColor: '#f5f4f0', borderRadius: 14, padding: 14, marginTop: 12, marginBottom: 20 },
+modalGoalRow: { flexDirection: 'row', marginTop: 14, alignItems: 'center' },    quickRow: { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
     quickChip: { flex: 1, minWidth: 70, borderRadius: 10, paddingVertical: 10, backgroundColor: '#f0ede8', alignItems: 'center' },
-    quickChipActive: { backgroundColor: '#e8623a' },
+    quickChipActive: { backgroundColor: GREEN },
     quickChipText: { fontSize: 14, fontWeight: '600', color: '#666' },
     quickChipTextActive: { color: '#fff' },
 
     amountInputRow: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: '#e0ddd8', borderRadius: 12, paddingHorizontal: 14, marginBottom: 20, backgroundColor: '#fafaf8' },
     rupeeSign: { fontSize: 20, fontWeight: '600', color: '#333', marginRight: 6 },
     amountInput: { flex: 1, fontSize: 22, fontWeight: '600', color: '#111', paddingVertical: 14 },
-    proceedBtn: { backgroundColor: '#e8623a', borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+    proceedBtn: { backgroundColor: GREEN, borderRadius: 14, paddingVertical: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
     proceedBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 
-    minAmountBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fef3ed', borderRadius: 8, padding: 10, marginBottom: 14 },
-    minAmountText: { fontSize: 13, color: '#e8623a', fontWeight: '600' },
+    minAmountBanner: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: GREEN_LIGHT, borderRadius: 8, padding: 10, marginBottom: 14 },
+    minAmountText: { fontSize: 13, color: '#5C7A3A', fontWeight: '600' },
   });
 })();
 

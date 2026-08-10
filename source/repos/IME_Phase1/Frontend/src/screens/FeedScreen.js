@@ -33,16 +33,16 @@ const toPublicUrl = (filePath) => {
   return `${API_BASE}/${relative}`;
 };
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function getBadgeStyle(urgencyLevel, fundCategory) {
   if (urgencyLevel === "Critical" || urgencyLevel === "High")
-    return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#e8623a" };
+    return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#A0C878" };
   if (fundCategory === "Education")
-    return { badgeColor: "#16a34a", badgeBg: "#f0f9f0", fundColor: "#11998e" };
+    return { badgeColor: "#A0C878", badgeBg: "#f0f9f0", fundColor: "#A0C878" };
   if (fundCategory === "Medical")
-    return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#e8623a" };
+    return { badgeColor: "#e8623a", badgeBg: "#fef3ed", fundColor: "#A0C878" };
   return { badgeColor: COLORS.accent, badgeBg: "#eef2ff", fundColor: COLORS.accent };
 }
-
 function formatTimeAgo(dateString) {
   if (!dateString) return "";
 
@@ -171,7 +171,7 @@ function AuthImage({ path, style, resizeMode = "cover" }) {
   if (!uri) {
     return (
       <View style={[style, { backgroundColor: "#E2E8F0", alignItems: "center", justifyContent: "center" }]}>
-        <ActivityIndicator size="small" color="#A0C878" />
+        <ActivityIndicator size="small" color={COLORS.accent} />
       </View>
     );
   }
@@ -608,6 +608,7 @@ function ImageViewer({
     );
 }
 // ─── Post Card ────────────────────────────────────────────────────────────────
+// ─── Post Card ────────────────────────────────────────────────────────────────
 function PostCard({ post, onOpenViewer, navigation }) {
   const [liked, setLiked] = useState(false);
   const { badgeColor, badgeBg, fundColor } = getBadgeStyle(post.urgencyLevel, post.fundCategory);
@@ -616,22 +617,26 @@ function PostCard({ post, onOpenViewer, navigation }) {
   const initials = (post.fullName || "??")
     .split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
 
+  const badgeLabel = post.urgencyLevel?.toUpperCase() || post.fundCategory?.toUpperCase() || "";
+
   return (
     <View style={card.root}>
 
       {/* Header */}
-      <GradientHeader style={card.header}>
+      <View style={card.header}>
         <Avatar initials={initials} active={post.status === "Active"} />
         <View style={card.headerInfo}>
           <Text style={card.name}>{post.fullName}</Text>
           <Text style={card.meta}>{post.place} · {formatTimeAgo(post.createdDate)}</Text>
         </View>
-        <View style={[card.badge, { backgroundColor: badgeBg }]}>
-          <Text style={[card.badgeText, { color: badgeColor }]}>
-            {post.urgencyLevel?.toUpperCase() || post.fundCategory?.toUpperCase()}
-          </Text>
-        </View>
-      </GradientHeader>
+        {!!badgeLabel && (
+          <View style={[card.badge, { backgroundColor: badgeBg }]}>
+            <Text style={[card.badgeText, { color: badgeColor }]}>
+              {badgeLabel}
+            </Text>
+          </View>
+        )}
+      </View>
 
       {/* Title + description */}
       <View style={card.body}>
@@ -642,7 +647,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
       {/* Media strip */}
       {loadingMedia ? (
         <View style={card.mediaLoader}>
-          <ActivityIndicator size="small" color="#A0C878" />
+          <ActivityIndicator size="small" color={COLORS.accent} />
           <Text style={card.mediaLoaderText}>Loading media…</Text>
         </View>
       ) : (
@@ -670,7 +675,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
           <Ionicons
             name={liked ? "heart" : "heart-outline"}
             size={19}
-            color={liked ? "#e8623a" : "#bbb"}
+            color={liked ? COLORS.accent : "#bbb"}
           />
           <Text style={card.reactionCount}>{liked ? 1 : 0}</Text>
         </TouchableOpacity>
@@ -691,7 +696,7 @@ function PostCard({ post, onOpenViewer, navigation }) {
                 body: post.description,
                 raised: post.collectedAmount ?? 0,
                 goal: post.targetAmount ?? 0,
-                badge: post.urgencyLevel || post.fundCategory || "",
+                badge: badgeLabel,
                 contactNumber: post.contactNumber,
                 bankName: post.bankName,
                 accountNumber: post.accountNumber,
@@ -749,7 +754,7 @@ export default function FeedScreen({ navigation }) {
   if (loading)
     return (
       <SafeAreaView style={[s.safe, s.center]}>
-        <ActivityIndicator size="large" color="#A0C878" />
+        <ActivityIndicator size="large" color={COLORS.accent} />
         <Text style={s.hint}>Loading fundraisers…</Text>
       </SafeAreaView>
     );

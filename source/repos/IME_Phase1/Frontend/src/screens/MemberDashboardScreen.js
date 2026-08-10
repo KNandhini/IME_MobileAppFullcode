@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Alert, StatusBar } from 'reac
 import { Card, Title, Menu } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import { MemberDashboardScreenStyles as styles } from './screenStyles.js';
-
+import GradientHeader from '../components/GradientHeader.js';
 const MEMBER_MENU = [
   { title: 'Support Services',   route: 'Support',        icon: '🤝', params: {} },
   { title: 'Fund Raise',         route: 'FundScreen',  icon: '💸', params: {} },
@@ -36,7 +36,7 @@ const MemberDashboardScreen = ({ navigation }) => {
       <StatusBar backgroundColor="#252943" barStyle="light-content" />
 
       {/* ── IME Header (same as HomeScreen/AdminDashboard) ── */}
-      <View style={styles.appHeader}>
+      <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
             <Text style={styles.logoText}>IME</Text>
@@ -67,7 +67,7 @@ const MemberDashboardScreen = ({ navigation }) => {
             <Menu.Item title="🚪  Logout" titleStyle={[styles.menuItemText, { color: '#C0392B' }]} onPress={handleLogout} />
           </Menu>
         </View>
-      </View>
+      </GradientHeader>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.welcomeStrip}>

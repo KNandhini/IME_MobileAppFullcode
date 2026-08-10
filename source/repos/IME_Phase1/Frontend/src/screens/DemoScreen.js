@@ -6,8 +6,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { DemoScreenStyles as styles } from './screenStyles';
 
 const { width: W, height: H } = Dimensions.get('window');
-const NAVY = COLORS.primary;
-const GOLD = COLORS.accent;
+const NAVY = COLORS.navy;
+const GREEN = COLORS.green;
 const WHITE = COLORS.white;
 const LIGHT = COLORS.bg;
 
@@ -21,8 +21,8 @@ const SLIDES = [
     subtitle: 'Member Portal',
     desc: 'A unified platform for IME members to connect, collaborate, and stay informed. Available on Android and iOS.',
     icon: 'city-variant-outline',
-    color: COLORS.primary,
-    accent: COLORS.accent,
+    color: GREEN,
+    accent: GREEN,
     mockup: 'splash',
   },
   {
@@ -31,8 +31,8 @@ const SLIDES = [
     subtitle: 'Sign In Screen',
     desc: 'Launch the IME app to reach the sign-in screen. Tap "Sign In" with your registered email and password.',
     icon: 'login',
-    color: COLORS.dark,
-    accent: COLORS.secondary,
+    color: NAVY,
+    accent: GREEN,
     mockup: 'login',
   },
   {
@@ -41,8 +41,8 @@ const SLIDES = [
     subtitle: 'Email & Password',
     desc: 'Type your registered email address and password. Tap the eye icon to show/hide your password.',
     icon: 'form-textbox-password',
-    color: COLORS.primary,
-    accent: COLORS.secondary,
+    color: GREEN,
+    accent: GREEN,
     mockup: 'credentials',
   },
   {
@@ -51,8 +51,8 @@ const SLIDES = [
     subtitle: 'Member Feed',
     desc: 'After logging in, explore the Home feed — see news, activities, circulars, and member posts in one place.',
     icon: 'home-outline',
-    color: COLORS.dark,
-    accent: COLORS.accent,
+    color: NAVY,
+    accent: GREEN,
     mockup: 'home',
   },
   {
@@ -61,8 +61,8 @@ const SLIDES = [
     subtitle: 'Manage Your Details',
     desc: 'View and edit your profile, update your photo, contact info, location, and membership details.',
     icon: 'account-circle-outline',
-    color: COLORS.primary,
-    accent: COLORS.accent,
+    color: GREEN,
+    accent: GREEN,
     mockup: 'profile',
   },
   {
@@ -71,8 +71,8 @@ const SLIDES = [
     subtitle: 'Stay Engaged',
     desc: 'Browse upcoming workshops, seminars, and field events. Register with one tap and view past activity reports.',
     icon: 'calendar-star',
-    color: COLORS.dark,
-    accent: COLORS.secondary,
+    color: NAVY,
+    accent: GREEN,
     mockup: 'activities',
   },
   {
@@ -81,8 +81,8 @@ const SLIDES = [
     subtitle: 'Get Help Anytime',
     desc: 'Raise support tickets, track their status, and chat directly with other members or the support team.',
     icon: 'headset',
-    color: COLORS.primary,
-    accent: COLORS.secondary,
+    color: GREEN,
+    accent: GREEN,
     mockup: 'support',
   },
   {
@@ -91,8 +91,8 @@ const SLIDES = [
     subtitle: 'Contribute & Grow',
     desc: 'View active fundraising campaigns, make contributions, and track your donation history securely.',
     icon: 'hand-coin-outline',
-    color: COLORS.dark,
-    accent: COLORS.accent,
+    color: NAVY,
+    accent: GREEN,
     mockup: 'fund',
   },
   {
@@ -101,8 +101,8 @@ const SLIDES = [
     subtitle: 'Find Corporations',
     desc: 'Browse municipal corporations across India. Drill down by State → District → Corporation to view full details.',
     icon: 'map-search-outline',
-    color: COLORS.primary,
-    accent: COLORS.secondary,
+    color: GREEN,
+    accent: GREEN,
     mockup: 'map',
   },
   {
@@ -111,8 +111,8 @@ const SLIDES = [
     subtitle: 'Start Your IME Journey',
     desc: 'Sign in with your member credentials to access all features. New member? Register to join the IME community.',
     icon: 'check-circle-outline',
-    color: COLORS.dark,
-    accent: COLORS.accent,
+    color: NAVY,
+    accent: GREEN,
     mockup: 'done',
   },
 ];
@@ -121,15 +121,15 @@ const SLIDES = [
 const MockupContent = ({ type, accent }) => {
   const MOCK_STYLES = {
     bar: {
-      height: 6, borderRadius: 3, backgroundColor: accent || GOLD,
+      height: 6, borderRadius: 3, backgroundColor: accent || GREEN,
       marginBottom: 8, opacity: 0.85,
     },
     barHalf: {
-      height: 6, borderRadius: 3, backgroundColor: accent || GOLD,
+      height: 6, borderRadius: 3, backgroundColor: accent || GREEN,
       marginBottom: 8, width: '60%', opacity: 0.5,
     },
     chip: {
-      height: 24, borderRadius: 12, backgroundColor: accent || GOLD,
+      height: 24, borderRadius: 12, backgroundColor: accent || GREEN,
       marginBottom: 8, marginRight: 6, paddingHorizontal: 10,
       flexDirection: 'row', alignItems: 'center', opacity: 0.9,
       alignSelf: 'flex-start',
@@ -144,12 +144,12 @@ const MockupContent = ({ type, accent }) => {
     case 'splash':
       return (
         <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+          <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
             <MaterialCommunityIcons name="city-variant-outline" size={32} color={NAVY} />
           </View>
-          <Text style={{ color: GOLD, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IME</Text>
+          <Text style={{ color: GREEN, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IME</Text>
           <Text style={{ color: WHITE, fontSize: 10, marginTop: 2 }}>Institution of Municipal Corporation</Text>
-          <View style={{ marginTop: 20, width: 40, height: 3, backgroundColor: GOLD, borderRadius: 2 }} />
+          <View style={{ marginTop: 20, width: 40, height: 3, backgroundColor: GREEN, borderRadius: 2 }} />
         </View>
       );
 
@@ -157,10 +157,10 @@ const MockupContent = ({ type, accent }) => {
       return (
         <View style={{ flex: 1 }}>
           <View style={{ alignItems: 'center', paddingVertical: 12 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: GOLD, alignItems: 'center', justifyContent: 'center' }}>
-              <MaterialCommunityIcons name="city-variant-outline" size={20} color={GOLD} />
+            <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: GREEN, alignItems: 'center', justifyContent: 'center' }}>
+              <MaterialCommunityIcons name="city-variant-outline" size={20} color={GREEN} />
             </View>
-            <Text style={{ color: GOLD, fontSize: 10, fontWeight: '900', marginTop: 4 }}>IME</Text>
+            <Text style={{ color: GREEN, fontSize: 10, fontWeight: '900', marginTop: 4 }}>IME</Text>
           </View>
           <View style={{ backgroundColor: WHITE, borderRadius: 10, margin: 8, padding: 10 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 11, marginBottom: 6 }}>Sign In</Text>
@@ -178,7 +178,7 @@ const MockupContent = ({ type, accent }) => {
             {['About', 'Demo', 'Map'].map(l => (
               <View key={l} style={{ alignItems: 'center' }}>
                 <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: COLORS.selected, alignItems: 'center', justifyContent: 'center' }}>
-                  <MaterialCommunityIcons name="information-outline" size={12} color={GOLD} />
+                  <MaterialCommunityIcons name="information-outline" size={12} color={GREEN} />
                 </View>
                 <Text style={{ color: WHITE, fontSize: 7, marginTop: 2 }}>{l}</Text>
               </View>
@@ -210,14 +210,14 @@ const MockupContent = ({ type, accent }) => {
       return (
         <View style={{ flex: 1 }}>
           <View style={{ backgroundColor: NAVY, padding: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: GOLD, fontWeight: '900', fontSize: 10 }}></Text>
+            <Text style={{ color: GREEN, fontWeight: '900', fontSize: 10 }}></Text>
             <MaterialCommunityIcons name="bell-outline" size={14} color={WHITE} />
           </View>
           <ScrollView showsVerticalScrollIndicator={false} style={{ flex: 1 }}>
             {['Circular: Annual Meeting 2025', 'Activity: Field Visit - Chennai', 'News: Budget Update'].map((item, i) => (
               <View key={i} style={{ backgroundColor: WHITE, margin: 4, marginBottom: 2, borderRadius: 6, padding: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: GOLD, marginRight: 6 }} />
+                  <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: GREEN, marginRight: 6 }} />
                   <Text style={{ color: NAVY, fontSize: 7, fontWeight: '600', flex: 1 }}>{item}</Text>
                 </View>
               </View>
@@ -241,7 +241,7 @@ const MockupContent = ({ type, accent }) => {
               <Text style={{ color: WHITE, fontSize: 16, fontWeight: '700' }}>M</Text>
             </View>
             <Text style={{ color: WHITE, fontWeight: '700', fontSize: 10 }}>Member Name</Text>
-            <Text style={{ color: GOLD, fontSize: 8 }}>IME Member · Active</Text>
+            <Text style={{ color: GREEN, fontSize: 8 }}>IME Member · Active</Text>
           </View>
           {['Full Name', 'Email', 'Contact', 'Location'].map((f, i) => (
             <View key={i} style={{ backgroundColor: WHITE, marginHorizontal: 8, marginTop: 4, borderRadius: 6, padding: 6 }}>
@@ -269,7 +269,7 @@ const MockupContent = ({ type, accent }) => {
                 <Text style={{ color: NAVY, fontSize: 7, fontWeight: '700' }}>{a.name}</Text>
                 <Text style={{ color: '#9E9E9E', fontSize: 7 }}>{a.date}</Text>
               </View>
-              <View style={{ backgroundColor: GOLD, borderRadius: 8, paddingHorizontal: 4, paddingVertical: 2 }}>
+              <View style={{ backgroundColor: GREEN, borderRadius: 8, paddingHorizontal: 4, paddingVertical: 2 }}>
                 <Text style={{ color: NAVY, fontSize: 6, fontWeight: '700' }}>{a.status}</Text>
               </View>
             </View>
@@ -282,10 +282,10 @@ const MockupContent = ({ type, accent }) => {
         <View style={{ flex: 1, backgroundColor: LIGHT }}>
           <View style={{ backgroundColor: NAVY, padding: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <Text style={{ color: WHITE, fontWeight: '700', fontSize: 10 }}>Support</Text>
-            <MaterialCommunityIcons name="plus" size={14} color={GOLD} />
+            <MaterialCommunityIcons name="plus" size={14} color={GREEN} />
           </View>
           {[
-            { t: 'Membership Renewal Query', s: 'Open', c: GOLD },
+            { t: 'Membership Renewal Query', s: 'Open', c: GREEN },
             { t: 'Certificate Request', s: 'Closed', c: '#4CAF50' },
           ].map((item, i) => (
             <View key={i} style={{ backgroundColor: WHITE, margin: 4, borderRadius: 6, padding: 6 }}>
@@ -298,7 +298,7 @@ const MockupContent = ({ type, accent }) => {
             </View>
           ))}
           <View style={{ backgroundColor: NAVY, margin: 8, borderRadius: 8, padding: 8, flexDirection: 'row', alignItems: 'center' }}>
-            <MaterialCommunityIcons name="chat-outline" size={14} color={GOLD} style={{ marginRight: 6 }} />
+            <MaterialCommunityIcons name="chat-outline" size={14} color={GREEN} style={{ marginRight: 6 }} />
             <Text style={{ color: WHITE, fontSize: 8 }}>Start a Direct Message</Text>
           </View>
         </View>
@@ -317,7 +317,7 @@ const MockupContent = ({ type, accent }) => {
             <View key={i} style={{ backgroundColor: WHITE, margin: 4, borderRadius: 6, padding: 8 }}>
               <Text style={{ color: NAVY, fontSize: 8, fontWeight: '700', marginBottom: 4 }}>{f.name}</Text>
               <View style={{ height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, marginBottom: 4 }}>
-                <View style={{ height: 4, backgroundColor: GOLD, borderRadius: 2, width: `${f.pct}%` }} />
+                <View style={{ height: 4, backgroundColor: GREEN, borderRadius: 2, width: `${f.pct}%` }} />
               </View>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={{ color: '#9E9E9E', fontSize: 7 }}>{f.raised} raised</Text>
@@ -337,19 +337,19 @@ const MockupContent = ({ type, accent }) => {
           </View>
           <View style={{ flexDirection: 'row', padding: 6 }}>
             {['Countries', 'States', 'Districts', 'Corps'].map((l, i) => (
-              <View key={l} style={{ flex: 1, backgroundColor: i === 3 ? GOLD : COLORS.infoLight, borderRadius: 10, paddingVertical: 3, marginRight: i < 3 ? 3 : 0, alignItems: 'center' }}>
+              <View key={l} style={{ flex: 1, backgroundColor: i === 3 ? GREEN : COLORS.infoLight, borderRadius: 10, paddingVertical: 3, marginRight: i < 3 ? 3 : 0, alignItems: 'center' }}>
                 <Text style={{ fontSize: 6, color: i === 3 ? NAVY : '#6B7A8D', fontWeight: '700' }}>{l}</Text>
               </View>
             ))}
           </View>
           <View style={{ backgroundColor: WHITE, margin: 4, borderRadius: 8, overflow: 'hidden' }}>
             <View style={{ backgroundColor: NAVY, padding: 8, flexDirection: 'row', alignItems: 'center' }}>
-              <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: GOLD, alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
+              <View style={{ width: 24, height: 24, borderRadius: 6, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', marginRight: 6 }}>
                 <MaterialCommunityIcons name="office-building" size={12} color={NAVY} />
               </View>
               <View>
                 <Text style={{ color: WHITE, fontSize: 8, fontWeight: '700' }}>Greater Chennai Corporation</Text>
-                <Text style={{ color: GOLD, fontSize: 7 }}>GCC · Est. 1688</Text>
+                <Text style={{ color: GREEN, fontSize: 7 }}>GCC · Est. 1688</Text>
               </View>
             </View>
             <View style={{ padding: 6 }}>
@@ -364,14 +364,14 @@ const MockupContent = ({ type, accent }) => {
     case 'done':
       return (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <MaterialCommunityIcons name="check-circle" size={52} color={COLORS.accent} />
-          <Text style={{ color: WHITE, fontWeight: '900', fontSize: 14, marginTop: 10, textAlign: 'center' }}>
+          <MaterialCommunityIcons name="check-circle" size={52} color={GREEN} />
+          <Text style={{ color: NAVY, fontWeight: '900', fontSize: 14, marginTop: 10, textAlign: 'center' }}>
             Ready to Go!
           </Text>
-          <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 9, marginTop: 6, textAlign: 'center', paddingHorizontal: 20 }}>
+          <Text style={{ color: '#6B7A8D', fontSize: 9, marginTop: 6, textAlign: 'center', paddingHorizontal: 20 }}>
             Sign in to your IME account{'\n'}and start exploring all features.
           </Text>
-          <View style={{ marginTop: 16, backgroundColor: GOLD, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 20 }}>
+          <View style={{ marginTop: 16, backgroundColor: GREEN, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 20 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 10 }}>Sign In Now</Text>
           </View>
         </View>
@@ -394,7 +394,6 @@ const DemoScreen = ({ navigation }) => {
   const total = SLIDES.length;
   const slide = SLIDES[current];
 
-  // ── Animate slide in ──────────────────────────────────────────
   const animateIn = useCallback(() => {
     slideAnim.setValue(0);
     Animated.spring(slideAnim, {
@@ -402,7 +401,6 @@ const DemoScreen = ({ navigation }) => {
     }).start();
   }, []);
 
-  // ── Progress bar for current slide ────────────────────────────
   const startProgress = useCallback(() => {
     progressAnim.setValue(0);
     if (progressRef.current) progressRef.current.stop();
@@ -415,7 +413,6 @@ const DemoScreen = ({ navigation }) => {
     anim.start();
   }, []);
 
-  // ── Auto-advance ──────────────────────────────────────────────
   const scheduleAdvance = useCallback(() => {
     clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
@@ -472,40 +469,40 @@ const DemoScreen = ({ navigation }) => {
 
   return (
     <View style={styles.root}>
-      <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
+      <StatusBar backgroundColor={WHITE} barStyle="dark-content" />
 
       {/* ── Top bar ── */}
-      <GradientHeader style={[styles.topBar, { backgroundColor: slide.color }]}>
+      <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={22} color={WHITE} />
+          <MaterialCommunityIcons name="arrow-left" size={22} color={GREEN} />
         </TouchableOpacity>
         <Text style={styles.topTitle}>App Demo</Text>
         <TouchableOpacity onPress={togglePlay} style={styles.playBtn}>
           <MaterialCommunityIcons
             name={playing ? 'pause' : 'play'}
             size={22}
-            color={WHITE}
+            color={GREEN}
           />
         </TouchableOpacity>
-      </GradientHeader>
+      </View>
 
       {/* ── Slide progress strips ── */}
-      <View style={[styles.stripsRow, { backgroundColor: slide.color }]}>
+      <View style={styles.stripsRow}>
         {SLIDES.map((_, i) => (
           <TouchableOpacity key={i} onPress={() => goTo(i)} style={styles.stripWrap} activeOpacity={0.8}>
             <View style={styles.stripBg}>
               {i < current ? (
-                <View style={[styles.stripFill, { width: '100%', backgroundColor: WHITE }]} />
+                <View style={[styles.stripFill, { width: '100%' }]} />
               ) : i === current ? (
-                <Animated.View style={[styles.stripFill, { width: progressWidth, backgroundColor: WHITE }]} />
+                <Animated.View style={[styles.stripFill, { width: progressWidth }]} />
               ) : null}
             </View>
           </TouchableOpacity>
         ))}
       </View>
 
-      {/* ── Full colored content area ── */}
-      <View style={[styles.contentArea, { backgroundColor: slide.color }]}>
+      {/* ── Content area — always white ── */}
+      <View style={styles.contentArea}>
 
         {/* Phone mockup — large, fills available space */}
         <Animated.View style={[
@@ -526,7 +523,7 @@ const DemoScreen = ({ navigation }) => {
           {/* Step badge + subtitle */}
           <View style={styles.stepRow}>
             <View style={styles.stepBadge}>
-              <Text style={[styles.stepText, { color: slide.accent }]}>
+              <Text style={styles.stepText}>
                 {current + 1} / {total}
               </Text>
             </View>
@@ -544,7 +541,6 @@ const DemoScreen = ({ navigation }) => {
                 <View style={[
                   styles.dot,
                   i === current && styles.dotActive,
-                  { backgroundColor: i === current ? WHITE : 'rgba(255,255,255,0.35)' },
                 ]} />
               </TouchableOpacity>
             ))}
@@ -556,21 +552,21 @@ const DemoScreen = ({ navigation }) => {
               style={[styles.navBtn, current === 0 && styles.navBtnDisabled]}
               onPress={() => goTo(current - 1)}
               disabled={current === 0}>
-              <MaterialCommunityIcons name="chevron-left" size={20} color={current === 0 ? 'rgba(255,255,255,0.35)' : WHITE} />
-              <Text style={[styles.navBtnText, current === 0 && { color: 'rgba(255,255,255,0.35)' }]}>Prev</Text>
+              <MaterialCommunityIcons name="chevron-left" size={20} color={current === 0 ? '#5A6072' : GREEN} />
+              <Text style={[styles.navBtnText, { color: current === 0 ? '#5A6072' : GREEN }]}>Prev</Text>
             </TouchableOpacity>
 
             {current < total - 1 ? (
               <TouchableOpacity style={[styles.navBtn, styles.navBtnNext]} onPress={() => goTo(current + 1)}>
-                <Text style={[styles.navBtnText, { color: slide.color }]}>Next</Text>
-                <MaterialCommunityIcons name="chevron-right" size={20} color={slide.color} />
+                <Text style={styles.navBtnText}>Next</Text>
+                <MaterialCommunityIcons name="chevron-right" size={20} color={WHITE} />
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
                 style={[styles.navBtn, styles.navBtnNext]}
                 onPress={() => navigation.goBack()}>
-                <Text style={[styles.navBtnText, { color: slide.color }]}>Login</Text>
-                <MaterialCommunityIcons name="login" size={18} color={slide.color} />
+                <Text style={styles.navBtnText}>Login</Text>
+                <MaterialCommunityIcons name="login" size={18} color={WHITE} />
               </TouchableOpacity>
             )}
           </View>
@@ -580,8 +576,5 @@ const DemoScreen = ({ navigation }) => {
     </View>
   );
 };
-
-// ── Styles ────────────────────────────────────────────────────────
-
 
 export default DemoScreen;
