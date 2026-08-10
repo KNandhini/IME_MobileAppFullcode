@@ -10,18 +10,13 @@ const GOLD = COLORS.accent;
 const LIGHT = COLORS.bg;
 const WHITE = COLORS.white;
 const GREY = '#6B7A8D';
-
 const FEES = [
-    { category: 'Life Members', inr: '₹10,000', usd: '$100' },
-    { category: 'Members', inr: '₹5,000', usd: '$50' },
-    { category: 'Associate Members', inr: '₹2,000', usd: '$20' },
-    { category: 'Senior Technicians', inr: '₹1,000', usd: '$10' },
-    { category: 'Technicians', inr: '₹500', usd: '$5' },
-    { category: 'Educational Institutions', inr: '₹20,000', usd: '$200' },
-    { category: 'R&D Units', inr: '₹10,000', usd: '$100' },
-    { category: 'Consulting Agencies', inr: '₹10,000', usd: '$100' },
-    { category: 'Execution Agencies', inr: '₹50,000', usd: '$500' },
+    { category: 'Serving / Retired Engineers', inr: '₹1,000/-', usd: '$10' },
+
+    { category: 'Engineering Students', inr: '₹500/-', usd: '$5' },
+    { category: 'Organisations / Others', inr: '₹5,000/-', usd: '$50' },
 ];
+
 
 const FeesDetailsScreen = ({ navigation }) => {
     return (
