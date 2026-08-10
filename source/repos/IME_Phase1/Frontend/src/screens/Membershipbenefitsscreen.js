@@ -169,109 +169,109 @@ const MembershipBenefitsScreen = ({ navigation }) => {
 
                     {/* ── Registration Fee — practical info placed right before the CTA,
                         instead of a standalone "Welcome to IME" section ── */}
-                       
-{/* ── Registration Fee ── */}
-<View style={styles.section}>
-  <Text style={[styles.eyebrow, { marginBottom: 12 }]}>
-    REGISTRATION FEE
-</Text>
 
-    {/* Membership Category Fees */}
-    <View style={styles.membershipFeeInfoCard}>
-        <View style={styles.membershipFeeHeader}>
-            <MaterialCommunityIcons
-                name="account-group-outline"
-                size={22}
-                color={NAVY}
-            />
+                    {/* ── Registration Fee ── */}
+                    <View style={styles.section}>
+                        <Text style={[styles.eyebrow, { marginBottom: 12 }]}>
+                            REGISTRATION FEE
+                        </Text>
 
-            <Text style={styles.membershipFeeTitle}>
-                Membership Fee Details
-            </Text>
-        </View>
+                        {/* Membership Category Fees */}
+                        <View style={styles.membershipFeeInfoCard}>
+                            <View style={styles.membershipFeeHeader}>
+                                <MaterialCommunityIcons
+                                    name="account-group-outline"
+                                    size={22}
+                                    color={NAVY}
+                                />
 
-        <View style={styles.membershipFeeRow}>
-            <Text style={styles.membershipFeeCategory}>
-                Serving / Retired Graduate Engineers
-            </Text>
+                                <Text style={styles.membershipFeeTitle}>
+                                    Membership Fee Details
+                                </Text>
+                            </View>
 
-            <Text style={styles.membershipFeeAmount}>
-                ₹1,000/-
-            </Text>
-        </View>
+                            <View style={styles.membershipFeeRow}>
+                                <Text style={styles.membershipFeeCategory}>
+                                    Serving / Retired Engineers
+                                </Text>
 
-        <View style={styles.membershipFeeDivider} />
+                                <Text style={styles.membershipFeeAmount}>
+                                    ₹1,000/-
+                                </Text>
+                            </View>
 
-        <View style={styles.membershipFeeRow}>
-            <Text style={styles.membershipFeeCategory}>
-                Engineering Students
-            </Text>
+                            <View style={styles.membershipFeeDivider} />
 
-            <Text style={styles.membershipFeeAmount}>
-                ₹500/-
-            </Text>
-        </View>
+                            <View style={styles.membershipFeeRow}>
+                                <Text style={styles.membershipFeeCategory}>
+                                    Engineering Students
+                                </Text>
 
-        <View style={styles.membershipFeeDivider} />
+                                <Text style={styles.membershipFeeAmount}>
+                                    ₹500/-
+                                </Text>
+                            </View>
 
-        <View style={styles.membershipFeeRow}>
-            <Text style={styles.membershipFeeCategory}>
-                Organisations / Others
-            </Text>
+                            <View style={styles.membershipFeeDivider} />
 
-            <Text style={styles.membershipFeeAmount}>
-                ₹5,000/-
-            </Text>
-        </View>
-    </View>
+                            <View style={styles.membershipFeeRow}>
+                                <Text style={styles.membershipFeeCategory}>
+                                    Organisations / Others
+                                </Text>
 
-    {/* Registration Fee from API */}
-    {currentFee ? (
-        <View style={styles.feeCard}>
-            <View style={styles.feeIconWrap}>
-                <MaterialCommunityIcons
-                    name="cash-check"
-                    size={26}
-                    color={NAVY}
-                />
-            </View>
+                                <Text style={styles.membershipFeeAmount}>
+                                    ₹5,000/-
+                                </Text>
+                            </View>
+                        </View>
 
-            <View style={styles.feeCardBody}>
-                <Text style={styles.feeCardLabel}>
-                    REGISTRATION FEE
-                </Text>
+                        {/* Registration Fee from API */}
+                        {currentFee ? (
+                            <View style={styles.feeCard}>
+                                <View style={styles.feeIconWrap}>
+                                    <MaterialCommunityIcons
+                                        name="cash-check"
+                                        size={26}
+                                        color={NAVY}
+                                    />
+                                </View>
 
-                <Text style={styles.feeCardAmount}>
-                    <Text style={styles.feeCardCurrency}>
-                        ₹
-                    </Text>
+                                <View style={styles.feeCardBody}>
+                                    <Text style={styles.feeCardLabel}>
+                                        REGISTRATION FEE
+                                    </Text>
 
-                    {parseFloat(currentFee.amount).toFixed(2)}
-                </Text>
+                                    <Text style={styles.feeCardAmount}>
+                                        <Text style={styles.feeCardCurrency}>
+                                            ₹
+                                        </Text>
 
-                <View style={styles.feeCardBadge}>
-                    <MaterialCommunityIcons
-                        name="clock-outline"
-                        size={12}
-                        color={NAVY}
-                    />
+                                        {parseFloat(currentFee.amount).toFixed(2)}
+                                    </Text>
 
-                    <Text style={styles.feeCardBadgeText}>
-                        Payable now or within 3 days
-                    </Text>
-                </View>
-            </View>
-        </View>
-    ) : (
-        <View style={styles.feeCard}>
-            <Text style={styles.noFee}>
-                No fee currently set. Contact admin.
-            </Text>
-        </View>
-    )}
-</View>
+                                    <View style={styles.feeCardBadge}>
+                                        <MaterialCommunityIcons
+                                            name="clock-outline"
+                                            size={12}
+                                            color={NAVY}
+                                        />
 
- 
+                                        <Text style={styles.feeCardBadgeText}>
+                                            Payable now or within 3 days
+                                        </Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.feeCard}>
+                                <Text style={styles.noFee}>
+                                    No fee currently set. Contact admin.
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+
                     {/* ── Acceptance ── */}
                     <View style={styles.section}>
                         <TouchableOpacity

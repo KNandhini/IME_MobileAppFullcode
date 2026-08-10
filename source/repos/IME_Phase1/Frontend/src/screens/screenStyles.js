@@ -3306,7 +3306,7 @@ export const FeesDetailsStyles = (() => {
     },
     cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
     paymentTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444' },
+    cardBody: { fontSize: 13, lineHeight: 19, color: '#444',  textAlign: 'justify', },
   });
 })();
 
@@ -3693,7 +3693,7 @@ export const GovernanceDetailsStyles = (() => {
       alignItems: 'center', justifyContent: 'center', marginRight: 10,
     },
     cardTitle: { fontSize: 14, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444' },
+    cardBody: { fontSize: 13, lineHeight: 19, color: '#444',  textAlign: 'justify', },
     meetingsCard: {
       backgroundColor: WHITE, borderRadius: 12, padding: 16, marginTop: 8, marginBottom: 12,
     },
@@ -5100,12 +5100,13 @@ export const MembershipDetailsStyles = (() => {
       alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
     cardTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444' },
+    cardBody: { fontSize: 13, lineHeight: 19, color: '#444',  textAlign: 'justify', },
     benefitsCard: {
       backgroundColor: NAVY,
       borderRadius: 12,
       padding: 18,
       marginTop: 8,
+      textAlign: 'justify',
     },
     benefitsTitle: { color: WHITE, fontSize: 16, fontWeight: '700', marginBottom: 12 },
     benefitRow: { flexDirection: 'row', marginBottom: 10, gap: 8 },
