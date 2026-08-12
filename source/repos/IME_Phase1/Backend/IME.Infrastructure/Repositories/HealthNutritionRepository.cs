@@ -186,9 +186,16 @@ public class HealthNutritionRepository(DatabaseContext dbContext) : IHealthNutri
         var ext = Path.GetExtension(path).ToLowerInvariant();
         return ext switch
         {
-            ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp" => "image",
-            ".mp3" or ".wav" or ".m4a" or ".aac" => "audio",
-            ".mp4" or ".avi" or ".mov" or ".mkv" => "video",
+            ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp"
+                or ".heic" or ".heif" or ".bmp" or ".tiff" or ".tif" or ".svg" => "image",
+            // Note: ".mpeg"/".mpga" are classified as audio here because that's
+            // the real-world case that came up (voice-note exports mislabeled
+            // with a .mpeg extension). Classic MPEG *video* files are almost
+            // always ".mpg"/".mp4" in practice, so this tradeoff favors the
+            // audio case — revisit if a genuine .mpeg video upload shows up.
+            ".mp3" or ".wav" or ".m4a" or ".aac" or ".opus" or ".ogg"
+                or ".mpeg" or ".mpga" or ".wma" or ".flac" or ".amr" => "audio",
+            ".mp4" or ".avi" or ".mov" or ".mkv" or ".webm" or ".3gp" or ".wmv" or ".flv" => "video",
             ".pdf" => "pdf",
             _ => "other",
         };

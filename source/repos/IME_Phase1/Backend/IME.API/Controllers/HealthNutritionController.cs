@@ -24,12 +24,14 @@ public class HealthNutritionController : ControllerBase
 
     private static readonly string[] AllowedAttachmentTypes =
     {
-        ".jpg", ".jpeg", ".png", ".gif", ".webp",           // images
+        ".jpg", ".jpeg", ".png", ".gif", ".webp",             // images
+        ".heic", ".heif", ".bmp", ".tiff", ".tif", ".svg",
         ".pdf", ".doc", ".docx", ".xls", ".xlsx",
-        ".ppt", ".pptx", ".txt",                             // documents
-        ".mp3", ".wav",                                      // audio
-        ".mp4", ".avi", ".mov", ".mkv",                      // video
-        ".zip", ".rar", ".7z",                                // compressed
+        ".ppt", ".pptx", ".txt", ".rtf", ".odt", ".ods", ".odp", // documents
+        ".mp3", ".wav", ".m4a", ".aac", ".opus", ".ogg",
+        ".mpeg", ".mpga", ".wma", ".flac", ".amr",             // audio
+        ".mp4", ".avi", ".mov", ".mkv", ".webm", ".3gp", ".wmv", ".flv", // video
+        ".zip", ".rar", ".7z",                                  // compressed
         ".csv", ".json"
     };
 
