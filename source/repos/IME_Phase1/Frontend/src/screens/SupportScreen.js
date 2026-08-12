@@ -5,7 +5,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { View, Text, FlatList, RefreshControl, Image, TouchableOpacity, ScrollView, ActivityIndicator, Modal, TextInput, Platform, KeyboardAvoidingView, Animated, Alert, StatusBar } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { supportService } from '../services/supportService';
 import { memberService } from '../services/memberService';
 import { feedService } from '../services/feedService';
@@ -21,6 +20,7 @@ import { SupportScreenDd as dd, SupportScreenDp as dp, SupportScreenFld as fld, 
 import ListSearchBar from '../components/ListSearchBar';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DOBField from '../components/DOBField';
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -162,67 +162,6 @@ function Dropdown({ label, options, value, onChange, placeholder = 'Select…', 
 }
 
 
-
-// ── Date Picker Field ─────────────────────────────────────────────────────────
-function DatePickerField({ label, required, value, onChange, error }) {
-  const [show, setShow] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-
-  const today = new Date();
-  const minDate = new Date();
-  minDate.setFullYear(today.getFullYear() - 80);
-
-  const formatDate = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  };
-
-  return (
-    <View style={dp.wrapper}>
-      <Text style={dp.label}>
-        {label}{required && <Text style={dp.req}> *</Text>}
-      </Text>
-
-      {/* INPUT LIKE YOUR SIGNUP */}
-      <TouchableOpacity onPress={() => setShow(true)}>
-        <View pointerEvents="none">
-          <TextInput
-            value={value}
-            placeholder="YYYY-MM-DD"
-            style={[dp.input, !!error && dp.triggerError, !!error && ERROR_STYLE]}
-            editable={false}
-          />
-        </View>
-      </TouchableOpacity>
-
-      {!!error && <Text style={dp.errorText}>{error}</Text>}
-
-      {/* DATE PICKER */}
-      {show && (
-        <DateTimePicker
-          value={selectedDate || new Date()}
-          mode="date"
-          display="default"   // ✅ IMPORTANT
-          minimumDate={minDate}
-          maximumDate={today}
-          onChange={(event, date) => {
-            setShow(false);   // ✅ always close
-
-            if (event.type === 'set' && date) {
-              setSelectedDate(date);
-              onChange(formatDate(date));
-            }
-          }}
-        />
-      )}
-    </View>
-  );
-}
-
-
-
 // ── Field wrapper ─────────────────────────────────────────────────────────────
 function Field({ label, required, children, error, hint, charCount, maxChars }) {
   const over = maxChars != null && charCount > maxChars;
@@ -315,6 +254,12 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
     companyName: '',
     createdBy: 0,
   });
+
+  // Bounds for the Support Date picker — same wide-range pattern as
+  // ActivityFormScreen's activityMinDate/activityMaxDate.
+  const today = new Date();
+  const supportMinDate = new Date(today.getFullYear() - 100, 0, 1);
+  const supportMaxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   // 3. Load clubs function
   const loadClubs = async () => {
@@ -716,13 +661,18 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
                 loading={categoriesLoading}
               />
 
-              {/* SUPPORT DATE — date picker */}
-              <DatePickerField
+              {/* SUPPORT DATE — same dd/mm/yyyy typing + wheel-list picker
+                  used across the app (ActivityFormScreen's Activity Date) */}
+              <DOBField
                 label="Support Date"
                 required
-                value={form.supportDate}
-                onChange={(v) => setField('supportDate', v)}
+                value={form.supportDate ? new Date(form.supportDate) : null}
+                minDate={supportMinDate}
+                maxDate={supportMaxDate}
                 error={errors.supportDate}
+                FieldComponent={Field}
+                InputComponent={StyledInput}
+                onChange={(d) => setField('supportDate', formatDate(d))}
               />
               <Dropdown
                 label="Type *"

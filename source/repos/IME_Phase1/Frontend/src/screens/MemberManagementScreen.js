@@ -1,5 +1,5 @@
 import { COLORS } from './theme';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { View, Text, FlatList, RefreshControl, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Card, IconButton, Searchbar, Chip, FAB } from 'react-native-paper';
@@ -21,8 +21,11 @@ const FILTER_STATUSES = ['All', 'Active', 'Pending', 'Inactive'];
 
 const MemberManagementScreen = ({ navigation }) => {
   const [members, setMembers] = useState([]);
-  const [filteredMembers, setFilteredMembers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  // loading starts true (not false) so the very first render — before
+  // useFocusEffect fires and the fetch actually starts — shows the loading
+  // spinner instead of briefly falling through to the FlatList's
+  // ListEmptyComponent ("No members found") while data is still empty.
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -35,7 +38,6 @@ const MemberManagementScreen = ({ navigation }) => {
       loadMembers();
     }, [navigation])
   );
-  useEffect(() => { filterMembers(); }, [searchQuery, filterStatus, members]);
 
   const loadMembers = async () => {
     setLoading(true);
@@ -122,7 +124,12 @@ const MemberManagementScreen = ({ navigation }) => {
     return member.membershipStatus || 'Unknown';
   };
 
-  const filterMembers = () => {
+  // useMemo instead of useState+useEffect: this recomputes filteredMembers
+  // SYNCHRONOUSLY, in the same render pass as members/searchQuery/filterStatus
+  // changing — not one render later. That's what removes the "No members
+  // found" flash: there's no longer a frame where `members` already has data
+  // but `filteredMembers` hasn't caught up yet.
+  const filteredMembers = useMemo(() => {
     let filtered = members.map((m) => ({
       ...m,
       effectiveStatus: getEffectiveStatus(m),
@@ -141,10 +148,17 @@ const MemberManagementScreen = ({ navigation }) => {
           m.contactNumber?.includes(query)
       );
     }
-    setFilteredMembers(filtered);
-  };
+    return filtered;
+  }, [members, searchQuery, filterStatus]);
 
-  const onRefresh = () => { setRefreshing(true); loadMembers(); };
+  const onRefresh = () => {
+    setRefreshing(true);
+    // Also gate the empty-state message during pull-to-refresh, so a slow
+    // refresh that momentarily has no data doesn't flash "No members found"
+    // either — mirrors the same fix applied to the initial load above.
+    setLoading(true);
+    loadMembers();
+  };
 
   const handleDeleteMember = (memberId, memberName) => {
     Alert.alert(
@@ -308,26 +322,31 @@ const MemberManagementScreen = ({ navigation }) => {
   ))}
 </View>
 
-      {loading && filteredMembers.length === 0 ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color={COLORS.accent} />
-        </View>
-      ) : (
-        <FlatList
-          data={filteredMembers}
-          renderItem={renderMember}
-          keyExtractor={(item) => item.memberId.toString()}
-          contentContainerStyle={styles.list}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-          ListEmptyComponent={
-            !loading && (
-              <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No members found</Text>
-              </View>
-            )
-          }
-        />
-      )}
+      {/* Always render the SAME FlatList — never swap between a separate
+          spinner view and the FlatList. Swapping component trees means the
+          FlatList effectively remounts the instant `loading` flips to false,
+          and if there's even a one-frame gap before `data` paints, its
+          ListEmptyComponent flashes "No members found" in that gap. Keeping
+          one stable FlatList and only changing what ListEmptyComponent
+          renders (spinner vs message) removes that remount entirely. */}
+      <FlatList
+  data={filteredMembers}
+  renderItem={renderMember}
+  keyExtractor={(item) => item.memberId.toString()}
+  contentContainerStyle={[styles.list, { flexGrow: 1 }]}
+  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+  ListEmptyComponent={
+    loading ? (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    ) : (
+      <View style={styles.emptyContainer}>
+        <Text style={styles.emptyText}>No members found</Text>
+      </View>
+    )
+  }
+/>
 
       {/* ── Add Admin ── */}
       <FAB

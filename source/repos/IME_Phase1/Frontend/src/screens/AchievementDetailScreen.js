@@ -1,14 +1,104 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Linking, Modal, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  StatusBar,
+  Image,
+  Modal,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
 import { AchievementDetailScreenStyles as styles } from './screenStyles';
 import GradientHeader from '../components/GradientHeader';
+import { getSafeErrorMessage } from '../utils/errorHandler';
+
 const NAVY = '#252943';
 const GOLD = '#A0C878';
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
+
+// Fallback styles for the attachment rows/buttons, in case
+// AchievementDetailScreenStyles doesn't define these yet. Array styles let a
+// later `styles.*` entry win if those keys do exist, so this is safe either way.
+const local = StyleSheet.create({
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: NAVY,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginBottom: 14,
+  },
+  downloadText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    flexShrink: 1,
+  },
+  attachImage: {
+    width: '100%',
+    height: 220,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+  },
+  attachHint: {
+    marginTop: 6,
+    fontSize: 12,
+    color: '#64748B',
+    textAlign: 'center',
+  },
+  // ── Simple left-aligned header — replaces the old circular photo hero.
+  // Every field (Club, Member Name, Title, Date, Description) renders as a
+  // labeled row using fieldBlock/detailLabel/fieldValue below, so they all
+  // line up flush-left with identical spacing. ──
+  simpleHeader: {
+    alignItems: 'flex-start',
+    width: '100%',
+    marginBottom: 4,
+  },
+  fieldBlock: {
+    alignItems: 'flex-start',
+    width: '100%',
+    marginBottom: 14,
+  },
+  fieldBlockLast: {
+    marginBottom: 0,
+  },
+  detailLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#94A3B8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    marginBottom: 3,
+    textAlign: 'left',
+  },
+  fieldValue: {
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '600',
+    textAlign: 'left',
+    alignSelf: 'flex-start',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+  },
+});
+
 // filePath from the server is a raw disk path like "Uploads\achievements\xyz.jpg" —
 // convert it into a URL the app can actually load/display/download.
 const toPublicUrl = (filePath) => {
@@ -19,13 +109,20 @@ const toPublicUrl = (filePath) => {
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
 };
+
+const isImagePath = (path = '') => /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(path);
+const isPdfPath = (path = '') => path?.toLowerCase().endsWith('.pdf');
+
+const fileNameFromPath = (path = '') => path.split('/').pop().split('\\').pop();
+
 const AchievementDetailScreen = ({ route, navigation }) => {
-  // const { item } = route.params || {};
   const { item, memberPhoto } = route.params || {};
+
   const [imgViewer, setImgViewer] = useState(null);
   const [attachments, setAttachments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [attachmentsError, setAttachmentsError] = useState(null); // ← ADD: track load failures
+  const [attachmentsError, setAttachmentsError] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
 
   useEffect(() => {
     loadAttachments();
@@ -33,20 +130,15 @@ const AchievementDetailScreen = ({ route, navigation }) => {
 
   const loadAttachments = async () => {
     setLoading(true);
-    setAttachmentsError(null); // ← ADD: reset error on each attempt
+    setAttachmentsError(null);
     try {
-      const res = await achievementService.getAttachments(
-        item.achievementId
-      );
-
-      console.log('ATTACHMENTS API:', res);
+      const res = await achievementService.getAttachments(item.achievementId);
 
       if (res?.data) {
         setAttachments(res.data);
       }
     } catch (err) {
       console.log('ATTACHMENT ERROR', err);
-      // ← ADD: surface a friendly message instead of failing silently
       setAttachmentsError(
         err?.message === 'Network Error' || !err?.response
           ? 'Could not connect to the server. Check your internet connection and try again.'
@@ -61,15 +153,107 @@ const AchievementDetailScreen = ({ route, navigation }) => {
 
   const dateStr = item.achievementDate
     ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
-      day: '2-digit', month: 'long', year: 'numeric',
-    })
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
     : '';
 
-  const isImage = (path = '') => /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i.test(path);
+  // Club name — check every likely field name the API might return it under.
+  const clubName = item.clubName || item.club || item.ClubName || '';
 
-  const handleDownload = (url) => {
+  // ── Download / share a non-image attachment — same pattern as SupportDetailScreen ──
+  const handleAttachmentDownload = async (attachment) => {
+    const filePath = attachment.filePath;
+    const fileName = attachment.fileName || fileNameFromPath(filePath) || 'attachment';
+    const rowId = attachment.attachmentId ?? fileName;
+    const url = toPublicUrl(filePath);
+
     if (!url) return;
-    Linking.openURL(url);
+
+    setDownloadingId(rowId);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      const tempUri = FileSystem.cacheDirectory + fileName;
+
+      const result = await FileSystem.downloadAsync(url, tempUri, {
+        headers: { Authorization: token ? `Bearer ${token}` : '' },
+      });
+
+      if (result.status !== 200) {
+        Alert.alert('Error', 'Failed to download file.');
+        return;
+      }
+
+      if (Platform.OS === 'android') {
+        const permission =
+          await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync();
+
+        if (!permission.granted) {
+          Alert.alert('Permission Required', 'Please allow access to save the file.');
+          return;
+        }
+
+        const base64 = await FileSystem.readAsStringAsync(tempUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        const extension = fileName.split('.').pop()?.toLowerCase();
+        let mimeType = 'application/octet-stream';
+        switch (extension) {
+          case 'pdf':
+            mimeType = 'application/pdf';
+            break;
+          case 'jpg':
+          case 'jpeg':
+            mimeType = 'image/jpeg';
+            break;
+          case 'png':
+            mimeType = 'image/png';
+            break;
+          case 'doc':
+            mimeType = 'application/msword';
+            break;
+          case 'docx':
+            mimeType =
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+            break;
+          case 'xls':
+            mimeType = 'application/vnd.ms-excel';
+            break;
+          case 'xlsx':
+            mimeType =
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+            break;
+        }
+
+        const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
+          permission.directoryUri,
+          fileName.replace(/\.[^/.]+$/, ''),
+          mimeType
+        );
+
+        await FileSystem.writeAsStringAsync(destUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+
+        Alert.alert('Success', `${fileName} saved successfully.`);
+      } else {
+        const canShare = await Sharing.isAvailableAsync();
+        if (!canShare) {
+          Alert.alert(
+            'Saved',
+            `"${fileName}" was downloaded, but sharing isn't available on this device.`
+          );
+          return;
+        }
+        await Sharing.shareAsync(tempUri);
+      }
+    } catch (e) {
+      Alert.alert('Error', getSafeErrorMessage(e));
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   return (
@@ -93,80 +277,44 @@ const AchievementDetailScreen = ({ route, navigation }) => {
       ) : (
         <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
-          {/* Member circular photo */}
-          <View style={styles.heroSection}>
-            {/*{item.memberPhotoPath ? (
-            <Image source={{ uri: item.memberPhotoPath }} style={styles.heroAvatar} />
-          ) : (*/}
-            {memberPhoto ? (
-              <Image
-                source={{ uri: memberPhoto }}
-                style={styles.heroAvatar}
-              />
-            ) : (
-              <View style={[styles.heroAvatar, styles.heroAvatarFallback]}>
-                <Text style={styles.heroInitials}>
-                  {(item.memberName || 'M')
-                    .split(' ')
-                    .map(w => w[0])
-                    .join('')
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </Text>
+          {/* Club + Member Name + Title + Date + Description — all labeled, all left-aligned */}
+          <View style={local.simpleHeader}>
+            {!!clubName && (
+              <View style={local.fieldBlock}>
+                <Text style={local.detailLabel}>Club</Text>
+                <Text style={local.fieldValue}>{clubName}</Text>
               </View>
             )}
-            <View style={styles.trophyCircle}>
-              <Text style={{ fontSize: 18 }}>🏆</Text>
+
+            <View style={local.fieldBlock}>
+              <Text style={local.detailLabel}>Member Name</Text>
+              <Text style={local.fieldValue}>{item.memberName || 'Member'}</Text>
             </View>
-          </View>
 
-          {/* Member name */}
-          <Text style={styles.memberName}>{item.memberName || 'Member'}</Text>
-
-          {/* Gold divider */}
-          <View style={styles.goldDivider} />
-
-          {/* Achievement title */}
-          <Text style={styles.achTitle}>{item.title}</Text>
-
-          {/* Date */}
-          {dateStr ? (
-            <View style={styles.metaRow}>
-              <MaterialCommunityIcons name="calendar-check-outline" size={16} color={GOLD} />
-              <Text style={styles.metaText}>{dateStr}</Text>
+            <View style={local.fieldBlock}>
+              <Text style={local.detailLabel}>Title</Text>
+              <Text style={local.fieldValue}>{item.title}</Text>
             </View>
-          ) : null}
 
-          {/* Description */}
-          {item.description ? (
-            <View style={styles.descCard}>
-              <Text style={styles.descLabel}>About this achievement</Text>
-              <Text style={styles.descText}>{item.description}</Text>
-            </View>
-          ) : null}
+            {dateStr ? (
+              <View style={local.fieldBlock}>
+                <Text style={local.detailLabel}>Date</Text>
+                <View style={local.dateRow}>
+                  <MaterialCommunityIcons name="calendar-check-outline" size={16} color={GOLD} />
+                  <Text style={[styles.metaText, { marginLeft: 6 }]}>{dateStr}</Text>
+                </View>
+              </View>
+            ) : null}
 
-          {/* Attachment */}
-          {/*{item.attachmentPath ? (
-          <View style={styles.attachSection}>
-            <Text style={styles.attachLabel}>Attachment</Text>
-            {isImage(item.attachmentPath) ? (
-              <TouchableOpacity onPress={() => setImgViewer(true)} activeOpacity={0.85}>
-                <Image source={{ uri: item.attachmentPath }} style={styles.attachImage} resizeMode="cover" />
-                <Text style={styles.attachHint}>Tap to enlarge</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.downloadBtn}
-                onPress={() => Linking.openURL(item.attachmentPath)}
-                activeOpacity={0.8}>
-                <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-                <Text style={styles.downloadText}>Download Attachment</Text>
-              </TouchableOpacity>
+            {!!item.description && (
+              <View style={[local.fieldBlock, local.fieldBlockLast]}>
+                <Text style={local.detailLabel}>Description</Text>
+                <Text style={local.fieldValue}>{item.description}</Text>
+              </View>
             )}
           </View>
-        ) : null}*/}
 
-          {/* ← ADD: attachment load error + retry, shown instead of a blank/empty section */}
+          {/* Attachments — Support-style: images inline w/ "Tap to enlarge", files as download buttons */}
           {attachmentsError ? (
             <View style={styles.attachSection}>
               <Text style={styles.attachLabel}>Attachments</Text>
@@ -176,107 +324,60 @@ const AchievementDetailScreen = ({ route, navigation }) => {
                   {attachmentsError}
                 </Text>
                 <TouchableOpacity
-                  style={[styles.downloadBtn, { backgroundColor: NAVY }]}
+                  style={[styles.downloadBtn, local.downloadBtn, { backgroundColor: NAVY }]}
                   onPress={loadAttachments}
                   activeOpacity={0.8}
                 >
                   <MaterialCommunityIcons name="reload" size={18} color="#fff" />
-                  <Text style={styles.downloadText}>Retry</Text>
+                  <Text style={[styles.downloadText, local.downloadText]}>Retry</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ) : attachments.length > 0 && (
             <View style={styles.attachSection}>
-              <Text style={styles.attachLabel}>Attachments</Text>
+              <Text style={styles.attachLabel}>Attachments ({attachments.length})</Text>
 
               {attachments.map((attachment, index) => {
                 const filePath = attachment.filePath;
                 const url = toPublicUrl(filePath);
+                const rowId = attachment.attachmentId ?? index;
 
-                return isImage(filePath) ? (
-                  <View key={attachment.attachmentId || index} style={{ marginBottom: 14 }}>
-                    (
-                    <View
-                      key={attachment.attachmentId || index}
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: 12,
-                        padding: 15,
-                        marginBottom: 14,
-                        borderWidth: 1,
-                        borderColor: '#E5E7EB',
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <View
-                          style={{
-                            flex: 1,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            marginRight: 10,
-                          }}
-                        >
-                          <MaterialCommunityIcons
-                            name="file-pdf-box"
-                            size={36}
-                            color="#D32F2F"
-                          />
-
-                          <Text
-                            numberOfLines={1}
-                            style={{
-                              marginLeft: 10,
-                              flex: 1,
-                              fontSize: 14,
-                              color: '#334155',
-                              fontWeight: '600',
-                            }}
-                          >
-                            {filePath.split('/').pop().split('\\').pop()}
-                          </Text>
-                        </View>
-
-                        <TouchableOpacity
-                          onPress={() => handleDownload(url)}
-                          activeOpacity={0.8}
-                          style={{
-                            backgroundColor: NAVY,
-                            paddingHorizontal: 16,
-                            paddingVertical: 8,
-                            borderRadius: 8,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: '#FFFFFF',
-                              fontWeight: '700',
-                              fontSize: 13,
-                            }}
-                          >
-                            Download
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    )
-
-
-                  </View>
+                return isImagePath(filePath) ? (
+                  <TouchableOpacity
+                    key={rowId}
+                    onPress={() => setImgViewer(url)}
+                    activeOpacity={0.85}
+ style={{ marginBottom: 14 }}          
+        >
+                    <Image
+                      source={{ uri: url }}
+                      style={[styles.attachImage, local.attachImage]}
+                      resizeMode="contain"
+                    />
+                    <Text style={[styles.attachHint, local.attachHint]}>Tap to enlarge</Text>
+                  </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
-                    key={attachment.attachmentId || index}
-                    style={[styles.downloadBtn, { marginBottom: 14 }]}
-                    onPress={() => handleDownload(url)}
-                    activeOpacity={0.8}
+                    key={rowId}
+                    style={[
+                      styles.downloadBtn,
+                      local.downloadBtn,
+                      downloadingId === rowId && { opacity: 0.7 },
+                    ]}
+                    onPress={() => handleAttachmentDownload(attachment)}
+                    disabled={downloadingId === rowId}
+                    activeOpacity={0.85}
                   >
-                    <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-                    <Text style={styles.downloadText}>Download Attachment</Text>
+                    {downloadingId === rowId ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <>
+                         <MaterialCommunityIcons name="download-outline" size={18} color= "#fff" />
+                        <Text style={[styles.downloadText, local.downloadText]} numberOfLines={1}>
+                          {attachment.fileName || fileNameFromPath(filePath) || 'Download Attachment'}
+                        </Text>
+                      </>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -292,7 +393,6 @@ const AchievementDetailScreen = ({ route, navigation }) => {
             <MaterialCommunityIcons name="close" size={26} color="#fff" />
           </TouchableOpacity>
           <Image
-            // source={{ uri: item.attachmentPath }}
             source={{ uri: imgViewer }}
             style={styles.viewerImage}
             resizeMode="contain"
@@ -302,7 +402,5 @@ const AchievementDetailScreen = ({ route, navigation }) => {
     </View>
   );
 };
-
-
 
 export default AchievementDetailScreen;

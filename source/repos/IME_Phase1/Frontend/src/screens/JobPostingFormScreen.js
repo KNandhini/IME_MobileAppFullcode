@@ -5,7 +5,7 @@ import { COLORS } from './theme';
 
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DOBField from '../components/DOBField';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -193,9 +193,9 @@ const JobPostingFormScreen = ({ route, navigation }) => {
   const [salaryPackage,            setSalaryPackage]            = useState(item?.salaryPackage || '');
   const [website,                  setWebsite]                  = useState(item?.website || '');
   const [closingDate,              setClosingDate]              = useState(
-    item?.vacancyClosingDate ? new Date(item.vacancyClosingDate) : new Date()
+    item?.vacancyClosingDate ? new Date(item.vacancyClosingDate) : null
   );
-  const [showDate,    setShowDate]    = useState(false);
+  //const [showDate,    setShowDate]    = useState(false);
   const [loading,     setLoading]     = useState(false);
   const [errors,      setErrors]      = useState({});
 
@@ -203,7 +203,9 @@ const JobPostingFormScreen = ({ route, navigation }) => {
   const [attachments,         setAttachments]         = useState([]);          // new (not yet uploaded)
   const [existingAttachments, setExistingAttachments] = useState([]);          // already on server
   const [fileViewer,          setFileViewer]          = useState({ visible: false, uri: null });
-
+const today = new Date();
+const closingMinDate = new Date(today.getFullYear() - 100, 0, 1);
+const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
   // ── Bootstrap ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const bootstrap = async () => {
@@ -521,31 +523,21 @@ const JobPostingFormScreen = ({ route, navigation }) => {
           />
         </Field>
 
-        {/* ── Vacancy Closing Date — styled like Achievement's date field ── */}
-        <Field label="Vacancy Closing Date" required error={errors.closingDate}>
-          <TouchableOpacity
-            style={[
-              styles.styledInput.base,
-              !!errors.closingDate && styles.styledInput.errored,
-            ]}
-            onPress={() => setShowDate(true)}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 15, color: COLORS.dark, fontWeight: '500' }}>
-                {closingDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-              </Text>
-              <MaterialCommunityIcons name="calendar-outline" size={18} color={NAVY} />
-            </View>
-          </TouchableOpacity>
-        </Field>
-        {showDate && (
-          <DateTimePicker
-            value={closingDate} mode="date" display="default" minimumDate={new Date()}
-            onChange={(evt, d) => { setShowDate(false); if (d) setClosingDate(d); }}
-          />
-        )}
-
+        {/* ── Vacancy Closing Date — same dd/mm/yyyy typing + wheel-list picker used in AchievementFormScreen ── */}
+<DOBField
+  label="Vacancy Closing Date"
+  required
+  value={closingDate}
+  minDate={closingMinDate}
+  maxDate={closingMaxDate}
+  error={errors.closingDate}
+  FieldComponent={Field}
+  InputComponent={StyledInput}
+  onChange={(d) => {
+    setClosingDate(d);
+    if (errors.closingDate) setErrors(p => ({ ...p, closingDate: '' }));
+  }}
+/>
         {/* ── Website (new field, right after Vacancy Closing Date) ── */}
         <Field label="Website" error={errors.website} hint="e.g. https://www.example.com">
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -652,7 +644,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
 
           {totalAttachments < 5 && (
             <TouchableOpacity style={styles.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
-              <Text style={styles.gridAddIcon}>📎</Text>
+              <Text style={styles.gridAddIcon}>📷</Text>
               <Text style={styles.gridAddText}>Add ({totalAttachments}/5)</Text>
             </TouchableOpacity>
           )}

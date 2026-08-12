@@ -858,8 +858,7 @@ export const AchievementDetailScreenStyles = (() => {
     },
     loadingText: { marginTop: 12, color: '#64748B', fontSize: 14, fontWeight: '600' },
 
-    body: { padding: 20, paddingBottom: 40, alignItems: 'center' },
-
+body: { padding: 20, paddingBottom: 40, },
     heroSection: { position: 'relative', marginBottom: 14, marginTop: 8 },
     heroAvatar: {
       width: 110, height: 110, borderRadius: 55,
@@ -913,10 +912,11 @@ export const AchievementDetailScreenStyles = (() => {
       borderRadius: 12,
       resizeMode: 'contain',
       backgroundColor: '#fff',
+      
     },
-    attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
+    attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'left', marginTop: 6 },
     downloadBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      flexDirection: 'row',
       backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 14,
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700' },
@@ -1288,7 +1288,7 @@ export const ActivityDetailScreenStyles = (() => {
     attachSection: { width: '100%', marginTop: 8 },
     attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
     noAttach: { fontSize: 13, color: '#94A3B8', fontStyle: 'italic' },
-    attachImage: { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#fff' },
+    attachImage: { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#fff',    },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
     downloadBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10 },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8, flex: 1 },
@@ -1593,7 +1593,10 @@ export const AddCircularScreenStyles = (() => {
 
 
   return createScreenStyles({
-    safe: { flex: 1, backgroundColor: NAVY },
+    safe: { flex: 1 , },
+    root: { flex: 1, backgroundColor: '#FFFFFF' },
+    headerSafeArea: { backgroundColor: 'transparent' },
+
     navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, backgroundColor: NAVY },
     navSide: { minWidth: 64, paddingHorizontal: 4 },
     navTitle: { flex: 1, fontSize: 16, fontWeight: '700', color: '#fff', textAlign: 'center' },
@@ -1604,6 +1607,55 @@ export const AddCircularScreenStyles = (() => {
     label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 6, marginTop: 16 },
     input: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
     error: { color: 'red', fontSize: 12, marginTop: 4, marginBottom: 4, marginLeft: 5 },
+
+    // ── Field wrapper (label + counter + hint/error) — used by the
+    // shared Field/StyledInput components in AddCircularScreen ──
+    field: {
+      wrapper: { marginTop: 16 },
+      labelRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 6,
+      },
+      label: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#64748B',
+        textTransform: 'uppercase',
+        letterSpacing: 0.6,
+      },
+      req: { color: '#D9534F' },
+      counter: { fontSize: 11, color: '#94A3B8' },
+      counterOver: { color: '#D9534F', fontWeight: '700' },
+      hint: { fontSize: 11, color: '#94A3B8', marginTop: 4, marginLeft: 2 },
+      error: { color: 'red', fontSize: 12, marginTop: 4, marginLeft: 2 },
+    },
+
+    // ── Styled input (focus + error states) ──
+    styledInput: {
+      base: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 14,
+        fontSize: 15,
+        color: '#1E293B',
+        borderWidth: 1.5,
+        borderColor: '#E2E8F0',
+      },
+      multiline: {
+        height: 100,
+        paddingTop: 12,
+      },
+      focused: {
+        borderColor: NAVY,
+        backgroundColor: '#FFFFFF',
+      },
+      errored: {
+        borderColor: '#D9534F',
+      },
+    },
 
     // ── Visibility Radio Buttons ──
     radioGroup: { gap: 10 },
@@ -3271,8 +3323,25 @@ export const FeesDetailsStyles = (() => {
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
     header: {
-      backgroundColor: NAVY, paddingTop: 48, paddingBottom: 18, paddingHorizontal: 16,
-      flexDirection: 'row', alignItems: 'center',
+     paddingTop: 48,
+  paddingBottom: 24,
+  paddingHorizontal: 16,
+    },
+
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    backBtn: {
+      marginRight: 14,
+      padding: 4,
+    },
+
+    headerTitle: {
+      color: WHITE,
+      fontSize: 19,
+      fontWeight: '800',
     },
     backBtn: { marginRight: 14, padding: 4 },
     headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
@@ -3658,12 +3727,29 @@ export const GovernanceDetailsStyles = (() => {
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
+
+    // ── ADD THIS — was missing, causing the header gap mismatch ──
     header: {
-      backgroundColor: NAVY, paddingTop: 48, paddingBottom: 18, paddingHorizontal: 16,
-      flexDirection: 'row', alignItems: 'center',
+       paddingTop: 48,
+  paddingBottom: 24,
+  paddingHorizontal: 16,
     },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
+
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    backBtn: {
+      marginRight: 14,
+      padding: 4,
+    },
+
+    headerTitle: {
+      color: WHITE,
+      fontSize: 19,
+      fontWeight: '800',
+    },
     scroll: { padding: 16, paddingBottom: 40 },
     advisoryCard: {
       backgroundColor: NAVY, borderRadius: 12, padding: 16, marginBottom: 18,
@@ -3696,27 +3782,39 @@ export const GovernanceDetailsStyles = (() => {
   });
 })();
 
-// HistoryDetails
 export const HistoryDetailsStyles = (() => {
   const LIGHT = COLORS.bg;
-
   const NAVY = COLORS.navy;
-
   const WHITE = COLORS.white;
-
   const GREY = COLORS.grey;
-
-
   const GOLD = COLORS.gold;
 
   return createScreenStyles({
+
     root: { flex: 1, backgroundColor: LIGHT },
+
     header: {
-      backgroundColor: NAVY, paddingTop: 48, paddingBottom: 18, paddingHorizontal: 16,
-      flexDirection: 'row', alignItems: 'center',
+      //backgroundColor: NAVY,
+      paddingTop: 48,
+      paddingBottom: 24,
+      paddingHorizontal: 16,
     },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 18, fontWeight: '800' },
+
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+
+    backBtn: {
+      marginRight: 14,
+      padding: 4,
+    },
+
+    headerTitle: {
+      color: WHITE,
+      fontSize: 19,
+      fontWeight: '800',
+    },
     scroll: { padding: 16, paddingBottom: 40 },
     introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 20 },
     timeline: { paddingLeft: 4 },
@@ -3889,7 +3987,7 @@ export const JobPostingDetailScreenStyles = (() => {
     attachImage: { width: '100%', height: 220, borderRadius: 12, backgroundColor: '#fff' },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
     downloadBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      flexDirection: 'row',
       backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 10,
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
@@ -4453,7 +4551,7 @@ export const MagazineDetailScreenStyles = (() => {
     },
     attachHint: { fontSize: 11, color: '#94A3B8', textAlign: 'center', marginTop: 6 },
     downloadBtn: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+      flexDirection: 'row', 
       backgroundColor: NAVY, borderRadius: 10, padding: 14, marginBottom: 14,
     },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
@@ -5021,7 +5119,11 @@ export const MemberManagementScreenStyles = (() => {
     iconBotton: {
       marginLeft: 8,
     },
-
+loadingWrap: {
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+},
     // ── Status badge — top-left of card ──
     cornerBadge: {
       borderRadius: 6,
@@ -5058,16 +5160,31 @@ export const MembershipDetailsStyles = (() => {
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: LIGHT },
+   
+    root: { flex: 1, backgroundColor: LIGHT },
+
     header: {
-      backgroundColor: NAVY,
+      //backgroundColor: NAVY,
       paddingTop: 48,
-      paddingBottom: 18,
+      paddingBottom: 24,
       paddingHorizontal: 16,
+    },
+
+    headerRow: {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    backBtn: { marginRight: 14, padding: 4 },
-    headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
+
+    backBtn: {
+      marginRight: 14,
+      padding: 4,
+    },
+
+    headerTitle: {
+      color: WHITE,
+      fontSize: 19,
+      fontWeight: '800',
+    },
     scroll: { padding: 16, paddingBottom: 40 },
     introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16 },
     card: {
@@ -6413,6 +6530,22 @@ export const SetAnnualFeeScreenStyles = (() => {
     button: { backgroundColor: '#252943', borderRadius: 8, padding: 16, alignItems: 'center', marginTop: 8 },
     buttonDisabled: { opacity: 0.6 },
     buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    field: {
+  wrapper: { marginTop: 16 },
+  labelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  label: { fontSize: 12, fontWeight: '700', color: '#64748B', textTransform: 'uppercase', letterSpacing: 0.6 },
+  req: { color: '#D9534F' },
+  counter: { fontSize: 11, color: '#94A3B8' },
+  counterOver: { color: '#D9534F', fontWeight: '700' },
+  hint: { fontSize: 11, color: '#94A3B8', marginTop: 4, marginLeft: 2 },
+  error: { color: 'red', fontSize: 12, marginTop: 4, marginLeft: 2 },
+},
+styledInput: {
+  base: { backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14, fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0' },
+  multiline: { height: 100, paddingTop: 12 },
+  focused: { borderColor: COLORS.primary, backgroundColor: '#FFFFFF' },
+  errored: { borderColor: '#D9534F' },
+},
   });
 })();
 
@@ -7203,5 +7336,101 @@ export const HealthNutritionScreenStyles = (() => {
 
     fab: Common.fab(),
     fabText: Common.fabText,
+  });
+})();
+export const MemberDashboardScreenStyles = (() => {
+  return createScreenStyles({
+    container: { flex: 1, backgroundColor: '#F0F2F5' },
+    scrollContent: { paddingBottom: 24 },
+
+    // IME header
+    appHeader: {
+  backgroundColor: '#1E3A5F',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  paddingHorizontal: 14,
+  paddingTop: 44,
+  paddingBottom: 10,
+},
+headerLeft: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex: 1,
+  marginRight: 8,
+},
+headerRight: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+},
+iconBtn: {
+  padding: 8,
+  marginLeft: 4,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+iconBtnText: {
+  fontSize: 20,
+  textAlign: 'center',
+},
+kebabIcon: {
+  fontSize: 22,
+  color: '#fff',
+  fontWeight: '700',
+  textAlign: 'center',
+},
+    logoBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 10,
+      backgroundColor: '#D4A017',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 10,
+    },
+    logoText: { color: '#1E3A5F', fontSize: 13, fontWeight: '900', letterSpacing: 0.5 },
+    appName: { color: '#fff', fontSize: 13, fontWeight: '700' },
+    appTagline: { color: 'rgba(255,255,255,0.55)', fontSize: 10 },
+    backBtn: { padding: 8 },
+    backIcon: { color: '#fff', fontSize: 22, fontWeight: '700' },
+
+    // Header right (notification + kebab menu)
+  
+    
+   
+    menuContent: { backgroundColor: '#fff', borderRadius: 10, elevation: 8, minWidth: 200 },
+    menuItemText: { fontSize: 14, color: '#222' },
+    menuSep: { height: 1, backgroundColor: '#EFEFEF', marginHorizontal: 12, marginVertical: 4 },
+
+    // Welcome strip
+    welcomeStrip: {
+      backgroundColor: '#fff',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      marginBottom: 8,
+      elevation: 1,
+    },
+    welcomeTitle: { fontSize: 18, fontWeight: '800', color: '#1E3A5F' },
+    welcomeSub: { fontSize: 13, color: '#888', marginTop: 2 },
+
+    // Grid
+    grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 10, paddingTop: 4, justifyContent: 'space-between' },
+    card: { width: '48%', marginBottom: 14 },
+    cardInner: { elevation: 2, backgroundColor: '#fff' },
+    cardContent: { alignItems: 'center', paddingVertical: 20 },
+    icon: { fontSize: 36, marginBottom: 8 },
+    cardTitle: { fontSize: 13, textAlign: 'center', color: '#1E3A5F' },
+     lawBotCard: {
+      backgroundColor: '#ffffff',
+      marginHorizontal: 11,
+      marginBottom: 8,
+      borderRadius: 10,
+      padding: 12,
+      borderWidth: 0.9,
+      borderColor: '#5da1e6',
+    },
+    lawBotTitle: { fontSize: 14, fontWeight: '700', color: '#1E3A5F' },
+    lawBotSubtitle: { fontSize: 12, color: '#185FA5', marginTop: 3 },
   });
 })();

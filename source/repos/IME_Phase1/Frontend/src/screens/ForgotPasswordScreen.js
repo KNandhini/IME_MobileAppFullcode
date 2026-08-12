@@ -7,6 +7,7 @@ import IMELogo from '../components/IMELogo';
 import { authService } from '../services/authService';
 import { ForgotPasswordScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import DOBField from '../components/DOBField';
 
 // ── Field wrapper — matches Achievement/JobPosting/Club ──
 function Field({ label, required, children, error, hint }) {
@@ -42,11 +43,15 @@ function StyledInput({ hasError, style, ...props }) {
 }
 
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
-const DOB_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
 const ForgotPasswordScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
+
+  // Date of birth: selectedDob drives the DOBField UI (Date object),
+  // dateOfBirth is the 'YYYY-MM-DD' string sent to the API.
+  const [selectedDob, setSelectedDob] = useState(null);
   const [dateOfBirth, setDateOfBirth] = useState('');
+
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState(1); // 1: validation, 2: reset
@@ -54,8 +59,19 @@ const ForgotPasswordScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
+  const today = new Date();
+  const minDob = new Date();
+  minDob.setFullYear(today.getFullYear() - 80);
+
   const clearError = (key) => {
     setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
+  };
+
+  const formatYMD = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   };
 
   const validateStep1 = () => {
@@ -63,15 +79,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
     if (!email.trim()) e.email = 'Email is required';
     else if (!EMAIL_REGEX.test(email)) e.email = 'Please enter a valid email address';
 
-    if (!dateOfBirth.trim()) {
+    if (!dateOfBirth) {
       e.dateOfBirth = 'Date of birth is required';
-    } else if (!DOB_REGEX.test(dateOfBirth)) {
-      e.dateOfBirth = 'Please enter a valid date in YYYY-MM-DD format';
-    } else {
-      const d = new Date(dateOfBirth);
-      if (isNaN(d.getTime())) {
-        e.dateOfBirth = 'Please enter a valid date of birth';
-      }
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -144,7 +153,7 @@ const ForgotPasswordScreen = ({ navigation }) => {
       <View style={styles.card}>
 
         <View style={styles.header}>
-          <Text style={styles.title}>Change Password</Text>
+          <Text style={styles.title}>{step === 1 ? 'Forgot Password' : 'Change Password'}</Text>
           <Text style={styles.subtitle}>
             {step === 1
               ? 'Enter your details to validate'
@@ -165,14 +174,21 @@ const ForgotPasswordScreen = ({ navigation }) => {
               />
             </Field>
 
-            <Field label="Date of Birth" required hint="Format: YYYY-MM-DD" error={errors.dateOfBirth}>
-              <StyledInput
-                value={dateOfBirth}
-                onChangeText={(t) => { setDateOfBirth(t); clearError('dateOfBirth'); }}
-                placeholder="2000-01-01"
-                hasError={!!errors.dateOfBirth}
-              />
-            </Field>
+            <DOBField
+              label="Date of Birth"
+              required
+              value={selectedDob}
+              minDate={minDob}
+              maxDate={today}
+              error={errors.dateOfBirth}
+              FieldComponent={Field}
+              InputComponent={StyledInput}
+              onChange={(date) => {
+                setSelectedDob(date);
+                setDateOfBirth(formatYMD(date));
+                clearError('dateOfBirth');
+              }}
+            />
 
             <TouchableOpacity
               style={[styles.button, loading && styles.buttonDisabled]}

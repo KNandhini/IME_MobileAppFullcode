@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Modal,
+  Image,
+  FlatList,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import { Menu } from 'react-native-paper';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -13,12 +23,14 @@ import { clubService } from '../services/clubService';
 import { AddAdminScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { COLORS } from './theme'; // ← adjust this path to wherever COLORS actually lives
+import DOBField from '../components/DOBField';
 
 // Local color constants — same design system as AdminSignupScreen.
 const NAVY = COLORS.primary;
 const GOLD = COLORS.gold;
 // Author Name: letters, numbers, spaces, dot, comma, hyphen
 const AUTHOR_REGEX = /^[A-Za-z0-9\s.,-]*$/;
+
 // ── Field wrapper — same shape as AdminSignupScreen's Field (own copy) ──
 function Field({ label, required, children, error, hint, charCount, maxChars }) {
   const over = maxChars != null && charCount > maxChars;
@@ -119,7 +131,6 @@ const SignupScreen = ({ navigation, route }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [genderMenuVisible, setGenderMenuVisible] = useState(false);
   const [menuWidth, setMenuWidth] = useState(0);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
   const [currentFee, setCurrentFee] = useState(null);
@@ -263,34 +274,6 @@ const SignupScreen = ({ navigation, route }) => {
     }
 
     return String(Math.max(age, 0));
-  };
-
-  // Lets the user type the DOB directly (auto-formats digits as YYYY-MM-DD)
-  // in addition to picking it from the calendar. Age is recalculated once a
-  // full, valid date has been typed.
-  const handleDOBTextChange = (text) => {
-    const digits = text.replace(/[^0-9]/g, '').slice(0, 8);
-    let formatted = digits;
-    if (digits.length > 4) formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
-    if (digits.length > 6) formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
-
-    setFormData((prev) => ({ ...prev, dateOfBirth: formatted }));
-    setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
-
-    if (digits.length === 8) {
-      const y = parseInt(digits.slice(0, 4), 10);
-      const m = parseInt(digits.slice(4, 6), 10);
-      const d = parseInt(digits.slice(6, 8), 10);
-      const parsed = new Date(y, m - 1, d);
-      const isRealDate = parsed.getFullYear() === y && parsed.getMonth() === m - 1 && parsed.getDate() === d;
-
-      if (isRealDate && parsed >= minDate && parsed <= today) {
-        setSelectedDate(parsed);
-        setFormData((prev) => ({ ...prev, dateOfBirth: formatted, age: calculateAge(parsed) }));
-      } else {
-        setErrors((prev) => ({ ...prev, dateOfBirth: 'Enter a valid date of birth' }));
-      }
-    }
   };
 
   const validate = () => {
@@ -581,42 +564,25 @@ const SignupScreen = ({ navigation, route }) => {
           </View>
 
           {/* ── Date of Birth ── */}
-          <Field label="Date of Birth" required error={errors.dateOfBirth}>
-            <View style={{ position: 'relative' }}>
-              <StyledInput
-                value={formData.dateOfBirth}
-                onChangeText={handleDOBTextChange}
-                placeholder="YYYY-MM-DD"
-                keyboardType="number-pad"
-                maxLength={10}
-                hasError={!!errors.dateOfBirth}
-                style={{ paddingRight: 44 }}
-              />
-              <TouchableOpacity
-                onPress={() => setShowDatePicker(true)}
-                style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
-                <MaterialCommunityIcons name="calendar-outline" size={20} color={COLORS.placeholder} />
-              </TouchableOpacity>
-            </View>
-          </Field>
-          {showDatePicker && (
-            <DateTimePicker value={selectedDate || new Date()} mode="date" display="default"
-              minimumDate={minDate} maximumDate={today}
-              onChange={(event, date) => {
-                setShowDatePicker(false);
-                if (event.type === 'set' && date) {
-                  setSelectedDate(date);
-                  setFormData((prev) => ({
-                    ...prev,
-                    dateOfBirth: formatDate(date),
-                    age: calculateAge(date),
-                  }));
-                  setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
-                }
-              }} />
-          )}
+          <DOBField
+            label="Date of Birth"
+            required
+            value={selectedDate}
+            minDate={minDate}
+            maxDate={today}
+            error={errors.dateOfBirth}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={(date) => {
+              setSelectedDate(date);
+              setFormData((prev) => ({
+                ...prev,
+                dateOfBirth: formatDate(date),
+                age: calculateAge(date),
+              }));
+              setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
+            }}
+          />
 
           <Field label="Age" required error={errors.age}>
             <StyledInput value={formData.age} editable={false} hasError={!!errors.age} keyboardType="numeric" />

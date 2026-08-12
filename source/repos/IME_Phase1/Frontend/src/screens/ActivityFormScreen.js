@@ -1,9 +1,21 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Platform,
+  StatusBar,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Image,
+  Linking,
+  TextInput,
+} from 'react-native';
 import { Card, Chip } from 'react-native-paper';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +23,7 @@ import { activityService } from '../services/activityService';
 import { BASE_URL } from '../utils/api';
 import { ActivityFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import DOBField from '../components/DOBField';
 
 // ─────────────────────────────────────────────────────────────────────────
 // ── Validation & Sanitization Helpers ──────────────────────────────────────
@@ -75,14 +88,6 @@ const VISIBILITY_OPTIONS = [
   { value: 'Private(This Club Only)', label: 'Private', sub: 'This Club Only' },
 ];
 
-const formatDate = (date) => {
-  if (!date) return '';
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-};
-
 // Local date-only string — avoids the UTC-shift-by-one-day bug that
 // `.toISOString()` causes for date-only fields like ActivityDate.
 const toDateOnlyString = (date) => {
@@ -137,47 +142,6 @@ function StyledInput({ hasError, multiline, style, ...props }) {
   );
 }
 
-// ── Date Field — styled to match Field + StyledInput used for Title/Description ──
-const DateField = ({ label, required, value, onChange, error }) => {
-  const [show, setShow] = useState(false);
-  return (
-    <Field label={label} required={required} error={error}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => setShow(true)}
-        style={[
-          styles.styledInput.base,
-          error && styles.styledInput.errored,
-          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-        ]}
-      >
-        <Text
-          style={{
-            fontSize: 15,
-            fontWeight: '500',
-            color: value ? COLORS.dark : '#CBD5E1',
-          }}
-        >
-          {value ? formatDate(value) : 'Select date'}
-        </Text>
-        <Text style={{ fontSize: 16 }}>📅</Text>
-      </TouchableOpacity>
-
-      {show && (
-        <DateTimePicker
-          value={value || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          onChange={(event, date) => {
-            setShow(Platform.OS === 'ios');
-            if (date) onChange(date);
-          }}
-        />
-      )}
-    </Field>
-  );
-};
-
 const ActivityFormScreen = ({ route, navigation }) => {
   const { activityId } = route.params || {};
   const isEditMode = !!activityId;
@@ -199,6 +163,13 @@ const ActivityFormScreen = ({ route, navigation }) => {
   const [activityDate, setActivityDate] = useState(null);
   const [errors, setErrors] = useState({});
   const [registrationDeadline, setRegistrationDeadline] = useState(null);
+
+  // Bounds for both date pickers below — wide enough to cover past and
+  // future-scheduled activities. Picker still defaults to *today* when
+  // no value has been picked yet (see DOBField's defaultDate behavior).
+  const today = new Date();
+  const activityMinDate = new Date(today.getFullYear() - 100, 0, 1);
+  const activityMaxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   useEffect(() => {
     if (isEditMode) {
@@ -587,20 +558,28 @@ const ActivityFormScreen = ({ route, navigation }) => {
         </Field>
 
         {/* ── Date & Time ── */}
-        <DateField
+        <DOBField
           label="Activity Date"
           required
           value={activityDate}
+          minDate={activityMinDate}
+          maxDate={activityMaxDate}
+          error={errors.activityDate}
+          FieldComponent={Field}
+          InputComponent={StyledInput}
           onChange={(d) => {
             setActivityDate(d);
             if (errors.activityDate) setErrors(p => ({ ...p, activityDate: null }));
           }}
-          error={errors.activityDate}
         />
 
-        <DateField
+        <DOBField
           label="Registration Deadline"
           value={registrationDeadline}
+          minDate={activityMinDate}
+          maxDate={activityMaxDate}
+          FieldComponent={Field}
+          InputComponent={StyledInput}
           onChange={setRegistrationDeadline}
         />
 

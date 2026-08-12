@@ -458,7 +458,7 @@ debugger;
                     ) : (
                       <>
                         <MaterialCommunityIcons
-                          name={isPdfPath(a.rawPath) ? 'file-pdf-box' : 'download-outline'}
+                          name={isPdfPath(a.rawPath) ? 'download-outline' : 'download-outline'}
                           size={18}
                           color="#fff"
                         />

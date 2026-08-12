@@ -6,13 +6,11 @@ import {
     TouchableOpacity,
     FlatList,
     Dimensions,
-    Modal,
     ScrollView,
-   // SafeAreaView,
+    StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import GradientHeader from '../components/GradientHeader';
 import { NumberedItem, BulletItem } from './Accordion';
 import { COLORS, RADIUS, SHADOW, SPACING } from '../screens/theme';
 
@@ -26,8 +24,10 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
 // Single shared gradient so Vision, Mission, and Core Objectives modal headers
-// all look consistent with the rest of the app's header chrome.
-const HEADER_COLORS = [NAVY, ROYAL];
+// all look consistent with the rest of the app's header chrome. Uses the
+// dedicated header tokens (not primary/dark) so this matches every other
+// GradientHeader in the app (e.g. History, Governance).
+const HEADER_COLORS = [COLORS.headerStart, COLORS.headerEnd];
 
 const SLIDES = [
     {
@@ -147,6 +147,7 @@ const WelcomeCard = ({ onViewMore }) => {
     const closeDetail = () => setModalItem(null);
 
     return (
+        <>
         <View style={styles.card}>
             
 
@@ -206,70 +207,68 @@ const WelcomeCard = ({ onViewMore }) => {
                 ))}
             </View>
 
-            {/* Full-content modal — shows ONLY the tapped slide's content, nothing else */}
-            <Modal
-                visible={!!modalItem}
-                animationType="slide"
-                presentationStyle="fullScreen"
-                onRequestClose={closeDetail}
-            >
-                <View style={styles.modalOverlay}>
-                    <SafeAreaView style={styles.modalSheet} edges={['top']}>
-                        {modalItem && (
-                            <>
-                                <LinearGradient
-                                    colors={modalItem.colors}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 0 }}
-                                    style={styles.modalHeader}
-                                >
-                                    <TouchableOpacity
-                                        onPress={closeDetail}
-                                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                    >
-                                        <MaterialIcons name="arrow-back" size={22} color={COLORS.white} />
-                                    </TouchableOpacity>
-                                    <View style={styles.modalHeaderLeft}>
-                                        <View style={styles.iconBadgeLg}>
-                                            <MaterialIcons name={modalItem.icon} size={20} color={COLORS.white} />
-                                        </View>
-                                        <Text style={styles.modalTitle}>{modalItem.label}</Text>
-                                    </View>
-                                </LinearGradient>
-
-                                <ScrollView
-                                    style={styles.modalBody}
-                                    contentContainerStyle={styles.modalBodyContent}
-                                    showsVerticalScrollIndicator={false}
-                                    alwaysBounceVertical
-                                >
-                                    {/* Mission: numbered list, same as the About screen's Mission accordion */}
-                                    {modalItem.detailItems && modalItem.detailItems.map((it) => (
-                                        <NumberedItem key={it.number} number={it.number} text={it.text} />
-                                    ))}
-
-                                    {/* Core Objectives: Technical / Institutional / Capacity Building
-                                        sections — plain headers, always expanded, no collapse icon */}
-                                    {modalItem.detailGroups && modalItem.detailGroups.map((group) => (
-                                        <View key={group.title} style={styles.groupBlock}>
-                                            <Text style={styles.groupTitle}>{group.title}</Text>
-                                            {group.bullets.map((b, idx) => (
-                                                <BulletItem key={idx} text={b} />
-                                            ))}
-                                        </View>
-                                    ))}
-
-                                    {/* Fallback: plain paragraph if a slide has neither structure */}
-                                    {!modalItem.detailItems && !modalItem.detailGroups && (
-                                        <Text style={styles.modalText}>{modalItem.body}</Text>
-                                    )}
-                                </ScrollView>
-                            </>
-                        )}
-                    </SafeAreaView>
-                </View>
-            </Modal>
         </View>
+
+            {/* Full-content detail view — shows ONLY the tapped slide's content.
+                Deliberately NOT using React Native's <Modal>: on Android, Modal
+                renders in its own native window with its own status-bar rules,
+                which is why the header color/status-bar never lined up no matter
+                what we tried. Every other full-screen detail view in this app
+                (HistoryDetailsScreen, GovernanceDetailsScreen, etc.) is just a
+                plain absolutely-positioned View with an OPAQUE StatusBar and a
+                bare GradientHeader — no SafeAreaView, no translucency. Mirroring
+                that exact pattern here guarantees it looks identical to those.
+                Rendered as a SIBLING of the card (outside its overflow:hidden
+                container and outside the FlatList/dots block below) so the
+                absolutely-positioned full-screen overlay isn't clipped to the
+                small card's bounds. */}
+            {modalItem && (
+                <View style={styles.modalOverlay}>
+                    <GradientHeader style={styles.modalHeader}>
+                        <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
+
+                        <View style={styles.modalHeaderRow}>
+                            <TouchableOpacity
+                                onPress={closeDetail}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                style={styles.modalBackBtn}
+                            >
+                                <MaterialIcons name="arrow-back" size={22} color={COLORS.white} />
+                            </TouchableOpacity>
+                            <Text style={styles.modalTitle}>{modalItem.label}</Text>
+                        </View>
+                    </GradientHeader>
+
+                    <ScrollView
+                        style={styles.modalBody}
+                        contentContainerStyle={styles.modalBodyContent}
+                        showsVerticalScrollIndicator={false}
+                        alwaysBounceVertical
+                    >
+                        {/* Mission: numbered list, same as the About screen's Mission accordion */}
+                        {modalItem.detailItems && modalItem.detailItems.map((it) => (
+                            <NumberedItem key={it.number} number={it.number} text={it.text} />
+                        ))}
+
+                        {/* Core Objectives: Technical / Institutional / Capacity Building
+                            sections — plain headers, always expanded, no collapse icon */}
+                        {modalItem.detailGroups && modalItem.detailGroups.map((group) => (
+                            <View key={group.title} style={styles.groupBlock}>
+                                <Text style={styles.groupTitle}>{group.title}</Text>
+                                {group.bullets.map((b, idx) => (
+                                    <BulletItem key={idx} text={b} />
+                                ))}
+                            </View>
+                        ))}
+
+                        {/* Fallback: plain paragraph if a slide has neither structure */}
+                        {!modalItem.detailItems && !modalItem.detailGroups && (
+                            <Text style={styles.modalText}>{modalItem.body}</Text>
+                        )}
+                    </ScrollView>
+                </View>
+            )}
+        </>
     );
 };
 
@@ -333,32 +332,39 @@ const styles = StyleSheet.create({
     dotActive: { backgroundColor: COLORS.primary, width: 18, borderRadius: 3 },
 
     // Full-screen detail view (for Mission / Core Objectives) — keeps the
-    // app-wide vivid-blue → dark-navy header gradient for consistency.
+    // app-wide vivid-blue → dark-navy header gradient for consistency, and
+    // now matches the History/Governance layout exactly: header (padding
+    // only) + headerRow (back arrow + title, left-aligned) + StatusBar.
+    // Absolutely positioned so this covers the entire screen exactly like a
+    // real full-screen route (e.g. HistoryDetailsScreen), not just the card.
     modalOverlay: {
-        flex: 1,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
         backgroundColor: COLORS.surface,
-    },
-    modalSheet: {
-        flex: 1,
-        backgroundColor: COLORS.surface,
+        zIndex: 999,
+        elevation: 999, // Android stacking
     },
     modalHeader: {
+        paddingHorizontal: 16,
+        paddingTop: 35,
+        paddingBottom: 16,
+    },
+    modalHeaderRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        gap: 14,
     },
-    modalHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    iconBadgeLg: {
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        backgroundColor: COLORS.glass,
-        alignItems: 'center',
-        justifyContent: 'center',
+    modalBackBtn: {
+        marginRight: 14,
+        padding: 4,
     },
-    modalTitle: { color: COLORS.white, fontWeight: '800', fontSize: 17, letterSpacing: 0.3 },
+    modalTitle: {
+        color: COLORS.white,
+        fontSize: 19,
+        fontWeight: '800',
+    },
     modalBody: { flex: 1, paddingHorizontal: 20 },
     modalBodyContent: { paddingVertical: 20, paddingBottom: 32 },
     modalText: { fontSize: 15, lineHeight: 23, color: COLORS.textPrimary },

@@ -2,7 +2,6 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -14,6 +13,7 @@ import api from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import DOBField from '../components/DOBField';
 
 const NAVY = COLORS.primary;
 const GOLD = COLORS.accent;
@@ -171,13 +171,19 @@ const AchievementFormScreen = ({ route, navigation }) => {
   const [description, setDescription] = useState(item?.description || '');
   // ── Date: no default — user must pick. Edit mode still seeds from item. ──
   const [date, setDate] = useState(item?.achievementDate ? new Date(item.achievementDate) : null);
-  const [showDate, setShowDate] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
   const [errors, setErrors] = useState({});
+
+  // Bounds for the achievement date picker — wide past range, capped at
+  // today (an achievement can't be dated in the future).
+  const today = new Date();
+  const dateMinDate = new Date(today.getFullYear() - 100, 0, 1);
+  const dateMaxDate =  new Date(today.getFullYear() + 80, 11, 31);
+
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
     const bootstrap = async () => {
@@ -518,41 +524,22 @@ const AchievementFormScreen = ({ route, navigation }) => {
           />
         </Field>
 
-        {/* ── Date picker — styled like Title, no default value ── */}
-        <Field label="Achievement Date" required error={errors.date}>
-          <TouchableOpacity
-            style={[
-              styles.styledInput.base,
-              !!errors.date && styles.styledInput.errored,
-            ]}
-            onPress={() => setShowDate(true)}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={date ? { fontSize: 15, color: COLORS.dark, fontWeight: '500' } : { fontSize: 15, color: '#CBD5E1', fontWeight: '500' }}>
-                {date
-                  ? date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })
-                  : 'Select achievement date'}
-              </Text>
-              <MaterialCommunityIcons name="calendar-outline" size={18} color={date ? NAVY : COLORS.placeholder} />
-            </View>
-          </TouchableOpacity>
-        </Field>
-        {showDate && (
-          <DateTimePicker
-            value={date || new Date()}
-            mode="date"
-            display="default"
-            maximumDate={new Date()}
-            onChange={(evt, d) => {
-              setShowDate(false);
-              if (d) {
-                setDate(d);
-                setErrors(prev => ({ ...prev, date: '' }));
-              }
-            }}
-          />
-        )}
+        {/* ── Date picker — same dd/mm/yyyy typing + wheel-list picker used
+             across the app (ActivityFormScreen's Activity Date) ── */}
+        <DOBField
+          label="Achievement Date"
+          required
+          value={date}
+          minDate={dateMinDate}
+          maxDate={dateMaxDate}
+          error={errors.date}
+          FieldComponent={Field}
+          InputComponent={StyledInput}
+          onChange={(d) => {
+            setDate(d);
+            if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
+          }}
+        />
 
         {/* ── Attachments ── */}
         <Text style={styles.attachLabel}>ATTACHMENTS</Text>
