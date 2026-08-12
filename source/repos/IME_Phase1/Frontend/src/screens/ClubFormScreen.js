@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DOBField from '../components/DOBField';
 import { clubService } from '../services/clubService';
 import { memberService } from '../services/memberService';
 import api from '../utils/api';
@@ -71,7 +71,7 @@ export default function ClubFormScreen({ route, navigation }) {
   const { width: screenWidth } = useWindowDimensions();
   const isLargeScreen = screenWidth >= 600; // tablet / web breakpoint
 
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  //const [showDatePicker, setShowDatePicker] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
 
   const [logoUri, setLogoUri] = useState(null);
@@ -213,6 +213,12 @@ export default function ClubFormScreen({ route, navigation }) {
         registrationNumber: d.registrationNumber || '',
         isActive:           d.isActive !== false,
       });
+
+      // ── Sync the Date object that backs DOBField ──
+      if (d.establishedDate) {
+        setSelectedDate(new Date(d.establishedDate));
+      }
+
       if (d.logoPath) {
         setExistingLogo(toPublicUrl(d.logoPath));
       }
@@ -303,9 +309,9 @@ export default function ClubFormScreen({ route, navigation }) {
     m.fullName?.toLowerCase().includes(memberSearch.toLowerCase())
   );
 
-  const today = new Date();
-  const minDate = new Date();
-  minDate.setFullYear(today.getFullYear() - 200);
+ const today = new Date();
+const minDate = new Date(today.getFullYear() - 100, 0, 1);
+const maxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   const formatDate = (date) => {
     const y = date.getFullYear();
@@ -729,33 +735,22 @@ export default function ClubFormScreen({ route, navigation }) {
           </TouchableOpacity>
         </Field>
 
-        <Field label="Established Date" required error={errors.establishedDate}>
-          <TouchableOpacity
-            style={[styles.selector, errors.establishedDate && styles.selectorError]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={form.establishedDate ? styles.selectorValue : styles.selectorPlaceholder}>
-              {form.establishedDate || 'Select date'}
-            </Text>
-            <Ionicons name="calendar-outline" size={16} color={COLORS.placeholder} />
-          </TouchableOpacity>
-        </Field>
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDate || new Date()}
-            mode="date"
-            display="default"
-            minimumDate={minDate}
-            maximumDate={today}
-            onChange={(event, date) => {
-              setShowDatePicker(false);
-              if (event.type === 'set' && date) {
-                setSelectedDate(date);
-                set('establishedDate', formatDate(date));
-              }
-            }}
-          />
-        )}
+       {/* ── Established Date — same dd/mm/yyyy typing + wheel-list picker used in AchievementFormScreen ── */}
+<DOBField
+  label="Established Date"
+  required
+  value={selectedDate}
+  minDate={minDate}
+  maxDate={maxDate}
+  error={errors.establishedDate}
+  FieldComponent={Field}
+  InputComponent={StyledInput}
+  onChange={(d) => {
+    setSelectedDate(d);
+    set('establishedDate', formatDate(d));
+    if (errors.establishedDate) setErrors(prev => ({ ...prev, establishedDate: '' }));
+  }}
+/>
 
         <View style={styles.row}>
           <View style={styles.fieldFlex}>

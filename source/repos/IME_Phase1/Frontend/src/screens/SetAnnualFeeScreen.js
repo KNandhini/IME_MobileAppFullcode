@@ -1,10 +1,10 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import api from '../utils/api';
 import { SetAnnualFeeScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import DOBField from '../components/DOBField';
 
 const formatDate = (date) => {
   if (!date) return '';
@@ -14,14 +14,63 @@ const formatDate = (date) => {
   return `${y}-${m}-${d}`;
 };
 
+// ── Field wrapper (same contract as ActivityFormScreen) ───────────────────
+function Field({ label, required, children, error, hint, charCount, maxChars }) {
+  const over = maxChars != null && charCount > maxChars;
+  return (
+    <View style={styles.field.wrapper}>
+      <View style={styles.field.labelRow}>
+        <Text style={styles.field.label}>
+          {label}{required && <Text style={styles.field.req}> *</Text>}
+        </Text>
+        {maxChars != null && (
+          <Text style={[styles.field.counter, over && styles.field.counterOver]}>
+            {charCount ?? 0}/{maxChars}
+          </Text>
+        )}
+      </View>
+      {children}
+      {!!hint && !error && <Text style={styles.field.hint}>{hint}</Text>}
+      {!!error && <Text style={styles.field.error}>{error}</Text>}
+    </View>
+  );
+}
+
+// ── Styled TextInput (same contract as ActivityFormScreen) ────────────────
+function StyledInput({ hasError, multiline, style, ...props }) {
+  const [focused, setFocused] = useState(false);
+  return (
+    <TextInput
+      style={[
+        styles.styledInput.base,
+        multiline && styles.styledInput.multiline,
+        focused && styles.styledInput.focused,
+        hasError && styles.styledInput.errored,
+        style,
+      ]}
+      placeholderTextColor="#CBD5E1"
+      onFocus={() => setFocused(true)}
+      onBlur={() => setFocused(false)}
+      multiline={multiline}
+      textAlignVertical={multiline ? 'top' : 'center'}
+      {...props}
+    />
+  );
+}
+
 const SetAnnualFeeScreen = () => {
   const [currentFee, setCurrentFee] = useState(null);
   const [amount, setAmount] = useState('');
   const [effectiveFrom, setEffectiveFrom] = useState(null);
-  const [showFromPicker, setShowFromPicker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [errors, setErrors] = useState({});
+
+  // Bounds for the date picker — same wide range style as
+  // ActivityFormScreen's activityMinDate/activityMaxDate.
+  const today = new Date();
+  const feeMinDate =new Date(today.getFullYear() - 100, 0, 1);
+  const feeMaxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   useEffect(() => {
     fetchCurrentFee();
@@ -105,33 +154,36 @@ const SetAnnualFeeScreen = () => {
       <View style={styles.form}>
         <Text style={styles.sectionTitle}>Set New Annual Fee</Text>
 
-        <Text style={styles.label}>Fee Amount (₹) *</Text>
-        <TextInput
-          style={[
-            styles.input,
-            errors.amount && { borderWidth: 1.5, borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
-          ]}
-          placeholder="e.g. 1500"
-          keyboardType="decimal-pad"
-          value={amount}
-          onChangeText={(t) => { setAmount(t); if (errors.amount) setErrors(p => ({ ...p, amount: null })); }}
-        />
-        {errors.amount && <Text style={styles.error}>{errors.amount}</Text>}
+        <Field label="Fee Amount (₹)" required error={errors.amount}>
+          <StyledInput
+            placeholder="e.g. 1500"
+            keyboardType="decimal-pad"
+            value={amount}
+            onChangeText={(t) => {
+              setAmount(t);
+              if (errors.amount) setErrors(p => ({ ...p, amount: null }));
+            }}
+            hasError={!!errors.amount}
+            returnKeyType="done"
+          />
+        </Field>
 
-        <Text style={styles.label}>Effective From *</Text>
-        <TouchableOpacity
-          style={[
-            styles.dateInput,
-            errors.effectiveFrom && { borderWidth: 1.5, borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
-          ]}
-          onPress={() => { setShowFromPicker(true); if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null })); }}
-        >
-          <Text style={effectiveFrom ? styles.dateText : styles.datePlaceholder}>
-            {effectiveFrom ? formatDate(effectiveFrom) : 'Select date'}
-          </Text>
-          <Text style={styles.calendarIcon}>📅</Text>
-        </TouchableOpacity>
-        {errors.effectiveFrom && <Text style={styles.error}>{errors.effectiveFrom}</Text>}
+        {/* ── Effective From — same dd/mm/yyyy typing + wheel-list picker
+             used across the app (ActivityFormScreen's Activity Date) ── */}
+        <DOBField
+          label="Effective From"
+          required
+          value={effectiveFrom}
+          minDate={feeMinDate}
+          maxDate={feeMaxDate}
+          error={errors.effectiveFrom}
+          FieldComponent={Field}
+          InputComponent={StyledInput}
+          onChange={(d) => {
+            setEffectiveFrom(d);
+            if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null }));
+          }}
+        />
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
@@ -144,23 +196,8 @@ const SetAnnualFeeScreen = () => {
           }
         </TouchableOpacity>
       </View>
-
-      {/* Date Pickers */}
-      {showFromPicker && (
-        <DateTimePicker
-          value={effectiveFrom || new Date()}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          onChange={(event, date) => {
-            setShowFromPicker(Platform.OS === 'ios');
-            if (date) setEffectiveFrom(date);
-          }}
-        />
-      )}
     </ScrollView>
   );
 };
-
-
 
 export default SetAnnualFeeScreen;

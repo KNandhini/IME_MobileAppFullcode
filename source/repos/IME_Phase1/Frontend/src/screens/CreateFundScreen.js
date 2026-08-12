@@ -1,14 +1,14 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Image, Platform, ActivityIndicator, StatusBar } from 'react-native';
-import DateTimePicker from "@react-native-community/datetimepicker";
-import * as DocumentPicker from "expo-document-picker";
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Image, Platform, ActivityIndicator, StatusBar, useWindowDimensions } from 'react-native';import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { fundraiseService } from "../services/fundraiseService";
 import { CreateFundScreenS as s } from './screenStyles';
+
+import DOBField from '../components/DOBField';
 
 // ─── API Base ─────────────────────────────────────────────────────────────────
 //const API_BASE_URL = "http://10.0.2.2:51150/api";
@@ -211,13 +211,29 @@ function Field({ label, required, children, error }) {
   );
 }
 
+// ─── StyledInput — thin wrapper so DOBField can drive it (hasError, style) ───
+function StyledInput({ hasError, style, ...props }) {
+  return (
+    <TextInput
+      style={[
+        s.input,
+        hasError && { borderWidth: 1.5, borderColor: "#EF4444", backgroundColor: "#FFF5F5" },
+        style,
+      ]}
+      placeholderTextColor={C.muted}
+      {...props}
+    />
+  );
+}
+
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 export default function CreateFundScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { data } = route.params || {};
   const isEdit = !!data;
-
+  const { width: screenWidth } = useWindowDimensions();
+  const isLargeScreen = screenWidth >= 600; // tablet / web breakpoint
   // ── Local new files (not yet uploaded) ───────────────────────────────────
   const [photoFiles, setPhotoFiles] = useState([]); // [{ uri, name, type }]
   const [docFiles, setDocFiles] = useState([]); // [{ uri, name, type }]
@@ -255,10 +271,13 @@ export default function CreateFundScreen() {
     upiId: "",
   });
 
-  const [showStart, setShowStart] = useState(false);
-  const [showEnd, setShowEnd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Campaign date bounds — open range; DOBField just needs a min/max.
+  const today = new Date();
+  const campaignMinDate = new Date(today.getFullYear() - 100, 0, 1);
+  const campaignMaxDate =  new Date(today.getFullYear() + 80, 11, 31);
 
   // ── Populate on edit ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -846,58 +865,34 @@ export default function CreateFundScreen() {
         </View>
 
         {/* ══ DATES ═══════════════════════════════════════════════════════════ */}
-        <View style={s.card}>
-          <SectionHeader icon="📅" title="Campaign Dates" />
-          <View style={s.row}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Field label="Start Date">
-                <TouchableOpacity
-                  style={s.datePill}
-                  onPress={() => setShowStart(true)}
-                >
-                  <Text style={s.datePillIcon}>📆</Text>
-                  <Text style={s.datePillText}>
-                    {form.startDate.toLocaleDateString()}
-                  </Text>
-                </TouchableOpacity>
-              </Field>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Field label="End Date">
-                <TouchableOpacity
-                  style={s.datePill}
-                  onPress={() => setShowEnd(true)}
-                >
-                  <Text style={s.datePillIcon}>📆</Text>
-                  <Text style={s.datePillText}>
-                    {form.endDate.toLocaleDateString()}
-                  </Text>
-                </TouchableOpacity>
-              </Field>
-            </View>
-          </View>
-
-          {showStart && (
-            <DateTimePicker
-              value={form.startDate}
-              mode="date"
-              onChange={(_, d) => {
-                setShowStart(false);
-                if (d) set("startDate", d);
-              }}
-            />
-          )}
-          {showEnd && (
-            <DateTimePicker
-              value={form.endDate}
-              mode="date"
-              onChange={(_, d) => {
-                setShowEnd(false);
-                if (d) set("endDate", d);
-              }}
-            />
-          )}
-        </View>
+       {/* ══ DATES ═══════════════════════════════════════════════════════════ */}
+<View style={s.card}>
+  <SectionHeader icon="📅" title="Campaign Dates" />
+  <View style={{ flexDirection: isLargeScreen ? 'row' : 'column' }}>
+    <View style={isLargeScreen ? { flex: 1, marginRight: 8 } : { marginBottom: 4 }}>
+      <DOBField
+        label="Start Date"
+        value={form.startDate}
+        minDate={campaignMinDate}
+        maxDate={campaignMaxDate}
+        FieldComponent={Field}
+        InputComponent={StyledInput}
+        onChange={(d) => set("startDate", d)}
+      />
+    </View>
+    <View style={isLargeScreen ? { flex: 1 } : undefined}>
+      <DOBField
+        label="End Date"
+        value={form.endDate}
+        minDate={campaignMinDate}
+        maxDate={campaignMaxDate}
+        FieldComponent={Field}
+        InputComponent={StyledInput}
+        onChange={(d) => set("endDate", d)}
+      />
+    </View>
+  </View>
+</View>
 
         {/* ══ PHOTOS ══════════════════════════════════════════════════════════ */}
      {/* ══ PHOTOS ══════════════════════════════════════════════════════════ */}

@@ -339,7 +339,7 @@ console.log(userData,"user");
                     ) : (
                       <>
                         <MaterialCommunityIcons
-                          name={isPdf(a.filePath) ? "file-pdf-box" : "download-outline"}
+                          name={isPdf(a.filePath) ? "download-outline" : "download-outline"}
                           size={18}
                           color={COLORS.white}
                         />

@@ -1,7 +1,7 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform, StyleSheet } from 'react-native';
 import { Card } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -74,6 +74,69 @@ function StyledInput({ hasError, multiline, disabled, style, ...props }) {
     />
   );
 }
+
+// ── Local photo-picker styles — dashed-border row with a circular icon,
+// matching the design used in AddAdminScreen. Defined locally here (rather
+// than relying on MemberEditScreenStyles) so this doesn't depend on
+// screenStyles.js already having these keys defined. ──
+const photoPicker = StyleSheet.create({
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.dark,
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#C7D2FE',
+    backgroundColor: '#EEF2FF',
+    borderRadius: 12,
+    padding: 12,
+  },
+  preview: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    marginRight: 12,
+  },
+  placeholder: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#DCE3FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  placeholderIcon: {
+    fontSize: 20,
+  },
+  textWrap: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.dark,
+  },
+  hint: {
+    fontSize: 12,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  removeBtn: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  removeText: {
+    color: '#D32F2F',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+});
 
 const MemberEditScreen = ({ route, navigation }) => {
  const { member } = route.params;
@@ -379,46 +442,37 @@ const memberId = member.memberId || member.MemberId;
           </Card.Content>
         </Card>
 
-        {/* ── Profile Photo — attachment-style card, identical pattern to Activity Form Attachments ── */}
+        {/* ── Profile Photo — dashed-border circular picker row, matching AddAdminScreen ── */}
         <Card style={styles.card}>
           <Card.Content>
             <Text style={styles.sectionTitle}>Profile Photo (Optional)</Text>
-            <View style={[styles.attachGrid, { justifyContent: 'flex-start' }]}>
 
-              {photoSource && (
-                <View style={styles.thumb}>
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    onPress={handlePickPhoto}
-                    activeOpacity={0.8}
-                  >
-                    <Image
-                      source={photoSource}
-                      style={styles.thumbImg}
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.thumbRemove}
-                    onPress={() => { setNewPhoto(null); setResolvedPhotoUri(null); }}
-                  >
-                    <Text style={styles.thumbRemoveText}>✕</Text>
-                  </TouchableOpacity>
+            <TouchableOpacity style={photoPicker.row} onPress={handlePickPhoto} activeOpacity={0.8}>
+              {photoSource ? (
+                <Image source={photoSource} style={photoPicker.preview} />
+              ) : (
+                <View style={photoPicker.placeholder}>
+                  <Text style={photoPicker.placeholderIcon}>👤</Text>
                 </View>
               )}
+              <View style={photoPicker.textWrap}>
+                <Text style={photoPicker.title}>
+                  {photoSource ? 'Photo selected' : 'Upload profile photo'}
+                </Text>
+                <Text style={photoPicker.hint}>
+                  {photoSource ? 'Tap to change' : 'Tap to choose from gallery'}
+                </Text>
+              </View>
+            </TouchableOpacity>
 
-              {!photoSource && (
-                <TouchableOpacity
-                  style={styles.thumbAdd}
-                  onPress={handlePickPhoto}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.thumbAddIcon}>📷</Text>
-                  <Text style={styles.thumbAddText}>Add (0/1)</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-            <Text style={styles.attachHint}>JPG, PNG · Max 1 photo · Tap thumbnail to replace</Text>
+            {/*{photoSource && (
+              <TouchableOpacity
+                style={photoPicker.removeBtn}
+                onPress={() => { setNewPhoto(null); setResolvedPhotoUri(null); }}
+              >
+                <Text style={photoPicker.removeText}>Remove photo</Text>
+              </TouchableOpacity>
+            )}*/}
           </Card.Content>
         </Card>
 

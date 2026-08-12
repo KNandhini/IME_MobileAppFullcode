@@ -47,14 +47,30 @@ const MEMBERSHIP_TIERS = [
 const MembershipDetailsScreen = ({ navigation }) => {
     return (
         <View style={styles.root}>
-            <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
-            <GradientHeader style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <MaterialCommunityIcons name="arrow-left" size={22} color={WHITE} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Membership</Text>
-            </GradientHeader>
+            
 
+  <GradientHeader style={styles.header}>
+            <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
+
+            <View style={styles.headerRow}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backBtn}
+                >
+                    <MaterialCommunityIcons
+                        name="arrow-left"
+                        size={22}
+                        color={WHITE}
+                    />
+                </TouchableOpacity>
+
+                <Text style={styles.headerTitle}>Membership</Text>
+            </View>
+
+
+
+
+        </GradientHeader>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
                 <Text style={styles.introText}>
                     Membership is structured across six categories, recognising both qualification and

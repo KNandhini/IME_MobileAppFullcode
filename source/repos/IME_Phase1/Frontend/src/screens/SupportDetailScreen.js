@@ -370,7 +370,7 @@ const SupportDetailScreen = ({ navigation, route }) => {
                     ) : (
                       <>
                         <MaterialCommunityIcons
-                          name={isPdfPath(a.filePath) ? 'file-pdf-box' : 'download-outline'}
+                          name={isPdfPath(a.filePath) ? 'download-outline' : 'download-outline'}
                           size={18}
                           color="#fff"
                         />

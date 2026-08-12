@@ -21,14 +21,30 @@ const FEES = [
 const FeesDetailsScreen = ({ navigation }) => {
     return (
         <View style={styles.root}>
+           
+            
+  <GradientHeader style={styles.header}>
             <StatusBar barStyle="light-content" backgroundColor={COLORS.headerStart} />
-            <GradientHeader style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <MaterialCommunityIcons name="arrow-left" size={22} color={WHITE} />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Fee Structure</Text>
-            </GradientHeader>
 
+            <View style={styles.headerRow}>
+                <TouchableOpacity
+                    onPress={() => navigation.goBack()}
+                    style={styles.backBtn}
+                >
+                    <MaterialCommunityIcons
+                        name="arrow-left"
+                        size={22}
+                        color={WHITE}
+                    />
+                </TouchableOpacity>
+
+                <Text style={styles.headerTitle}>Fee Structure</Text>
+            </View>
+
+
+
+
+        </GradientHeader>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
                 <Text style={styles.introText}>
                     One-time membership fee, payable at the time of enrolment based on category.

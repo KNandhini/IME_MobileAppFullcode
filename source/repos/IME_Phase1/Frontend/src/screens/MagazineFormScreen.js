@@ -1,12 +1,11 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
+import DOBField from '../components/DOBField';
 
 import api from '../utils/api';
 import { MagazineFormScreenStyles as styles } from './screenStyles';
@@ -107,14 +106,15 @@ const MagazineFormScreen = ({ route, navigation }) => {
   const [issueNumber, setIssueNumber] = useState(item?.issueNumber || '');
   const [authorName, setAuthorName] = useState(item?.authorName || '');
   const [category, setCategory] = useState(item?.category || '');
-  const [date, setDate] = useState(item?.publishedDate ? new Date(item.publishedDate) : new Date());
-  const [showDate, setShowDate] = useState(false);
+  const [date, setDate] = useState(item?.publishedDate ? new Date(item.publishedDate) : null);
   const [loading, setLoading] = useState(false);
 
   const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
-
+const today = new Date();
+const minDate = new Date(today.getFullYear() - 100, 0, 1);
+const maxDate = new Date(today.getFullYear() + 80, 11, 31);
   // ── Load existing attachments (edit mode) ──────────────────────────────
   useEffect(() => {
     if (isEdit && item?.magazineId) loadExistingAttachments();
@@ -256,7 +256,10 @@ const totalAttachments = existingAttachments.length + attachments.length;
             : <Text style={styles.saveText}>{isEdit ? 'Update' : 'Save'}</Text>}
         </TouchableOpacity>
       </GradientHeader>
-
+ <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
        {/* ── Title ── */}
@@ -327,27 +330,16 @@ const totalAttachments = existingAttachments.length + attachments.length;
           />
         </Field>
 
-        {/* ── Date picker — styled like Title/Category, matches Achievement Form ── */}
-        <Field label="Published Date">
-          <TouchableOpacity
-            style={styles.styledInput.base}
-            onPress={() => setShowDate(true)}
-            activeOpacity={0.8}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 15, color: COLORS.dark, fontWeight: '500' }}>
-                {date.toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}
-              </Text>
-              <MaterialCommunityIcons name="calendar-outline" size={18} color={NAVY} />
-            </View>
-          </TouchableOpacity>
-        </Field>
-        {showDate && (
-          <DateTimePicker
-            value={date} mode="date" display="default" maximumDate={new Date()}
-            onChange={(evt, d) => { setShowDate(false); if (d) setDate(d); }}
-          />
-        )}
+        {/* ── Published Date — type dd/mm/yyyy or tap 📅 for the wheel-list picker ── */}
+        <DOBField
+  label="Published Date"
+  value={date}
+  onChange={(d) => setDate(d)}
+  minDate={minDate}
+  maxDate={maxDate}
+  FieldComponent={Field}
+  InputComponent={StyledInput}
+/>
 
        <Text style={styles.attachLabel}>ATTACHMENTS (PDF, IMAGE, DOC)</Text>
 <View style={styles.attachGrid}>
@@ -420,7 +412,7 @@ const totalAttachments = existingAttachments.length + attachments.length;
        
 
       </ScrollView>
-
+</KeyboardAvoidingView>
       <Modal visible={fileViewer.visible} transparent animationType="fade"
         onRequestClose={() => setFileViewer({ visible: false, uri: null })}>
         <View style={styles.viewerOverlay}>
