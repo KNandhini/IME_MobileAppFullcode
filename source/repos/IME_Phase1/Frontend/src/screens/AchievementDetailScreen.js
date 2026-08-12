@@ -4,7 +4,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
-import { AchievementDetailScreenStyles as styles } from './screenStyles';
+import { AchievementDetailScreenStyles as styles, CircularDetailScreenStyles as circStyles } from './screenStyles';
 import GradientHeader from '../components/GradientHeader';
 const NAVY = '#252943';
 const GOLD = '#A0C878';
@@ -186,97 +186,39 @@ const AchievementDetailScreen = ({ route, navigation }) => {
               </View>
             </View>
           ) : attachments.length > 0 && (
-            <View style={styles.attachSection}>
-              <Text style={styles.attachLabel}>Attachments</Text>
+            /* ── Attachments — reuses CircularDetailScreenStyles (circStyles) so the format is identical to CircularDetailScreen ── */
+            <View style={circStyles.attachSection}>
+              <Text style={circStyles.attachLabel}>Attachments</Text>
 
               {attachments.map((attachment, index) => {
                 const filePath = attachment.filePath;
                 const url = toPublicUrl(filePath);
 
                 return isImage(filePath) ? (
-                  <View key={attachment.attachmentId || index} style={{ marginBottom: 14 }}>
-                    (
-                    <View
-                      key={attachment.attachmentId || index}
-                      style={{
-                        backgroundColor: '#FFFFFF',
-                        borderRadius: 12,
-                        padding: 15,
-                        marginBottom: 14,
-                        borderWidth: 1,
-                        borderColor: '#E5E7EB',
-                      }}
-                    >
-                      <View
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <View
-                          style={{
-                            flex: 1,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            marginRight: 10,
-                          }}
-                        >
-                          <MaterialCommunityIcons
-                            name="file-pdf-box"
-                            size={36}
-                            color="#D32F2F"
-                          />
-
-                          <Text
-                            numberOfLines={1}
-                            style={{
-                              marginLeft: 10,
-                              flex: 1,
-                              fontSize: 14,
-                              color: '#334155',
-                              fontWeight: '600',
-                            }}
-                          >
-                            {filePath.split('/').pop().split('\\').pop()}
-                          </Text>
-                        </View>
-
-                        <TouchableOpacity
-                          onPress={() => handleDownload(url)}
-                          activeOpacity={0.8}
-                          style={{
-                            backgroundColor: NAVY,
-                            paddingHorizontal: 16,
-                            paddingVertical: 8,
-                            borderRadius: 8,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              color: '#FFFFFF',
-                              fontWeight: '700',
-                              fontSize: 13,
-                            }}
-                          >
-                            Download
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    )
-
-
-                  </View>
+                  <TouchableOpacity
+                    key={attachment.attachmentId || index}
+                    onPress={() => setImgViewer(url)}
+                    activeOpacity={0.85}
+                    style={{ marginBottom: 14 }}
+                  >
+                    <Image
+                      source={{ uri: url }}
+                      style={circStyles.attachImage}
+                      resizeMode="contain"
+                    />
+                    <Text style={circStyles.attachHint}>Tap to enlarge</Text>
+                  </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
                     key={attachment.attachmentId || index}
-                    style={[styles.downloadBtn, { marginBottom: 14 }]}
+                    style={[circStyles.downloadBtn, { marginBottom: 14 }]}
                     onPress={() => handleDownload(url)}
-                    activeOpacity={0.8}
+                    activeOpacity={0.85}
                   >
                     <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
-                    <Text style={styles.downloadText}>Download Attachment</Text>
+                    <Text style={circStyles.downloadText}>
+                      {attachment.fileName ?? 'Download Attachment'}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}

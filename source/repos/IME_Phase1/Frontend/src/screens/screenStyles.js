@@ -1986,96 +1986,96 @@ export const ChatsListScreenStyles = (() => {
     emptyIcon: { fontSize: 52, marginBottom: 14 },
     emptyText: { fontSize: 17, fontWeight: '700', color: '#555', marginBottom: 6 },
     emptySub: { fontSize: 13, color: '#aaa', textAlign: 'center', lineHeight: 20 },
-   // ── FAB ──
- // ── FAB ──
-  fab: Common.fab(),
+    // ── FAB ──
+    // ── FAB ──
+    fab: Common.fab(),
     fabText: Common.fabText,
-  fabIcon: { color: '#fff', fontSize: 28, fontWeight: '700', lineHeight: 30 },
- 
-  // ── Member picker modal ──
-  modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-  },
-  modalSheet: {
-    position: 'absolute',
-    left: 0, right: 0, bottom: 0,
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '75%',
-    paddingBottom: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
-  modalCloseBtn: {
-    width: 30, height: 30, borderRadius: 15,
-    backgroundColor: '#F0F2F5',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
- 
-  searchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F7FA',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginTop: 14,
-    marginBottom: 6,
-    paddingHorizontal: 12,
-  },
-  searchIcon: { fontSize: 14, marginRight: 8 },
-  searchInput: {
-    flex: 1,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#1a1a1a',
-  },
-  searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
- 
-  // ── Inline search box on the main Chats list (above the FlatList) ──
-  chatSearchBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 6,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-  },
-  chatSearchInput: {
-    flex: 1,
-    paddingVertical: 10,
-    fontSize: 14,
-    color: '#1a1a1a',
-  },
- 
-  memberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-  },
-  memberAvatar: {
-    width: 42, height: 42, borderRadius: 21,
-    alignItems: 'center', justifyContent: 'center',
-    marginRight: 12,
-  },
-  memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-  memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
+    fabIcon: { color: '#fff', fontSize: 28, fontWeight: '700', lineHeight: 30 },
+
+    // ── Member picker modal ──
+    modalOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0,0,0,0.45)',
+    },
+    modalSheet: {
+      position: 'absolute',
+      left: 0, right: 0, bottom: 0,
+      backgroundColor: '#fff',
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      maxHeight: '75%',
+      paddingBottom: 20,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+      borderBottomWidth: 1,
+      borderBottomColor: '#F1F5F9',
+    },
+    modalTitle: { fontSize: 16, fontWeight: '700', color: '#252943' },
+    modalCloseBtn: {
+      width: 30, height: 30, borderRadius: 15,
+      backgroundColor: '#F0F2F5',
+      alignItems: 'center', justifyContent: 'center',
+    },
+    modalCloseText: { fontSize: 14, color: '#334155', fontWeight: '700' },
+
+    searchBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#F5F7FA',
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginTop: 14,
+      marginBottom: 6,
+      paddingHorizontal: 12,
+    },
+    searchIcon: { fontSize: 14, marginRight: 8 },
+    searchInput: {
+      flex: 1,
+      paddingVertical: 12,
+      fontSize: 15,
+      color: '#1a1a1a',
+    },
+    searchClear: { fontSize: 13, color: '#94A3B8', paddingHorizontal: 6 },
+
+    // ── Inline search box on the main Chats list (above the FlatList) ──
+    chatSearchBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      marginHorizontal: 16,
+      marginTop: 10,
+      marginBottom: 6,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+    },
+    chatSearchInput: {
+      flex: 1,
+      paddingVertical: 10,
+      fontSize: 14,
+      color: '#1a1a1a',
+    },
+
+    memberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 18,
+      paddingVertical: 12,
+    },
+    memberAvatar: {
+      width: 42, height: 42, borderRadius: 21,
+      alignItems: 'center', justifyContent: 'center',
+      marginRight: 12,
+    },
+    memberAvatarLetter: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    memberName: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+    memberEmail: { fontSize: 12, color: '#888', marginTop: 1 },
   });
 })();
 
@@ -3296,7 +3296,7 @@ export const FeesDetailsStyles = (() => {
     },
     cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
     paymentTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444',  textAlign: 'justify', },
+    cardBody: { fontSize: 13, lineHeight: 19, color: '#444', textAlign: 'justify', },
   });
 })();
 
@@ -3683,7 +3683,7 @@ export const GovernanceDetailsStyles = (() => {
       alignItems: 'center', justifyContent: 'center', marginRight: 10,
     },
     cardTitle: { fontSize: 14, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444',  textAlign: 'justify', },
+    cardBody: { fontSize: 13, lineHeight: 19, color: '#444', textAlign: 'justify', },
     meetingsCard: {
       backgroundColor: WHITE, borderRadius: 12, padding: 16, marginTop: 8, marginBottom: 12,
     },
@@ -5090,7 +5090,7 @@ export const MembershipDetailsStyles = (() => {
       alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
     cardTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444',  textAlign: 'justify', },
+    cardBody: { fontSize: 13, lineHeight: 19, color: '#444', textAlign: 'justify', },
     benefitsCard: {
       backgroundColor: NAVY,
       borderRadius: 12,
@@ -5138,22 +5138,22 @@ export const MunicipalMapScreenStyles = (() => {
     headerTitle: { color: '#fff', fontSize: 18, fontWeight: '700' },
     breadcrumb: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
 
- levelRow: {
-  flexDirection: 'row',
-  backgroundColor: NAVY,
-  paddingHorizontal: 10,
-  paddingBottom: 8,
-  padding :20
-},
-levelPill: {
-  flex: 1, minHeight: 34, paddingVertical: 10, paddingHorizontal: 10, borderRadius: 20,
-  backgroundColor: 'rgba(255,255,255,0.12)',
-  alignItems: 'center', justifyContent: 'center', marginHorizontal: 3,
-},
-levelPillActive: { backgroundColor: GOLD },
-levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' },
-levelPillTextActive: { color: NAVY, fontWeight: '700' },
-//levelPillTextActive: { color: NAVY },
+    levelRow: {
+      flexDirection: 'row',
+      backgroundColor: NAVY,
+      paddingHorizontal: 10,
+      paddingBottom: 8,
+      padding: 20
+    },
+    levelPill: {
+      flex: 1, minHeight: 34, paddingVertical: 10, paddingHorizontal: 10, borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.12)',
+      alignItems: 'center', justifyContent: 'center', marginHorizontal: 3,
+    },
+    levelPillActive: { backgroundColor: GOLD },
+    levelPillText: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' },
+    levelPillTextActive: { color: NAVY, fontWeight: '700' },
+    //levelPillTextActive: { color: NAVY },
 
     mapContainer: { flex: 1 },
     map: { flex: 1 },
@@ -6313,9 +6313,9 @@ export const RaiseFundScreenS = (() => {
     modalStatLabel: { fontSize: 11, color: '#888', marginTop: 2 },
     modalStatDivider: { width: 1, height: 32, backgroundColor: '#ddd' },
 
-modalSectionLabel: { fontSize: 12, fontWeight: '600', color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
-modalGoalBox: { backgroundColor: '#f5f4f0', borderRadius: 14, padding: 14, marginTop: 12, marginBottom: 20 },
-modalGoalRow: { flexDirection: 'row', marginTop: 14, alignItems: 'center' },    quickRow: { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
+    modalSectionLabel: { fontSize: 12, fontWeight: '600', color: '#888', marginBottom: 10, textTransform: 'uppercase', letterSpacing: 0.5 },
+    modalGoalBox: { backgroundColor: '#f5f4f0', borderRadius: 14, padding: 14, marginTop: 12, marginBottom: 20 },
+    modalGoalRow: { flexDirection: 'row', marginTop: 14, alignItems: 'center' }, quickRow: { flexDirection: 'row', gap: 8, marginBottom: 20, flexWrap: 'wrap' },
     quickChip: { flex: 1, minWidth: 70, borderRadius: 10, paddingVertical: 10, backgroundColor: '#f0ede8', alignItems: 'center' },
     quickChipActive: { backgroundColor: GREEN },
     quickChipText: { fontSize: 14, fontWeight: '600', color: '#666' },
@@ -7107,9 +7107,11 @@ export const ClubDetailScreenStyles = {
 };
 
 // HealthNutritionDetailScreen
+// HealthNutritionDetailScreen
 export const HealthNutritionDetailScreenStyles = (() => {
   const NAVY = COLORS.navy;
   const GOLD = COLORS.gold;
+  const MEDIA_WIDTH = Dimensions.get('window').width - 40; // matches body padding (20 * 2)
 
   return createScreenStyles({
     root: { flex: 1, backgroundColor: '#F0F4F8' },
@@ -7164,6 +7166,30 @@ export const HealthNutritionDetailScreenStyles = (() => {
       flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
       backgroundColor: NAVY, borderRadius: 10, padding: 14, marginTop: 4,
     },
+    audioCard: {
+      width: MEDIA_WIDTH,
+      backgroundColor: '#F8FAFC',
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: '#E2E8F0',
+      paddingVertical: 32,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    audioButton: {
+      width: 68,
+      height: 68,
+      borderRadius: 34,
+      backgroundColor: NAVY,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    audioHint: {
+      marginTop: 12,
+      fontSize: 13,
+      fontWeight: '600',
+      color: '#64748B',
+    },
     downloadText: { color: '#fff', fontSize: 14, fontWeight: '700', marginLeft: 8 },
   });
 })();
@@ -7206,3 +7232,62 @@ export const HealthNutritionScreenStyles = (() => {
     fabText: Common.fabText,
   });
 })();
+export const HealthNutritionFormScreenStyles = StyleSheet.create({
+  navbar: {
+    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12,
+    paddingTop: (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0) + 12,
+  },
+  navSideBtn: { minWidth: 40, paddingHorizontal: 4, paddingVertical: 4 },
+  navCenter: { flex: 1, alignItems: 'center' },
+  navTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+
+  body: { padding: 20, paddingBottom: 60 },
+
+  fieldWrapper: { marginBottom: 18 },
+  fieldLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
+  fieldReq: { color: '#EF4444' },
+  fieldHint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
+  fieldError: { fontSize: 11, color: '#EF4444', marginTop: 5, fontWeight: '500' },
+
+  inputBase: {
+    backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
+    fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500',
+  },
+  inputMultiline: { height: 120, paddingTop: 14 },
+  inputFocused: { borderColor: '#1E3A5F', backgroundColor: '#fff' },
+  inputErrored: { borderColor: '#EF4444', backgroundColor: '#FFF5F5' },
+
+  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 },
+  attachGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
+    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 96, alignItems: 'center',
+  },
+  gridThumb: { width: 96, height: 96, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
+  gridImg: { width: '100%', height: '100%' },
+  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 6 },
+  gridDocIcon: { fontSize: 26 },
+  gridDocName: { fontSize: 10, color: '#64748B', textAlign: 'center', marginTop: 4 },
+  gridRemove: { position: 'absolute', top: 3, right: 3, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 9, width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
+  gridRemoveText: { fontSize: 11, color: '#fff', fontWeight: '700' },
+  gridAddBtn: { width: 96, height: 96, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
+  gridAddIcon: { fontSize: 24, marginBottom: 4 },
+  gridAddText: { fontSize: 10, color: '#64748B', textAlign: 'center', fontWeight: '500' },
+  attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6, marginBottom: 18 },
+
+  statusPill: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' },
+  statusPillActive: { backgroundColor: '#EEF9F0', borderColor: '#22C55E' },
+  statusPillActiveInactive: { backgroundColor: '#FEF2F2', borderColor: '#EF4444' },
+  statusPillText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
+  statusPillTextActive: { color: '#1E293B' },
+
+  saveBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#1E3A5F', borderRadius: 14, paddingVertical: 16, marginTop: 24,
+  },
+  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+
+  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
+  viewerImage: { width: '100%', height: '80%' },
+  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
+  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+});

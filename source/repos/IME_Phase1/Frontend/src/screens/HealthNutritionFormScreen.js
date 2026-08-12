@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StatusBar, Alert,
-  ActivityIndicator, Image, Modal, Linking, TextInput, StyleSheet, Platform,
+  ActivityIndicator, Image, Modal, Linking, TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -12,6 +12,7 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import { healthNutritionService } from '../services/healthNutritionService';
 import { getSafeErrorMessage } from '../utils/errorHandler';
+import { HealthNutritionFormScreenStyles as styles } from './screenStyles';
 
 const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
@@ -68,10 +69,19 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
   const [existingAttachmentUrl] = useState(item?.attachmentPath || null);
   const [existingAttachmentName] = useState(item?.attachmentFileName || null);
   const [existingAttachmentType] = useState(item?.attachmentType || null);
+  // True once the user has explicitly cleared the existing (server-side) attachment.
+  // Only meaningful in edit mode; lets them remove it and optionally pick a new one.
+  const [removeExisting, setRemoveExisting] = useState(false);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Resolved attachment currently shown in the UI: a newly-picked file takes
+  // priority; otherwise fall back to the existing one unless it's been removed.
+  const attachmentPreviewName = attachment?.fileName || (!removeExisting ? existingAttachmentName : null);
+  const attachmentPreviewType = attachment?.type || (!removeExisting ? existingAttachmentType : null);
+  const attachmentPreviewUri = attachment?.uri || (!removeExisting ? existingAttachmentUrl : null);
 
   // Matches the backend's AllowedAttachmentTypes whitelist exactly, split
   // into the categories the requirements ask for (Document / Audio / Video /
@@ -100,6 +110,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
             setAttachment({ uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'application/pdf', type: 'document' });
+            setRemoveExisting(false);
           }
         },
       },
@@ -114,6 +125,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
             setAttachment({ uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'audio/mpeg', type: 'audio' });
+            setRemoveExisting(false);
           }
         },
       },
@@ -133,6 +145,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
             setAttachment({ uri: a.uri, fileName: a.fileName || `video_${Date.now()}.mp4`, mimeType: a.mimeType || 'video/mp4', type: 'video' });
+            setRemoveExisting(false);
           }
         },
       },
@@ -152,6 +165,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
             setAttachment({ uri: a.uri, fileName: a.fileName || `photo_${Date.now()}.jpg`, mimeType: a.mimeType || 'image/jpeg', type: 'image' });
+            setRemoveExisting(false);
           }
         },
       },
@@ -166,11 +180,24 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
             setAttachment({ uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'application/octet-stream', type: 'other' });
+            setRemoveExisting(false);
           }
         },
       },
       { text: 'Cancel', style: 'cancel' },
     ]);
+  };
+
+  // Clears whichever attachment is currently on screen — a newly-picked file,
+  // or (in edit mode) the existing server-side one. After this, the "Add File"
+  // button lets the user pick a replacement if they want one.
+  const handleRemoveAttachment = () => {
+    if (attachment) {
+      setAttachment(null);
+    } else if (existingAttachmentUrl) {
+      setRemoveExisting(true);
+    }
+    setErrors((p) => ({ ...p, attachment: '' }));
   };
 
   const formatDate = (d) => {
@@ -186,7 +213,9 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
     if (!description.trim()) e.description = 'Description is required';
     if (!postedUser.trim()) e.postedUser = 'Posted user is required';
     if (!postedBy) e.postedBy = 'Posted date is required';
-    if (!isEdit && !attachment) e.attachment = 'An attachment is required';
+    // Required whenever there's no attachment resolved for save — covers
+    // fresh create, and edit where the existing file was removed and never replaced.
+    if (!attachmentPreviewUri) e.attachment = 'An attachment is required';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -208,6 +237,10 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           name: attachment.fileName,
           type: attachment.mimeType,
         });
+      } else if (isEdit && removeExisting) {
+        // Existing attachment was cleared and nothing new was picked to replace it.
+        // Flag it so the backend drops the old file instead of leaving it unchanged.
+        form.append('RemoveAttachment', 'true');
       }
 
       const res = isEdit
@@ -229,9 +262,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
     }
   };
 
-  const attachmentPreviewName = attachment?.fileName || existingAttachmentName;
-  const attachmentPreviewType = attachment?.type || existingAttachmentType;
-  const attachmentPreviewUri = attachment?.uri || existingAttachmentUrl;
+  const addBtnLabel = attachmentPreviewUri ? 'Replace' : 'Add File';
 
   return (
     <View style={{ flex: 1, backgroundColor: '#F5F7FA' }}>
@@ -331,14 +362,13 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
                     </View>
                   )}
                 </TouchableOpacity>
+                {/* Removes whatever is shown — new pick or existing file — regardless of mode */}
                 <TouchableOpacity
                   style={styles.gridRemove}
-                  onPress={() => setAttachment(attachment ? null : null)}
+                  onPress={handleRemoveAttachment}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
-                  {/* Only allow clearing a newly-picked file, not the existing one on edit */}
-                  {attachment && (
-                    <Text style={styles.gridRemoveText} onPress={() => setAttachment(null)}>✕</Text>
-                  )}
+                  <Text style={styles.gridRemoveText}>✕</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
@@ -346,13 +376,15 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
             {(!attachmentPreviewUri || isEdit) && (
               <TouchableOpacity style={styles.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
                 <Text style={styles.gridAddIcon}>📷</Text>
-                <Text style={styles.gridAddText}>{isEdit ? 'Replace' : 'Add File'}</Text>
+                <Text style={styles.gridAddText}>{addBtnLabel}</Text>
               </TouchableOpacity>
             )}
           </View>
           {!!errors.attachment && <Text style={styles.fieldError}>{errors.attachment}</Text>}
           <Text style={styles.attachHint}>
-            {isEdit ? 'Leave as-is to keep the current file, or pick a new one to replace it.' : 'PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, TXT/CSV, MP3/WAV, MP4/AVI/MOV/MKV, JPG/PNG/GIF/WEBP, ZIP/RAR/7Z · Max 50 MB'}
+            {isEdit
+              ? 'Leave as-is to keep the current file, remove it with ✕, or pick a new one to replace it.'
+              : 'PDF, DOC/DOCX, XLS/XLSX, PPT/PPTX, TXT/CSV, MP3/WAV, MP4/AVI/MOV/MKV, JPG/PNG/GIF/WEBP, ZIP/RAR/7Z · Max 50 MB'}
           </Text>
 
           {/* ── Status toggle ── */}
@@ -411,65 +443,5 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  navbar: {
-    flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12,
-    paddingTop: (Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0) + 12,
-  },
-  navSideBtn: { minWidth: 40, paddingHorizontal: 4, paddingVertical: 4 },
-  navCenter: { flex: 1, alignItems: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
-
-  body: { padding: 20, paddingBottom: 60 },
-
-  fieldWrapper: { marginBottom: 18 },
-  fieldLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 7, textTransform: 'uppercase', letterSpacing: 0.6 },
-  fieldReq: { color: COLORS.danger },
-  fieldHint: { fontSize: 11, color: '#94A3B8', marginTop: 5 },
-  fieldError: { fontSize: 11, color: COLORS.danger, marginTop: 5, fontWeight: '500' },
-
-  inputBase: {
-    backgroundColor: '#F8FAFC', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
-    fontSize: 15, color: '#1E293B', borderWidth: 1.5, borderColor: '#E2E8F0', fontWeight: '500',
-  },
-  inputMultiline: { height: 120, paddingTop: 14 },
-  inputFocused: { borderColor: COLORS.primary, backgroundColor: '#fff' },
-  inputErrored: { borderColor: COLORS.danger, backgroundColor: '#FFF5F5' },
-
-  attachLabel: { fontSize: 12, fontWeight: '700', color: '#64748B', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.6 },
-  attachGrid: {
-    flexDirection: 'row', flexWrap: 'wrap', borderWidth: 1.5, borderColor: '#CBD5E1',
-    borderRadius: 12, borderStyle: 'dashed', padding: 8, minHeight: 96, alignItems: 'center',
-  },
-  gridThumb: { width: 96, height: 96, borderRadius: 10, margin: 4, overflow: 'hidden', backgroundColor: '#F1F5F9', borderWidth: 1, borderColor: '#E2E8F0' },
-  gridImg: { width: '100%', height: '100%' },
-  gridDoc: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 6 },
-  gridDocIcon: { fontSize: 26 },
-  gridDocName: { fontSize: 10, color: '#64748B', textAlign: 'center', marginTop: 4 },
-  gridRemove: { position: 'absolute', top: 3, right: 3, backgroundColor: 'rgba(0,0,0,0.55)', borderRadius: 9, width: 20, height: 20, alignItems: 'center', justifyContent: 'center' },
-  gridRemoveText: { fontSize: 11, color: '#fff', fontWeight: '700' },
-  gridAddBtn: { width: 96, height: 96, borderRadius: 10, margin: 4, borderWidth: 1.5, borderColor: '#CBD5E1', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC' },
-  gridAddIcon: { fontSize: 24, marginBottom: 4 },
-  gridAddText: { fontSize: 10, color: '#64748B', textAlign: 'center', fontWeight: '500' },
-  attachHint: { fontSize: 11, color: '#94A3B8', marginTop: 6, marginBottom: 18 },
-
-  statusPill: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC' },
-  statusPillActive: { backgroundColor: '#EEF9F0', borderColor: COLORS.success },
-  statusPillActiveInactive: { backgroundColor: '#FEF2F2', borderColor: COLORS.danger },
-  statusPillText: { fontSize: 13, fontWeight: '600', color: '#64748B' },
-  statusPillTextActive: { color: '#1E293B' },
-
-  saveBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    backgroundColor: NAVY, borderRadius: 14, paddingVertical: 16, marginTop: 24,
-  },
-  saveBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
-
-  viewerOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.92)', alignItems: 'center', justifyContent: 'center' },
-  viewerImage: { width: '100%', height: '80%' },
-  viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
-  viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-});
 
 export default HealthNutritionFormScreen;
