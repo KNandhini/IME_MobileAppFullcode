@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -150,6 +150,12 @@ const SignupScreen = ({ navigation, route }) => {
   const [statesLoading, setStatesLoading] = useState(false);
   const [clubsLoading, setClubsLoading] = useState(false);
 
+  // Refs used to auto-select India as the default country and to auto-scroll
+  // the State list down to Tamil Nadu when it opens (most users on this app
+  // are older Tamil Nadu municipal engineers, so this saves them scrolling).
+  const stateListRef = useRef(null);
+  const autoSelectedCountryRef = useRef(false);
+
   const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
   const [occupation, setOccupation] = useState('');
   const [occupationMenuVisible, setOccupationMenuVisible] = useState(false);
@@ -165,6 +171,41 @@ const SignupScreen = ({ navigation, route }) => {
     fetchFee();
     loadCountries();
   }, []);
+
+  // Auto-select "India" as soon as the country list loads, so the Country
+  // field is already filled in for the user without needing to open the modal.
+  useEffect(() => {
+    if (!autoSelectedCountryRef.current && countries.length > 0) {
+      const india = countries.find(
+        (c) => c.countryName?.trim().toLowerCase() === 'india'
+      );
+      if (india) {
+        autoSelectedCountryRef.current = true;
+        setSelectedCountry(india);
+        loadStates(india.countryId);
+      }
+    }
+  }, [countries]);
+
+  // When the State picker opens, auto-scroll the list down to "Tamil Nadu"
+  // so elderly users can see and tap it right away instead of scrolling
+  // through the whole alphabetical list.
+  useEffect(() => {
+    if (stateModal && states.length > 0 && stateListRef.current) {
+      const tnIndex = states.findIndex(
+        (s) => s.stateName?.trim().toLowerCase() === 'tamil nadu'
+      );
+      if (tnIndex >= 0) {
+        setTimeout(() => {
+          stateListRef.current?.scrollToIndex({
+            index: tnIndex,
+            animated: true,
+            viewPosition: 0.3,
+          });
+        }, 150);
+      }
+    }
+  }, [stateModal, states]);
 
   const fetchFee = async () => {
     try {
@@ -706,9 +747,20 @@ const SignupScreen = ({ navigation, route }) => {
             <View style={styles.pickerSheet}>
               <Text style={styles.pickerTitle}>Select State</Text>
               <FlatList
+                ref={stateListRef}
                 data={states}
                 keyExtractor={item => String(item.stateId)}
                 style={{ maxHeight: 380 }}
+                getItemLayout={(data, index) => ({ length: 48, offset: 48 * index, index })}
+                onScrollToIndexFailed={(info) => {
+                  setTimeout(() => {
+                    stateListRef.current?.scrollToIndex({
+                      index: info.index,
+                      animated: true,
+                      viewPosition: 0.3,
+                    });
+                  }, 200);
+                }}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={styles.pickerItem}
