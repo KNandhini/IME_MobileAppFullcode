@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { fundraiseService } from "../services/fundraiseService";
 import { CreateFundScreenS as s } from './screenStyles';
-
+import * as FileSystem from "expo-file-system/legacy";
 import DOBField from '../components/DOBField';
 
 // ─── API Base ─────────────────────────────────────────────────────────────────
@@ -68,7 +68,51 @@ const getDisplayName = (path) => {
   if (!path) return "";
   return path.replace(/\\/g, "/").split("/").pop();
 };
+// Attachment size cap — 50 MB per file.
+const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+const MAX_PHOTOS = 5;
+const MAX_DOCS = 5;
 
+const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+// Resolve a picked asset's size in bytes, whichever field the picker
+// happened to populate — fall back to the filesystem if neither is present.
+const getAssetSize = async (asset) => {
+  if (typeof asset.size === "number") return asset.size;
+  if (typeof asset.fileSize === "number") return asset.fileSize;
+  try {
+    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+    if (info?.exists && typeof info.size === "number") return info.size;
+  } catch (e) {
+    console.warn("Could not determine file size for", asset?.uri, e);
+  }
+  return null; // unknown — let it through rather than block a valid pick
+};
+
+// Splits picked assets into { accepted, rejected }, checking each one's
+// real size against MAX_ATTACHMENT_BYTES.
+const partitionBySize = async (assets) => {
+  const accepted = [];
+  const rejected = [];
+  for (const asset of assets) {
+    const size = await getAssetSize(asset);
+    if (size != null && size > MAX_ATTACHMENT_BYTES) {
+      rejected.push({ name: asset.fileName || asset.name || "file", size });
+    } else {
+      accepted.push(asset);
+    }
+  }
+  return { accepted, rejected };
+};
+
+const warnIfRejected = (rejected) => {
+  if (rejected.length === 0) return;
+  const list = rejected.map((r) => `• ${r.name} (${formatMB(r.size)})`).join("\n");
+  Alert.alert(
+    "File too large",
+    `The following file${rejected.length > 1 ? "s" : ""} exceed${rejected.length > 1 ? "" : "s"} the 50 MB limit and ${rejected.length > 1 ? "were" : "was"} not added:\n\n${list}`
+  );
+};
 // ─── Palette ──────────────────────────────────────────────────────────────────
 const C = {
   bg: "#F7F8FC",
@@ -329,54 +373,81 @@ export default function CreateFundScreen() {
 
   // ── Pick multiple photos ──────────────────────────────────────────────────
   const pickPhotos = async () => {
-    try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permission denied", "Gallery access is required.");
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        // ✅ Fixed: MediaTypeOptions deprecated → use MediaType
-        mediaTypes: ["images"],
-        allowsMultipleSelection: true,
-        quality: 0.85,
-      });
-      if (!result.canceled && result.assets?.length) {
-        const picked = result.assets.map(a => ({
-          uri: a.uri,
-          name: a.fileName || a.uri.split("/").pop() || `photo_${Date.now()}.jpg`,
-          type: a.mimeType || "image/jpeg",
-        }));
-        setPhotoFiles(prev => [...prev, ...picked]);
-      }
-    } catch (e) {
-      console.warn("pickPhotos error:", e);
-      Alert.alert("Error", "Could not open photo gallery.");
+  try {
+    const totalUsed = existingPhotos.length + photoFiles.length;
+    const slotsLeft = MAX_PHOTOS - totalUsed;
+    if (slotsLeft <= 0) {
+      Alert.alert("Limit reached", `Max ${MAX_PHOTOS} photos per fund.`);
+      return;
     }
-  };
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission denied", "Gallery access is required.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      selectionLimit: slotsLeft,
+      quality: 0.85,
+    });
+    if (!result.canceled && result.assets?.length) {
+      const { accepted, rejected } = await partitionBySize(result.assets);
+      warnIfRejected(rejected);
+
+      const picked = accepted.slice(0, slotsLeft).map((a) => ({
+        uri: a.uri,
+        name: a.fileName || a.uri.split("/").pop() || `photo_${Date.now()}.jpg`,
+        type: a.mimeType || "image/jpeg",
+      }));
+      setPhotoFiles((prev) => [...prev, ...picked]);
+
+      if (accepted.length > slotsLeft) {
+        Alert.alert("Limit applied", `Only ${slotsLeft} photo(s) added. Max ${MAX_PHOTOS} total.`);
+      }
+    }
+  } catch (e) {
+    console.warn("pickPhotos error:", e);
+    Alert.alert("Error", "Could not open photo gallery.");
+  }
+};
 
   // ── Pick multiple PDFs ────────────────────────────────────────────────────
   const pickDocs = async () => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: "application/pdf",
-        multiple: true,
-        copyToCacheDirectory: true,
-      });
-      if (!result.canceled && result.assets?.length) {
-        const picked = result.assets.map(a => ({
-          uri: a.uri,
-          name: a.name || `document_${Date.now()}.pdf`,
-          type: a.mimeType || "application/pdf",
-        }));
-        setDocFiles(prev => [...prev, ...picked]);
-      }
-    } catch (e) {
-      console.warn("pickDocs error:", e);
-      Alert.alert("Error", "Could not open document picker.");
+  try {
+    const totalUsed = existingDocs.length + docFiles.length;
+    const slotsLeft = MAX_DOCS - totalUsed;
+    if (slotsLeft <= 0) {
+      Alert.alert("Limit reached", `Max ${MAX_DOCS} documents per fund.`);
+      return;
     }
-  };
+
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "application/pdf",
+      multiple: true,
+      copyToCacheDirectory: true,
+    });
+    if (!result.canceled && result.assets?.length) {
+      const { accepted, rejected } = await partitionBySize(result.assets);
+      warnIfRejected(rejected);
+
+      const picked = accepted.slice(0, slotsLeft).map((a) => ({
+        uri: a.uri,
+        name: a.name || `document_${Date.now()}.pdf`,
+        type: a.mimeType || "application/pdf",
+      }));
+      setDocFiles((prev) => [...prev, ...picked]);
+
+      if (accepted.length > slotsLeft) {
+        Alert.alert("Limit applied", `Only ${slotsLeft} document(s) added. Max ${MAX_DOCS} total.`);
+      }
+    }
+  } catch (e) {
+    console.warn("pickDocs error:", e);
+    Alert.alert("Error", "Could not open document picker.");
+  }
+};
 
   const removeNewPhoto = idx => setPhotoFiles(prev => prev.filter((_, i) => i !== idx));
   const removeNewDoc = idx => setDocFiles(prev => prev.filter((_, i) => i !== idx));

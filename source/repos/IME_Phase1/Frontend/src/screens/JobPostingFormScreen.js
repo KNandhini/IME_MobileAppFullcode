@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../utils/api';
 import { JobPostingFormScreenChip as chip, JobPostingFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
-
+import * as FileSystem from 'expo-file-system/legacy';
 const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
@@ -228,7 +228,51 @@ const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
   useEffect(() => {
     if (isEdit && item?.jobPostingId) loadExistingAttachments();
   }, []);
+// Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
+const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
 
+const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+// Resolve a picked asset's size in bytes, whichever field the picker
+// happened to populate (DocumentPicker uses `size`, ImagePicker usually
+// gives `fileSize`, but neither is guaranteed on every platform/version —
+// fall back to asking the filesystem directly for the real size).
+const getAssetSize = async (asset) => {
+  if (typeof asset.size === 'number') return asset.size;
+  if (typeof asset.fileSize === 'number') return asset.fileSize;
+  try {
+    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+    if (info?.exists && typeof info.size === 'number') return info.size;
+  } catch (e) {
+    console.warn('Could not determine file size for', asset?.uri, e);
+  }
+  return null; // unknown — let it through rather than block a valid pick
+};
+
+// Splits picked assets into { accepted, rejected }, checking each one's
+// real size against MAX_ATTACHMENT_BYTES.
+const partitionBySize = async (assets) => {
+  const accepted = [];
+  const rejected = [];
+  for (const asset of assets) {
+    const size = await getAssetSize(asset);
+    if (size != null && size > MAX_ATTACHMENT_BYTES) {
+      rejected.push({ name: asset.fileName || asset.name || 'file', size });
+    } else {
+      accepted.push(asset);
+    }
+  }
+  return { accepted, rejected };
+};
+
+const warnIfRejected = (rejected) => {
+  if (rejected.length === 0) return;
+  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+  Alert.alert(
+    'File too large',
+    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+  );
+};
   const loadExistingAttachments = async () => {
     try {
       const res = await jobPostingService.getAttachments(item.jobPostingId);
@@ -240,60 +284,76 @@ const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   // ── Attachment picker (same UX as AchievementFormScreen) ──────────────────
   const handlePickAttachment = async () => {
-    const totalUsed = existingAttachments.length + attachments.length;
-    const slotsLeft = 5 - totalUsed;
-    if (slotsLeft <= 0) {
-      Alert.alert('Limit reached', 'Max 5 attachments per job posting.');
-      return;
-    }
+  const totalUsed = existingAttachments.length + attachments.length;
+  const slotsLeft = 5 - totalUsed;
+  if (slotsLeft <= 0) {
+    Alert.alert('Limit reached', 'Max 5 attachments per job posting.');
+    return;
+  }
 
-    Alert.alert('Attach File', 'Choose file type', [
-      {
-        text: 'PDF / Document',
-        onPress: async () => {
-          const result = await DocumentPicker.getDocumentAsync({
-            type: [
-              'application/pdf',
-              'application/msword',
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            ],
-            copyToCacheDirectory: true,
-            multiple: true,
-          });
-          if (!result.canceled && result.assets?.length > 0) {
-            const picked = result.assets.slice(0, slotsLeft).map((asset) => ({
-              uri: asset.uri, fileName: asset.name,
-              mimeType: asset.mimeType || 'application/pdf', type: 'document',
-            }));
-            setAttachments((prev) => [...prev, ...picked]);
+  Alert.alert('Attach File', 'Choose file type', [
+    {
+      text: 'PDF / Document',
+      onPress: async () => {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          ],
+          copyToCacheDirectory: true,
+          multiple: true,
+        });
+        if (!result.canceled && result.assets?.length > 0) {
+          // ✅ Check size before slicing to slots
+          const { accepted, rejected } = await partitionBySize(result.assets);
+          warnIfRejected(rejected);
+
+          const picked = accepted.slice(0, slotsLeft).map((asset) => ({
+            uri: asset.uri, fileName: asset.name,
+            mimeType: asset.mimeType || 'application/pdf', type: 'document',
+          }));
+          setAttachments((prev) => [...prev, ...picked]);
+
+          if (accepted.length > slotsLeft) {
+            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
           }
-        },
+        }
       },
-      {
-        text: 'Photo / Image',
-        onPress: async () => {
-          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== 'granted') { Alert.alert('Permission needed'); return; }
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsMultipleSelection: true,
-            selectionLimit: slotsLeft,
-            quality: 0.85,
-          });
-          if (!result.canceled && result.assets?.length > 0) {
-            const picked = result.assets.slice(0, slotsLeft).map((asset) => ({
-              uri: asset.uri,
-              fileName: asset.fileName || `image_${Date.now()}.jpg`,
-              mimeType: asset.mimeType || 'image/jpeg',
-              type: 'image',
-            }));
-            setAttachments((prev) => [...prev, ...picked]);
+    },
+    {
+      text: 'Photo / Image',
+      onPress: async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.All,
+          allowsMultipleSelection: true,
+          selectionLimit: slotsLeft,
+          quality: 0.85,
+        });
+        if (!result.canceled && result.assets?.length > 0) {
+          // ✅ Check size before slicing to slots
+          const { accepted, rejected } = await partitionBySize(result.assets);
+          warnIfRejected(rejected);
+
+          const picked = accepted.slice(0, slotsLeft).map((asset) => ({
+            uri: asset.uri,
+            fileName: asset.fileName || `image_${Date.now()}.jpg`,
+            mimeType: asset.mimeType || 'image/jpeg',
+            type: 'image',
+          }));
+          setAttachments((prev) => [...prev, ...picked]);
+
+          if (accepted.length > slotsLeft) {
+            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
           }
-        },
+        }
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
+    },
+    { text: 'Cancel', style: 'cancel' },
+  ]);
+};
 
   const formatDate = (d) => {
     const y   = d.getFullYear();

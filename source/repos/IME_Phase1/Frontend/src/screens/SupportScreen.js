@@ -21,6 +21,7 @@ import ListSearchBar from '../components/ListSearchBar';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DOBField from '../components/DOBField';
+import * as FileSystem from 'expo-file-system/legacy';
 // ── Constants ─────────────────────────────────────────────────────────────────
 // Categories are loaded from API (tbl_SupportCategory). These are fallbacks only.
 const FALLBACK_CATEGORIES = [
@@ -260,7 +261,51 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
   const today = new Date();
   const supportMinDate = new Date(today.getFullYear() - 100, 0, 1);
   const supportMaxDate = new Date(today.getFullYear() + 80, 11, 31);
+// Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
+const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
 
+const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+// Resolve a picked asset's size in bytes, whichever field the picker
+// happened to populate (DocumentPicker uses `size`, ImagePicker usually
+// gives `fileSize`, but neither is guaranteed on every platform/version —
+// fall back to asking the filesystem directly for the real size).
+const getAssetSize = async (asset) => {
+  if (typeof asset.size === 'number') return asset.size;
+  if (typeof asset.fileSize === 'number') return asset.fileSize;
+  try {
+    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+    if (info?.exists && typeof info.size === 'number') return info.size;
+  } catch (e) {
+    console.warn('Could not determine file size for', asset?.uri, e);
+  }
+  return null; // unknown — let it through rather than block a valid pick
+};
+
+// Splits picked assets into { accepted, rejected }, checking each one's
+// real size against MAX_ATTACHMENT_BYTES.
+const partitionBySize = async (assets) => {
+  const accepted = [];
+  const rejected = [];
+  for (const asset of assets) {
+    const size = await getAssetSize(asset);
+    if (size != null && size > MAX_ATTACHMENT_BYTES) {
+      rejected.push({ name: asset.fileName || asset.name || 'file', size });
+    } else {
+      accepted.push(asset);
+    }
+  }
+  return { accepted, rejected };
+};
+
+const warnIfRejected = (rejected) => {
+  if (rejected.length === 0) return;
+  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+  Alert.alert(
+    'File too large',
+    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+  );
+};
   // 3. Load clubs function
   const loadClubs = async () => {
     setClubsLoading(true);
@@ -448,82 +493,88 @@ function AddSupportScreen({ visible, onClose, onSubmit, editItem, preloadedMembe
     onClose();
   };
 
-  const handlePickAttachment = async () => {
-    // ✅ Calculate how many more slots are available
-    const totalExisting = existingAttachments.length;
-    const totalNew = attachments.length;
-    const totalUsed = totalExisting + totalNew;
-    const slotsLeft = 5 - totalUsed;
+const handlePickAttachment = async () => {
+  const totalExisting = existingAttachments.length;
+  const totalNew = attachments.length;
+  const totalUsed = totalExisting + totalNew;
+  const slotsLeft = 5 - totalUsed;
 
-    if (slotsLeft <= 0) {
-      Alert.alert('Limit reached', 'Max 5 attachments per support entry.');
-      return;
-    }
+  if (slotsLeft <= 0) {
+    Alert.alert('Limit reached', 'Max 5 attachments per support entry.');
+    return;
+  }
 
-    Alert.alert('Attach File', 'Choose file type', [
-      {
-        text: 'PDF / Document',
-        onPress: async () => {
-          const result = await DocumentPicker.getDocumentAsync({
-            type: [
-              'application/pdf',
-              'application/msword',
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            ],
-            copyToCacheDirectory: true,
-            multiple: true,   // ✅ allow multiple docs
-          });
+  Alert.alert('Attach File', 'Choose file type', [
+    {
+      text: 'PDF / Document',
+      onPress: async () => {
+        const result = await DocumentPicker.getDocumentAsync({
+          type: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          ],
+          copyToCacheDirectory: true,
+          multiple: true,
+        });
 
-          if (!result.canceled && result.assets?.length > 0) {
-            // ✅ Slice to only take as many as slots allow
-            const picked = result.assets.slice(0, slotsLeft).map(asset => ({
-              uri: asset.uri,
-              fileName: asset.name,
-              mimeType: asset.mimeType || 'application/pdf',
-              type: 'document',
-            }));
-            setAttachments(prev => [...prev, ...picked]);
+        if (!result.canceled && result.assets?.length > 0) {
+          // ✅ Check size before slicing to slots
+          const { accepted, rejected } = await partitionBySize(result.assets);
+          warnIfRejected(rejected);
 
-            if (result.assets.length > slotsLeft) {
-              Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
-            }
+          const picked = accepted.slice(0, slotsLeft).map(asset => ({
+            uri: asset.uri,
+            fileName: asset.name,
+            mimeType: asset.mimeType || 'application/pdf',
+            type: 'document',
+          }));
+          setAttachments(prev => [...prev, ...picked]);
+
+          if (accepted.length > slotsLeft) {
+            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
           }
-        },
+        }
       },
-      {
-        text: 'Photo / Video',
-        onPress: async () => {
-          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== 'granted') {
-            Alert.alert('Permission needed', 'Allow access to your photo library.');
-            return;
+    },
+    {
+      text: 'Photo / Video',
+      onPress: async () => {
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission needed', 'Allow access to your photo library.');
+          return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images', 'videos'],
+          allowsMultipleSelection: true,
+          selectionLimit: slotsLeft,
+          quality: 0.85,
+        });
+
+        if (!result.canceled && result.assets?.length > 0) {
+          // ✅ Videos especially can exceed 50MB — check every asset
+          const { accepted, rejected } = await partitionBySize(result.assets);
+          warnIfRejected(rejected);
+
+          const picked = accepted.slice(0, slotsLeft).map(asset => ({
+            uri: asset.uri,
+            fileName: asset.fileName || `media_${Date.now()}`,
+            mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+            type: asset.type === 'video' ? 'video' : 'image',
+          }));
+          setAttachments(prev => [...prev, ...picked]);
+
+          if (accepted.length > slotsLeft) {
+            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
           }
-
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images', 'videos'],
-            allowsMultipleSelection: true,   // ✅ allow multiple images/videos
-            selectionLimit: slotsLeft,        // ✅ cap at available slots
-            quality: 0.85,
-          });
-
-          if (!result.canceled && result.assets?.length > 0) {
-            const picked = result.assets.slice(0, slotsLeft).map(asset => ({
-              uri: asset.uri,
-              fileName: asset.fileName || `media_${Date.now()}`,
-              mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-              type: asset.type === 'video' ? 'video' : 'image',
-            }));
-            setAttachments(prev => [...prev, ...picked]);
-
-            if (result.assets.length > slotsLeft) {
-              Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
-            }
-          }
-        },
+        }
       },
-      { text: 'Cancel', style: 'cancel' },
-    ]);
-  };
+    },
+    { text: 'Cancel', style: 'cancel' },
+  ]);
+};
 
   if (!visible) return null;
 
