@@ -16,7 +16,7 @@ const FundScreen = ({ navigation }) => {
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Membership Fee</Text>
-        <Text style={styles.cardDesc}>Pay your annual membership fee to stay active and access all IME benefits.</Text>
+        <Text style={styles.cardDesc}>Pay your one-time membership fee to stay active and access all IME benefits.</Text>
         <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('Payment')}>
           <Text style={styles.btnText}>Pay Fee →</Text>
         </TouchableOpacity>

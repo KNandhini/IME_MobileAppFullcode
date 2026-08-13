@@ -17,6 +17,23 @@ import { HealthNutritionFormScreenStyles as styles } from './screenStyles';
 const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
+// Client-side attachment size cap. Mirrors the backend limit so users get
+// instant feedback instead of waiting on a failed upload. This is a UX
+// convenience only — the backend must enforce the real limit, since some
+// pickers/platforms don't always report a file size.
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50 MB
+
+const isFileTooLarge = (sizeInBytes, fileName) => {
+  if (typeof sizeInBytes === 'number' && sizeInBytes > MAX_FILE_SIZE_BYTES) {
+    Alert.alert(
+      'File too large',
+      `"${fileName}" is ${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB. Please choose a file under 50 MB.`
+    );
+    return true;
+  }
+  return false;
+};
+
 // ── Field wrapper ─────────────────────────────────────────────────────────────
 function Field({ label, required, children, error, hint }) {
   return (
@@ -109,6 +126,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           });
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
+            if (isFileTooLarge(a.size, a.name)) return;
             setAttachment({ uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'application/pdf', type: 'document' });
             setRemoveExisting(false);
           }
@@ -124,6 +142,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           });
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
+            if (isFileTooLarge(a.size, a.name)) return;
             setAttachment({ uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'audio/mpeg', type: 'audio' });
             setRemoveExisting(false);
           }
@@ -144,7 +163,9 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           });
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
-            setAttachment({ uri: a.uri, fileName: a.fileName || `video_${Date.now()}.mp4`, mimeType: a.mimeType || 'video/mp4', type: 'video' });
+            const fileName = a.fileName || `video_${Date.now()}.mp4`;
+            if (isFileTooLarge(a.fileSize, fileName)) return;
+            setAttachment({ uri: a.uri, fileName, mimeType: a.mimeType || 'video/mp4', type: 'video' });
             setRemoveExisting(false);
           }
         },
@@ -164,7 +185,9 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           });
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
-            setAttachment({ uri: a.uri, fileName: a.fileName || `photo_${Date.now()}.jpg`, mimeType: a.mimeType || 'image/jpeg', type: 'image' });
+            const fileName = a.fileName || `photo_${Date.now()}.jpg`;
+            if (isFileTooLarge(a.fileSize, fileName)) return;
+            setAttachment({ uri: a.uri, fileName, mimeType: a.mimeType || 'image/jpeg', type: 'image' });
             setRemoveExisting(false);
           }
         },
@@ -179,6 +202,7 @@ const HealthNutritionFormScreen = ({ route, navigation }) => {
           });
           if (!result.canceled && result.assets?.length > 0) {
             const a = result.assets[0];
+            if (isFileTooLarge(a.size, a.name)) return;
             setAttachment({ uri: a.uri, fileName: a.name, mimeType: a.mimeType || 'application/octet-stream', type: 'other' });
             setRemoveExisting(false);
           }

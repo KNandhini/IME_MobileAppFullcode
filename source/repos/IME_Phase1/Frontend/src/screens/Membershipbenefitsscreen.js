@@ -296,7 +296,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                             </Text>
 
                             <Text style={styles.termsText}>
-                                The annual membership fee is non-transferable.
+                                The  membership fee is non-transferable.
                                 Payment status and receipts will be maintained
                                 in your member account.
                             </Text>

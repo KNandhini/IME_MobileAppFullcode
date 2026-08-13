@@ -186,7 +186,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           <div class="subtitle">Secure Registration Payment</div>
 
           <div class="amount-box">
-            <div class="amount-label">Annual Membership Fee</div>
+            <div class="amount-label">One-Time Membership Registration Fee</div>
             <div class="amount-value">₹${feeAmount?.toFixed(2) ?? '0.00'}</div>
           </div>
 
@@ -250,7 +250,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
               amount: ${Math.round((feeAmount ?? 0) * 100)},
               currency: 'INR',
               name: 'IME Membership',
-              description: 'Annual Membership Registration Fee',
+              description: 'One-Time Membership Registration Fee',
               image: '${logoDataUri || ''}',
               theme: { color: COLORS.primary },
               prefill: {
@@ -465,7 +465,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
 
         {/* Fee Card */}
         <View style={styles.feeCard}>
-          <Text style={styles.feeLabel}>Annual Membership Fee</Text>
+          <Text style={styles.feeLabel}>One-Time Membership Registration Fee</Text>
           <Text style={styles.feeAmount}>₹{feeAmount?.toFixed(2)}</Text>
           <Text style={styles.feeNote}>Pay securely via Razorpay — UPI, Card, Net Banking</Text>
         </View>

@@ -128,7 +128,7 @@ const PaymentScreen = ({ navigation }) => {
           <div class="subtitle">Secure Payment via Razorpay</div>
 
           <div class="amount-box">
-            <div class="amount-label">Annual Membership Fee</div>
+            <div class="amount-label">One-Time Membership Registration Fee</div>
             <div class="amount-value">₹2,500</div>
           </div>
 
@@ -192,7 +192,7 @@ const PaymentScreen = ({ navigation }) => {
               amount: ${HARDCODED_AMOUNT * 100},
               currency: 'INR',
               name: 'Membership Portal',
-              description: 'Annual Membership Fee',
+              description: 'One-Time Membership Registration Fee',
               theme: { color: COLORS.primary },
               prefill: {
                 name: '${(userData?.fullName || '').replace(/'/g, "\\'")}',
@@ -357,7 +357,7 @@ const PaymentScreen = ({ navigation }) => {
       <ScrollView style={styles.container}>
         <Card style={styles.feeCard}>
           <Card.Content>
-            <Text style={styles.feeLabel}>Annual Membership Fee</Text>
+            <Text style={styles.feeLabel}>One-Time Membership Registration Fee</Text>
             <Text style={styles.feeAmount}>₹2,500</Text>
             <Text style={styles.feeYear}>For Year {new Date().getFullYear()}</Text>
           </Card.Content>
