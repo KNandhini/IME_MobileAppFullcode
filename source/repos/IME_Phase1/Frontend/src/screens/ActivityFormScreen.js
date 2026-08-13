@@ -18,6 +18,7 @@ import {
 import { Card, Chip } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
 import { BASE_URL } from '../utils/api';
@@ -35,6 +36,9 @@ const MAX_DESCRIPTION   = 500;
 const MAX_VENUE         = 100;
 const MAX_COORDINATOR   = 150;
 const MAX_CHIEF_GUEST   = 150;
+
+// Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
+const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
 
 // Activity Name: letters, numbers, spaces, dot, comma, hyphen
 const ACTIVITY_NAME_REGEX = /^[A-Za-z0-9\s.,-]*$/;
@@ -79,6 +83,50 @@ const getAttachmentKind = (fileTypeOrName = "") => {
   if (v.includes("image") || /\.(jpg|jpeg|png|gif|webp)$/.test(v)) return "image";
   if (v.includes("video") || /\.(mp4|mov|avi|mkv)$/.test(v)) return "video";
   return "document";
+};
+
+const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+// Resolve a picked asset's size in bytes, whichever field the picker
+// happened to populate (DocumentPicker uses `size`, ImagePicker usually
+// gives `fileSize`, but neither is guaranteed on every platform/version —
+// fall back to asking the filesystem directly for the real size).
+const getAssetSize = async (asset) => {
+  if (typeof asset.size === 'number') return asset.size;
+  if (typeof asset.fileSize === 'number') return asset.fileSize;
+  try {
+    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+    if (info?.exists && typeof info.size === 'number') return info.size;
+  } catch (e) {
+    console.warn('Could not determine file size for', asset?.uri, e);
+  }
+  return null; // unknown — let it through rather than block a valid pick
+};
+
+// Splits picked assets into { accepted, rejected }, checking each one's
+// real size against MAX_ATTACHMENT_BYTES (async, since size may need a
+// filesystem lookup rather than being present on the asset already).
+const partitionBySize = async (assets) => {
+  const accepted = [];
+  const rejected = [];
+  for (const asset of assets) {
+    const size = await getAssetSize(asset);
+    if (size != null && size > MAX_ATTACHMENT_BYTES) {
+      rejected.push({ name: asset.fileName || asset.name || 'file', size });
+    } else {
+      accepted.push(asset);
+    }
+  }
+  return { accepted, rejected };
+};
+
+const warnIfRejected = (rejected) => {
+  if (rejected.length === 0) return;
+  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+  Alert.alert(
+    'File too large',
+    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+  );
 };
 
 const STATUSES = ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'];
@@ -253,7 +301,9 @@ const ActivityFormScreen = ({ route, navigation }) => {
             multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
-            const picked = result.assets.slice(0, slots).map(a => ({
+            const { accepted, rejected } = await partitionBySize(result.assets);
+            warnIfRejected(rejected);
+            const picked = accepted.slice(0, slots).map(a => ({
               uri: a.uri,
               fileName: a.name,
               mimeType: a.mimeType || 'application/pdf',
@@ -278,7 +328,11 @@ const ActivityFormScreen = ({ route, navigation }) => {
             quality: 0.85,
           });
           if (!result.canceled && result.assets?.length > 0) {
-            const picked = result.assets.slice(0, slots).map(a => ({
+            // Videos in particular can easily blow past 50MB, so every
+            // picked asset (image or video) gets checked before it's added.
+            const { accepted, rejected } = await partitionBySize(result.assets);
+            warnIfRejected(rejected);
+            const picked = accepted.slice(0, slots).map(a => ({
               uri: a.uri,
               fileName: a.fileName || `media_${Date.now()}`,
               mimeType: a.mimeType || (a.type === 'video' ? 'video/mp4' : 'image/jpeg'),

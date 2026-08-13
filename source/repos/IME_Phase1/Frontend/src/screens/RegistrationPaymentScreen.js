@@ -97,6 +97,10 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
     }
   };
 
+  // NOTE: Colors below are hardcoded (not pulled from the RN `COLORS` import)
+  // because this string is injected into a WebView — a separate JS context
+  // that has no access to React Native's `COLORS` object. Keep these in sync
+  // with theme.js manually: primary #3A4EFB, dark #252943, accent/green #A0C878.
   const getRazorpayHTML = () => `
     <!DOCTYPE html>
     <html>
@@ -131,25 +135,25 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           }
           .logo {
             width: 56px; height: 56px;
-            background: ${COLORS.primary};
+            background: #A0C878;
             border-radius: 50%;
             line-height: 56px;
             font-size: 28px;
             margin: 0 auto 12px;
           }
-          .title { font-size: 20px; font-weight: bold; color: ${COLORS.dark}; }
+          .title { font-size: 20px; font-weight: bold; color: #252943; }
           .subtitle { font-size: 13px; color: #888; margin-top: 4px; margin-bottom: 20px; }
           .amount-box {
-            background: ${COLORS.accent};
+            background: #A0C878;
             border-radius: 10px;
             padding: 14px;
             margin-bottom: 24px;
           }
-          .amount-label { font-size: 13px; color: ${COLORS.dark}; font-weight: 600; }
-          .amount-value { font-size: 32px; font-weight: bold; color: ${COLORS.dark}; }
+          .amount-label { font-size: 13px; color: #252943; font-weight: 600; }
+          .amount-value { font-size: 32px; font-weight: bold; color: #252943; }
           .spinner {
             border: 4px solid #e0e0e0;
-            border-top: 4px solid ${COLORS.primary};
+            border-top: 4px solid #A0C878;
             border-radius: 50%;
             width: 40px; height: 40px;
             animation: spin 0.8s linear infinite;
@@ -168,7 +172,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           }
           .retry-btn {
             margin-top: 12px;
-            background: ${COLORS.primary};
+            background: #A0C878;
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -245,16 +249,29 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           }
 
           function openRazorpay() {
+            var amountPaise = ${Math.round((feeAmount ?? 0) * 100)};
+
+            if (!amountPaise || amountPaise <= 0) {
+              document.getElementById('loader').style.display = 'none';
+              document.getElementById('errorBox').style.display = 'block';
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'PAYMENT_FAILED',
+                status: 'INVALID_AMOUNT',
+              }));
+              return;
+            }
+
             var options = {
               key: '${RAZORPAY_KEY}',
-              amount: ${Math.round((feeAmount ?? 0) * 100)},
+              amount: amountPaise,
               currency: 'INR',
               name: 'IME Membership',
               description: 'One-Time Membership Registration Fee',
               image: '${logoDataUri || ''}',
-              theme: { color: COLORS.primary },
+              theme: { color: '#A0C878' },
               prefill: {
                 name: '${(memberName || '').replace(/'/g, "\\'")}',
+                email: '${(memberEmail || '').replace(/'/g, "\\'")}',
               },
               handler: function(response) {
                 document.getElementById('statusText').innerText = 'Payment successful!';
@@ -290,6 +307,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 type: 'PAYMENT_FAILED',
                 status: null,
+                message: e.message,
               }));
             }
           }
@@ -379,41 +397,44 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
     setShowWebView(true);
   };
 
+  // ---------------------------------------------------------------------
+  // Full-screen WebView "page" instead of a <Modal>. When showWebView is
+  // true, this early return replaces the whole component output with just
+  // the payment WebView + a themed header bar. No Modal-in-Modal stacking,
+  // so the header colors no longer clash with Razorpay's own header.
+  // ---------------------------------------------------------------------
+  if (showWebView) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#A0C878' }}>
+        <WebView
+          source={{ html: getRazorpayHTML(), baseUrl: 'https://checkout.razorpay.com' }}
+          onMessage={handleWebViewMessage}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={true}
+          originWhitelist={['*']}
+          mixedContentMode="always"
+          thirdPartyCookiesEnabled={true}
+          allowUniversalAccessFromFileURLs={true}
+          allowFileAccessFromFileURLs={true}
+          allowsInlineMediaPlayback={true}
+          onError={() => {
+            Alert.alert('Error', 'Failed to load payment page');
+            setShowWebView(false);
+          }}
+          renderLoading={() => (
+            <View style={styles.webViewLoading}>
+              <ActivityIndicator size="large" color={COLORS.accent} />
+              <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
+            </View>
+          )}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
-
-      {/* Razorpay WebView Modal */}
-      <Modal visible={showWebView} animationType="slide" onRequestClose={() => setShowWebView(false)}>
-        <View style={styles.webViewContainer}>
-          <View style={styles.webViewHeader}>
-            <Text style={styles.webViewTitle}>Secure Payment</Text>
-            <IconButton icon="close" size={24} onPress={() => setShowWebView(false)} />
-          </View>
-          <WebView
-            source={{ html: getRazorpayHTML(), baseUrl: 'https://checkout.razorpay.com' }}
-            onMessage={handleWebViewMessage}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            startInLoadingState={true}
-            originWhitelist={['*']}
-            mixedContentMode="always"
-            thirdPartyCookiesEnabled={true}
-            allowUniversalAccessFromFileURLs={true}
-            allowFileAccessFromFileURLs={true}
-            allowsInlineMediaPlayback={true}
-            onError={() => {
-              Alert.alert('Error', 'Failed to load payment page');
-              setShowWebView(false);
-            }}
-            renderLoading={() => (
-              <View style={styles.webViewLoading}>
-                <ActivityIndicator size="large" color={COLORS.accent} />
-                <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
-              </View>
-            )}
-          />
-        </View>
-      </Modal>
 
       {/* Processing overlay */}
       {processingPayment && (

@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { feedService } from '../services/feedService';
 import { CreatePostScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
-
+import * as FileSystem from 'expo-file-system/legacy';
 const MAX_MEDIA = 10;
 
 // ── Visibility options ────────────────────────────────────────────────────────
@@ -21,39 +21,91 @@ const CreatePostScreen = ({ navigation }) => {
   const [mediaItems, setMediaItems] = useState([]);
   const [posting,    setPosting]    = useState(false);
   const [visibility, setVisibility] = useState('public'); // 'public' | 'private'
+const MAX_MEDIA = 10;
 
+// Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
+const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+
+const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+// Resolve a picked asset's size in bytes, whichever field the picker
+// happened to populate — fall back to the filesystem if neither is present.
+const getAssetSize = async (asset) => {
+  if (typeof asset.size === 'number') return asset.size;
+  if (typeof asset.fileSize === 'number') return asset.fileSize;
+  try {
+    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+    if (info?.exists && typeof info.size === 'number') return info.size;
+  } catch (e) {
+    console.warn('Could not determine file size for', asset?.uri, e);
+  }
+  return null; // unknown — let it through rather than block a valid pick
+};
+
+// Splits picked assets into { accepted, rejected }, checking each one's
+// real size against MAX_ATTACHMENT_BYTES. Videos especially can exceed 50MB.
+const partitionBySize = async (assets) => {
+  const accepted = [];
+  const rejected = [];
+  for (const asset of assets) {
+    const size = await getAssetSize(asset);
+    if (size != null && size > MAX_ATTACHMENT_BYTES) {
+      rejected.push({ name: asset.fileName || asset.name || 'file', size });
+    } else {
+      accepted.push(asset);
+    }
+  }
+  return { accepted, rejected };
+};
+
+const warnIfRejected = (rejected) => {
+  if (rejected.length === 0) return;
+  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+  Alert.alert(
+    'File too large',
+    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+  );
+};
   // ── Pick media ────────────────────────────────────────────
-  const handlePickMedia = useCallback(async () => {
-    const remaining = MAX_MEDIA - mediaItems.length;
-    if (remaining <= 0) {
-      Alert.alert('Limit reached', `You can add up to ${MAX_MEDIA} media files per post.`);
-      return;
-    }
+ const handlePickMedia = useCallback(async () => {
+  const remaining = MAX_MEDIA - mediaItems.length;
+  if (remaining <= 0) {
+    Alert.alert('Limit reached', `You can add up to ${MAX_MEDIA} media files per post.`);
+    return;
+  }
 
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Allow access to your photo library to add media.');
-      return;
-    }
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (status !== 'granted') {
+    Alert.alert('Permission needed', 'Allow access to your photo library to add media.');
+    return;
+  }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'],
-      allowsMultipleSelection: true,
-      selectionLimit: remaining,
-      quality: 0.85,
-      videoMaxDuration: 60,
-    });
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images', 'videos'],
+    allowsMultipleSelection: true,
+    selectionLimit: remaining,
+    quality: 0.85,
+    videoMaxDuration: 60,
+  });
 
-    if (!result.canceled && result.assets?.length > 0) {
-      const newItems = result.assets.map(asset => ({
-        uri:      asset.uri,
-        type:     asset.type === 'video' ? 'video' : 'image',
-        fileName: asset.fileName || asset.uri.split('/').pop(),
-        mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-      }));
-      setMediaItems(prev => [...prev, ...newItems].slice(0, MAX_MEDIA));
+  if (!result.canceled && result.assets?.length > 0) {
+    // ✅ Check size before slicing to the remaining slots
+    const { accepted, rejected } = await partitionBySize(result.assets);
+    warnIfRejected(rejected);
+
+    const newItems = accepted.map(asset => ({
+      uri:      asset.uri,
+      type:     asset.type === 'video' ? 'video' : 'image',
+      fileName: asset.fileName || asset.uri.split('/').pop(),
+      mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+    }));
+    setMediaItems(prev => [...prev, ...newItems].slice(0, MAX_MEDIA));
+
+    if (accepted.length > remaining) {
+      Alert.alert('Limit applied', `Only ${remaining} file(s) added. Max ${MAX_MEDIA} total.`);
     }
-  }, [mediaItems.length]);
+  }
+}, [mediaItems.length]);
 
   // ── Remove one media item ─────────────────────────────────
   const handleRemoveMedia = useCallback((index) => {
