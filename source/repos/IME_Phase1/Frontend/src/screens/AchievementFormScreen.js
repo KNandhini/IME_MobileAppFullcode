@@ -12,7 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles } from './screenStyles';
+import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles, AddCircularScreenStyles as circStyles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import DOBField from '../components/DOBField';
 
@@ -594,77 +594,88 @@ const AchievementFormScreen = ({ route, navigation }) => {
           }}
         />
 
-        {/* ── Attachments ── */}
+        {/* ── Attachments — reuses AddCircularScreenStyles (circStyles) so the format is identical to AddCircularScreen ── */}
         <Text style={styles.attachLabel}>ATTACHMENTS</Text>
-        <View style={styles.attachGrid}>
+        <View style={circStyles.attachGrid}>
           {existingAttachments.map((a) => {
             const url = toPublicUrl(a.filePath);
             const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
               a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
             return (
-              <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
-                <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-                  if (isImage) setFileViewer({ visible: true, uri: url });
-                  else Linking.openURL(url);
-                }}>
+              <View key={`ex-${a.attachmentId}`} style={circStyles.thumb}>
+                <TouchableOpacity
+                  style={{ flex: 1 }}
+                  onPress={() => {
+                    if (isImage) setFileViewer({ visible: true, uri: url });
+                    else Linking.openURL(url);
+                  }}
+                >
                   {isImage ? (
-                    <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+                    <Image source={{ uri: url }} style={circStyles.thumbImg} resizeMode="cover" />
                   ) : (
-                    <View style={styles.gridDoc}>
-                      <Text style={styles.gridDocIcon}>📄</Text>
-                      <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                    <View style={circStyles.thumbDoc}>
+                      <Text style={circStyles.thumbIcon}>📄</Text>
+                      <Text style={circStyles.thumbName} numberOfLines={2}>{a.fileName}</Text>
                     </View>
                   )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.gridRemove} onPress={() => {
-                  Alert.alert('Delete', `Delete "${a.fileName}"?`, [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Delete', style: 'destructive', onPress: async () => {
-                        try {
-                          await achievementService.deleteAttachment(a.attachmentId);
-                          setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
-                        } catch { Alert.alert('Error', 'Failed to delete'); }
-                      }
-                    },
-                  ]);
-                }}>
-                  <Text style={styles.gridRemoveText}>✕</Text>
+                <TouchableOpacity
+                  style={circStyles.thumbRemove}
+                  onPress={() => {
+                    Alert.alert('Delete', `Delete "${a.fileName}"?`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete', style: 'destructive', onPress: async () => {
+                          try {
+                            await achievementService.deleteAttachment(a.attachmentId);
+                            setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
+                          } catch { Alert.alert('Error', 'Failed to delete'); }
+                        }
+                      },
+                    ]);
+                  }}
+                >
+                  <Text style={circStyles.thumbRemoveText}>✕</Text>
                 </TouchableOpacity>
               </View>
             );
           })}
 
           {attachments.map((a, i) => (
-            <View key={`new-${i}`} style={styles.gridThumb}>
-              <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-                if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri });
-                else Linking.openURL(a.uri);
-              }}>
+            <View key={`new-${i}`} style={circStyles.thumb}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => {
+                  if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri });
+                  else Linking.openURL(a.uri);
+                }}
+              >
                 {a.type === 'image' ? (
-                  <Image source={{ uri: a.uri }} style={styles.gridImg} resizeMode="cover" />
+                  <Image source={{ uri: a.uri }} style={circStyles.thumbImg} resizeMode="cover" />
                 ) : (
-                  <View style={styles.gridDoc}>
-                    <Text style={styles.gridDocIcon}>📄</Text>
-                    <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                  <View style={circStyles.thumbDoc}>
+                    <Text style={circStyles.thumbIcon}>📄</Text>
+                    <Text style={circStyles.thumbName} numberOfLines={2}>{a.fileName}</Text>
                   </View>
                 )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.gridRemove}
-                onPress={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}>
-                <Text style={styles.gridRemoveText}>✕</Text>
+              <TouchableOpacity
+                style={circStyles.thumbRemove}
+                onPress={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
+              >
+                <Text style={circStyles.thumbRemoveText}>✕</Text>
               </TouchableOpacity>
             </View>
           ))}
 
           {totalAttachments < 5 && (
-            <TouchableOpacity style={styles.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
-              <Text style={styles.gridAddIcon}>📷</Text>
-              <Text style={styles.gridAddText}>Add ({totalAttachments}/5)</Text>
+            <TouchableOpacity style={circStyles.thumbAdd} onPress={handlePickAttachment} activeOpacity={0.8}>
+              <Text style={circStyles.thumbAddIcon}>📷</Text>
+              <Text style={circStyles.thumbAddText}>Add ({totalAttachments}/5)</Text>
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
+        <Text style={circStyles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
 
         {/* ── Save button ── 
         <TouchableOpacity

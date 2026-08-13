@@ -10,6 +10,7 @@ const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 const MEDIA_WIDTH = screenWidth - 40; // matches body padding (20 * 2)
 
 const ATTACHMENT_META = {
@@ -30,12 +31,29 @@ function ImagePreview({ uri }) {
   );
 }
 
+// Simple, self-contained Play/Pause card — no default/native audio player UI,
+// no extra transport controls. Always starts (and resets to) 0:00.
+// Uses the shared styles.audioCard / styles.audioButton / styles.audioHint
+// from screenStyles.js instead of a local StyleSheet.
 function AudioPreview({ uri }) {
   const soundRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => () => { soundRef.current?.unloadAsync?.(); }, []);
+  useEffect(() => {
+    return () => {
+      soundRef.current?.unloadAsync?.();
+    };
+  }, []);
+
+  const resetToStart = async () => {
+    setIsPlaying(false);
+    try {
+      await soundRef.current?.setPositionAsync(0);
+    } catch (e) {
+      // ignore — sound may already be unloaded
+    }
+  };
 
   const toggle = async () => {
     if (isPlaying) {
@@ -48,8 +66,10 @@ function AudioPreview({ uri }) {
       if (!soundRef.current) {
         const { sound } = await Audio.Sound.createAsync(
           { uri },
-          { shouldPlay: true },
-          (status) => { if (status.didJustFinish) setIsPlaying(false); }
+          { shouldPlay: true, positionMillis: 0 },
+          (status) => {
+            if (status.didJustFinish) resetToStart();
+          }
         );
         soundRef.current = sound;
       } else {
@@ -64,31 +84,49 @@ function AudioPreview({ uri }) {
   };
 
   return (
-    <View style={styles.mediaBox}>
-      <TouchableOpacity onPress={toggle} activeOpacity={0.8} disabled={loading}>
+    <View style={styles.audioCard}>
+      <TouchableOpacity
+        style={styles.audioButton}
+        onPress={toggle}
+        activeOpacity={0.85}
+        disabled={loading}
+      >
         {loading ? (
-          <ActivityIndicator size="large" color={GOLD} />
+          <ActivityIndicator color="#fff" />
         ) : (
           <MaterialCommunityIcons
-            name={isPlaying ? 'pause-circle' : 'play-circle'}
-            size={56}
-            color={NAVY}
+            name={isPlaying ? 'pause' : 'play'}
+            size={28}
+            color="#fff"
+            style={!isPlaying ? { marginLeft: 3 } : undefined}
           />
         )}
       </TouchableOpacity>
-      <Text style={styles.mediaHint}>{isPlaying ? 'Playing…' : 'Tap to play audio'}</Text>
+      <Text style={styles.audioHint}>{isPlaying ? 'Playing…' : 'Tap to play'}</Text>
     </View>
   );
 }
 
+// Preserves the uploaded video's real aspect ratio instead of forcing a fixed
+// box — landscape videos display landscape, portrait videos display portrait.
 function VideoPreview({ uri }) {
+  const [aspectRatio, setAspectRatio] = useState(16 / 9);
+  const maxHeight = screenHeight * 0.6;
+  const computedHeight = Math.min(MEDIA_WIDTH / aspectRatio, maxHeight);
+
   return (
     <Video
       source={{ uri }}
-      style={{ width: MEDIA_WIDTH, height: MEDIA_WIDTH * 0.56, borderRadius: 12, backgroundColor: '#F1F5F9' }}
+      style={{ width: MEDIA_WIDTH, height: computedHeight, borderRadius: 12, backgroundColor: '#000' }}
       useNativeControls
       resizeMode="contain"
       isLooping={false}
+      onReadyForDisplay={(event) => {
+        const naturalSize = event?.naturalSize;
+        if (naturalSize?.width && naturalSize?.height) {
+          setAspectRatio(naturalSize.width / naturalSize.height);
+        }
+      }}
     />
   );
 }

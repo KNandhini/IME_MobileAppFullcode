@@ -101,7 +101,7 @@ const SetAnnualFeeScreen = () => {
 
     Alert.alert(
       'Confirm',
-      `Set annual membership fee to ₹${amount} effective from ${formatDate(effectiveFrom)}?`,
+      `Set one-time membership fee to ₹${amount} effective from ${formatDate(effectiveFrom)}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Confirm', onPress: submitFee },

@@ -19,7 +19,7 @@ import * as Sharing from 'expo-sharing';
 import { BASE_URL } from '../utils/api';
 import api from '../utils/api';
 import { achievementService } from '../services/achievementService';
-import { AchievementDetailScreenStyles as styles } from './screenStyles';
+import { AchievementDetailScreenStyles as styles, CircularDetailScreenStyles as circStyles } from './screenStyles';
 import GradientHeader from '../components/GradientHeader';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 

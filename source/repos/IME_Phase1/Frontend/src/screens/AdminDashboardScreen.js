@@ -14,7 +14,7 @@ const ADMIN_MENU = [
   { title: 'Achievements',      route: 'Achievements',      icon: '🏆', params: {} },
   { title: 'Organisation',      route: 'Organisation',      icon: '🏢', params: {} },
   { title: 'Support Services',  route: 'Support',           icon: '🤝', params: {} },
-  { title: 'Set Annual Fee',    route: 'SetAnnualFee',      icon: '💰', params: {} },
+  { title: 'Set Membership Fee',    route: 'SetAnnualFee',      icon: '💰', params: {} },
   { title: 'Fund Raise',        route: 'FundraiseList',     icon: '💸', params: {} },
   { title: 'Club List',         route: 'ClubList',          icon: '🏛️', params: {} },
   { title: 'Job Postings',      route: 'JobPostingList',    icon: '💼', params: {} },
