@@ -334,7 +334,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                             },
                         ]}
                     >
-                        IME
+                        
                     </Animated.Text>
                 </View>
             </LinearGradient>
