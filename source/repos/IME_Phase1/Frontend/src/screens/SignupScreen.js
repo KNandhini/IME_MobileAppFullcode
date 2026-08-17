@@ -150,11 +150,13 @@ const SignupScreen = ({ navigation, route }) => {
   const [statesLoading, setStatesLoading] = useState(false);
   const [clubsLoading, setClubsLoading] = useState(false);
 
-  // Refs used to auto-select India as the default country and to auto-scroll
-  // the State list down to Tamil Nadu when it opens (most users on this app
-  // are older Tamil Nadu municipal engineers, so this saves them scrolling).
+  // Refs used to auto-select India as the default country and Tamil Nadu as
+  // the default state (most users on this app are Tamil Nadu municipal
+  // engineers), and to auto-scroll the State list down to Tamil Nadu when
+  // the picker opens so users can still see/tap another state easily.
   const stateListRef = useRef(null);
   const autoSelectedCountryRef = useRef(false);
+  const autoSelectedStateRef = useRef(false);
 
   const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
   const [occupation, setOccupation] = useState('');
@@ -186,6 +188,23 @@ const SignupScreen = ({ navigation, route }) => {
       }
     }
   }, [countries]);
+
+  // Auto-select "Tamil Nadu" as soon as the state list loads for the default
+  // country, so the State field is already filled in for the user without
+  // needing to open the modal. The field stays tappable — the user can still
+  // open the picker and choose any other state if they want to change it.
+  useEffect(() => {
+    if (!autoSelectedStateRef.current && states.length > 0) {
+      const tamilNadu = states.find(
+        (s) => s.stateName?.trim().toLowerCase() === 'tamil nadu'
+      );
+      if (tamilNadu) {
+        autoSelectedStateRef.current = true;
+        setSelectedState(tamilNadu);
+        loadClubsByState(tamilNadu.stateId);
+      }
+    }
+  }, [states]);
 
   // When the State picker opens, auto-scroll the list down to "Tamil Nadu"
   // so elderly users can see and tap it right away instead of scrolling
