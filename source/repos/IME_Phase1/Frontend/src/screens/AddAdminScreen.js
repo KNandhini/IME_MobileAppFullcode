@@ -763,7 +763,7 @@ const handleSignup = async () => {
                 )}
                 ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
               />
-              <TouchableOpacity style={styles.pickerCancel} onPress={() => setCountryModal(false)}>
+              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]}onPress={() => setCountryModal(false)}>
                 <Text style={styles.pickerCancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -804,7 +804,7 @@ const handleSignup = async () => {
                 )}
                 ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
               />
-              <TouchableOpacity style={styles.pickerCancel} onPress={() => setStateModal(false)}>
+              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setStateModal(false)}>
                 <Text style={styles.pickerCancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
@@ -838,7 +838,7 @@ const handleSignup = async () => {
                 }}
                 ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
               />
-              <TouchableOpacity style={styles.pickerCancel} onPress={() => setClubModal(false)}>
+              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setClubModal(false)}>
                 <Text style={styles.pickerCancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>

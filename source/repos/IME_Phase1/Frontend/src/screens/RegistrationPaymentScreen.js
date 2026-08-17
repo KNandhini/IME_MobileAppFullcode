@@ -2,6 +2,7 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, Image } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { IconButton } from 'react-native-paper';
@@ -17,6 +18,8 @@ const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
 const RegistrationPaymentScreen = ({ route, navigation }) => {
   const { userId, memberId, memberName, memberEmail, memberPassword, profilePhotoUri } = route.params || {};
+
+  const insets = useSafeAreaInsets();
 
   const [profilePhoto,      setProfilePhoto]      = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
   const [showWebView,       setShowWebView]        = useState(false);
@@ -123,6 +126,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             align-items: center;
             justify-content: center;
             padding: 20px;
+            padding-bottom: 40px;
           }
           .card {
             background: #fff;
@@ -400,35 +404,38 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
   // ---------------------------------------------------------------------
   // Full-screen WebView "page" instead of a <Modal>. When showWebView is
   // true, this early return replaces the whole component output with just
-  // the payment WebView + a themed header bar. No Modal-in-Modal stacking,
-  // so the header colors no longer clash with Razorpay's own header.
+  // the payment WebView. The inner wrapper View adds paddingBottom equal to
+  // the device's safe-area inset (gesture bar / home indicator) so Razorpay's
+  // own "Continue" button isn't covered by the phone's nav gesture area.
   // ---------------------------------------------------------------------
   if (showWebView) {
     return (
       <View style={{ flex: 1, backgroundColor: '#A0C878' }}>
-        <WebView
-          source={{ html: getRazorpayHTML(), baseUrl: 'https://checkout.razorpay.com' }}
-          onMessage={handleWebViewMessage}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={true}
-          originWhitelist={['*']}
-          mixedContentMode="always"
-          thirdPartyCookiesEnabled={true}
-          allowUniversalAccessFromFileURLs={true}
-          allowFileAccessFromFileURLs={true}
-          allowsInlineMediaPlayback={true}
-          onError={() => {
-            Alert.alert('Error', 'Failed to load payment page');
-            setShowWebView(false);
-          }}
-          renderLoading={() => (
-            <View style={styles.webViewLoading}>
-              <ActivityIndicator size="large" color={COLORS.accent} />
-              <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
-            </View>
-          )}
-        />
+        <View style={{ flex: 1, paddingBottom: insets.bottom + 12 }}>
+          <WebView
+            source={{ html: getRazorpayHTML(), baseUrl: 'https://checkout.razorpay.com' }}
+            onMessage={handleWebViewMessage}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            originWhitelist={['*']}
+            mixedContentMode="always"
+            thirdPartyCookiesEnabled={true}
+            allowUniversalAccessFromFileURLs={true}
+            allowFileAccessFromFileURLs={true}
+            allowsInlineMediaPlayback={true}
+            onError={() => {
+              Alert.alert('Error', 'Failed to load payment page');
+              setShowWebView(false);
+            }}
+            renderLoading={() => (
+              <View style={styles.webViewLoading}>
+                <ActivityIndicator size="large" color={COLORS.accent} />
+                <Text style={{ marginTop: 10, color: '#666' }}>Loading...</Text>
+              </View>
+            )}
+          />
+        </View>
       </View>
     );
   }
@@ -451,13 +458,9 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
       <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
 
         {/* Header */}
-        <GradientHeader style={styles.header}>
-          <Text style={styles.headerTitle}>Complete Payment</Text>
-          <Text style={styles.headerSubtitle}>Hi {memberName}, one last step!</Text>
-        </GradientHeader>
-
+       
         {/* Profile Photo Section */}
-        <View style={styles.section}>
+        <View style={[styles.section,{marginTop:10}]}>
           <Text style={styles.sectionTitle}>Profile Photo</Text>
           <View style={styles.photoRow}>
             <TouchableOpacity onPress={pickProfilePhoto} activeOpacity={0.8}>
@@ -527,9 +530,9 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
           <Text style={styles.buttonText}>Pay ₹{feeAmount?.toFixed(2)} via Razorpay</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
-          <Text style={styles.backLinkText}>← Go back and edit registration</Text>
-        </TouchableOpacity>
+     <TouchableOpacity style={styles.backLink} onPress={() => navigation.goBack()}>
+  <Text style={[styles.backLinkText, { marginBottom: 10 }]}>← Go back and edit registration</Text>
+</TouchableOpacity>
 
       </ScrollView>
     </View>
