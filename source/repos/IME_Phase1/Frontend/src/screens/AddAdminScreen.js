@@ -154,6 +154,14 @@ const AdminSignupScreen = ({
   const [statesLoading, setStatesLoading] = useState(false);
   const [clubsLoading, setClubsLoading] = useState(false);
 
+  // Refs used to auto-select India as the default country and Tamil Nadu as
+  // the default state (most users on this app are Tamil Nadu municipal
+  // engineers), and to auto-scroll the State list down to Tamil Nadu when
+  // the picker opens so users can still see/tap another state easily.
+  const stateListRef = useRef(null);
+  const autoSelectedCountryRef = useRef(false);
+  const autoSelectedStateRef = useRef(false);
+
   // ── Occupation state ───────────────────────────────────────────────────────
   const OCCUPATION_OPTIONS = ['Employed', 'Self Employed', 'Unemployed'];
   const [occupation, setOccupation] = useState('');
@@ -179,6 +187,58 @@ const AdminSignupScreen = ({
     }
   }, [hideClubSelection, presetClub]);
   useEffect(() => { loadCountries(); }, []);
+
+  // Auto-select "India" as soon as the country list loads, so the Country
+  // field is already filled in for the user without needing to open the modal.
+  useEffect(() => {
+    if (!autoSelectedCountryRef.current && countries.length > 0) {
+      const india = countries.find(
+        (c) => c.countryName?.trim().toLowerCase() === 'india'
+      );
+      if (india) {
+        autoSelectedCountryRef.current = true;
+        setSelectedCountry(india);
+        loadStates(india.countryId);
+      }
+    }
+  }, [countries]);
+
+  // Auto-select "Tamil Nadu" as soon as the state list loads for the default
+  // country, so the State field is already filled in for the user without
+  // needing to open the modal. The field stays tappable — the user can still
+  // open the picker and choose any other state if they want to change it.
+  useEffect(() => {
+    if (!autoSelectedStateRef.current && states.length > 0) {
+      const tamilNadu = states.find(
+        (s) => s.stateName?.trim().toLowerCase() === 'tamil nadu'
+      );
+      if (tamilNadu) {
+        autoSelectedStateRef.current = true;
+        setSelectedState(tamilNadu);
+        loadClubsByState(tamilNadu.stateId);
+      }
+    }
+  }, [states]);
+
+  // When the State picker opens, auto-scroll the list down to "Tamil Nadu"
+  // so elderly users can see and tap it right away instead of scrolling
+  // through the whole alphabetical list.
+  useEffect(() => {
+    if (stateModal && states.length > 0 && stateListRef.current) {
+      const tnIndex = states.findIndex(
+        (s) => s.stateName?.trim().toLowerCase() === 'tamil nadu'
+      );
+      if (tnIndex >= 0) {
+        setTimeout(() => {
+          stateListRef.current?.scrollToIndex({
+            index: tnIndex,
+            animated: true,
+            viewPosition: 0.3,
+          });
+        }, 150);
+      }
+    }
+  }, [stateModal, states]);
 
   const loadCountries = async () => {
     try {
@@ -721,9 +781,20 @@ const handleSignup = async () => {
             <View style={styles.pickerSheet}>
               <Text style={styles.pickerTitle}>Select State</Text>
               <FlatList
+                ref={stateListRef}
                 data={states}
                 keyExtractor={(item) => String(item.stateId)}
                 style={{ maxHeight: 380 }}
+                getItemLayout={(data, index) => ({ length: 48, offset: 48 * index, index })}
+                onScrollToIndexFailed={(info) => {
+                  setTimeout(() => {
+                    stateListRef.current?.scrollToIndex({
+                      index: info.index,
+                      animated: true,
+                      viewPosition: 0.3,
+                    });
+                  }, 200);
+                }}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={styles.pickerItem}
