@@ -41,8 +41,8 @@ const MAX_CIRCULAR_NUMBER = 20;
 // Title: letters, numbers, spaces, dot, comma, hyphen
 const TITLE_REGEX = /^[A-Za-z0-9\s.,-]*$/;
 
-// Circular Number: digits only
-const CIRCULAR_NUMBER_REGEX = /^[0-9]*$/;
+// Circular Number: letters, numbers, spaces, hyphen and slash (e.g. "C-2024/001")
+const CIRCULAR_NUMBER_REGEX = /^[A-Za-z0-9\s\-/]*$/;
 
 const sanitizeTitle = (v) =>
   v.replace(/[^A-Za-z0-9\s.,-]/g, '').slice(0, MAX_TITLE);
@@ -50,7 +50,7 @@ const sanitizeTitle = (v) =>
 const sanitizeDescription = (v) => v.slice(0, MAX_DESCRIPTION); // free text, only length capped
 
 const sanitizeCircularNumber = (v) =>
-  v.replace(/[^0-9]/g, '').slice(0, MAX_CIRCULAR_NUMBER);
+  v.replace(/[^A-Za-z0-9\s\-/]/g, '').slice(0, MAX_CIRCULAR_NUMBER);
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
 // strip the trailing "/api" so we get the plain server root to prefix
@@ -320,9 +320,9 @@ const warnIfRejected = (rejected) => {
     }
 
     if (formData.circularNumber.trim() && !CIRCULAR_NUMBER_REGEX.test(formData.circularNumber.trim())) {
-      e.circularNumber = 'Only numbers are allowed.';
+      e.circularNumber = 'Only letters, numbers, "-" and "/" are allowed.';
     } else if (formData.circularNumber.trim().length > MAX_CIRCULAR_NUMBER) {
-      e.circularNumber = `Circular number must be ${MAX_CIRCULAR_NUMBER} digits or fewer.`;
+      e.circularNumber = `Circular number must be ${MAX_CIRCULAR_NUMBER} characters or fewer.`;
     }
 
     setErrors(e);
@@ -434,12 +434,12 @@ const warnIfRejected = (rejected) => {
             <Field
               label="Circular Number"
               error={errors.circularNumber}
-              hint="e.g. 2024001"
+              hint="e.g. C-2024/001"
             >
               <StyledInput
-                placeholder="e.g. 2024001"
+                placeholder="e.g. C-2024/001"
                 value={formData.circularNumber}
-                keyboardType="number-pad"
+                autoCapitalize="characters"
                 maxLength={MAX_CIRCULAR_NUMBER}
                 onChangeText={(v) => update('circularNumber', sanitizeCircularNumber(v))}
                 hasError={!!errors.circularNumber}

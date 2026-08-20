@@ -12,6 +12,7 @@ const getToken = async () => {
 
 // For create/update with media — hits /api/achievements (NOT /api/file/...)
 const multipartPost = async (url, formData) => {
+  debugger;
   const token = await getToken();
   const res = await fetch(`${BASE_URL}/api${url}`, {   // ✅ was /api/file${url}
     method: 'POST',
@@ -19,6 +20,7 @@ const multipartPost = async (url, formData) => {
     body: formData,
   });
   if (!res.ok) {
+    debugger;
     const text = await res.text();
     throw new Error(text || `HTTP ${res.status}`);
   }
@@ -32,6 +34,7 @@ const multipartPut = async (url, formData) => {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
+  debugger;
   if (!res.ok) {
     const text = await res.text();
     throw new Error(text || `HTTP ${res.status}`);
@@ -41,6 +44,7 @@ const multipartPut = async (url, formData) => {
 
 // For generic file uploads — hits /api/file/upload
 const multipartFileUpload = async (formData) => {
+  debugger;
   const token = await getToken();
   const res = await fetch(`${BASE_URL}/api/file/upload`, {  // ✅ explicit path
     method: 'POST',

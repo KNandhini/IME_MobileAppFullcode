@@ -1,6 +1,6 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { circularService } from '../services/circularService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -65,13 +65,22 @@ const renderCircular = ({ item }) => (
     <View style={styles.cardHeader}>
 
       {/* LEFT: circular number chip only */}
-      <View style={styles.leftBadges}>
+      {/*<View style={styles.leftBadges}>
         {item.circularNumber ? (
           <View style={styles.chip}>
             <Text style={styles.chipText}>{item.circularNumber}</Text>
           </View>
         ) : null}
-      </View>
+      </View>*/} 
+      <View style={[
+      styles.visBadge,
+      item.visibility === 'Club' ? styles.visBadgeClub : styles.visBadgeAll,
+    ]}>
+      <Text style={styles.visText}>
+        {item.visibility === 'Club' ? 'My Club' : 'All Members'}
+      </Text>
+    </View>
+
 
       {/* RIGHT: admin actions */}
       {isAdmin && (
@@ -95,15 +104,7 @@ const renderCircular = ({ item }) => (
     </View>
 
     {/* ✅ Visibility badge — below chip, left-aligned */}
-    <View style={[
-      styles.visBadge,
-      item.visibility === 'Club' ? styles.visBadgeClub : styles.visBadgeAll,
-    ]}>
-      <Text style={styles.visText}>
-        {item.visibility === 'Club' ? 'My Club' : 'All Members'}
-      </Text>
-    </View>
-
+   
     {/* Title */}
     <Text style={styles.title}>{item.title}</Text>
 
@@ -130,6 +131,11 @@ const renderCircular = ({ item }) => (
 );
 
   return (
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+  >
   <View style={styles.container}>
     <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search circulars..." />
     {loading && circulars.length === 0 ? (
@@ -146,6 +152,7 @@ const renderCircular = ({ item }) => (
         renderItem={renderCircular}
         keyExtractor={(item) => item.circularId.toString()}
         contentContainerStyle={styles.list}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -162,8 +169,8 @@ const renderCircular = ({ item }) => (
         </TouchableOpacity>
       )}
     </View>
+  </KeyboardAvoidingView>
   );
 };
 
 export default CircularScreen;
-

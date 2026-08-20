@@ -21,7 +21,7 @@ public class MagazinesController : ControllerBase
     private readonly FileStorageService _fileStorageService;
 
     private static readonly string[] AllowedAttachmentTypes =
-        { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
+     { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx", ".mp4" };
 
     public MagazinesController(
         IMagazineRepository magazineRepository,

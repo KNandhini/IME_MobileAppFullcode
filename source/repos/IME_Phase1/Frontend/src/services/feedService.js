@@ -25,27 +25,27 @@ export const feedService = {
   getMemberFeed: async (memberId, pageNumber = 1, pageSize = 10) => {
   try {
     debugger;
-    // ── Get viewer's own memberId from AsyncStorage userData ──
-    let viewerId;
+    // ── Get auth token from AsyncStorage ──
+    let token;
     try {
-      const userDataStr = await AsyncStorage.getItem('userData');
-      if (userDataStr) {
-        const userData = JSON.parse(userDataStr);
-        viewerId = userData?.memberId;
-      }
+      token = await AsyncStorage.getItem('token'); // adjust key if you store it differently
     } catch (e) {
-      console.warn('Could not read userData for viewerId:', e);
+      console.warn('Could not read auth token:', e);
     }
 
     const response = await api.get(`/feed/member/${memberId}`, {
       params: {
         pageNumber,
         pageSize,
-        ...(viewerId ? { viewerId } : {}),
+      },
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
+    debugger;
     return response.data;
   } catch (error) {
+    debugger;
     console.error('getMemberFeed error:', error);
     return toSafeServiceError(error, { source: 'feedService' });
   }

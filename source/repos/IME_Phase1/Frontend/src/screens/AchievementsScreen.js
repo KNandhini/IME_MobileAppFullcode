@@ -174,7 +174,7 @@ const AchievementsScreen = ({ navigation }) => {
       const achRes = await achievementService.getAll();
       const achList = achRes?.success ? (achRes.data ?? []) : [];
       if (achRes?.success) setAchievements(achList);
-
+debugger;
       // Step 2: extract unique memberIds from achievements
       const uniqueMemberIds = [
         ...new Set(

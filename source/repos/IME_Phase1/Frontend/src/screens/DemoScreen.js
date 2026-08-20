@@ -519,7 +519,7 @@ const DemoScreen = ({ navigation }) => {
         </Animated.View>
 
         {/* ── Bottom strip: description + dots + nav ── */}
-        <Animated.View style={[styles.bottomStrip, { opacity: slideOpacity }]}>
+        <Animated.View style={[styles.bottomStrip, { opacity: slideOpacity },{marginBottom:30}]}>
           {/* Step badge + subtitle */}
           <View style={styles.stepRow}>
             <View style={styles.stepBadge}>

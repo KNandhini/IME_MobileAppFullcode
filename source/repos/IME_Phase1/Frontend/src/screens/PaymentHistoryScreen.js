@@ -181,7 +181,7 @@ const PaymentHistoryScreen = ({ navigation }) => {
         {membershipPayments.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <MaterialCommunityIcons name="card-account-details-outline" size={20} color={NAVY} />
+              <MaterialCommunityIcons name="card-account-details-outline" size={20} color={GOLD} />
               <Text style={styles.cardTitle}>Membership Payments</Text>
             </View>
 
@@ -213,7 +213,7 @@ const PaymentHistoryScreen = ({ navigation }) => {
         {fundraisePayments.length > 0 && (
           <View style={styles.card}>
             <View style={styles.cardHeader}>
-              <MaterialCommunityIcons name="hand-heart-outline" size={20} color={NAVY} />
+              <MaterialCommunityIcons name="hand-heart-outline" size={20} color={GOLD} />
               <Text style={styles.cardTitle}>Fund Payments</Text>
             </View>
 

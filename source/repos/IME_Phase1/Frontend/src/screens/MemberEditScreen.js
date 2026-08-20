@@ -1,7 +1,7 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import { Card } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -95,6 +95,7 @@ const photoPicker = StyleSheet.create({
     backgroundColor: '#EEF2FF',
     borderRadius: 12,
     padding: 12,
+    marginBottom: 24,
   },
   preview: {
     width: 48,
@@ -317,7 +318,12 @@ const memberId = member.memberId || member.MemberId;
         </TouchableOpacity>
       </GradientHeader>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
         {/* ── Member Info (read-only, shown as disabled textboxes) ── */}
         <Card style={styles.card}>
@@ -476,7 +482,10 @@ const memberId = member.memberId || member.MemberId;
           </Card.Content>
         </Card>
 
-      </ScrollView>
+        <View style={{ height: 32 }} />
+
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

@@ -13,4 +13,6 @@ public interface IFeedRepository
     Task<PostCommentDTO> AddCommentAsync(string itemType, int itemId, int memberId, string commentDetails);
     Task<List<PostCommentDTO>> GetPostCommentsAsync(string itemType, int itemId);
 
+    Task<FeedMediaDTO?> GetMediaByIdAsync(int mediaId);
+
 }

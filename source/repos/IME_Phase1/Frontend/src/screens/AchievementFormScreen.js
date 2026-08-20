@@ -1,7 +1,7 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -374,7 +374,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
         },
       },
       {
-        text: 'Photo / Image',
+        text: 'Image / Video',
         onPress: async () => {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') { Alert.alert('Permission needed'); return; }
@@ -410,7 +410,6 @@ const AchievementFormScreen = ({ route, navigation }) => {
   // ── Save ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     // Title validation
-    console.log("selectedMemberId =", selectedMemberId);
     const validationErrors = {};
 
     if (!title.trim()) {
@@ -441,6 +440,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
 
     setLoading(true);
     try {
+      debugger;
       const formData = new FormData();
       formData.append('title', title.trim());
       formData.append('description', description.trim());
@@ -457,7 +457,6 @@ const AchievementFormScreen = ({ route, navigation }) => {
       } else {
         res = await achievementService.createWithMedia(formData);
         // ── Cover every likely response shape so create-mode never loses the new id ──
-        console.log('CREATE RESPONSE:', JSON.stringify(res));
         recordId =
           res?.data?.achievementId ??
           res?.data?.AchievementId ??
@@ -472,6 +471,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
       if (!res?.success) { Alert.alert('Error', getSafeErrorMessage(res)); return; }
 
       if (attachments.length > 0) {
+        debugger;
         if (!recordId) {
           console.warn('No recordId resolved after save — attachments cannot be uploaded.');
           Alert.alert('Warning', 'Achievement was saved, but the attachment(s) could not be uploaded (no record id returned).');
@@ -479,12 +479,12 @@ const AchievementFormScreen = ({ route, navigation }) => {
           let failedUploads = 0;
           for (const file of attachments) {
             try {
+              debugger;
               const fd = new FormData();
               fd.append('file', { uri: file.uri, name: file.fileName, type: file.mimeType });
               fd.append('moduleName', 'Achievements');
               fd.append('recordId', String(recordId));
               const uploadRes = await achievementService.uploadFile(fd);
-              console.log('UPLOAD RESPONSE:', JSON.stringify(uploadRes));
               if (uploadRes && uploadRes.success === false) {
                 failedUploads++;
               }
@@ -527,7 +527,12 @@ const AchievementFormScreen = ({ route, navigation }) => {
         </TouchableOpacity>
       </GradientHeader>
 
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
         {/* ── Member avatar (shown for both roles) ── */}
 
@@ -691,7 +696,8 @@ const AchievementFormScreen = ({ route, navigation }) => {
           }
         </TouchableOpacity>*/}
 
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       <Modal visible={fileViewer.visible} transparent animationType="fade"
         onRequestClose={() => setFileViewer({ visible: false, uri: null })}>

@@ -46,7 +46,7 @@ public class AchievementsController : ControllerBase
                         .Replace('\\', Path.DirectorySeparatorChar));
     }
 
-    // helper: read userId from JWT claims
+    // helper: read userId from JWT claim
     private int GetUserId() =>
         int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
 

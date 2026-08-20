@@ -1,7 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { activityService } from '../services/activityService';
 import { useAuth } from '../context/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -38,12 +38,11 @@ const insets = useSafeAreaInsets();
   const loadActivities = async () => {
     setLoading(true);
     try {
-      debugger;
       const res = isAdmin
         ? await activityService.getByClub()
         : await activityService.getAll();
       if (res.success) setActivities(res.data || []);
-    } catch (e) { debugger; console.log('Activities load error:', e); }
+    } catch (e) { console.log('Activities load error:', e); }
     finally { setLoading(false); setRefreshing(false); }
   };
 
@@ -144,7 +143,12 @@ const insets = useSafeAreaInsets();
   );
 
   return (
-   
+
+  <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+  >
   <View style={styles.container}>
     <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search activities..." />
     {loading && activities.length === 0 ? (
@@ -157,6 +161,7 @@ const insets = useSafeAreaInsets();
         renderItem={renderItem}
         keyExtractor={(item) => item.activityId?.toString()}
         contentContainerStyle={styles.list}
+        keyboardShouldPersistTaps="handled"
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[GOLD]} />
         }
@@ -178,6 +183,7 @@ const insets = useSafeAreaInsets();
       </TouchableOpacity>
     )}
   </View>
+  </KeyboardAvoidingView>
 
   );
 };

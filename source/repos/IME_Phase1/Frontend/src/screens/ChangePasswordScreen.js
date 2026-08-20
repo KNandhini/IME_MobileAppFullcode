@@ -115,14 +115,9 @@ const ChangePasswordScreen = ({ navigation }) => {
     finally { setLoading(false); }
   };
 
-  return (
-    <LinearGradient
-      colors={[COLORS.headerStart, COLORS.headerEnd]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={{ flex: 1 }}
-    >
-      {/* ── Top navbar ── */}
+ return (
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* ── Top navbar — keeps its gradient ── */}
       <GradientHeader style={styles.navbar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
           <Text style={styles.navCancel}>Cancel</Text>
@@ -183,7 +178,7 @@ const ChangePasswordScreen = ({ navigation }) => {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </LinearGradient>
+    </View>
   );
 };
 

@@ -122,7 +122,6 @@ const maxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   const loadExistingAttachments = async () => {
     try {
-      debugger;
       const res = await magazineService.getAttachments(item.magazineId);
       if (res?.data) setExistingAttachments(res.data);
     } catch (e) {
@@ -274,6 +273,10 @@ const warnIfRejected = (rejected) => {
     e.issueNumber = `Issue Number must be ${MAX_ISSUE_NO} characters or fewer.`;
   }
 
+  if (!date) {
+    e.publishedDate = 'Published Date is required.';
+  }
+
   if (!authorName.trim()) {
     e.authorName = 'Author Name is required.';
   } else if (authorName.trim().length > MAX_AUTHOR) {
@@ -409,10 +412,15 @@ const totalAttachments = existingAttachments.length + attachments.length;
         {/* ── Published Date — type dd/mm/yyyy or tap 📅 for the wheel-list picker ── */}
         <DOBField
   label="Published Date"
+  required
   value={date}
-  onChange={(d) => setDate(d)}
+  onChange={(d) => {
+    setDate(d);
+    if (errors.publishedDate) setErrors(p => ({ ...p, publishedDate: '' }));
+  }}
   minDate={minDate}
   maxDate={maxDate}
+  error={errors.publishedDate}
   FieldComponent={Field}
   InputComponent={StyledInput}
 />

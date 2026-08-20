@@ -1,6 +1,6 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -164,6 +164,11 @@ const MagazinesScreen = ({ navigation }) => {
     <SafeAreaView style={s.safe} edges={['left', 'right', 'bottom']}>
       <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search magazines..." />
 
       {loading ? (
@@ -191,6 +196,7 @@ const MagazinesScreen = ({ navigation }) => {
           )}
           keyExtractor={(item) => item.magazineId.toString()}
           contentContainerStyle={s.list}
+          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[PRIMARY]} />
           }
@@ -198,12 +204,13 @@ const MagazinesScreen = ({ navigation }) => {
       )}
 
       <TouchableOpacity
-        style={[s.fab, { bottom: 24 + insets.bottom }]}
+        style={[s.fab, { bottom: 0 + insets.bottom }]}
         onPress={() => navigation.navigate('MagazineForm')}
         activeOpacity={0.85}
       >
         <Text style={s.fabText}>+</Text>
       </TouchableOpacity>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

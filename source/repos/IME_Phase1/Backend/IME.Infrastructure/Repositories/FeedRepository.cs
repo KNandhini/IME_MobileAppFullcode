@@ -208,7 +208,62 @@ public class FeedRepository : IFeedRepository
 
         return (success, filePaths);
     }
+    public async Task<FeedMediaDTO?> GetMediaByIdAsync(int mediaId)
+    {
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
 
+        using var command = _dbContext.CreateStoredProcCommand(
+            "sp_GetFeedMediaById",
+            connection
+        );
+
+        command.Parameters.AddWithValue(
+            "@MediaId",
+            mediaId
+        );
+
+        using var reader = await command.ExecuteReaderAsync();
+
+        if (await reader.ReadAsync())
+        {
+            return new FeedMediaDTO
+            {
+                MediaId = reader.GetInt32(
+                    reader.GetOrdinal("MediaId")
+                ),
+
+                PostId = reader.GetInt32(
+                    reader.GetOrdinal("PostId")
+                ),
+
+                FilePath = reader.IsDBNull(
+                    reader.GetOrdinal("FilePath")
+                )
+                    ? string.Empty
+                    : reader.GetString(
+                        reader.GetOrdinal("FilePath")
+                    ),
+
+                MediaType = reader.IsDBNull(
+                    reader.GetOrdinal("MediaType")
+                )
+                    ? string.Empty
+                    : reader.GetString(
+                        reader.GetOrdinal("MediaType")
+                    ),
+
+                SortOrder = reader.IsDBNull(
+                    reader.GetOrdinal("SortOrder")
+                )
+                    ? 0
+                    : reader.GetInt32(
+                        reader.GetOrdinal("SortOrder")
+                    )
+            };
+        }
+
+        return null;
+    }
     // ── Like / Comment ──────────────────────────────────────────────
 
     public async Task<LikeToggleResultDTO> ToggleLikeAsync(string itemType, int itemId, int memberId)

@@ -47,17 +47,36 @@ const local = StyleSheet.create({
     fontWeight: '600',
     flexShrink: 1,
   },
+  attachImageCard: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: 'center',
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
   attachImage: {
     width: '100%',
     height: 220,
-    borderRadius: 10,
-    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
+    backgroundColor: '#fff',
   },
   attachHint: {
-    marginTop: 6,
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 11,
+    color: '#94A3B8',
     textAlign: 'center',
+    marginTop: 6,
+  },
+  noAttach: {
+    fontSize: 13,
+    color: '#94A3B8',
+    textAlign: 'center',
+    paddingVertical: 12,
   },
   // ── Simple left-aligned header — replaces the old circular photo hero.
   // Every field (Club, Member Name, Title, Date, Description) renders as a
@@ -314,10 +333,13 @@ const AchievementDetailScreen = ({ route, navigation }) => {
             )}
           </View>
 
-          {/* Attachments — Support-style: images inline w/ "Tap to enlarge", files as download buttons */}
-          {attachmentsError ? (
-            <View style={styles.attachSection}>
-              <Text style={styles.attachLabel}>Attachments</Text>
+          {/* Attachments — always visible: label + empty state / error+retry / list */}
+          <View style={styles.attachSection}>
+            <Text style={styles.attachLabel}>
+              Attachments{attachments.length > 0 ? ` (${attachments.length})` : ''}
+            </Text>
+
+            {attachmentsError ? (
               <View style={{ alignItems: 'center', paddingVertical: 12 }}>
                 <MaterialCommunityIcons name="wifi-off" size={28} color="#D9534F" />
                 <Text style={{ color: '#D9534F', textAlign: 'center', marginTop: 6, marginBottom: 10 }}>
@@ -332,30 +354,39 @@ const AchievementDetailScreen = ({ route, navigation }) => {
                   <Text style={[styles.downloadText, local.downloadText]}>Retry</Text>
                 </TouchableOpacity>
               </View>
-            </View>
-          ) : attachments.length > 0 && (
-            <View style={styles.attachSection}>
-              <Text style={styles.attachLabel}>Attachments ({attachments.length})</Text>
-
-              {attachments.map((attachment, index) => {
+            ) : attachments.length === 0 ? (
+              <Text style={[styles.noAttach, local.noAttach]}>No attachments yet.</Text>
+            ) : (
+              attachments.map((attachment, index) => {
                 const filePath = attachment.filePath;
                 const url = toPublicUrl(filePath);
-                const rowId = attachment.attachmentId ?? index;
+                const rowId = attachment.attachmentId ?? attachment.fileName ?? index;
 
                 return isImagePath(filePath) ? (
-                  <TouchableOpacity
-                    key={rowId}
-                    onPress={() => setImgViewer(url)}
-                    activeOpacity={0.85}
- style={{ marginBottom: 14 }}          
-        >
-                    <Image
-                      source={{ uri: url }}
-                      style={[styles.attachImage, local.attachImage]}
-                      resizeMode="contain"
-                    />
+                  <View key={rowId} style={local.attachImageCard}>
+                    {!url ? (
+                      <Text style={{ color: '#D9534F', fontSize: 12 }}>
+                        Couldn't build image URL for this attachment.
+                      </Text>
+                    ) : (
+                      <TouchableOpacity
+                        onPress={() => setImgViewer(url)}
+                        activeOpacity={0.85}
+                        style={{ width: '100%' }}
+                      >
+                        <Image
+                          source={{ uri: url }}
+                          style={[styles.attachImage, local.attachImage]}
+                          resizeMode="contain"
+                          onError={(e) =>
+                            console.log('ATTACH IMAGE LOAD ERROR', url, e.nativeEvent?.error)
+                          }
+                          onLoad={() => console.log('ATTACH IMAGE LOADED OK', url)}
+                        />
+                      </TouchableOpacity>
+                    )}
                     <Text style={[styles.attachHint, local.attachHint]}>Tap to enlarge</Text>
-                  </TouchableOpacity>
+                  </View>
                 ) : (
                   <TouchableOpacity
                     key={rowId}
@@ -372,7 +403,7 @@ const AchievementDetailScreen = ({ route, navigation }) => {
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
                       <>
-                         <MaterialCommunityIcons name="download-outline" size={18} color= "#fff" />
+                        <MaterialCommunityIcons name="download-outline" size={18} color="#fff" />
                         <Text style={[styles.downloadText, local.downloadText]} numberOfLines={1}>
                           {attachment.fileName || fileNameFromPath(filePath) || 'Download Attachment'}
                         </Text>
@@ -380,9 +411,9 @@ const AchievementDetailScreen = ({ route, navigation }) => {
                     )}
                   </TouchableOpacity>
                 );
-              })}
-            </View>
-          )}
+              })
+            )}
+          </View>
         </ScrollView>
       )}
 

@@ -85,10 +85,8 @@ const ActivityDetailScreen = ({ route, navigation }) => {
 
   const loadAttachments = useCallback(async () => {
     try {
-      debugger;
       const res = await activityService.getAttachments(activityId);
       if (res.success) setAttachments(res.data || []);
-      
     } catch (e) {
       console.error('loadAttachments error:', e);
     }
@@ -185,7 +183,7 @@ const ActivityDetailScreen = ({ route, navigation }) => {
       <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
       {/* Header */}
-      
+
       <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
 
         {/* Badge */}
@@ -197,7 +195,7 @@ const ActivityDetailScreen = ({ route, navigation }) => {
         <Text style={styles.title}>{activity.activityName}</Text>
 
         {/* Gold divider */}
-   
+
 
         {/* Meta rows */}
         <View style={styles.metaWrap}>
@@ -205,6 +203,12 @@ const ActivityDetailScreen = ({ route, navigation }) => {
             <View style={styles.metaRow}>
               <MaterialCommunityIcons name="calendar-check-outline" size={16} color={GOLD} />
               <Text style={styles.metaText}>{formatDate(activity.activityDate)}</Text>
+            </View>
+          ) : null}
+          {activity.registrationDeadline ? (
+            <View style={styles.metaRow}>
+              <MaterialCommunityIcons name="calendar-alert-outline" size={16} color={GOLD} />
+              <Text style={styles.metaText}>Deadline: {formatDate(activity.registrationDeadline)}</Text>
             </View>
           ) : null}
           {activity.time ? (
@@ -222,7 +226,13 @@ const ActivityDetailScreen = ({ route, navigation }) => {
           {activity.chiefGuest ? (
             <View style={styles.metaRow}>
               <MaterialCommunityIcons name="account-star-outline" size={16} color={GOLD} />
-              <Text style={styles.metaText}>{activity.chiefGuest}</Text>
+              <Text style={styles.metaText}>ChiefGuest:{activity.chiefGuest}</Text>
+            </View>
+          ) : null}
+          {activity.coordinator ? (
+            <View style={styles.metaRow}>
+              <MaterialCommunityIcons name="account-tie-outline" size={16} color={GOLD} />
+              <Text style={styles.metaText}>Coordinator: {activity.coordinator}</Text>
             </View>
           ) : null}
         </View>
@@ -302,7 +312,5 @@ const ActivityDetailScreen = ({ route, navigation }) => {
     </View>
   );
 };
-
-
 
 export default ActivityDetailScreen;

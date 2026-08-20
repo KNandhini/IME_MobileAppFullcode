@@ -3,7 +3,7 @@ import { COLORS } from './theme';
 // Place in: src/screens/JobPostingListScreen.js
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, StatusBar, ActivityIndicator, RefreshControl, Image } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert, StatusBar, ActivityIndicator, RefreshControl, Image, KeyboardAvoidingView, Platform } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
@@ -208,6 +208,11 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
         </View>
       </GradientHeader>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search job postings..." />
 
       {loading ? (
@@ -220,6 +225,7 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
           keyExtractor={(item) => String(item.jobPostingId)}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[NAVY]} />
           }
@@ -235,10 +241,11 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
 
       {/* Floating add button */}
       {!isUnemployed && (
-  <TouchableOpacity style={[styles.fab,{ bottom: 24 + insets.bottom }]} onPress={handleAdd} activeOpacity={0.85}>
-    <MaterialCommunityIcons name="plus" size={30} color={GOLD} />
+  <TouchableOpacity style={[styles.fab,{ bottom: 0 + insets.bottom }]} onPress={handleAdd} activeOpacity={0.85}>
+    <MaterialCommunityIcons name="plus" size={30} color="#fff" />
   </TouchableOpacity>
 )}
+      </KeyboardAvoidingView>
     </View>
   );
 };
