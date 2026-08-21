@@ -5,7 +5,7 @@ import { Video, Audio } from 'expo-av';
 import { WebView } from 'react-native-webview';
 import { healthNutritionService } from '../services/healthNutritionService';
 import { HealthNutritionDetailScreenStyles as styles } from './screenStyles';
-
+import Slider from '@react-native-community/slider';
 const NAVY = '#1E3A5F';
 const GOLD = '#D4A017';
 
@@ -37,76 +37,193 @@ function ImagePreview({ uri }) {
 // from screenStyles.js instead of a local StyleSheet.
 function AudioPreview({ uri }) {
   const soundRef = useRef(null);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     return () => {
-      soundRef.current?.unloadAsync?.();
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
     };
   }, []);
 
-  const resetToStart = async () => {
-    setIsPlaying(false);
-    try {
-      await soundRef.current?.setPositionAsync(0);
-    } catch (e) {
-      // ignore — sound may already be unloaded
-    }
+  const formatTime = (milliseconds) => {
+    const totalSeconds = Math.floor((milliseconds || 0) / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const toggle = async () => {
-    if (isPlaying) {
-      await soundRef.current?.pauseAsync();
-      setIsPlaying(false);
-      return;
-    }
-    setLoading(true);
-    try {
-      if (!soundRef.current) {
-        const { sound } = await Audio.Sound.createAsync(
-          { uri },
-          { shouldPlay: true, positionMillis: 0 },
-          (status) => {
-            if (status.didJustFinish) resetToStart();
-          }
-        );
-        soundRef.current = sound;
-      } else {
-        await soundRef.current.playAsync();
+  const createSound = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      { uri },
+      {
+        shouldPlay: true,
+        positionMillis: 0,
+        progressUpdateIntervalMillis: 500,
+      },
+      (status) => {
+        if (!status.isLoaded) return;
+
+        setPosition(status.positionMillis || 0);
+        setDuration(status.durationMillis || 0);
+        setIsPlaying(status.isPlaying);
+
+        // Audio finished
+        if (status.didJustFinish) {
+          setIsPlaying(false);
+          setPosition(0);
+
+          soundRef.current?.setPositionAsync(0);
+        }
       }
-      setIsPlaying(true);
-    } catch (e) {
-      console.log('Audio playback error:', e);
+    );
+
+    soundRef.current = sound;
+  };
+
+  const togglePlay = async () => {
+    setLoading(true);
+
+    try {
+      // First time play
+      if (!soundRef.current) {
+        await createSound();
+        return;
+      }
+
+      const status = await soundRef.current.getStatusAsync();
+
+      if (!status.isLoaded) return;
+
+      if (status.isPlaying) {
+        // Pause
+        await soundRef.current.pauseAsync();
+        setIsPlaying(false);
+      } else {
+        // Continue from current position
+        await soundRef.current.playAsync();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.log('Audio playback error:', error);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSeek = async (value) => {
+    try {
+      if (!soundRef.current) return;
+
+      const status = await soundRef.current.getStatusAsync();
+
+      if (!status.isLoaded) return;
+
+      await soundRef.current.setPositionAsync(value);
+      setPosition(value);
+    } catch (error) {
+      console.log('Audio seek error:', error);
+    }
+  };
+
   return (
-    <View style={styles.audioCard}>
-      <TouchableOpacity
-        style={styles.audioButton}
-        onPress={toggle}
-        activeOpacity={0.85}
-        disabled={loading}
+    <View
+      style={[
+        styles.audioCard,
+        {
+          paddingHorizontal: 12,
+          paddingVertical: 12,
+        },
+      ]}
+    >
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          width: '100%',
+        }}
       >
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <MaterialCommunityIcons
-            name={isPlaying ? 'pause' : 'play'}
-            size={28}
-            color="#fff"
-            style={!isPlaying ? { marginLeft: 3 } : undefined}
+
+        {/* PLAY / PAUSE */}
+        <TouchableOpacity
+          onPress={togglePlay}
+          activeOpacity={0.8}
+          disabled={loading}
+          style={[
+            styles.audioButton,
+            {
+              width: 48,
+              height: 48,
+              borderRadius: 24,
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <MaterialCommunityIcons
+              name={isPlaying ? 'pause' : 'play'}
+              size={25}
+              color="#fff"
+              style={!isPlaying ? { marginLeft: 3 } : undefined}
+            />
+          )}
+        </TouchableOpacity>
+
+        {/* PROGRESS LINE */}
+        <View
+          style={{
+            flex: 1,
+            marginLeft: 10,
+          }}
+        >
+          <Slider
+            style={{
+              width: '100%',
+              height: 35,
+            }}
+            minimumValue={0}
+            maximumValue={duration || 1}
+            value={position}
+            onValueChange={(value) => {
+              setPosition(value);
+            }}
+            onSlidingComplete={handleSeek}
+            minimumTrackTintColor={GOLD}
+            maximumTrackTintColor="#CBD5E1"
+            thumbTintColor={GOLD}
           />
-        )}
-      </TouchableOpacity>
-      <Text style={styles.audioHint}>{isPlaying ? 'Playing…' : 'Tap to play'}</Text>
+
+          {/* TIME */}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              marginTop: -5,
+            }}
+          >
+            <Text style={styles.audioHint}>
+              {formatTime(position)}
+            </Text>
+
+            <Text style={styles.audioHint}>
+              {formatTime(duration)}
+            </Text>
+          </View>
+        </View>
+      </View>
     </View>
   );
 }
-
 // Preserves the uploaded video's real aspect ratio instead of forcing a fixed
 // box — landscape videos display landscape, portrait videos display portrait.
 function VideoPreview({ uri }) {
