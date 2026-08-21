@@ -7,7 +7,7 @@ import { COLORS } from './theme';
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal,
-  ActivityIndicator, StyleSheet, Alert, Platform,
+  ActivityIndicator, StyleSheet, Alert, Platform, Linking,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -189,6 +189,15 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
       })
     : '';
 
+  const handleOpenWebsite = () => {
+    const url = (item.website || '').trim();
+    if (!url) return;
+    const withScheme = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+    Linking.openURL(withScheme).catch(() =>
+      Alert.alert('Error', 'Could not open this website.')
+    );
+  };
+
   const InfoRow = ({ icon, label, value }) =>
     value ? (
       <View style={styles.infoRow}>
@@ -271,6 +280,27 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
               <Text style={styles.contactValue}>{item.contactInfo}</Text>
             </View>
           </View>
+        ) : null}
+
+        {/* ── Website ── */}
+        {item.website ? (
+          <TouchableOpacity
+            style={styles.contactCard}
+            onPress={handleOpenWebsite}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="web" size={20} color={NAVY} />
+            <View style={{ flex: 1, marginLeft: 10 }}>
+              <Text style={styles.contactLabel}>Website</Text>
+              <Text
+                style={[styles.contactValue, { color: COLORS.primary, textDecorationLine: 'underline' }]}
+                numberOfLines={1}
+              >
+                {item.website}
+              </Text>
+            </View>
+            <MaterialCommunityIcons name="open-in-new" size={18} color={NAVY} />
+          </TouchableOpacity>
         ) : null}
 
         {/* ── Attachments ── */}

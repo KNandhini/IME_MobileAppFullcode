@@ -10,6 +10,8 @@ import {
   FlatList,
   TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
@@ -483,7 +485,7 @@ const SignupScreen = ({ navigation, route }) => {
     await submitRegistration();
   };
 
-  return (
+ return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
       {/* ── Header ── */}
       <LinearGradient
@@ -500,7 +502,17 @@ const SignupScreen = ({ navigation, route }) => {
         <Text style={styles.headerSubtitle}>Join IME to access member benefits</Text>
       </LinearGradient>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
 
         <View style={styles.card}>
           <Field label="Full Name" required error={errors.fullName}>
@@ -725,7 +737,7 @@ const SignupScreen = ({ navigation, route }) => {
         </View>
 
         <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
-          <Text style={{ color: COLORS.secondary, textAlign: 'center', fontWeight: '600', fontSize: 14 }}>
+          <Text style={{ color: COLORS.secondary, textAlign: 'center', fontWeight: '600', fontSize: 14 , marginBottom:12}}>
             Already have an account? Login
           </Text>
         </TouchableOpacity>
@@ -836,6 +848,7 @@ const SignupScreen = ({ navigation, route }) => {
           </View>
         </Modal>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

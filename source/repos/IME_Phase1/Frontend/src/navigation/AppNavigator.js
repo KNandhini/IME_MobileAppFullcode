@@ -292,7 +292,7 @@ const MainTabs = () => {
             name="AboutIMETab"
             component={AboutIMEScreen}
             options={{
-              title: 'About IME',
+              title: 'IME Profile',
               headerBackground: renderGradientHeaderBackground,
               headerStyle: { backgroundColor: 'transparent' },
               headerTintColor: COLORS.white,
@@ -300,7 +300,7 @@ const MainTabs = () => {
               tabBarIcon: ({ color, focused }) => (
                 <View style={{ alignItems: 'center' }}>
                   <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
-                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>About IME</Text>
+                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IME Profile</Text>
                 </View>
               ),
             }}
@@ -362,7 +362,7 @@ const MainStack = () => (
     <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Membership Payment' }} />
     <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Payment History' }} />
     {/* Content */}
-    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ title: 'About IME' }} />
+    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ title: 'IME Profile' }} />
     <Stack.Screen
       name="ContentViewer"
       component={ContentViewerScreen}

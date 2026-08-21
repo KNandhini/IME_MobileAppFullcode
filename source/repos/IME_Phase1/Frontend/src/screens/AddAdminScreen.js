@@ -1,6 +1,6 @@
 import GradientHeader from '../components/GradientHeader';
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
@@ -396,7 +396,6 @@ const AdminSignupScreen = ({
   // succeeds and we have a real memberId to attach the photo to.
   const uploadProfilePhoto = async (memberId, photoUri) => {
     try {
-      debugger;
       const formData = new FormData();
       formData.append('file', {
         uri: photoUri,
@@ -442,7 +441,6 @@ const handleSignup = async () => {
     };
 
     const response = await api.post('/Auth/signup', payload);
-    debugger;
     const res = response.data;
 
     if (res.success) {
@@ -470,7 +468,6 @@ const handleSignup = async () => {
             text: 'OK',
             onPress: () => {
               if (hideClubSelection) {
-                debugger;
                 // Club field was hidden — this signup was triggered from an
                 // existing club's "add admin" flow, so return to that same club.
                 navigation.navigate({
@@ -482,7 +479,6 @@ const handleSignup = async () => {
                   merge: true,
                 });
               } else {
-                debugger;
                 // Club field was visible — standalone add admin, just go back.
                 navigation.goBack();
               }
@@ -513,7 +509,7 @@ const handleSignup = async () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.navSide} disabled={loading}>
           <Text style={styles.navCancel}>Cancel</Text>
         </TouchableOpacity>
-        <Text style={styles.navTitle}>Create Account</Text>
+        <Text style={styles.navTitle}>Add Admin</Text>
         <TouchableOpacity onPress={handleSignup} style={styles.navSide} disabled={loading}>
           {loading
             ? <ActivityIndicator size="small" color={GOLD} />
@@ -521,7 +517,16 @@ const handleSignup = async () => {
         </TouchableOpacity>
       </GradientHeader>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
 
         <View style={styles.card}>
           <Field label="Full Name" required error={errors.fullName}>
@@ -844,7 +849,8 @@ const handleSignup = async () => {
             </View>
           </View>
         </Modal>
-      </ScrollView>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 };

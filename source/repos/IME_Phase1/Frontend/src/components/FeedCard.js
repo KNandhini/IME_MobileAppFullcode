@@ -3,10 +3,12 @@ import React, { useState, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity,
   ScrollView, Image, Dimensions, TextInput, ActivityIndicator,
+  Modal, StatusBar,
 } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import api from '../utils/api';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // api.defaults.baseURL is usually something like "http://host:port/api"
 // strip the trailing "/api" so we get the plain server root to prefix
@@ -107,8 +109,214 @@ const getCommentTimestamp = (dateString) => {
   return `${relative} · ${formatDate(dateString)}`;
 };
 
+// Format milliseconds as m:ss for the progress bar time label.
+const formatMs = (ms) => {
+  if (!ms || ms < 0) return '0:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+};
+
+// ── Full-screen media viewer — images + playing video, with seek/nav ──────────
+// ── Full-screen media viewer — images + playing video, with seek ──────────────
+const LIGHT_GREEN = '#A0C878';
+
+const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
+  const [index, setIndex] = useState(startIndex);
+  const [isPlaying, setIsPlaying] = useState(true);
+  // Live playback position/duration for the current video, used to draw
+  // the progress line and time label under the controls.
+  const [playbackStatus, setPlaybackStatus] = useState({ position: 0, duration: 0 });
+  const scrollRef = useRef(null);
+  const videoRef = useRef(null);
+
+  // Reset to the tapped slide whenever the modal (re)opens.
+  React.useEffect(() => {
+    if (visible) {
+      setIndex(startIndex);
+      setIsPlaying(true);
+      setPlaybackStatus({ position: 0, duration: 0 });
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ x: startIndex * SCREEN_WIDTH, animated: false });
+      });
+    }
+  }, [visible, startIndex]);
+
+  const handleScroll = useCallback((e) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setIndex(i);
+    setIsPlaying(true);
+    setPlaybackStatus({ position: 0, duration: 0 });
+  }, []);
+
+  const togglePlayPause = useCallback(async () => {
+    if (!videoRef.current) return;
+
+    // If the video already finished, pressing play should restart it
+    // from the beginning instead of doing nothing.
+    if (playbackStatus.duration && playbackStatus.position >= playbackStatus.duration) {
+      await videoRef.current.setPositionAsync(0);
+      await videoRef.current.playAsync();
+      setIsPlaying(true);
+      return;
+    }
+
+    if (isPlaying) {
+      await videoRef.current.pauseAsync();
+      setIsPlaying(false);
+    } else {
+      await videoRef.current.playAsync();
+      setIsPlaying(true);
+    }
+  }, [isPlaying, playbackStatus]);
+
+  // Seek the current video forward/backward by deltaMs (e.g. ±10000 for 10s),
+  // clamped to [0, duration].
+  const seekBy = useCallback(async (deltaMs) => {
+    if (!videoRef.current) return;
+    try {
+      const status = await videoRef.current.getStatusAsync();
+      if (!status.isLoaded) return;
+      const duration = status.durationMillis ?? 0;
+      const newPos = Math.max(0, Math.min((status.positionMillis || 0) + deltaMs, duration));
+      await videoRef.current.setPositionAsync(newPos);
+    } catch (e) {
+      // ignore — e.g. video not loaded yet
+    }
+  }, []);
+
+  // Fires continuously while the video is loaded/playing — keeps the
+  // progress bar in sync, and flips the icon back to "play" once the
+  // video reaches the end instead of leaving it stuck on "pause".
+  const handlePlaybackStatusUpdate = useCallback((status) => {
+    if (!status.isLoaded) return;
+
+    setPlaybackStatus({
+      position: status.positionMillis || 0,
+      duration: status.durationMillis || 0,
+    });
+
+    if (status.didJustFinish) {
+      setIsPlaying(false);
+    }
+  }, []);
+
+  if (!mediaList || mediaList.length === 0) return null;
+
+  const current = mediaList[index];
+  const currentIsVideo = current?.mediaType === 'video';
+  const hasMultiple = mediaList.length > 1;
+
+  const progressPct = playbackStatus.duration
+    ? Math.min(100, (playbackStatus.position / playbackStatus.duration) * 100)
+    : 0;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <StatusBar hidden />
+      <View style={viewerStyles.backdrop}>
+        <TouchableOpacity style={viewerStyles.closeBtn} onPress={onClose} activeOpacity={0.7}>
+          <Text style={viewerStyles.closeBtnText}>✕</Text>
+        </TouchableOpacity>
+
+        {hasMultiple && (
+          <View style={viewerStyles.counter}>
+            <Text style={viewerStyles.counterText}>{index + 1}/{mediaList.length}</Text>
+          </View>
+        )}
+
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          scrollEventThrottle={16}
+          // While viewing a video, disable swipe-scroll so it doesn't fight
+          // with seeking — the ‹ › buttons take over there instead.
+          scrollEnabled={!currentIsVideo}
+        >
+          {mediaList.map((media, i) => {
+            const url = toPublicUrl(media.filePath ?? media.imagePath);
+            const isVideo = media.mediaType === 'video';
+            return (
+              <View key={media.mediaId ?? i} style={viewerStyles.slide}>
+                {isVideo ? (
+                  // Only mount the player for the currently visible slide —
+                  // avoids every video in the post trying to buffer at once.
+                  index === i ? (
+                    <Video
+                      ref={i === index ? videoRef : null}
+                      source={{ uri: url }}
+                      style={viewerStyles.media}
+                      resizeMode={ResizeMode.CONTAIN}
+                      useNativeControls={false}
+                      shouldPlay={visible && isPlaying}
+                      isLooping={false}
+                      onPlaybackStatusUpdate={i === index ? handlePlaybackStatusUpdate : undefined}
+                    />
+                  ) : (
+                    <View style={viewerStyles.media} />
+                  )
+                ) : (
+                  <Image source={{ uri: url }} style={viewerStyles.media} resizeMode="contain" />
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* ── Controls: only shown for video — progress line, seek back, play/pause, seek forward ── */}
+        {currentIsVideo && (
+          <>
+            {/* Progress line + elapsed/duration label showing how much of the video has played */}
+            <View style={viewerStyles.progressWrapper} pointerEvents="none">
+              <View style={viewerStyles.progressBarTrack}>
+                <View style={[viewerStyles.progressBarFill, { width: `${progressPct}%` }]} />
+              </View>
+              <View style={viewerStyles.progressTimeRow}>
+                <Text style={viewerStyles.progressTimeText}>{formatMs(playbackStatus.position)}</Text>
+                <Text style={viewerStyles.progressTimeText}>{formatMs(playbackStatus.duration)}</Text>
+              </View>
+            </View>
+
+            <View style={viewerStyles.controlsRow} pointerEvents="box-none">
+              <TouchableOpacity
+                style={viewerStyles.navBtn}
+                onPress={() => seekBy(-10000)}
+                activeOpacity={0.7}
+              >
+                <Text style={viewerStyles.navBtnText}>‹</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={viewerStyles.playPauseBtn}
+                onPress={togglePlayPause}
+                activeOpacity={0.7}
+              >
+                <Text style={viewerStyles.playPauseText}>
+                  {isPlaying ? '❚❚' : '▶'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={viewerStyles.navBtn}
+                onPress={() => seekBy(10000)}
+                activeOpacity={0.7}
+              >
+                <Text style={viewerStyles.navBtnText}>›</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    </Modal>
+  );
+};
+
 // ── Media carousel for Post-type items ────────────────────────────────────────
-const MediaCarousel = ({ mediaItems }) => {
+const MediaCarousel = ({ mediaItems, onOpenViewer }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef(null);
 
@@ -131,23 +339,41 @@ const MediaCarousel = ({ mediaItems }) => {
       >
         {mediaItems.map((media, index) => {
           const url = toPublicUrl(media.filePath);
+          const isVideo = media.mediaType === 'video';
           return (
-            <View key={media.mediaId ?? index} style={carousel.slide}>
-              {media.mediaType === 'video' ? (
+            <TouchableOpacity
+              key={media.mediaId ?? index}
+              style={carousel.slide}
+              activeOpacity={0.9}
+              onPress={() => onOpenViewer(mediaItems, index)}
+            >
+              {isVideo ? (
                 <View style={carousel.videoPlaceholder}>
-                  <Text style={carousel.videoPlay}>▶</Text>
-                  <Text style={carousel.videoLabel}>Video</Text>
+                  {/* Muted, no controls — lightweight preview thumbnail;
+                      contain so the full frame is visible, not cropped. */}
+                  <Video
+                    source={{ uri: url }}
+                    style={StyleSheet.absoluteFill}
+                    resizeMode={ResizeMode.CONTAIN}
+                    isMuted
+                    shouldPlay
+                    isLooping
+                    useNativeControls={false}
+                  />
+                  <View style={carousel.videoPlayBadge}>
+                    <Text style={carousel.videoPlay}>▶</Text>
+                  </View>
                 </View>
               ) : (
                 <Image
                   source={{ uri: url }}
                   style={carousel.image}
-                  resizeMode="cover"
+                  resizeMode="contain"
                   onError={(e) => console.log('Image load error mediaId=' + media.mediaId, e.nativeEvent.error)}
                   onLoad={() => console.log('Image loaded mediaId=' + media.mediaId)}
                 />
               )}
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -172,10 +398,17 @@ const MediaCarousel = ({ mediaItems }) => {
 };
 
 // ── Single image for News / Activity (uses ImagePath) ─────────────────────────
-const SingleImage = ({ imagePath }) => {
+const SingleImage = ({ imagePath, onOpenViewer }) => {
   if (!imagePath) return null;
   const uri = toPublicUrl(imagePath);
-  return <Image source={{ uri }} style={single.image} resizeMode="cover" />;
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={() => onOpenViewer([{ imagePath, mediaType: 'image' }], 0)}
+    >
+      <Image source={{ uri }} style={single.image} resizeMode="contain" />
+    </TouchableOpacity>
+  );
 };
 
 // ── Main card ─────────────────────────────────────────────────────────────────
@@ -194,6 +427,21 @@ const FeedCard = ({ item, navigation }) => {
   const isPost = item.type === 'Post';
   const hasCarousel = isPost && item.mediaItems && item.mediaItems.length > 0;
   const hasSingle = !isPost && item.hasImage && item.imagePath;
+
+  // ── Full-screen media viewer state ─────────────────────────────────
+  const [viewerVisible, setViewerVisible] = useState(false);
+  const [viewerMedia, setViewerMedia] = useState([]);
+  const [viewerIndex, setViewerIndex] = useState(0);
+
+  const handleOpenViewer = useCallback((mediaList, index) => {
+    setViewerMedia(mediaList);
+    setViewerIndex(index);
+    setViewerVisible(true);
+  }, []);
+
+  const handleCloseViewer = useCallback(() => {
+    setViewerVisible(false);
+  }, []);
 
   // ── Like / Comment state ──────────────────────────────────────────
   // Now wired up for every feed item type (Post/Activity/News/Circular) —
@@ -324,8 +572,8 @@ const FeedCard = ({ item, navigation }) => {
       </View>
 
       {/* ── Media ── */}
-      {hasCarousel && <MediaCarousel mediaItems={item.mediaItems} />}
-      {hasSingle && <SingleImage imagePath={item.imagePath} />}
+      {hasCarousel && <MediaCarousel mediaItems={item.mediaItems} onOpenViewer={handleOpenViewer} />}
+      {hasSingle && <SingleImage imagePath={item.imagePath} onOpenViewer={handleOpenViewer} />}
 
       {/* ── Post Content ── */}
       <View style={styles.body}>
@@ -430,18 +678,100 @@ const FeedCard = ({ item, navigation }) => {
         </View>
       )}
 
+      {/* ── Full-screen image/video viewer ── */}
+      <MediaViewerModal
+        visible={viewerVisible}
+        mediaList={viewerMedia}
+        startIndex={viewerIndex}
+        onClose={handleCloseViewer}
+      />
+
     </View>
   );
 };
 
+// ── Full-screen viewer styles ──────────────────────────────────────────────────
+// ── Full-screen viewer styles ──────────────────────────────────────────────────
+const viewerStyles = StyleSheet.create({
+  backdrop: { flex: 1, backgroundColor: '#000' },
+  slide: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT, justifyContent: 'center', alignItems: 'center' },
+  media: { width: SCREEN_WIDTH, height: SCREEN_HEIGHT },
+  closeBtn: {
+    position: 'absolute', top: 44, right: 16, zIndex: 20,
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  closeBtnText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  counter: {
+    position: 'absolute', top: 50, alignSelf: 'center', zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  counterText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+
+  // ── Progress line + time label showing how much of the video has played ──
+  progressWrapper: {
+    position: 'absolute',
+    bottom: 116, // sits just above controlsRow
+    left: 20,
+    right: 20,
+  },
+  progressBarTrack: {
+    height: 3,
+    borderRadius: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 3,
+    backgroundColor: LIGHT_GREEN,
+  },
+  progressTimeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  progressTimeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+
+  // ── Bottom control bar: seek-back, play-pause, seek-forward (video only) ──
+  controlsRow: {
+    position: 'absolute',
+    bottom: 48,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  navBtn: {
+    width: 48, height: 48, borderRadius: 24,
+    backgroundColor: LIGHT_GREEN,
+    justifyContent: 'center', alignItems: 'center',
+    marginHorizontal: 20,
+  },
+  navBtnText: { color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 },
+  playPauseBtn: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: LIGHT_GREEN,
+    justifyContent: 'center', alignItems: 'center',
+    marginHorizontal: 12,
+  },
+  playPauseText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+});
+
 // ── Carousel styles ───────────────────────────────────────────────────────────
 const carousel = StyleSheet.create({
-  wrapper: { position: 'relative' },
+  wrapper: { position: 'relative', backgroundColor: '#000' },
   slide: { width: SCREEN_WIDTH, height: 280 },
   image: { width: '100%', height: '100%' },
-  videoPlaceholder: { flex: 1, backgroundColor: COLORS.dark, justifyContent: 'center', alignItems: 'center' },
-  videoPlay: { fontSize: 48, color: COLORS.white },
-  videoLabel: { color: COLORS.textLightSubtle, fontSize: 13, marginTop: 8, letterSpacing: 1 },
+  videoPlaceholder: { flex: 1, backgroundColor: COLORS.dark, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  videoPlayBadge: {
+    width: 52, height: 52, borderRadius: 26,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center', alignItems: 'center',
+  },
+  videoPlay: { fontSize: 24, color: COLORS.white, marginLeft: 2 },
   counter: {
     position: 'absolute',
     top: 10,

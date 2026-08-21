@@ -15,11 +15,11 @@ const ADMIN_MENU = [
   { title: 'Organisation',      route: 'Organisation',      icon: '🏢', params: {} },
   { title: 'Support Services',  route: 'Support',           icon: '🤝', params: {} },
   { title: 'Set Membership Fee',    route: 'SetAnnualFee',      icon: '💰', params: {} },
-  { title: 'Fund Raise',        route: 'FundraiseList',     icon: '💸', params: {} },
+  { title: 'Fund Requests',        route: 'FundraiseList',     icon: '💸', params: {} },
   { title: 'Club List',         route: 'ClubList',          icon: '🏛️', params: {} },
   { title: 'Job Postings',      route: 'JobPostingList',    icon: '💼', params: {} },
   { title: 'Magazine',          route: 'Magazines',         icon: '📰', params: {} },
-];
+{ title: 'Contribute to Fund',  route: 'FundScreen',        icon: '💵', params: {} }];
 const AdminDashboardScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);

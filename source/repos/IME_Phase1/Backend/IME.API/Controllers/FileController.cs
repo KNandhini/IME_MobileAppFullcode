@@ -15,7 +15,8 @@ public class FileController : ControllerBase
     private readonly DatabaseContext _dbContext;
     private readonly string[] _allowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
     private readonly string[] _allowedDocumentExtensions = { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt" };
-    private readonly long _maxFileSize = 10 * 1024 * 1024; // 10MB
+    private readonly string[] _allowedVideoExtensions = { ".mp4" };
+    private readonly long _maxFileSize = 50 * 1024 * 1024; // 50MB
 
     public FileController(FileStorageService fileStorageService, DatabaseContext dbContext)
     {
@@ -52,7 +53,10 @@ public class FileController : ControllerBase
 
             // Validate file extension
             var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            var allowedExtensions = _allowedImageExtensions.Concat(_allowedDocumentExtensions).ToArray();
+            var allowedExtensions = _allowedImageExtensions
+                .Concat(_allowedDocumentExtensions)
+                .Concat(_allowedVideoExtensions)
+                .ToArray();
 
             if (!allowedExtensions.Contains(extension))
             {
@@ -135,7 +139,10 @@ public class FileController : ControllerBase
 
                 // Validate file extension
                 var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-                var allowedExtensions = _allowedImageExtensions.Concat(_allowedDocumentExtensions).ToArray();
+                var allowedExtensions = _allowedImageExtensions
+                    .Concat(_allowedDocumentExtensions)
+                    .Concat(_allowedVideoExtensions)
+                    .ToArray();
                 if (!allowedExtensions.Contains(extension)) continue;
 
                 // Save file and resolve to full absolute path for DB storage
@@ -423,6 +430,7 @@ public class FileController : ControllerBase
             ".xls" => "application/vnd.ms-excel",
             ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             ".txt" => "text/plain",
+            ".mp4" => "video/mp4",
             _ => "application/octet-stream"
         };
     }

@@ -5,13 +5,15 @@ import { useAuth } from '../context/AuthContext';
 import { MemberDashboardScreenStyles as styles } from './screenStyles.js';
 import GradientHeader from '../components/GradientHeader.js';
 const MEMBER_MENU = [
+  { title: 'Activity',          route: 'Activities',        icon: '📅', params: {} },
+   { title: 'GO & Circulars',    route: 'Circular',          icon: '📋', params: {} },
   { title: 'Support Services',   route: 'Support',        icon: '🤝', params: {} },
-  { title: 'Fund Raise',         route: 'FundScreen',  icon: '💸', params: {} },
+{ title: 'Contribute to Fund',  route: 'FundScreen',        icon: '💵', params: {} },
   { title: 'Organisation',       route: 'Organisation',   icon: '🏢', params: {} },
   { title: 'Achievements',       route: 'Achievements',   icon: '🏆', params: {} },
   { title: 'Magazine',           route: 'Magazines',      icon: '📰', params: {} },
   { title: 'Job Postings',       route: 'JobPostingList', icon: '💼', params: {} },
-  { title: 'Health & Nutrition', route: 'HealthNutrition',icon: '🥗', params: {} },
+  
 ];
 
 const MemberDashboardScreen = ({ navigation }) => {

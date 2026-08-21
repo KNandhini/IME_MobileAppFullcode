@@ -1,7 +1,18 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState } from 'react';
-import { View, Text, Alert, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  Alert,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import IMELogo from '../components/IMELogo';
 import { authService } from '../services/authService';
@@ -42,6 +53,31 @@ function StyledInput({ hasError, style, ...props }) {
   );
 }
 
+// ── Password field — StyledInput with an eye toggle overlaid on the right ──
+// (same pattern as ChangePasswordScreen)
+function PasswordField({ label, required, value, onChangeText, error, hint, visible, onToggleVisible }) {
+  return (
+    <Field label={label} required={required} error={error} hint={hint}>
+      <View style={{ position: 'relative' }}>
+        <StyledInput
+          value={value}
+          onChangeText={onChangeText}
+          secureTextEntry={!visible}
+          hasError={!!error}
+          style={{ paddingRight: 44 }}
+        />
+        <TouchableOpacity
+          onPress={onToggleVisible}
+          style={{ position: 'absolute', right: 12, top: 0, bottom: 0, justifyContent: 'center' }}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <MaterialCommunityIcons name={visible ? 'eye-off-outline' : 'eye-outline'} size={20} color={COLORS.placeholder} />
+        </TouchableOpacity>
+      </View>
+    </Field>
+  );
+}
+
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$/;
 
 const ForgotPasswordScreen = ({ navigation }) => {
@@ -54,6 +90,8 @@ const ForgotPasswordScreen = ({ navigation }) => {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [step, setStep] = useState(1); // 1: validation, 2: reset
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -143,105 +181,126 @@ const ForgotPasswordScreen = ({ navigation }) => {
       colors={[COLORS.headerStart, COLORS.headerEnd]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={[styles.container, { backgroundColor: 'transparent' }]}
+      style={[
+        styles.container,
+        { backgroundColor: 'transparent', justifyContent: 'flex-start', padding: 0 },
+      ]}
     >
-      {/* ── Logo ── */}
-      <View style={{ alignItems: 'center', marginBottom: 16 }}>
-        <IMELogo size="medium" animated={false} />
-      </View>
-
-      <View style={styles.card}>
-
-        <View style={styles.header}>
-          <Text style={styles.title}>{step === 1 ? 'Forgot Password' : 'Change Password'}</Text>
-          <Text style={styles.subtitle}>
-            {step === 1
-              ? 'Enter your details to validate'
-              : 'Enter new password'}
-          </Text>
-        </View>
-
-        {step === 1 ? (
-          <View style={styles.form}>
-            <Field label="Email" required error={errors.email}>
-              <StyledInput
-                value={email}
-                onChangeText={(t) => { setEmail(t); clearError('email'); }}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholder="you@example.com"
-                hasError={!!errors.email}
-              />
-            </Field>
-
-            <DOBField
-              label="Date of Birth"
-              required
-              value={selectedDob}
-              minDate={minDob}
-              maxDate={today}
-              error={errors.dateOfBirth}
-              FieldComponent={Field}
-              InputComponent={StyledInput}
-              onChange={(date) => {
-                setSelectedDob(date);
-                setDateOfBirth(formatYMD(date));
-                clearError('dateOfBirth');
-              }}
-            />
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleValidate}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              {loading
-                ? <ActivityIndicator color={COLORS.accent} />
-                : <Text style={styles.buttonText}>Validate</Text>}
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.form}>
-            <Field label="New Password" required error={errors.newPassword}>
-              <StyledInput
-                value={newPassword}
-                onChangeText={(t) => { setNewPassword(t); clearError('newPassword'); }}
-                secureTextEntry
-                hasError={!!errors.newPassword}
-              />
-            </Field>
-
-            <Field label="Confirm Password" required error={errors.confirmPassword}>
-              <StyledInput
-                value={confirmPassword}
-                onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
-                secureTextEntry
-                hasError={!!errors.confirmPassword}
-              />
-            </Field>
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleResetPassword}
-              disabled={loading}
-              activeOpacity={0.85}
-            >
-              {loading
-                ? <ActivityIndicator color={COLORS.accent} />
-                : <Text style={styles.buttonText}>Reset Password</Text>}
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={styles.linkButton}
-          onPress={() => navigation.navigate('Login')}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: 'center',
+            padding: 20,
+          }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.linkButtonText}>Back to Login</Text>
-        </TouchableOpacity>
+          {/* ── Logo ── */}
+          <View style={{ alignItems: 'center', marginBottom: 16 }}>
+            <IMELogo size="medium" animated={false} />
+          </View>
 
-      </View>
+          <View style={styles.card}>
+
+            <View style={styles.header}>
+              <Text style={styles.title}>{step === 1 ? 'Forgot Password' : 'Change Password'}</Text>
+              <Text style={styles.subtitle}>
+                {step === 1
+                  ? 'Enter your details to validate'
+                  : 'Enter new password'}
+              </Text>
+            </View>
+
+            {step === 1 ? (
+              <View style={styles.form}>
+                <Field label="Email" required error={errors.email}>
+                  <StyledInput
+                    value={email}
+                    onChangeText={(t) => { setEmail(t); clearError('email'); }}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    placeholder="you@example.com"
+                    hasError={!!errors.email}
+                  />
+                </Field>
+
+                <DOBField
+                  label="Date of Birth"
+                  required
+                  value={selectedDob}
+                  minDate={minDob}
+                  maxDate={today}
+                  error={errors.dateOfBirth}
+                  FieldComponent={Field}
+                  InputComponent={StyledInput}
+                  onChange={(date) => {
+                    setSelectedDob(date);
+                    setDateOfBirth(formatYMD(date));
+                    clearError('dateOfBirth');
+                  }}
+                />
+
+                <TouchableOpacity
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  onPress={handleValidate}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  {loading
+                    ? <ActivityIndicator color={COLORS.accent} />
+                    : <Text style={styles.buttonText}>Validate</Text>}
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.form}>
+                <PasswordField
+                  label="New Password"
+                  required
+                  value={newPassword}
+                  onChangeText={(t) => { setNewPassword(t); clearError('newPassword'); }}
+                  error={errors.newPassword}
+                  visible={showNew}
+                  onToggleVisible={() => setShowNew(!showNew)}
+                />
+
+                <PasswordField
+                  label="Confirm Password"
+                  required
+                  value={confirmPassword}
+                  onChangeText={(t) => { setConfirmPassword(t); clearError('confirmPassword'); }}
+                  error={errors.confirmPassword}
+                  visible={showConfirm}
+                  onToggleVisible={() => setShowConfirm(!showConfirm)}
+                />
+
+                <TouchableOpacity
+                  style={[styles.button, loading && styles.buttonDisabled]}
+                  onPress={handleResetPassword}
+                  disabled={loading}
+                  activeOpacity={0.85}
+                >
+                  {loading
+                    ? <ActivityIndicator color={COLORS.accent} />
+                    : <Text style={styles.buttonText}>Reset Password</Text>}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => navigation.navigate('Login')}
+            >
+              <Text style={styles.linkButtonText}>Back to Login</Text>
+            </TouchableOpacity>
+
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </LinearGradient>
   );
 };

@@ -1,6 +1,6 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
 import api from '../utils/api';
 import { SetAnnualFeeScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
@@ -132,71 +132,77 @@ const SetAnnualFeeScreen = () => {
   };
 
   return (
-    <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      {/* Current Fee Card */}
-      <View style={styles.currentCard}>
-        <Text style={styles.currentTitle}>Current Annual Fee</Text>
-        {fetching ? (
-          <ActivityIndicator color={COLORS.accent} />
-        ) : currentFee ? (
-          <>
-            <Text style={styles.currentAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
-            <Text style={styles.currentDate}>
-              Effective from: {new Date(currentFee.effectiveFrom).toDateString()}
-            </Text>
-          </>
-        ) : (
-          <Text style={styles.currentDate}>No active fee set</Text>
-        )}
-      </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
+        {/* Current Fee Card */}
+        <View style={styles.currentCard}>
+          <Text style={styles.currentTitle}>Current Annual Fee</Text>
+          {fetching ? (
+            <ActivityIndicator color={COLORS.accent} />
+          ) : currentFee ? (
+            <>
+              <Text style={styles.currentAmount}>₹{parseFloat(currentFee.amount).toFixed(2)}</Text>
+              <Text style={styles.currentDate}>
+                Effective from: {new Date(currentFee.effectiveFrom).toDateString()}
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.currentDate}>No active fee set</Text>
+          )}
+        </View>
 
-      {/* Set New Fee Form */}
-      <View style={styles.form}>
-        <Text style={styles.sectionTitle}>Set New Annual Fee</Text>
+        {/* Set New Fee Form */}
+        <View style={styles.form}>
+          <Text style={styles.sectionTitle}>Set New Annual Fee</Text>
 
-        <Field label="Fee Amount (₹)" required error={errors.amount}>
-          <StyledInput
-            placeholder="e.g. 1500"
-            keyboardType="decimal-pad"
-            value={amount}
-            onChangeText={(t) => {
-              setAmount(t);
-              if (errors.amount) setErrors(p => ({ ...p, amount: null }));
+          <Field label="Fee Amount (₹)" required error={errors.amount}>
+            <StyledInput
+              placeholder="e.g. 1500"
+              keyboardType="decimal-pad"
+              value={amount}
+              onChangeText={(t) => {
+                setAmount(t);
+                if (errors.amount) setErrors(p => ({ ...p, amount: null }));
+              }}
+              hasError={!!errors.amount}
+              returnKeyType="done"
+            />
+          </Field>
+
+          {/* ── Effective From — same dd/mm/yyyy typing + wheel-list picker
+               used across the app (ActivityFormScreen's Activity Date) ── */}
+          <DOBField
+            label="Effective From"
+            required
+            value={effectiveFrom}
+            minDate={feeMinDate}
+            maxDate={feeMaxDate}
+            error={errors.effectiveFrom}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={(d) => {
+              setEffectiveFrom(d);
+              if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null }));
             }}
-            hasError={!!errors.amount}
-            returnKeyType="done"
           />
-        </Field>
 
-        {/* ── Effective From — same dd/mm/yyyy typing + wheel-list picker
-             used across the app (ActivityFormScreen's Activity Date) ── */}
-        <DOBField
-          label="Effective From"
-          required
-          value={effectiveFrom}
-          minDate={feeMinDate}
-          maxDate={feeMaxDate}
-          error={errors.effectiveFrom}
-          FieldComponent={Field}
-          InputComponent={StyledInput}
-          onChange={(d) => {
-            setEffectiveFrom(d);
-            if (errors.effectiveFrom) setErrors(p => ({ ...p, effectiveFrom: null }));
-          }}
-        />
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading
-            ? <ActivityIndicator color={COLORS.accent} />
-            : <Text style={styles.buttonText}>Set Annual Fee</Text>
-          }
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading
+              ? <ActivityIndicator color={COLORS.accent} />
+              : <Text style={styles.buttonText}>Set Annual Fee</Text>
+            }
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 

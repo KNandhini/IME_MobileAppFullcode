@@ -19,7 +19,7 @@ public class JobPostingsController : ControllerBase
     private readonly FileStorageService _fileStorageService;
 
     private static readonly string[] AllowedAttachmentTypes =
-        { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx" };
+        { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx" ,".mp4" };
 
     public JobPostingsController(
         IJobPostingRepository jobPostingRepository,

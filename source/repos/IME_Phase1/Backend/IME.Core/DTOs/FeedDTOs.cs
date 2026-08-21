@@ -3,6 +3,7 @@ namespace IME.Core.DTOs;
 public class FeedMediaDTO
 {
     public int    MediaId   { get; set; }
+    public int PostId { get; set; }
     public string FilePath  { get; set; } = string.Empty;
     public string MediaType { get; set; } = "image"; // "image" | "video"
     public int    SortOrder { get; set; }

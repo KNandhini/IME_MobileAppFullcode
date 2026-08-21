@@ -4,7 +4,7 @@ import { COLORS } from './theme';
 // Mirrors AchievementFormScreen.js structure exactly.
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import DOBField from '../components/DOBField';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -172,9 +172,7 @@ function ChipSelector({ label, options, value, onChange }) {
 // ── JobPostingFormScreen ──────────────────────────────────────────────────────
 const JobPostingFormScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
-  console.log(item,"item");
   const isEdit = !!item;
-  console.log(item,"edit");
   const { user } = useAuth();
 
   const [currentUserName, setCurrentUserName] = useState('');
@@ -466,6 +464,11 @@ const warnIfRejected = (rejected) => {
         </TouchableOpacity>
       </GradientHeader>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
       <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
         {/* ── Job Title ── */}
@@ -726,6 +729,7 @@ const warnIfRejected = (rejected) => {
           )}
         </TouchableOpacity>*/}
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* ── Image viewer modal ── */}
       <Modal visible={fileViewer.visible} transparent animationType="fade"

@@ -5,6 +5,7 @@ import {
   View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar,
   Modal, TextInput, Pressable, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { chatService } from '../services/chatService';
 // ⚠️ Adjust this import to wherever your member-list API lives.
@@ -30,6 +31,7 @@ const formatTime = (dateStr) => {
 };
 
 const ChatsListScreen = ({ navigation }) => {
+  const insets = useSafeAreaInsets();
   const [conversations, setConversations] = useState([]);
   const [loading,       setLoading]       = useState(true);
   const [refreshing,    setRefreshing]    = useState(false);
@@ -328,6 +330,7 @@ const ChatsListScreen = ({ navigation }) => {
               }
               renderItem={renderMemberItem}
               keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
               ItemSeparatorComponent={() => <View style={styles.separator} />}
               ListEmptyComponent={
                 <View style={styles.emptyWrap}>

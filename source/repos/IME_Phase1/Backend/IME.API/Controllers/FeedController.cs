@@ -1,15 +1,16 @@
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using IME.Core.DTOs;
 using IME.Core.Interfaces;
 using IME.Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.Security.Claims;
 
 namespace IME.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+//[Authorize]
 public class FeedController : ControllerBase
 {
     private readonly IFeedRepository _feedRepository;
@@ -22,6 +23,13 @@ public class FeedController : ControllerBase
     {
         _feedRepository = feedRepository;
         _fileStorageService = fileStorageService;
+    }
+    private string BuildFileUrl(string? relativePath)
+    {
+        return Path.Combine(
+            Directory.GetCurrentDirectory(),
+            relativePath.Replace('/', Path.DirectorySeparatorChar)
+                        .Replace('\\', Path.DirectorySeparatorChar));
     }
 
     // ── GET /api/feed?pageNumber=1&pageSize=10 ────────────
@@ -214,45 +222,95 @@ public class FeedController : ControllerBase
             return StatusCode(500, new ApiResponse<object> { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
-
-    // ── GET /api/feed/media/{mediaId}  (serves media file) ─
     [HttpGet("media/{mediaId:int}")]
-    [AllowAnonymous] // GUID-based paths are not guessable; auth would block Image component
+    [AllowAnonymous]
     public async Task<IActionResult> GetMedia(int mediaId)
     {
         try
         {
-            using var connection = await GetDbContext().CreateOpenConnectionAsync();
-            using var cmd = GetDbContext().CreateCommand(
-                "SELECT FilePath, MediaType FROM tbl_PostMedia WHERE MediaId = @MediaId", connection);
-            cmd.Parameters.AddWithValue("@MediaId", mediaId);
+            Console.WriteLine("====================================");
+            Console.WriteLine($"[MEDIA REQUEST] MediaId: {mediaId}");
 
-            string? filePath = null;
-            string mediaType = "image";
+            var media = await _feedRepository.GetMediaByIdAsync(mediaId);
 
-            using var reader = await cmd.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
+            if (media == null)
             {
-                filePath = reader.IsDBNull(0) ? null : reader.GetString(0);
-                mediaType = reader.IsDBNull(1) ? "image" : reader.GetString(1);
+                Console.WriteLine($"[MEDIA REQUEST] Media not found in DB: {mediaId}");
+                return NotFound(new
+                {
+                    success = false,
+                    message = $"Media {mediaId} not found."
+                });
             }
 
-            if (string.IsNullOrEmpty(filePath) || !_fileStorageService.FileExists(filePath))
-                return NotFound();
+            Console.WriteLine($"[MEDIA REQUEST] FilePath: {media.FilePath}");
+            Console.WriteLine($"[MEDIA REQUEST] MediaType: {media.MediaType}");
 
-            var fullPath = _fileStorageService.GetFullPath(filePath);
-            var ext = Path.GetExtension(filePath).ToLowerInvariant();
-            var contentType = mediaType == "video" ? GetVideoContentType(ext) : GetImageContentType(ext);
+            // Optional: still verify the physical file actually exists on disk,
+            // so callers get a clear 404 instead of a broken image URL later.
+            var fullPath = BuildFileUrl(media.FilePath);
+            var exists = System.IO.File.Exists(fullPath);
 
-            var bytes = await System.IO.File.ReadAllBytesAsync(fullPath);
-            return File(bytes, contentType);
+            Console.WriteLine($"[MEDIA REQUEST] Exists: {exists}");
+            Console.WriteLine("====================================");
+
+            if (!exists)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Media file not found on server.",
+                    mediaId = mediaId,
+                    filePath = media.FilePath
+                });
+            }
+
+            // Return the metadata (filePath included) instead of the raw bytes —
+            // the client builds its own static-file URL from filePath, same as
+            // the main feed endpoint already does.
+            return Ok(new
+            {
+                mediaId = media.MediaId,
+                postId = media.PostId,
+                filePath = media.FilePath,
+                mediaType = media.MediaType,
+                sortOrder = media.SortOrder
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = ex.Message });
+            Console.WriteLine("====================================");
+            Console.WriteLine("[MEDIA ERROR]");
+            Console.WriteLine(ex);
+
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Error while loading media.",
+                error = ex.Message
+            });
         }
     }
+    private static string GetMediaContentType(string extension)
+    {
+        return extension switch
+        {
+            ".jpg" => "image/jpeg",
+            ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".bmp" => "image/bmp",
+            ".webp" => "image/webp",
 
+            ".mp4" => "video/mp4",
+            ".mov" => "video/quicktime",
+            ".avi" => "video/x-msvideo",
+            ".mkv" => "video/x-matroska",
+            ".webm" => "video/webm",
+
+            _ => "application/octet-stream"
+        };
+    }
     // ── POST /api/feed/post/{postId}/like ─────────────────
     // ── POST /api/feed/{itemType}/{itemId}/like ─────────────────
     [HttpPost("{itemType}/{itemId:int}/like")]
