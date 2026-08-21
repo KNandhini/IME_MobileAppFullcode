@@ -125,20 +125,40 @@ const insets = useSafeAreaInsets();
           <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
         ) : null}
 
-        <View style={[styles.metaRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {item.activityDate && (
-              <Text style={styles.metaText}>
-                📅 {new Date(item.activityDate).toLocaleDateString('en-IN')}
-              </Text>
-            )}
-            {item.venue ? <Text style={styles.metaText}>📍 {item.venue}</Text> : null}
-          </View>
+       <View style={{ marginTop: 8 }}>
+  {/* Date */}
+  {item.activityDate && (
+    <Text style={styles.metaText}>
+      📅 {new Date(item.activityDate).toLocaleDateString('en-IN')}
+    </Text>
+  )}
 
-          <Text style={styles.viewHint || { color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>
-            Tap to view ›
-          </Text>
-        </View>
+  {/* Venue - always next line */}
+  {item.venue ? (
+    <Text
+      style={[styles.metaText, { marginTop: 4 }]}
+      numberOfLines={1}
+      ellipsizeMode="tail"
+    >
+      📍 {item.venue}
+    </Text>
+  ) : null}
+
+  {/* Tap to view - next line, right aligned */}
+  <View style={{ alignItems: 'flex-end', marginTop: 4 }}>
+    <Text
+      style={
+        styles.viewHint || {
+          color: '#3B82F6',
+          fontSize: 12,
+          fontWeight: '600',
+        }
+      }
+    >
+      Tap to view ›
+    </Text>
+  </View>
+</View>
       </View>
     </TouchableOpacity>
   );

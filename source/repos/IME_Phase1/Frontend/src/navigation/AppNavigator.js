@@ -174,7 +174,7 @@ const AuthStack = () => (
       component={AboutScreen}
       options={{
         ...GRADIENT_HEADER_OPTIONS,
-        title: 'About IMC',
+        title: 'About IME',
       }}
     />
     <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
