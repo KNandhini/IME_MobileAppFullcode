@@ -3,7 +3,7 @@ import { COLORS } from './theme';
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Pressable, SafeAreaView, StatusBar, Image, Dimensions, FlatList, ActivityIndicator, Modal, Animated, Alert, Platform } from 'react-native';
 import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons,MaterialCommunityIcons  } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
@@ -719,7 +719,60 @@ function PostCard({ post, onOpenViewer, navigation }) {
 }
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
+//export default function FeedScreen({ navigation }) {
 export default function FeedScreen({ navigation }) {
+  return (
+    <SafeAreaView style={s.safe}>
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.headerStart}
+      />
+
+      <View
+  style={{
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    backgroundColor: '#F0F4FA',
+  }}
+>
+  <MaterialCommunityIcons
+    name="hand-heart-outline"
+    size={70}
+    color="#2E86DE"
+  />
+
+  <Text
+    style={{
+      fontSize: 24,
+      fontWeight: '700',
+      color: COLORS.dark,
+      marginTop: 20,
+      textAlign: 'center',
+    }}
+  >
+    Under Development
+  </Text>
+
+  <Text
+    style={{
+      fontSize: 16,
+      color: '#666',
+      marginTop: 10,
+      textAlign: 'center',
+      lineHeight: 24,
+    }}
+  >
+    Fund Support is currently under development.
+    {'\n'}
+    Please check back later.
+  </Text>
+</View>
+    </SafeAreaView>
+  );
+
+  // Existing FundScreen code remains below.
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

@@ -29,9 +29,24 @@ const FALLBACK_CATEGORIES = [
   { label: 'Legal', value: 2 },
   { label: 'Health', value: 3 },
   { label: 'Financial', value: 4 },
-  { label: 'Education', value: 5 },
+  { label: 'Higher Education', value: 5 },
+];
+const PRIMARY = '#000000';
+const ACCENT = '#2E86DE';
+// Temporary: support categories under development
+// Existing functionality is kept and can be enabled later.
+const UNDER_DEVELOPMENT_SUPPORTS = [
+  'Technical',
+  'Legal',
+  'Health',
+  'Financial',
+  'Higher Education',
 ];
 
+const isUnderDevelopment = (categoryName) =>
+  UNDER_DEVELOPMENT_SUPPORTS.includes(
+    String(categoryName || '').trim()
+  );
 // Explicit error-state override — applied on top of whatever the shared
 // stylesheet provides (dd.triggerError / dp.triggerError / inp.errored) so
 // every required field is guaranteed to show the red highlight, not just
@@ -958,8 +973,20 @@ function categoryColor(id) {
 }
 
 // ── Tab Content ───────────────────────────────────────────────────────────────
-function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation, canManageSupport, }) {
-  const [supportList, setSupportList] = useState([]);
+//function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefreshSignal, onEdit, navigation, canManageSupport, }) {
+function SupportTabContent({
+  categoryId,
+  categoryName,
+  isActive,
+  refresh,
+  userRole,
+  setRefreshSignal,
+  onEdit,
+  navigation,
+  canManageSupport,
+  underDevelopment,
+}) {  
+const [supportList, setSupportList] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -969,9 +996,15 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
       .some((value) => String(value ?? '').toLowerCase().includes(query)))
     : supportList;
 
-  useEffect(() => {
-    if (isActive) loadSupport();
-  }, [isActive, categoryId]);
+ // useEffect(() => {
+ //   if (isActive) loadSupport();
+ // }, [isActive, categoryId]);
+
+ useEffect(() => {
+  if (isActive && !underDevelopment) {
+    loadSupport();
+  }
+}, [isActive, categoryId, underDevelopment]);
 
   useEffect(() => {
     if (refresh > 0 && isActive) loadSupport();
@@ -1043,7 +1076,50 @@ function SupportTabContent({ categoryId, isActive, refresh, userRole, setRefresh
   };
 
   const onRefresh = () => { setRefreshing(true); loadSupport(); };
+if (underDevelopment) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 30,
+backgroundColor: COLORS.background,      }}
+    >
+      <MaterialCommunityIcons
+        name="hand-heart-outline"
+        size={70}
+        color={ACCENT}
+      />
 
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: '700',
+         color: PRIMARY,
+          marginTop: 20,
+          textAlign: 'center',
+        }}
+      >
+        Under Development
+      </Text>
+
+      <Text
+        style={{
+          fontSize: 16,
+          color: '#666',
+          marginTop: 10,
+          textAlign: 'center',
+          lineHeight: 24,
+        }}
+      >
+        {categoryName} Support is currently under development.
+        {'\n'}
+        Please check back later.
+      </Text>
+    </View>
+  );
+}
   if (loading && !refreshing) {
     return (
       <View style={s.centered}>
@@ -1242,7 +1318,10 @@ export default function SupportScreen({ navigation }) {
               <TouchableOpacity
                 key={cat.categoryId}
                 style={[s.tab, isActive && s.tabActive]}
-                onPress={() => setActiveIndex(index)}
+              //  onPress={() => setActiveIndex(index)}
+              onPress={() => {
+  setActiveIndex(index);
+}}
                 activeOpacity={0.7}
               >
                 <Text style={[s.tabLabel, isActive && s.tabLabelActive]}>{cat.categoryName}</Text>
@@ -1256,17 +1335,29 @@ export default function SupportScreen({ navigation }) {
       <View style={s.content}>
         {categories.map((cat, index) => (
           <View key={cat.categoryId} style={[s.tabPanel, { display: activeIndex === index ? 'flex' : 'none' }]}>
-            <SupportTabContent
+        {/*   <SupportTabContent
               categoryId={cat.categoryId}
               isActive={activeIndex === index}
               refresh={activeIndex === index ? refreshSignal : 0}
               userRole={userRole}
               canManageSupport={canManageSupport}
               setRefreshSignal={setRefreshSignal}
-              navigation={navigation}
-              onEdit={(item) => {
+              navigation={navigation} 
+               */}
+              <SupportTabContent
+  categoryId={cat.categoryId}
+  categoryName={cat.categoryName}
+  isActive={activeIndex === index}
+  refresh={activeIndex === index ? refreshSignal : 0}
+  userRole={userRole}
+  canManageSupport={canManageSupport}
+  setRefreshSignal={setRefreshSignal}
+  navigation={navigation}
+  underDevelopment={isUnderDevelopment(cat.categoryName)}
+   onEdit={(item) => {
                 setEditItem(item);
                 setFormVisible(true);
+             
               }}
             />
           </View>
@@ -1287,12 +1378,23 @@ export default function SupportScreen({ navigation }) {
       />
 
       {/* ── FAB — Material Design bottom-right ── */}
-      {userRole === 'Admin' && canManageSupport && (
+    {/*  {userRole === 'Admin' && canManageSupport && (
         <TouchableOpacity style={[s.fab, { bottom: 3 + insets.bottom }]} onPress={() => setFormVisible(true)} activeOpacity={0.85}>
           <Text style={s.fabText}>+</Text>
         </TouchableOpacity>
       )}
-
+*/}
+{userRole === 'Admin' &&
+  canManageSupport &&
+  !isUnderDevelopment(categories[activeIndex]?.categoryName) && (
+    <TouchableOpacity
+      style={[s.fab, { bottom: 3 + insets.bottom }]}
+      onPress={() => setFormVisible(true)}
+      activeOpacity={0.85}
+    >
+      <Text style={s.fabText}>+</Text>
+    </TouchableOpacity>
+)}
       {/* ── Saving overlay ── */}
       {submitting && (
         <View style={s.loadingOverlay}>

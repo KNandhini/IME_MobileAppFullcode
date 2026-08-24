@@ -24,6 +24,9 @@ const DANGER   = '#E74C3C';
 const BG       = '#F0F4FA';
 const CARD_BG  = COLORS.white;
 const PAGE_SIZE = 10;
+// TEMPORARY: Fund Support will be enabled again later
+const FUND_SUPPORT_ENABLED = false;
+//const FUND_SUPPORT_ENABLED = true;
 
 const URGENCY = {
   Critical: { bg: '#FDE8E8', text: '#C0392B', dot: '#E74C3C' },
@@ -225,9 +228,56 @@ function EmptyState({ onAdd }) {
     </View>
   );
 }
+function FundUnderDevelopment() {
+  return (
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 30,
+        backgroundColor: BG,
+      }}
+    >
+      <MaterialCommunityIcons
+        name="hand-heart-outline"
+        size={70}
+        color={ACCENT}
+      />
 
+      <Text
+        style={{
+          fontSize: 24,
+          fontWeight: '700',
+          color: PRIMARY,
+          marginTop: 20,
+          textAlign: 'center',
+        }}
+      >
+        Under Development
+      </Text>
+
+      <Text
+        style={{
+          fontSize: 16,
+          color: '#666',
+          marginTop: 10,
+          textAlign: 'center',
+          lineHeight: 24,
+        }}
+      >
+        Fund Support is currently under development.
+        {'\n'}
+        Please check back later.
+      </Text>
+    </View>
+  );
+}
 // ─── FundraiseListScreen ──────────────────────────────────────────────────────
-const FundraiseListScreen = ({ navigation, route }) => {
+//const FundraiseListScreen = ({ navigation, route }) => {
+const FundraiseListEnabled = ({ navigation, route }) => {
+  
+ 
   const [data,       setData]       = useState([]);
   const [loading,    setLoading]    = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -415,7 +465,13 @@ const insets = useSafeAreaInsets();
     </View>
   );
 };
+const FundraiseListScreen = (props) => {
+  if (!FUND_SUPPORT_ENABLED) {
+    return <FundUnderDevelopment />;
+  }
 
+  return <FundraiseListEnabled {...props} />;
+};
 export default FundraiseListScreen;
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
