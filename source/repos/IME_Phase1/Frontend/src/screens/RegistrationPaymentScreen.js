@@ -15,10 +15,21 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 import logoImage from '../../assets/logo-clean.png';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
-
+const CATEGORY_TO_ROLE_ID = {
+  'Serving / Retired Engineers': 2,
+  'Engineering Students': 6,
+  'Organisations / Others': 5,
+};
 const RegistrationPaymentScreen = ({ route, navigation }) => {
-  const { userId, memberId, memberName, memberEmail, memberPassword, profilePhotoUri } = route.params || {};
-
+const {
+  userId,
+  memberId,
+  memberName,
+  memberEmail,
+  memberPassword,
+  profilePhotoUri,
+  membershipCategory,
+} = route.params || {};
   const insets = useSafeAreaInsets();
 
   const [profilePhoto,      setProfilePhoto]      = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
@@ -28,18 +39,57 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
   const [feeId,             setFeeId]              = useState(null);
   const [logoDataUri,       setLogoDataUri]        = useState(null);
 
-  // Always fetch the current fee from the backend — params value may be stale or 0
-  useEffect(() => {
-    api.get('/payment/latest-fee')
-      .then(res => {
-        if (res.data?.success && res.data?.data) {
-          setFeeAmount(parseFloat(res.data.data.amount) || 0);
-          setFeeId(res.data.data.feeId ?? null);
-        }
-      })
-      .catch(() => {}); // silently keep param value if request fails
-  }, []);
+useEffect(() => {
+  const loadRoleBasedFee = async () => {
+    try {
+      const roleId = CATEGORY_TO_ROLE_ID[membershipCategory];
 
+      if (!roleId) {
+        console.warn(
+          'Unknown membership category:',
+          membershipCategory
+        );
+        return;
+      }
+
+      console.log(
+        'Selected Category:',
+        membershipCategory
+      );
+
+      console.log(
+        'Role ID:',
+        roleId
+      );
+
+      const res = await api.get(
+        `/payment/current-fee/${roleId}`
+      );
+
+      console.log(
+        'Fee API Response:',
+        res.data
+      );
+
+      if (res.data?.success && res.data?.data) {
+        setFeeAmount(
+          Number(res.data.data.amount) || 0
+        );
+
+        setFeeId(
+          res.data.data.feeId ?? null
+        );
+      }
+    } catch (error) {
+      console.error(
+        'Failed to fetch role based fee:',
+        error
+      );
+    }
+  };
+
+  loadRoleBasedFee();
+}, [membershipCategory]);
   // Convert the local logo asset to a base64 data URI once, so it can be
   // handed to Razorpay's checkout.js as the `image` option — the WebView
   // needs an actual image string, not a bundler asset reference.

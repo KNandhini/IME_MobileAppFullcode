@@ -10,12 +10,13 @@ import {
     TouchableOpacity,
     SafeAreaView,
     Dimensions,
+    Modal,
 } from 'react-native';
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Checkbox } from 'react-native-paper';
 import IMELogo from '../components/IMELogo';
-import api from '../utils/api';
 import { MembershipBenefitsScreenStyles as styles } from './screenStyles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -115,49 +116,37 @@ const MembershipBenefitsScreen = ({ navigation }) => {
     // Single combined acceptance for Welcome Message + Membership Benefits +
     // Terms & Conditions, all of which are now rendered inline on this page.
     const [accepted, setAccepted] = useState(false);
-    const [currentFee, setCurrentFee] = useState(null);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+const [selectedCategory, setSelectedCategory] = useState(null);
 
-    useEffect(() => {
-        Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 550,
-                useNativeDriver: true,
-            }),
-            Animated.timing(slideAnim, {
-                toValue: 0,
-                duration: 550,
-                useNativeDriver: true,
-            }),
-        ]).start();
 
-        fetchFee();
-    }, []);
+   useEffect(() => {
+    Animated.parallel([
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 550,
+            useNativeDriver: true,
+        }),
+        Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 550,
+            useNativeDriver: true,
+        }),
+    ]).start();
+}, []);
 
-    const fetchFee = async () => {
-        try {
-            const res = await api.get('/payment/latest-fee');
-
-            if (res.data.success) {
-                setCurrentFee(res.data.data);
-            }
-        } catch (e) {
-            console.warn('Fee fetch failed:', e.message);
-        }
-    };
-
+    
     // No signup API call happens here — the form fields don't exist yet at
     // this stage. We just carry the acceptance + fee forward as route params
     // so SignupScreen can trust that terms were already accepted, then show
     // the payment screen once registration itself succeeds.
-    const handleContinue = () => {
-        if (!accepted) return;
+  const handleContinue = () => {
+    if (!accepted) return;
 
-        navigation.navigate('Signup', {
-            termsAccepted: true,
-            feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
-        });
-    };
+    setShowCategoryModal(true);
+};
+
+
 
     return (
         <SafeAreaView style={styles.root}>
@@ -374,56 +363,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                             </View>
                         </View>
 
-                        {/* Registration Fee from API */}
-                        {currentFee ? (
-                            <View style={styles.feeCard}>
-                                <View style={styles.feeIconWrap}>
-                                    <MaterialCommunityIcons
-                                        name="cash-check"
-                                        size={26}
-                                        color={NAVY}
-                                    />
-                                </View>
-
-                                <View style={styles.feeCardBody}>
-                                    <Text style={styles.feeCardLabel}>
-                                        REGISTRATION FEE
-                                    </Text>
-
-                                    <Text style={styles.feeCardAmount}>
-                                        <Text style={styles.feeCardCurrency}>
-                                            ₹
-                                        </Text>
-
-                                        {parseFloat(
-                                            currentFee.amount
-                                        ).toFixed(2)}
-                                    </Text>
-
-                                    <View style={styles.feeCardBadge}>
-                                        <MaterialCommunityIcons
-                                            name="clock-outline"
-                                            size={12}
-                                            color={NAVY}
-                                        />
-
-                                        <Text
-                                            style={
-                                                styles.feeCardBadgeText
-                                            }
-                                        >
-                                            Payable now or within 3 days
-                                        </Text>
-                                    </View>
-                                </View>
-                            </View>
-                        ) : (
-                            <View style={styles.feeCard}>
-                                <Text style={styles.noFee}>
-                                    No fee currently set. Contact admin.
-                                </Text>
-                            </View>
-                        )}
+                       
                     </View>
 
                     {/* ── Acceptance ── */}
@@ -485,6 +425,160 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                         approval by the National Council.
                     </Text>
                 </Animated.View>
+                <Modal
+    visible={showCategoryModal}
+    transparent
+    animationType="fade"
+    onRequestClose={() => setShowCategoryModal(false)}
+>
+    <View style={styles.modalOverlay}>
+        <View style={styles.categoryModal}>
+            
+            <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                    Select Membership Category
+                </Text>
+
+                <TouchableOpacity
+                    onPress={() => setShowCategoryModal(false)}
+                >
+                    <MaterialCommunityIcons
+                        name="close"
+                        size={24}
+                        color={MUTED}
+                    />
+                </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalSubtitle}>
+                Please select your membership category to continue.
+            </Text>
+
+            {/* Serving / Retired Engineers */}
+            <TouchableOpacity
+                style={[
+                    styles.categoryOption,
+                    selectedCategory === 'Serving / Retired Engineers' &&
+                        styles.categoryOptionSelected,
+                ]}
+                onPress={() =>
+                    setSelectedCategory('Serving / Retired Engineers')
+                }
+                activeOpacity={0.8}
+            >
+                <MaterialCommunityIcons
+                    name="account-hard-hat-outline"
+                    size={24}
+                    color={NAVY}
+                />
+
+                <Text style={styles.categoryOptionText}>
+                    Serving / Retired Engineers
+                </Text>
+
+                {selectedCategory === 'Serving / Retired Engineers' && (
+                    <MaterialCommunityIcons
+                        name="check-circle"
+                        size={22}
+                        color={NAVY}
+                    />
+                )}
+            </TouchableOpacity>
+
+            {/* Engineering Students */}
+            <TouchableOpacity
+                style={[
+                    styles.categoryOption,
+                    selectedCategory === 'Engineering Students' &&
+                        styles.categoryOptionSelected,
+                ]}
+                onPress={() =>
+                    setSelectedCategory('Engineering Students')
+                }
+                activeOpacity={0.8}
+            >
+                <MaterialCommunityIcons
+                    name="school-outline"
+                    size={24}
+                    color={NAVY}
+                />
+
+                <Text style={styles.categoryOptionText}>
+                    Engineering Students
+                </Text>
+
+                {selectedCategory === 'Engineering Students' && (
+                    <MaterialCommunityIcons
+                        name="check-circle"
+                        size={22}
+                        color={NAVY}
+                    />
+                )}
+            </TouchableOpacity>
+
+            {/* Organisations / Others */}
+            <TouchableOpacity
+                style={[
+                    styles.categoryOption,
+                    selectedCategory === 'Organisations / Others' &&
+                        styles.categoryOptionSelected,
+                ]}
+                onPress={() =>
+                    setSelectedCategory('Organisations / Others')
+                }
+                activeOpacity={0.8}
+            >
+                <MaterialCommunityIcons
+                    name="office-building-outline"
+                    size={24}
+                    color={NAVY}
+                />
+
+                <Text style={styles.categoryOptionText}>
+                    Organisations / Others
+                </Text>
+
+                {selectedCategory === 'Organisations / Others' && (
+                    <MaterialCommunityIcons
+                        name="check-circle"
+                        size={22}
+                        color={NAVY}
+                    />
+                )}
+            </TouchableOpacity>
+
+            {/* Continue */}
+            <TouchableOpacity
+                style={[
+                    styles.modalContinueBtn,
+                    !selectedCategory &&
+                        styles.modalContinueBtnDisabled,
+                ]}
+                disabled={!selectedCategory}
+                onPress={() => {
+                    setShowCategoryModal(false);
+
+                    navigation.navigate('Signup', {
+                        termsAccepted: true,
+                        membershipCategory: selectedCategory,
+                    });
+                }}
+            >
+                <Text style={styles.modalContinueText}>
+                    Proceed to Registration
+                </Text>
+
+                <MaterialCommunityIcons
+                    name="arrow-right"
+                    size={18}
+                    color={COLORS.white}
+                />
+            </TouchableOpacity>
+
+        </View>
+    </View>
+</Modal>
+
             </ScrollView>
         </SafeAreaView>
     );

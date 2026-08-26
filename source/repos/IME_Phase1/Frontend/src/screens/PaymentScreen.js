@@ -4,33 +4,102 @@ import { View, Text, ScrollView, Alert, ActivityIndicator, Modal } from 'react-n
 import { WebView } from 'react-native-webview';
 import { Button, Card, RadioButton, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '../utils/api';
 import { paymentService } from '../services/paymentService';
 import { PaymentScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
-const HARDCODED_AMOUNT = 2500;
 
-const PaymentScreen = ({ navigation }) => {
-  const [loading, setLoading] = useState(false);
+const escapeJS = (value = '') =>
+  String(value)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+
+// Category string -> RoleId. MUST exactly match the RoleId values used in
+// SetAnnualFeeScreen.js's MEMBERSHIP_CATEGORIES list — these are the actual
+// database RoleId values in use, not a clean 1/2/3 sequence.
+const CATEGORY_TO_ROLE_ID = {
+  'Serving / Retired Engineers': 2,
+  'Engineering Students': 6,
+  'Organisations / Others': 5,
+};
+
+const PaymentScreen = ({ navigation, route }) => {
+  const {
+    membershipCategory = '',
+    memberName = '',
+    memberEmail = '',
+    memberId: routeMemberId = null,
+    // feeAmount from route.params is only used as a last-resort fallback if
+    // the backend fetch below fails — the DB is the source of truth now.
+    feeAmount: fallbackFeeAmount = 0,
+  } = route?.params || {};
+
+  const [loading, setLoading] = useState(true);
+  const [feeAmount, setFeeAmount] = useState(fallbackFeeAmount);
+  const [feeError, setFeeError] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('razorpay');
   const [processingPayment, setProcessingPayment] = useState(false);
-  const [memberId, setMemberId] = useState(null);
+  const [memberId, setMemberId] = useState(routeMemberId);
   const [userData, setUserData] = useState(null);
   const [showWebView, setShowWebView] = useState(false);
 
   useEffect(() => {
     loadMember();
+    loadAuthoritativeFee();
   }, []);
+
+  // Fetch the real, current fee for this category directly from the
+  // database, instead of trusting whatever SignupScreen calculated.
+  const loadAuthoritativeFee = async () => {
+    const roleId = CATEGORY_TO_ROLE_ID[membershipCategory];
+
+    if (!roleId) {
+      console.warn('Unknown membership category, cannot resolve RoleId:', membershipCategory);
+      setFeeError(true);
+      return;
+    }
+
+    try {
+      const res = await api.get(`/payment/current-fee/${roleId}`);
+      Alert.alert('FEE FETCH DEBUG', 'category: ' + membershipCategory + ' | roleId used: ' + roleId + ' | API returned amount: ' + (res.data.data ? res.data.data.amount : 'none'));
+      if (res.data.success && res.data.data) {
+        setFeeAmount(res.data.data.amount);
+        setFeeError(false);
+      } else {
+        console.warn('No active fee returned for roleId', roleId, res.data.message);
+        setFeeError(true);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch current fee:', e.message);
+      setFeeError(true);
+    }
+  };
 
   const loadMember = async () => {
     setLoading(true);
     try {
       const userStr = await AsyncStorage.getItem('userData');
+
       if (userStr) {
         const user = JSON.parse(userStr);
-        setMemberId(user.memberId);
-        setUserData(user);
+
+        setMemberId(routeMemberId || user.memberId);
+
+        setUserData({
+          ...user,
+          fullName: memberName || user.fullName,
+          email: memberEmail || user.email,
+        });
+      } else {
+        setMemberId(routeMemberId);
+        setUserData({
+          fullName: memberName,
+          email: memberEmail,
+        });
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to load member information');
@@ -128,8 +197,8 @@ const PaymentScreen = ({ navigation }) => {
           <div class="subtitle">Secure Payment via Razorpay</div>
 
           <div class="amount-box">
-            <div class="amount-label">One-Time Membership Registration Fee</div>
-            <div class="amount-value">₹2,500</div>
+            <div class="amount-label">${membershipCategory}</div>
+            <div class="amount-value">₹${Number(feeAmount).toLocaleString('en-IN')}</div>
           </div>
 
           <div id="loader">
@@ -189,15 +258,15 @@ const PaymentScreen = ({ navigation }) => {
           function openRazorpay() {
             var options = {
               key: '${RAZORPAY_KEY}',
-              amount: ${HARDCODED_AMOUNT * 100},
+              amount: ${Number(feeAmount) * 100},
               currency: 'INR',
               name: 'Membership Portal',
               description: 'One-Time Membership Registration Fee',
               theme: { color: COLORS.primary },
               prefill: {
-                name: '${(userData?.fullName || '').replace(/'/g, "\\'")}',
-                email: '${(userData?.email || '').replace(/'/g, "\\'")}',
-                contact: '${(userData?.phoneNumber || '').replace(/'/g, "\\'")}',
+                name: '${escapeJS(memberName || userData?.fullName || '')}',
+                email: '${escapeJS(memberEmail || userData?.email || '')}',
+                contact: '${escapeJS(userData?.phoneNumber || '')}',
               },
               handler: function(response) {
                 document.getElementById('statusText').innerText = 'Payment successful!';
@@ -295,6 +364,22 @@ const PaymentScreen = ({ navigation }) => {
       Alert.alert('Error', 'Member information not found');
       return;
     }
+
+    if (!membershipCategory) {
+      Alert.alert('Error', 'Membership category not found');
+      return;
+    }
+
+    if (feeError) {
+      Alert.alert('Error', 'Could not load the current fee for this category. Please try again.');
+      return;
+    }
+
+    if (!feeAmount || Number(feeAmount) <= 0) {
+      Alert.alert('Error', 'Invalid membership fee');
+      return;
+    }
+
     setShowWebView(true);
   };
 
@@ -357,8 +442,18 @@ const PaymentScreen = ({ navigation }) => {
       <ScrollView style={styles.container}>
         <Card style={styles.feeCard}>
           <Card.Content>
-            <Text style={styles.feeLabel}>One-Time Membership Registration Fee</Text>
-            <Text style={styles.feeAmount}>₹2,500</Text>
+            <Text style={styles.feeLabel}>
+              {membershipCategory || 'Membership Registration Fee'}
+            </Text>
+            {feeError ? (
+              <Text style={[styles.feeAmount, { color: '#c62828', fontSize: 16 }]}>
+                Unable to load current fee
+              </Text>
+            ) : (
+              <Text style={styles.feeAmount}>
+                ₹{Number(feeAmount).toLocaleString('en-IN')}
+              </Text>
+            )}
             <Text style={styles.feeYear}>For Year {new Date().getFullYear()}</Text>
           </Card.Content>
         </Card>
@@ -383,13 +478,19 @@ const PaymentScreen = ({ navigation }) => {
             <Card.Content>
               <View style={styles.amountBreakdown}>
                 <View style={styles.breakdownRow}>
-                  <Text style={styles.breakdownLabel}>Membership Fee</Text>
-                  <Text style={styles.breakdownValue}>₹2,500</Text>
+                  <Text style={styles.breakdownLabel}>
+                    {membershipCategory || 'Membership Fee'}
+                  </Text>
+                  <Text style={styles.breakdownValue}>
+                    ₹{Number(feeAmount).toLocaleString('en-IN')}
+                  </Text>
                 </View>
                 <View style={styles.breakdownDivider} />
                 <View style={styles.breakdownRow}>
                   <Text style={styles.breakdownTotal}>Total Payable</Text>
-                  <Text style={styles.breakdownTotalValue}>₹2,500</Text>
+                  <Text style={styles.breakdownTotalValue}>
+                    ₹{Number(feeAmount).toLocaleString('en-IN')}
+                  </Text>
                 </View>
               </View>
 
@@ -401,12 +502,12 @@ const PaymentScreen = ({ navigation }) => {
                 mode="contained"
                 onPress={handleRazorpayPayment}
                 loading={processingPayment}
-                disabled={processingPayment}
+                disabled={processingPayment || feeError}
                 style={styles.payButton}
                 buttonColor={COLORS.primary}
                 icon="credit-card"
               >
-                Pay ₹2,500
+                Pay ₹{Number(feeAmount).toLocaleString('en-IN')}
               </Button>
             </Card.Content>
           </Card>

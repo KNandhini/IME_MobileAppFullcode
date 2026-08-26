@@ -385,7 +385,7 @@ const MainStack = () => (
     <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MemberDashboard" component={MemberDashboardScreen} options={{ headerShown: false }} />
-    <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
+    <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set One-Time Membership Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutIMEScreen} options={{ title: 'About IME' }} />
     <Stack.Screen

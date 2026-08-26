@@ -555,6 +555,88 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     backgroundColor: '#E8EDF3',
   },
 
+modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+},
+
+categoryModal: {
+    width: '100%',
+    maxWidth: 450,
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    padding: 22,
+},
+
+modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+},
+
+modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.primary,
+    flex: 1,
+},
+
+modalSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 18,
+    lineHeight: 20,
+},
+
+categoryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingVertical: 15,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+},
+
+categoryOptionSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: '#F0F5FF',
+},
+
+categoryOptionText: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#1E293B',
+    marginLeft: 12,
+},
+
+modalContinueBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginTop: 8,
+},
+
+modalContinueBtnDisabled: {
+    backgroundColor: '#CBD5E1',
+},
+
+modalContinueText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '700',
+    marginRight: 8,
+},
 
 });
 // AboutScreen

@@ -135,7 +135,6 @@ const SignupScreen = ({ navigation, route }) => {
   const [menuWidth, setMenuWidth] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -172,7 +171,7 @@ const SignupScreen = ({ navigation, route }) => {
   const showEducationSection = occupation === 'Employed' || occupation === 'Self Employed' || occupation === 'Unemployed';
 
   useEffect(() => {
-    fetchFee();
+   
     loadCountries();
   }, []);
 
@@ -228,14 +227,7 @@ const SignupScreen = ({ navigation, route }) => {
     }
   }, [stateModal, states]);
 
-  const fetchFee = async () => {
-    try {
-      const res = await api.get('/payment/latest-fee');
-      if (res.data.success) setCurrentFee(res.data.data);
-    } catch (e) {
-      console.warn('Fee fetch failed:', e.message);
-    }
-  };
+ 
   const loadCountries = async () => {
     try {
       const res = await clubService.getCountries();
@@ -260,6 +252,15 @@ const SignupScreen = ({ navigation, route }) => {
       setStatesLoading(false);
     }
   };
+const membershipCategory = route?.params?.membershipCategory;
+
+const membershipFees = {
+    'Serving / Retired Engineers': 1000,
+    'Engineering Students': 500,
+    'Organisations / Others': 5000,
+};
+
+const selectedFee = membershipFees[membershipCategory] || 0;
 
   const loadClubsByState = async (stateId) => {
     setClubsLoading(true);
@@ -422,15 +423,16 @@ const SignupScreen = ({ navigation, route }) => {
       const res = response.data;
 
       if (res.success) {
-        const paymentParams = {
-          userId: res.data.userId,
-          memberId: res.data.memberId,
-          feeAmount: currentFee ? parseFloat(currentFee.amount) : (route?.params?.feeAmount ?? 0),
-          memberName: formData.fullName,
-          memberEmail: formData.email,
-          memberPassword: formData.password,
-          profilePhotoUri: profilePhoto?.uri ?? null,
-        };
+      const paymentParams = {
+    userId: res.data.userId,
+    memberId: res.data.memberId,
+    feeAmount: selectedFee,
+    membershipCategory: membershipCategory,
+    memberName: formData.fullName,
+    memberEmail: formData.email,
+    memberPassword: formData.password,
+    profilePhotoUri: profilePhoto?.uri ?? null,
+};
 
         await AsyncStorage.setItem('paymentGrace', JSON.stringify({
           pending: true,
@@ -445,6 +447,7 @@ const SignupScreen = ({ navigation, route }) => {
           [
             {
               text: 'Pay Now',
+              
               onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
             },
             {
