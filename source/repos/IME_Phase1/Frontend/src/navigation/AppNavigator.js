@@ -41,6 +41,7 @@ import AchievementsScreen from '../screens/AchievementsScreen';
 import OrganisationScreen from '../screens/OrganisationScreen';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import MemberDashboardScreen from '../screens/MemberDashboardScreen';
+import StudentDashboardScreen from '../screens/StudentDashboardScreen';
 import SetAnnualFeeScreen from '../screens/SetAnnualFeeScreen';
 import RegistrationPaymentScreen from '../screens/RegistrationPaymentScreen';
 import MemberManagementScreen from '../screens/MemberManagementScreen';
@@ -223,7 +224,16 @@ const MainTabs = () => {
     );
   }
 
-  const HomeComponent = user?.roleName === 'Admin' ? AdminDashboardScreen : MemberDashboardScreen;
+  // Role → Home tab component. Admin gets the admin dashboard, Student gets
+  // the trimmed-down student dashboard (Activity / Job Postings / Magazine
+  // only), everyone else (regular Member) gets the full member dashboard.
+  const isStudent = user?.roleName === 'Student';
+  const HomeComponent =
+    user?.roleName === 'Admin'
+      ? AdminDashboardScreen
+      : isStudent
+        ? StudentDashboardScreen
+        : MemberDashboardScreen;
 
   return (
     <View style={{ flex: 1 }}>
@@ -247,64 +257,66 @@ const MainTabs = () => {
           },
         }}
       >
-        <>
-          <Tab.Screen
-            name="Home"
-            component={HomeComponent}
-            options={{
-              headerShown: false,
-              tabBarIcon: ({ color, focused }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
-                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
-                </View>
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="Feed"
-            component={HomeScreen}
-            options={{
-              headerShown: false,
-              tabBarIcon: ({ color, focused }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <AnimatedTabIcon
-                    name={focused ? 'add-circle' : 'add-circle-outline'}
-                    focused={focused}
-                    color={color}
-                    activeColor={COLORS.dark}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      color: focused ? COLORS.dark : color,
-                      fontWeight: focused ? '700' : '400',
-                      marginTop: 2,
-                    }}
-                  >
-                    Feed
-                  </Text>
-                </View>
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="AboutIMETab"
-            component={AboutIMEScreen}
-            options={{
-              title: 'IME Profile',
-              headerBackground: renderGradientHeaderBackground,
-              headerStyle: { backgroundColor: 'transparent' },
-              headerTintColor: COLORS.white,
-              headerTitleStyle: { fontWeight: '700' },
-              tabBarIcon: ({ color, focused }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
-                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IME Profile</Text>
-                </View>
-              ),
-            }}
-          />
+        <Tab.Screen
+          name="Home"
+          component={HomeComponent}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => (
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
+              </View>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Feed"
+          component={HomeScreen}
+          options={{
+            headerShown: false,
+            tabBarIcon: ({ color, focused }) => (
+              <View style={{ alignItems: 'center' }}>
+                <AnimatedTabIcon
+                  name={focused ? 'add-circle' : 'add-circle-outline'}
+                  focused={focused}
+                  color={color}
+                  activeColor={COLORS.dark}
+                />
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: focused ? COLORS.dark : color,
+                    fontWeight: focused ? '700' : '400',
+                    marginTop: 2,
+                  }}
+                >
+                  Feed
+                </Text>
+              </View>
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="AboutIMETab"
+          component={AboutIMEScreen}
+          options={{
+            title: 'IME Profile',
+            headerBackground: renderGradientHeaderBackground,
+            headerStyle: { backgroundColor: 'transparent' },
+            headerTintColor: COLORS.white,
+            headerTitleStyle: { fontWeight: '700' },
+            tabBarIcon: ({ color, focused }) => (
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
+                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IME Profile</Text>
+              </View>
+            ),
+          }}
+        />
+        {/* Chats tab is hidden for students — they only get
+            Home / Feed / IME Profile / Logout in the footer. */}
+        {!isStudent && (
           <Tab.Screen
             name="ChatsTab"
             component={ChatsListScreen}
@@ -319,26 +331,26 @@ const MainTabs = () => {
               ),
             }}
           />
-          <Tab.Screen
-            name="LogoutTab"
-            component={View}
-            options={{
-              title: 'Logout',
-              tabBarIcon: ({ color, focused }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />
-                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Logout</Text>
-                </View>
-              ),
-            }}
-            listeners={() => ({
-              tabPress: (e) => {
-                e.preventDefault();
-                logout();
-              },
-            })}
-          />
-        </>
+        )}
+        <Tab.Screen
+          name="LogoutTab"
+          component={View}
+          options={{
+            title: 'Logout',
+            tabBarIcon: ({ color, focused }) => (
+              <View style={{ alignItems: 'center' }}>
+                <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />
+                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Logout</Text>
+              </View>
+            ),
+          }}
+          listeners={() => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              logout();
+            },
+          })}
+        />
       </Tab.Navigator>
 
       <View style={{ height: insets.bottom, backgroundColor: COLORS.dark }} />
@@ -385,6 +397,7 @@ const MainStack = () => (
     <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} options={{ headerShown: false }} />
     <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="MemberDashboard" component={MemberDashboardScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="StudentDashboard" component={StudentDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set Annual Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
     <Stack.Screen name="About" component={AboutIMEScreen} options={{ title: 'About IME' }} />
