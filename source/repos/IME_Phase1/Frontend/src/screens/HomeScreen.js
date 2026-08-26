@@ -99,16 +99,17 @@ const HomeScreen = ({ navigation }) => {
 
   // ── Welcome strip (Law Bot card removed) ────────────────────────────
   const renderFeedHeader = () => (
-    <View>
-      <View style={styles.welcomeStrip}>
-        <View style={styles.welcomeAvatar}>
-          <Text style={styles.welcomeAvatarLetter}>
-            {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.welcomeTexts}>
-          <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
-        </View>
+  <View>
+    <View style={styles.welcomeStrip}>
+      <View style={styles.welcomeAvatar}>
+        <Text style={styles.welcomeAvatarLetter}>
+          {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
+        </Text>
+      </View>
+      <View style={styles.welcomeTexts}>
+        <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
+      </View>
+      {user?.roleName?.toLowerCase() !== 'student' && (
         <TouchableOpacity
           style={styles.newPostBtn}
           onPress={() => navigation.navigate('CreatePost')}
@@ -116,9 +117,10 @@ const HomeScreen = ({ navigation }) => {
         >
           <Text style={styles.newPostBtnText}>+</Text>
         </TouchableOpacity>
-      </View>
+      )}
     </View>
-  );
+  </View>
+);
 
   // ── Footer loader / end message ──────────────
   const renderFeedFooter = () => (

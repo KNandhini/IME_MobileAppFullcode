@@ -15,7 +15,6 @@ import {
 } from 'react-native';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../utils/api';
@@ -416,10 +415,41 @@ const selectedFee = membershipFees[membershipCategory] || 0;
     ...(showEducationSection && { qualification }),
   });
 
-  const submitRegistration = async () => {
+  // ── Email availability check ─────────────────────────────────────────
+  // Read-only lookup — does NOT create anything. This is what lets us warn
+  // about a duplicate email up front without having saved the person yet.
+  //
+  // ASSUMPTION: backend exposes GET /Auth/check-email?email=... returning
+  // { success: true, data: { exists: boolean } }. Adjust the path / response
+  // shape below to match whatever you actually expose. If this endpoint
+  // doesn't exist yet, it needs to be added — reusing /Auth/signup's
+  // duplicate-email error would mean creating a record just to find out.
+  const checkEmailAvailability = async (email) => {
+    const res = await api.get('/Auth/check-email', { params: { email } });
+    return !!res.data?.data?.exists;
+  };
+
+  const uploadProfilePhotoForMember = async (memberId, photoUri) => {
+    try {
+      const fd = new FormData();
+      fd.append('file', { uri: photoUri, name: 'profile_photo.jpg', type: 'image/jpeg' });
+      fd.append('memberId', memberId.toString());
+      const baseUrl = api.defaults.baseURL;
+      const response = await fetch(`${baseUrl}/File/upload-profile-photo`, { method: 'POST', body: fd });
+      const json = await response.json();
+      return json.success;
+    } catch (e) {
+      console.warn('Profile photo upload failed:', e.message);
+      return false;
+    }
+  };
+
+  // "Pay Later" is the only path that creates the account here — the person
+  // gets an active-but-unpaid account with a grace period, same as before.
+  const registerAndGoToLogin = async (payload) => {
     setLoading(true);
     try {
-      const response = await api.post('/Auth/signup', buildSignupPayload());
+      const response = await api.post('/Auth/signup', payload);
       const res = response.data;
 
       if (res.success) {
@@ -461,16 +491,7 @@ const selectedFee = membershipFees[membershipCategory] || 0;
         Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
-      console.log("FULL ERROR");
-      console.log(e);
-
-      console.log("Response");
-      console.log(e.response);
-
-      console.log("Response Data");
-      console.log(e.response?.data);
-
-      Alert.alert("Error", getSafeErrorMessage(e));
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -485,7 +506,48 @@ const selectedFee = membershipFees[membershipCategory] || 0;
       );
       return;
     }
-    await submitRegistration();
+
+    // Nothing gets saved yet — just confirm the email isn't already taken.
+    setLoading(true);
+    let emailTaken = false;
+    try {
+      emailTaken = await checkEmailAvailability(formData.email);
+    } catch (e) {
+      setLoading(false);
+      Alert.alert('Error', getSafeErrorMessage(e));
+      return;
+    }
+    setLoading(false);
+
+    if (emailTaken) {
+      setErrors((prev) => ({ ...prev, email: 'This email is already registered' }));
+      Alert.alert('Email Already Registered', 'An account with this email already exists. Please login instead, or use a different email.');
+      return;
+    }
+
+    const payload = buildSignupPayload();
+
+    Alert.alert(
+      'Almost Done',
+      'Your details look good. How would you like to proceed?\n\n"Pay Now" completes payment and activates your account immediately.\n"Pay Later" registers your account now, with 3 days to pay before it needs renewal.',
+      [
+        {
+          text: 'Pay Now',
+          // No account exists yet. We hand the raw payload to the payment
+          // screen and only call /Auth/signup once Razorpay confirms success.
+          onPress: () => navigation.navigate('RegistrationPayment', {
+            pendingSignup: payload,
+            feeAmount: currentFee ? parseFloat(currentFee.amount) : (route?.params?.feeAmount ?? 0),
+            profilePhotoUri: profilePhoto?.uri ?? null,
+          }),
+        },
+        {
+          text: 'Pay Later (3 Days)',
+          style: 'cancel',
+          onPress: () => registerAndGoToLogin(payload),
+        },
+      ],
+    );
   };
 
  return (

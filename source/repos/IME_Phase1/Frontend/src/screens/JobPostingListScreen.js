@@ -36,6 +36,7 @@ const insets = useSafeAreaInsets();
   const [clubName,   setClubName]   = useState('');
 const [currentUserName, setCurrentUserName] = useState('');
 const [isUnemployed, setIsUnemployed] = useState(false);
+const [isStudent, setIsStudent] = useState(false);
 const [search, setSearch] = useState('');
   const query = search.trim().toLowerCase();
   const filteredJobs = query
@@ -51,6 +52,8 @@ const [search, setSearch] = useState('');
   setClubName(parsed.clubName || '');
   setCurrentUserName(parsed.fullName || parsed.name || '');
   setIsUnemployed(parsed?.occupation?.toLowerCase() === 'unemployed');
+  const role = (parsed.roleName || parsed.role || '').trim().toLowerCase();
+  setIsStudent(role === 'student');
   return parsed.clubId || null;
 };
 
@@ -138,7 +141,7 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
       <View style={styles.cardBody}>
         <View style={styles.cardHeaderRow}>
   <Text style={styles.cardTitle} numberOfLines={1}>{item.jobTitle}</Text>
-  {!isUnemployed && (
+  {!isUnemployed && !isStudent && (
     <View style={styles.actionRow}>
       <TouchableOpacity
         style={styles.iconBtn}
@@ -233,14 +236,16 @@ await jobPostingService.delete(job.jobPostingId, currentUserName);
             <View style={styles.centered}>
               <Text style={{ fontSize: 40, marginBottom: 12 }}>💼</Text>
               <Text style={styles.emptyText}>No job postings yet.</Text>
-              <Text style={styles.emptySubText}>Tap + to add your first one.</Text>
+              {!isStudent && (
+                <Text style={styles.emptySubText}>Tap + to add your first one.</Text>
+              )}
             </View>
           }
         />
       )}
 
       {/* Floating add button */}
-      {!isUnemployed && (
+      {!isUnemployed && !isStudent && (
   <TouchableOpacity style={[styles.fab,{ bottom: 0 + insets.bottom }]} onPress={handleAdd} activeOpacity={0.85}>
     <MaterialCommunityIcons name="plus" size={30} color="#fff" />
   </TouchableOpacity>
