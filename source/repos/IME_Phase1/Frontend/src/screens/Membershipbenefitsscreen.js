@@ -459,91 +459,96 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                     <View style={styles.modalOverlay}>
                         <View style={styles.categoryModal}>
 
+                            {/* Header */}
                             <View style={styles.modalHeader}>
-                                <Text style={styles.modalTitle}>
-                                    Select Membership Category
-                                </Text>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={styles.modalTitle}>
+                                        Select Membership
+                                    </Text>
+                                    <Text style={styles.modalSubtitle}>
+                                        Choose your membership category
+                                    </Text>
+                                </View>
 
                                 <TouchableOpacity
+                                    style={styles.modalCloseButton}
                                     onPress={() => setShowCategoryModal(false)}
+                                    activeOpacity={0.7}
                                 >
                                     <MaterialCommunityIcons
                                         name="close"
-                                        size={24}
+                                        size={22}
                                         color={MUTED}
                                     />
                                 </TouchableOpacity>
                             </View>
 
-                            <Text style={styles.modalSubtitle}>
-                                Please select your membership category to continue.
-                            </Text>
-
-                            {/* Serving / Retired Engineers */}
+                            {/* Categories */}
                             {loadingFees ? (
-                                <Text style={styles.modalSubtitle}>
-                                    Loading membership categories...
-                                </Text>
+                                <View style={styles.modalLoading}>
+                                    <Text style={styles.modalSubtitle}>
+                                        Loading membership categories...
+                                    </Text>
+                                </View>
                             ) : membershipFees.length === 0 ? (
-                                <Text style={styles.modalSubtitle}>
-                                    Membership categories are currently unavailable.
-                                </Text>
+                                <View style={styles.modalLoading}>
+                                    <Text style={styles.modalSubtitle}>
+                                        Membership categories are currently unavailable.
+                                    </Text>
+                                </View>
                             ) : (
-                                membershipFees.map((fee) => (
-                                    <TouchableOpacity
-                                        key={fee.feeId}
-                                        style={[
-                                            styles.categoryOption,
-                                            selectedCategory?.roleId === fee.roleId &&
-                                            styles.categoryOptionSelected,
-                                        ]}
-                                        onPress={() => setSelectedCategory(fee)}
-                                        activeOpacity={0.8}
-                                    >
+                                <View style={styles.categoryList}>
+                                    {membershipFees.map((fee) => {
+                                        const isSelected =
+                                            selectedCategory?.roleId === fee.roleId;
 
-                                        <MaterialCommunityIcons
-                                            name="radiobox-marked"
-                                            size={24}
-                                            color={
-                                                selectedCategory?.roleId === fee.roleId
-                                                    ? NAVY
-                                                    : MUTED
-                                            }
-                                        />
-
-                                        <View style={{ flex: 1 }}>
-                                            <Text style={styles.categoryOptionText}>
-                                                {getMembershipCategoryName(fee.roleName)}
-                                            </Text>
-
-                                            <Text
-                                                style={{
-                                                    marginTop: 3,
-                                                    color: MUTED,
-                                                    fontSize: 14,
-                                                }}
+                                        return (
+                                            <TouchableOpacity
+                                                key={fee.feeId}
+                                                style={[
+                                                    styles.categoryOption,
+                                                    isSelected && styles.categoryOptionSelected,
+                                                ]}
+                                                onPress={() => setSelectedCategory(fee)}
+                                                activeOpacity={0.85}
                                             >
-                                                ₹{Number(fee.amount).toLocaleString('en-IN')}/-
-                                            </Text>
-                                        </View>
+                                                <View style={styles.categoryContent}>
+                                                    <Text
+                                                        style={[
+                                                            styles.categoryOptionText,
+                                                            isSelected &&
+                                                            styles.categoryOptionTextSelected,
+                                                        ]}
+                                                    >
+                                                        {getMembershipCategoryName(fee.roleName)}
+                                                    </Text>
 
-                                        <MaterialCommunityIcons
-                                            name={
-                                                selectedCategory?.roleId === fee.roleId
-                                                    ? 'radiobox-marked'
-                                                    : 'radiobox-blank'
-                                            }
-                                            size={24}
-                                            color={
-                                                selectedCategory?.roleId === fee.roleId
-                                                    ? NAVY
-                                                    : MUTED
-                                            }
-                                        />
+                                                    <View style={styles.amountRow}>
+                                                        <Text style={styles.amountLabel}>
+                                                            Membership Fee
+                                                        </Text>
 
-                                    </TouchableOpacity>
-                                ))
+                                                        <Text style={styles.categoryAmount}>
+                                                            {`₹${Number(fee.amount).toLocaleString('en-IN')}/-`}
+                                                        </Text>
+                                                    </View>
+                                                </View>
+
+                                                <MaterialCommunityIcons
+                                                    name={
+                                                        isSelected
+                                                            ? 'radiobox-marked'
+                                                            : 'radiobox-blank'
+                                                    }
+                                                    size={26}
+                                                    color={isSelected ? NAVY : '#CBD5E1'}
+                                                />
+                                            </TouchableOpacity>
+                                        );
+                                    })}
+                                </View>
                             )}
+
                             {/* Continue */}
                             <TouchableOpacity
                                 style={[
@@ -552,6 +557,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                                     styles.modalContinueBtnDisabled,
                                 ]}
                                 disabled={!selectedCategory}
+                                activeOpacity={0.85}
                                 onPress={() => {
                                     setShowCategoryModal(false);
 
@@ -575,7 +581,6 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                         </View>
                     </View>
                 </Modal>
-
             </ScrollView>
         </SafeAreaView>
     );

@@ -683,6 +683,153 @@ modalContinueText: {
   fontWeight: '800',
   marginRight: 8,
 },
+   // =========================
+  // MEMBERSHIP CATEGORY MODAL
+  // =========================
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+
+  categoryModal: {
+    width: '100%',
+    maxWidth: 430,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 20,
+
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+
+    elevation: 10,
+  },
+
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+
+  modalTitle: {
+    fontSize: 21,
+    fontWeight: '800',
+    color: '#252943',
+    marginBottom: 5,
+  },
+
+  modalSubtitle: {
+    fontSize: 13,
+    color: '#64748B',
+    lineHeight: 19,
+  },
+
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  modalLoading: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+
+  categoryList: {
+    gap: 12,
+  },
+
+  categoryOption: {
+    minHeight: 78,
+    flexDirection: 'row',
+    alignItems: 'center',
+
+    backgroundColor: '#F8FAFC',
+
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+
+    borderRadius: 14,
+
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+
+  categoryOptionSelected: {
+    backgroundColor: '#F0F6FA',
+    borderColor: '#252943',
+    borderWidth: 1.5,
+  },
+
+  categoryContent: {
+    flex: 1,
+    paddingRight: 12,
+  },
+
+  categoryOptionText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#334155',
+    lineHeight: 21,
+  },
+
+  categoryOptionTextSelected: {
+    color: '#252943',
+  },
+
+  amountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 7,
+  },
+
+  amountLabel: {
+    fontSize: 12,
+    color: '#64748B',
+    marginRight: 8,
+  },
+
+  categoryAmount: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#A0C878',
+  },
+
+  modalContinueBtn: {
+    height: 52,
+    marginTop: 20,
+    borderRadius: 12,
+
+    backgroundColor: '#252943',
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+
+    paddingHorizontal: 18,
+  },
+
+  modalContinueBtnDisabled: {
+    backgroundColor: '#CBD5E1',
+  },
+
+  modalContinueText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    marginRight: 8,
+  },
 });
 // AboutScreen
 export const AboutScreenStyles = (() => {
