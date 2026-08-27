@@ -14,12 +14,10 @@ import { getSafeErrorMessage } from '../utils/errorHandler';
 import logoImage from '../../assets/logo-clean.png';
 
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
-const CATEGORY_TO_ROLE_ID = {
-  'Serving / Retired Engineers': 2,
-  'Engineering Students': 6,
-  'Organisations / Others': 5,
-};
+
 const RegistrationPaymentScreen = ({ route, navigation }) => {
+    console.log('========== PAYMENT SCREEN ==========');
+  console.log('ALL PARAMS:', route.params);
 const {
   userId,
   memberId,
@@ -30,66 +28,29 @@ const {
   pendingSignup,
   membershipCategory,
 } = route.params || {};
-  const insets = useSafeAreaInsets();
 
-  const [profilePhoto,      setProfilePhoto]      = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
-  const [showWebView,       setShowWebView]        = useState(false);
-  const [processingPayment, setProcessingPayment]  = useState(false);
-  const [feeAmount,         setFeeAmount]          = useState(route.params?.feeAmount ?? 0);
-  const [feeId,             setFeeId]              = useState(null);
-  const [logoDataUri,       setLogoDataUri]        = useState(null);
+// Exact membership selected on MembershipBenefitsScreen
+const feeAmount = Number(membershipCategory?.amount ?? 0);
+const feeId = membershipCategory?.feeId ?? null;
+const roleId = membershipCategory?.roleId ?? null;
+const roleName = membershipCategory?.roleName ?? '';
 
-useEffect(() => {
-  const loadRoleBasedFee = async () => {
-    try {
-      const roleId = CATEGORY_TO_ROLE_ID[membershipCategory];
+console.log('SELECTED MEMBERSHIP:', membershipCategory);
+console.log('SELECTED ROLE ID:', roleId);
+console.log('SELECTED FEE ID:', feeId);
+console.log('SELECTED FEE AMOUNT:', feeAmount);
 
-      if (!roleId) {
-        console.warn(
-          'Unknown membership category:',
-          membershipCategory
-        );
-        return;
-      }
+const insets = useSafeAreaInsets();
 
-      console.log(
-        'Selected Category:',
-        membershipCategory
-      );
+const [profilePhoto, setProfilePhoto] =
+  useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
 
-      console.log(
-        'Role ID:',
-        roleId
-      );
+const [showWebView, setShowWebView] = useState(false);
+const [processingPayment, setProcessingPayment] = useState(false);
+const [logoDataUri, setLogoDataUri] = useState(null);
 
-      const res = await api.get(
-        `/payment/current-fee/${roleId}`
-      );
 
-      console.log(
-        'Fee API Response:',
-        res.data
-      );
-
-      if (res.data?.success && res.data?.data) {
-        setFeeAmount(
-          Number(res.data.data.amount) || 0
-        );
-
-        setFeeId(
-          res.data.data.feeId ?? null
-        );
-      }
-    } catch (error) {
-      console.error(
-        'Failed to fetch role based fee:',
-        error
-      );
-    }
-  };
-
-  loadRoleBasedFee();
-}, [membershipCategory]);
+  
   // Convert the local logo asset to a base64 data URI once, so it can be
   // handed to Razorpay's checkout.js as the `image` option — the WebView
   // needs an actual image string, not a bundler asset reference.
@@ -463,12 +424,30 @@ useEffect(() => {
   };
 
   const handlePayNow = () => {
-    if (!pendingSignup) {
-      Alert.alert('Error', 'Registration details not found. Please go back and fill the form again.');
-      return;
-    }
-    setShowWebView(true);
-  };
+
+  // FIRST TIME PAY NOW:
+  // pendingSignup will exist
+
+  // PAY LATER:
+  // account already exists, so userId + memberId will exist
+  if (!pendingSignup && (!userId || !memberId)) {
+    Alert.alert(
+      'Error',
+      'Payment details not found. Please login again.'
+    );
+    return;
+  }
+
+  if (!feeAmount || feeAmount <= 0) {
+    Alert.alert(
+      'Error',
+      'Membership fee is not available.'
+    );
+    return;
+  }
+
+  setShowWebView(true);
+};
 
   // ---------------------------------------------------------------------
   // Full-screen WebView "page" instead of a <Modal>. When showWebView is

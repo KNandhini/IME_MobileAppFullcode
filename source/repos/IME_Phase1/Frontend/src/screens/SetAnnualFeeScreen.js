@@ -15,29 +15,16 @@ const formatDate = (date) => {
   return `${y}-${m}-${d}`;
 };
 
-// RoleId convention shared with the backend / SignupScreen:
-// 1 = Serving/Retired Engineers, 2 = Engineering Students, 3 = Organisations/Others
-// RoleId values from database
-// 2 = Serving / Retired Engineers
-// 6 = Engineering Students
-// 5 = Organisations / Others
-const MEMBERSHIP_CATEGORIES = [
-  {
-    roleId: 2,
-    label: 'Serving / Retired Engineers',
-    icon: 'account-hard-hat-outline',
-  },
-  {
-    roleId: 6,
-    label: 'Engineering Students',
-    icon: 'school-outline',
-  },
-  {
-    roleId: 5,
-    label: 'Organisations / Others',
-    icon: 'office-building-outline',
-  },
-];
+// Roles come from the backend (sp_GetAllRoles) — never hardcode RoleId.
+// We only hardcode which ROLE NAMES count as membership categories (stable,
+// human-chosen identifiers) and how to label/icon them for this screen.
+// 'Admin' is intentionally excluded — it's not a membership fee category.
+const ROLE_NAME_DISPLAY = {
+  Member: { label: 'Serving / Retired Engineers', icon: 'account-hard-hat-outline' },
+  Student: { label: 'Engineering Students', icon: 'school-outline' },
+  Others: { label: 'Organisations / Others', icon: 'office-building-outline' },
+};
+
 // ── Field wrapper (same contract as ActivityFormScreen) ───────────────────
 function Field({ label, required, children, error, hint, charCount, maxChars }) {
   const over = maxChars != null && charCount > maxChars;
@@ -83,6 +70,10 @@ function StyledInput({ hasError, multiline, style, ...props }) {
 }
 
 const SetAnnualFeeScreen = () => {
+  const [categories, setCategories] = useState([]); // [{ roleId, label, icon }]
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(false);
+
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [currentFee, setCurrentFee] = useState(null);
   const [fetching, setFetching] = useState(false);
@@ -97,6 +88,37 @@ const SetAnnualFeeScreen = () => {
   const today = new Date();
   const feeMinDate = new Date(today.getFullYear() - 100, 0, 1);
   const feeMaxDate = new Date(today.getFullYear() + 80, 11, 31);
+
+  // Fetch roles from the backend once on mount, then build the membership
+  // category list from whichever ones match ROLE_NAME_DISPLAY.
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      setCategoriesError(false);
+      const res = await api.get('/role/all');
+      if (res.data.success && Array.isArray(res.data.data)) {
+        const mapped = res.data.data
+          .filter(r => r.isActive && ROLE_NAME_DISPLAY[r.roleName])
+          .map(r => ({
+            roleId: r.roleId,
+            label: ROLE_NAME_DISPLAY[r.roleName].label,
+            icon: ROLE_NAME_DISPLAY[r.roleName].icon,
+          }));
+        setCategories(mapped);
+      } else {
+        setCategoriesError(true);
+      }
+    } catch (e) {
+      console.warn('Failed to load roles:', e.message);
+      setCategoriesError(true);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
   // Re-fetch the current fee for whichever category is selected.
   useEffect(() => {
@@ -141,7 +163,7 @@ const SetAnnualFeeScreen = () => {
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
-    const categoryLabel = MEMBERSHIP_CATEGORIES.find(c => c.roleId === selectedRoleId)?.label;
+    const categoryLabel = categories.find(c => c.roleId === selectedRoleId)?.label;
 
     Alert.alert(
       'Confirm',
@@ -176,6 +198,14 @@ const SetAnnualFeeScreen = () => {
     }
   };
 
+  if (categoriesLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={COLORS.accent} />
+      </View>
+    );
+  }
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -188,7 +218,16 @@ const SetAnnualFeeScreen = () => {
         <View style={styles.form}>
           <Text style={styles.sectionTitle}>Select Membership Category</Text>
 
-          {MEMBERSHIP_CATEGORIES.map((cat) => {
+          {categoriesError && (
+            <View style={{ marginBottom: 12 }}>
+              <Text style={styles.field.error}>Could not load categories.</Text>
+              <TouchableOpacity onPress={loadCategories}>
+                <Text style={{ color: COLORS.primary, marginTop: 6 }}>Tap to retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {categories.map((cat) => {
             const active = selectedRoleId === cat.roleId;
             return (
               <TouchableOpacity
@@ -230,7 +269,7 @@ const SetAnnualFeeScreen = () => {
         {selectedRoleId && (
           <View style={styles.currentCard}>
             <Text style={styles.currentTitle}>
-              Current Fee — {MEMBERSHIP_CATEGORIES.find(c => c.roleId === selectedRoleId)?.label}
+              Current Fee — {categories.find(c => c.roleId === selectedRoleId)?.label}
             </Text>
             {fetching ? (
               <ActivityIndicator color={COLORS.accent} />

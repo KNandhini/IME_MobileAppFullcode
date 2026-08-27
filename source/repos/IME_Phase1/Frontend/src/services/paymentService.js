@@ -32,11 +32,15 @@ export const paymentService = {
     });
     return response.data;
   },
-
-  getCurrentFee: async () => {
-    const response = await api.get('/payment/current-fee');
+getCurrentFees: async () => {
+    const response = await api.get('/payment/current-fees');
     return response.data;
-  },
+},
+
+ getCurrentFee: async (roleId) => {
+  const response = await api.get(`/payment/current-fee/${roleId}`);
+  return response.data;
+},
 
   setFee: async (amount, effectiveFrom) => {
     const response = await api.post('/payment/set-fee', {

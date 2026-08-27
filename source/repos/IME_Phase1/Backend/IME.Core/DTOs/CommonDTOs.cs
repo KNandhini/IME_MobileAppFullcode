@@ -85,6 +85,8 @@ public class MembershipFeeDTO
     public bool IsActive { get; set; }
 
     public int RoleId { get; set; }
+
+    public string RoleName { get; set; }
 }
 
 public class PaymentAllDTO

@@ -27,6 +27,7 @@ public class PaymentRepository : IPaymentRepository
             {
                 FeeId = reader.GetInt32(reader.GetOrdinal("FeeId")),
                 RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
+                RoleName = reader.GetString(reader.GetOrdinal("RoleName")),
                 Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
                 EffectiveFrom = reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
@@ -51,6 +52,9 @@ public class PaymentRepository : IPaymentRepository
                 FeeId = reader.GetInt32(reader.GetOrdinal("FeeId")),
                 RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
                 Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                RoleName = reader.IsDBNull(reader.GetOrdinal("RoleName")) ? null
+                : reader.GetString(reader.GetOrdinal("RoleName")),
+
                 EffectiveFrom = reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
                 IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             });
