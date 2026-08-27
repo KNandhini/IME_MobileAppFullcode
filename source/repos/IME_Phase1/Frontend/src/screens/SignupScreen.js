@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -15,7 +16,6 @@ import {
 } from 'react-native';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import api from '../utils/api';
@@ -122,6 +122,10 @@ function SelectField({ label, required, value, placeholder, onPress, error, disa
 }
 
 const SignupScreen = ({ navigation, route }) => {
+  console.log('========== SIGNUP SCREEN ==========');
+  console.log('Signup route params:', route?.params);
+  console.log('Signup roleId:', route?.params?.roleId);
+  console.log('Signup membershipCategory:', route?.params?.membershipCategory);
   const [formData, setFormData] = useState({
     fullName: '', email: '', password: '', confirmPassword: '',
     contactNumber: '', address: '', gender: '', age: '',
@@ -135,7 +139,6 @@ const SignupScreen = ({ navigation, route }) => {
   const [menuWidth, setMenuWidth] = useState(0);
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const [currentFee, setCurrentFee] = useState(null);
   const [profilePhoto, setProfilePhoto] = useState(null);
   const [countries, setCountries] = useState([]);
   const [states, setStates] = useState([]);
@@ -151,6 +154,7 @@ const SignupScreen = ({ navigation, route }) => {
 
   const [statesLoading, setStatesLoading] = useState(false);
   const [clubsLoading, setClubsLoading] = useState(false);
+
 
   // Refs used to auto-select India as the default country and Tamil Nadu as
   // the default state (most users on this app are Tamil Nadu municipal
@@ -172,7 +176,7 @@ const SignupScreen = ({ navigation, route }) => {
   const showEducationSection = occupation === 'Employed' || occupation === 'Self Employed' || occupation === 'Unemployed';
 
   useEffect(() => {
-    fetchFee();
+
     loadCountries();
   }, []);
 
@@ -228,14 +232,6 @@ const SignupScreen = ({ navigation, route }) => {
     }
   }, [stateModal, states]);
 
-  const fetchFee = async () => {
-    try {
-      const res = await api.get('/payment/latest-fee');
-      if (res.data.success) setCurrentFee(res.data.data);
-    } catch (e) {
-      console.warn('Fee fetch failed:', e.message);
-    }
-  };
   const loadCountries = async () => {
     try {
       const res = await clubService.getCountries();
@@ -260,6 +256,15 @@ const SignupScreen = ({ navigation, route }) => {
       setStatesLoading(false);
     }
   };
+  const membershipCategory = route?.params?.membershipCategory;
+
+  const roleId = membershipCategory?.roleId;
+  const feeId = membershipCategory?.feeId;
+  const roleName = membershipCategory?.roleName;
+  const feeAmount = Number(membershipCategory?.amount ?? 0);
+
+
+
 
   const loadClubsByState = async (stateId) => {
     setClubsLoading(true);
@@ -406,32 +411,64 @@ const SignupScreen = ({ navigation, route }) => {
     age: parseInt(formData.age),
     dateOfBirth: formData.dateOfBirth,
     designationId: formData.designationId,
+
     countryId: selectedCountry?.countryId ?? null,
     stateId: selectedState?.stateId ?? null,
     clubId: selectedClub?.clubId?.toString() ?? null,
-    roleId: 2,
+
+    roleId: membershipCategory?.roleId,
     occupation,
     ...(showOccupationDetails && { occupationDetails }),
     ...(showEducationSection && { qualification }),
   });
 
-  const submitRegistration = async () => {
+  // ── Email availability check ─────────────────────────────────────────
+  // Read-only lookup — does NOT create anything. This is what lets us warn
+  // about a duplicate email up front without having saved the person yet.
+  //
+  // ASSUMPTION: backend exposes GET /Auth/check-email?email=... returning
+  // { success: true, data: { exists: boolean } }. Adjust the path / response
+  // shape below to match whatever you actually expose. If this endpoint
+  // doesn't exist yet, it needs to be added — reusing /Auth/signup's
+  // duplicate-email error would mean creating a record just to find out.
+  const checkEmailAvailability = async (email) => {
+    const res = await api.get('/Auth/check-email', { params: { email } });
+    return !!res.data?.data?.exists;
+  };
+
+  const uploadProfilePhotoForMember = async (memberId, photoUri) => {
+    try {
+      const fd = new FormData();
+      fd.append('file', { uri: photoUri, name: 'profile_photo.jpg', type: 'image/jpeg' });
+      fd.append('memberId', memberId.toString());
+      const baseUrl = api.defaults.baseURL;
+      const response = await fetch(`${baseUrl}/File/upload-profile-photo`, { method: 'POST', body: fd });
+      const json = await response.json();
+      return json.success;
+    } catch (e) {
+      console.warn('Profile photo upload failed:', e.message);
+      return false;
+    }
+  };
+
+  // "Pay Later" is the only path that creates the account here — the person
+  // gets an active-but-unpaid account with a grace period, same as before.
+  const registerAndGoToLogin = async (payload) => {
     setLoading(true);
     try {
-      const response = await api.post('/Auth/signup', buildSignupPayload());
+      const response = await api.post('/Auth/signup', payload);
       const res = response.data;
 
       if (res.success) {
         const paymentParams = {
-          userId: res.data.userId,
-          memberId: res.data.memberId,
-          feeAmount: currentFee ? parseFloat(currentFee.amount) : (route?.params?.feeAmount ?? 0),
-          memberName: formData.fullName,
-          memberEmail: formData.email,
-          memberPassword: formData.password,
-          profilePhotoUri: profilePhoto?.uri ?? null,
-        };
-
+  userId: res.data.userId,
+  memberId: res.data.memberId,
+  membershipCategory: membershipCategory,
+  memberName: formData.fullName,
+  memberEmail: formData.email,
+  memberPassword: formData.password,
+  profilePhotoUri: profilePhoto?.uri ?? null,
+};
         await AsyncStorage.setItem('paymentGrace', JSON.stringify({
           pending: true,
           registeredAt: Date.now(),
@@ -445,6 +482,7 @@ const SignupScreen = ({ navigation, route }) => {
           [
             {
               text: 'Pay Now',
+
               onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
             },
             {
@@ -458,16 +496,7 @@ const SignupScreen = ({ navigation, route }) => {
         Alert.alert('Registration Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
-      console.log("FULL ERROR");
-      console.log(e);
-
-      console.log("Response");
-      console.log(e.response);
-
-      console.log("Response Data");
-      console.log(e.response?.data);
-
-      Alert.alert("Error", getSafeErrorMessage(e));
+      Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setLoading(false);
     }
@@ -482,10 +511,51 @@ const SignupScreen = ({ navigation, route }) => {
       );
       return;
     }
-    await submitRegistration();
+
+    // Nothing gets saved yet — just confirm the email isn't already taken.
+    setLoading(true);
+    let emailTaken = false;
+    try {
+      emailTaken = await checkEmailAvailability(formData.email);
+    } catch (e) {
+      setLoading(false);
+      Alert.alert('Error', getSafeErrorMessage(e));
+      return;
+    }
+    setLoading(false);
+
+    if (emailTaken) {
+      setErrors((prev) => ({ ...prev, email: 'This email is already registered' }));
+      Alert.alert('Email Already Registered', 'An account with this email already exists. Please login instead, or use a different email.');
+      return;
+    }
+
+    const payload = buildSignupPayload();
+
+    Alert.alert(
+      'Almost Done',
+      'Your details look good. How would you like to proceed?\n\n"Pay Now" completes payment and activates your account immediately.\n"Pay Later" registers your account now, with 3 days to pay before it needs renewal.',
+      [
+        {
+          text: 'Pay Now',
+          // No account exists yet. We hand the raw payload to the payment
+          // screen and only call /Auth/signup once Razorpay confirms success.
+          onPress: () => navigation.navigate('RegistrationPayment', {
+            pendingSignup: payload,
+            membershipCategory: membershipCategory,
+            profilePhotoUri: profilePhoto?.uri ?? null,
+          }),
+        },
+        {
+          text: 'Pay Later (3 Days)',
+          style: 'cancel',
+          onPress: () => registerAndGoToLogin(payload),
+        },
+      ],
+    );
   };
 
- return (
+  return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
       {/* ── Header ── */}
       <LinearGradient
@@ -514,340 +584,340 @@ const SignupScreen = ({ navigation, route }) => {
           showsVerticalScrollIndicator={false}
         >
 
-        <View style={styles.card}>
-          <Field label="Full Name" required error={errors.fullName}>
-            <StyledInput
-              value={formData.fullName}
-              onChangeText={(t) => updateField('fullName', t)}
-              hasError={!!errors.fullName}
-              returnKeyType="next"
+          <View style={styles.card}>
+            <Field label="Full Name" required error={errors.fullName}>
+              <StyledInput
+                value={formData.fullName}
+                onChangeText={(t) => updateField('fullName', t)}
+                hasError={!!errors.fullName}
+                returnKeyType="next"
+              />
+            </Field>
+
+            <Field label="Email" required error={errors.email}>
+              <StyledInput
+                value={formData.email}
+                onChangeText={(t) => updateField('email', t)}
+                hasError={!!errors.email}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                returnKeyType="next"
+              />
+            </Field>
+
+            <PasswordField
+              label="Password"
+              required
+              value={formData.password}
+              onChangeText={(t) => updateField('password', t)}
+              error={errors.password}
+              hint="Min 6 chars, include number & special character"
+              visible={showPassword}
+              onToggleVisible={() => setShowPassword(!showPassword)}
             />
-          </Field>
 
-          <Field label="Email" required error={errors.email}>
-            <StyledInput
-              value={formData.email}
-              onChangeText={(t) => updateField('email', t)}
-              hasError={!!errors.email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              returnKeyType="next"
+            <PasswordField
+              label="Confirm Password"
+              required
+              value={formData.confirmPassword}
+              onChangeText={(t) => updateField('confirmPassword', t)}
+              error={errors.confirmPassword}
+              visible={showConfirmPassword}
+              onToggleVisible={() => setShowConfirmPassword(!showConfirmPassword)}
             />
-          </Field>
 
-          <PasswordField
-            label="Password"
-            required
-            value={formData.password}
-            onChangeText={(t) => updateField('password', t)}
-            error={errors.password}
-            hint="Min 6 chars, include number & special character"
-            visible={showPassword}
-            onToggleVisible={() => setShowPassword(!showPassword)}
-          />
+            <Field label="Contact Number" required error={errors.contactNumber}>
+              <StyledInput
+                value={formData.contactNumber}
+                onChangeText={(text) => {
+                  const numbers = text.replace(/[^0-9]/g, '');
+                  updateField('contactNumber', numbers);
+                }}
+                keyboardType="phone-pad"
+                inputMode="numeric"
+                maxLength={10}
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+            </Field>
 
-          <PasswordField
-            label="Confirm Password"
-            required
-            value={formData.confirmPassword}
-            onChangeText={(t) => updateField('confirmPassword', t)}
-            error={errors.confirmPassword}
-            visible={showConfirmPassword}
-            onToggleVisible={() => setShowConfirmPassword(!showConfirmPassword)}
-          />
+            <Field label="Address" required error={errors.address}>
+              <StyledInput
+                value={formData.address}
+                onChangeText={(t) => updateField('address', t)}
+                hasError={!!errors.address}
+                multiline
+              />
+            </Field>
 
-          <Field label="Contact Number" required error={errors.contactNumber}>
-            <StyledInput
-              value={formData.contactNumber}
-              onChangeText={(text) => {
-                const numbers = text.replace(/[^0-9]/g, '');
-                updateField('contactNumber', numbers);
+            {/* ── Country ── */}
+            <SelectField
+              label="Country"
+              required
+              value={selectedCountry?.countryName || ''}
+              placeholder="Select country…"
+              onPress={() => setCountryModal(true)}
+              error={errors.country}
+            />
+
+            {/* ── State ── */}
+            <SelectField
+              label="State"
+              required
+              value={selectedState?.stateName || ''}
+              placeholder="Select state…"
+              onPress={() => selectedCountry ? setStateModal(true) : Alert.alert('Select country first')}
+              error={errors.state}
+              disabled={!selectedCountry}
+              loading={statesLoading}
+            />
+
+            {/* ── Club ── */}
+            <SelectField
+              label="Club"
+              required
+              value={selectedClub?.clubName || ''}
+              placeholder="Select club…"
+              onPress={() => selectedState ? setClubModal(true) : Alert.alert('Select state first')}
+              error={errors.club}
+              disabled={!selectedState}
+              loading={clubsLoading}
+            />
+
+            {/* ── Gender ── */}
+            <View style={styles.field.wrapper}>
+              <Text style={styles.field.label}>Gender<Text style={styles.field.req}> *</Text></Text>
+              <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
+                <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
+                  contentStyle={{ width: menuWidth }}
+                  anchor={
+                    <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
+                      <View pointerEvents="none">
+                        <StyledInput value={formData.gender} editable={false} hasError={!!errors.gender} />
+                      </View>
+                    </TouchableOpacity>
+                  }>
+                  <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
+                  <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
+                  <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
+                </Menu>
+              </View>
+              {!!errors.gender && <Text style={styles.field.error}>{errors.gender}</Text>}
+            </View>
+
+            {/* ── Date of Birth ── */}
+            <DOBField
+              label="Date of Birth"
+              required
+              value={selectedDate}
+              minDate={minDate}
+              maxDate={today}
+              error={errors.dateOfBirth}
+              FieldComponent={Field}
+              InputComponent={StyledInput}
+              onChange={(date) => {
+                setSelectedDate(date);
+                setFormData((prev) => ({
+                  ...prev,
+                  dateOfBirth: formatDate(date),
+                  age: calculateAge(date),
+                }));
+                setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
               }}
-              keyboardType="phone-pad"
-              inputMode="numeric"
-              maxLength={10}
-              autoCorrect={false}
-              autoCapitalize="none"
             />
-          </Field>
 
-          <Field label="Address" required error={errors.address}>
-            <StyledInput
-              value={formData.address}
-              onChangeText={(t) => updateField('address', t)}
-              hasError={!!errors.address}
-              multiline
-            />
-          </Field>
+            <Field label="Age" required error={errors.age}>
+              <StyledInput value={formData.age} editable={false} hasError={!!errors.age} keyboardType="numeric" />
+            </Field>
 
-          {/* ── Country ── */}
-          <SelectField
-            label="Country"
-            required
-            value={selectedCountry?.countryName || ''}
-            placeholder="Select country…"
-            onPress={() => setCountryModal(true)}
-            error={errors.country}
-          />
-
-          {/* ── State ── */}
-          <SelectField
-            label="State"
-            required
-            value={selectedState?.stateName || ''}
-            placeholder="Select state…"
-            onPress={() => selectedCountry ? setStateModal(true) : Alert.alert('Select country first')}
-            error={errors.state}
-            disabled={!selectedCountry}
-            loading={statesLoading}
-          />
-
-          {/* ── Club ── */}
-          <SelectField
-            label="Club"
-            required
-            value={selectedClub?.clubName || ''}
-            placeholder="Select club…"
-            onPress={() => selectedState ? setClubModal(true) : Alert.alert('Select state first')}
-            error={errors.club}
-            disabled={!selectedState}
-            loading={clubsLoading}
-          />
-
-          {/* ── Gender ── */}
-          <View style={styles.field.wrapper}>
-            <Text style={styles.field.label}>Gender<Text style={styles.field.req}> *</Text></Text>
-            <View style={{ width: '100%' }} onLayout={(e) => setMenuWidth(e.nativeEvent.layout.width)}>
-              <Menu visible={genderMenuVisible} onDismiss={() => setGenderMenuVisible(false)}
-                contentStyle={{ width: menuWidth }}
-                anchor={
-                  <TouchableOpacity onPress={() => setGenderMenuVisible(true)}>
-                    <View pointerEvents="none">
-                      <StyledInput value={formData.gender} editable={false} hasError={!!errors.gender} />
-                    </View>
-                  </TouchableOpacity>
-                }>
-                <Menu.Item title="Male" onPress={() => { updateField('gender', 'Male'); setGenderMenuVisible(false); }} />
-                <Menu.Item title="Female" onPress={() => { updateField('gender', 'Female'); setGenderMenuVisible(false); }} />
-                <Menu.Item title="Transgender" onPress={() => { updateField('gender', 'Transgender'); setGenderMenuVisible(false); }} />
-              </Menu>
+            {/* ── Occupation ── */}
+            <View style={styles.field.wrapper}>
+              <Text style={styles.field.label}>Occupation<Text style={styles.field.req}> *</Text></Text>
+              <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
+                <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
+                  contentStyle={{ width: occupationMenuWidth }}
+                  anchor={
+                    <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
+                      <View pointerEvents="none">
+                        <StyledInput value={occupation} editable={false} hasError={!!errors.occupation} />
+                      </View>
+                    </TouchableOpacity>
+                  }>
+                  {OCCUPATION_OPTIONS.map((opt) => (
+                    <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
+                  ))}
+                </Menu>
+              </View>
+              {!!errors.occupation && <Text style={styles.field.error}>{errors.occupation}</Text>}
             </View>
-            {!!errors.gender && <Text style={styles.field.error}>{errors.gender}</Text>}
-          </View>
 
-          {/* ── Date of Birth ── */}
-          <DOBField
-            label="Date of Birth"
-            required
-            value={selectedDate}
-            minDate={minDate}
-            maxDate={today}
-            error={errors.dateOfBirth}
-            FieldComponent={Field}
-            InputComponent={StyledInput}
-            onChange={(date) => {
-              setSelectedDate(date);
-              setFormData((prev) => ({
-                ...prev,
-                dateOfBirth: formatDate(date),
-                age: calculateAge(date),
-              }));
-              setErrors((prev) => ({ ...prev, dateOfBirth: undefined }));
-            }}
-          />
+            {/* ── Occupation Details (Employed / Self Employed only) ── */}
+            {showOccupationDetails && (
+              <View style={styles.sectionBox}>
+                <Field label="Occupation Details" required error={errors.occupationDetails}>
+                  <StyledInput
+                    value={occupationDetails}
+                    onChangeText={setOccupationDetails}
+                    hasError={!!errors.occupationDetails}
 
-          <Field label="Age" required error={errors.age}>
-            <StyledInput value={formData.age} editable={false} hasError={!!errors.age} keyboardType="numeric" />
-          </Field>
-
-          {/* ── Occupation ── */}
-          <View style={styles.field.wrapper}>
-            <Text style={styles.field.label}>Occupation<Text style={styles.field.req}> *</Text></Text>
-            <View style={{ width: '100%' }} onLayout={(e) => setOccupationMenuWidth(e.nativeEvent.layout.width)}>
-              <Menu visible={occupationMenuVisible} onDismiss={() => setOccupationMenuVisible(false)}
-                contentStyle={{ width: occupationMenuWidth }}
-                anchor={
-                  <TouchableOpacity onPress={() => setOccupationMenuVisible(true)}>
-                    <View pointerEvents="none">
-                      <StyledInput value={occupation} editable={false} hasError={!!errors.occupation} />
-                    </View>
-                  </TouchableOpacity>
-                }>
-                {OCCUPATION_OPTIONS.map((opt) => (
-                  <Menu.Item key={opt} title={opt} onPress={() => handleOccupationSelect(opt)} />
-                ))}
-              </Menu>
-            </View>
-            {!!errors.occupation && <Text style={styles.field.error}>{errors.occupation}</Text>}
-          </View>
-
-          {/* ── Occupation Details (Employed / Self Employed only) ── */}
-          {showOccupationDetails && (
-            <View style={styles.sectionBox}>
-              <Field label="Occupation Details" required error={errors.occupationDetails}>
-                <StyledInput
-                  value={occupationDetails}
-                  onChangeText={setOccupationDetails}
-                  hasError={!!errors.occupationDetails}
-
-                />
-              </Field>
-            </View>
-          )}
-
-          {/* ── Educational Qualification (shown for any occupation once selected) ── */}
-          {showEducationSection && (
-            <View style={styles.sectionBox}>
-              <Field label="Educational Qualification" required error={errors.qualification}>
-                <StyledInput
-                  value={qualification}
-                  onChangeText={setQualification}
-                  hasError={!!errors.qualification}
-                  placeholder="e.g., Diploma-Civil Engineering"
-                />
-              </Field>
-            </View>
-          )}
-
-          {/* Profile Photo */}
-          <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
-          <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
-            {profilePhoto ? (
-              <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
-            ) : (
-              <View style={styles.photoPlaceholder}>
-                <Text style={styles.photoPlaceholderIcon}>👤</Text>
+                  />
+                </Field>
               </View>
             )}
-            <View style={styles.photoPickerText}>
-              <Text style={styles.photoPickerTitle}>
-                {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
-              </Text>
-              <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
-            </View>
-          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
-            {loading ? (
-              <ActivityIndicator size="small" color={COLORS.accent} />
-            ) : (
-              <Text style={{ color: COLORS.white, textAlign: 'center', fontWeight: '700', fontSize: 15 }}>Register</Text>
+            {/* ── Educational Qualification (shown for any occupation once selected) ── */}
+            {showEducationSection && (
+              <View style={styles.sectionBox}>
+                <Field label="Educational Qualification" required error={errors.qualification}>
+                  <StyledInput
+                    value={qualification}
+                    onChangeText={setQualification}
+                    hasError={!!errors.qualification}
+                    placeholder="e.g., Diploma-Civil Engineering"
+                  />
+                </Field>
+              </View>
             )}
+
+            {/* Profile Photo */}
+            <Text style={styles.photoLabel}>Profile Photo (Optional)</Text>
+            <TouchableOpacity style={styles.photoPickerRow} onPress={pickProfilePhoto}>
+              {profilePhoto ? (
+                <Image source={{ uri: profilePhoto.uri }} style={styles.photoPreview} />
+              ) : (
+                <View style={styles.photoPlaceholder}>
+                  <Text style={styles.photoPlaceholderIcon}>👤</Text>
+                </View>
+              )}
+              <View style={styles.photoPickerText}>
+                <Text style={styles.photoPickerTitle}>
+                  {profilePhoto ? 'Photo selected' : 'Upload profile photo'}
+                </Text>
+                <Text style={styles.photoPickerHint}>Tap to choose from gallery</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.button} onPress={handleSignup} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator size="small" color={COLORS.accent} />
+              ) : (
+                <Text style={{ color: COLORS.white, textAlign: 'center', fontWeight: '700', fontSize: 15 }}>Register</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
+            <Text style={{ color: COLORS.secondary, textAlign: 'center', fontWeight: '600', fontSize: 14, marginBottom: 12 }}>
+              Already have an account? Login
+            </Text>
           </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Login')}>
-          <Text style={{ color: COLORS.secondary, textAlign: 'center', fontWeight: '600', fontSize: 14 , marginBottom:12}}>
-            Already have an account? Login
-          </Text>
-        </TouchableOpacity>
-
-        {/* ── Country Modal ── */}
-        <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
-          <View style={styles.pickerOverlay}>
-            <View style={styles.pickerSheet}>
-              <Text style={styles.pickerTitle}>Select Country</Text>
-              <FlatList
-                data={countries}
-                keyExtractor={item => String(item.countryId)}
-                style={{ maxHeight: 380 }}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.pickerItem}
-                    onPress={() => {
-                      setSelectedCountry(item);
-                      setCountryModal(false);
-                      loadStates(item.countryId);
-                    }}
-                  >
-                    <Text style={styles.pickerItemText}>{item.countryName}</Text>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
-              />
-              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setCountryModal(false)}>
-                <Text style={styles.pickerCancelText}>Cancel</Text>
-              </TouchableOpacity>
+          {/* ── Country Modal ── */}
+          <Modal visible={countryModal} transparent animationType="slide" onRequestClose={() => setCountryModal(false)}>
+            <View style={styles.pickerOverlay}>
+              <View style={styles.pickerSheet}>
+                <Text style={styles.pickerTitle}>Select Country</Text>
+                <FlatList
+                  data={countries}
+                  keyExtractor={item => String(item.countryId)}
+                  style={{ maxHeight: 380 }}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.pickerItem}
+                      onPress={() => {
+                        setSelectedCountry(item);
+                        setCountryModal(false);
+                        loadStates(item.countryId);
+                      }}
+                    >
+                      <Text style={styles.pickerItemText}>{item.countryName}</Text>
+                    </TouchableOpacity>
+                  )}
+                  ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
+                />
+                <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setCountryModal(false)}>
+                  <Text style={styles.pickerCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Modal>
+          </Modal>
 
-        {/* ── State Modal ── */}
-        <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
-          <View style={styles.pickerOverlay}>
-            <View style={styles.pickerSheet}>
-              <Text style={styles.pickerTitle}>Select State</Text>
-              <FlatList
-                ref={stateListRef}
-                data={states}
-                keyExtractor={item => String(item.stateId)}
-                style={{ maxHeight: 380 }}
-                getItemLayout={(data, index) => ({ length: 48, offset: 48 * index, index })}
-                onScrollToIndexFailed={(info) => {
-                  setTimeout(() => {
-                    stateListRef.current?.scrollToIndex({
-                      index: info.index,
-                      animated: true,
-                      viewPosition: 0.3,
-                    });
-                  }, 200);
-                }}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.pickerItem}
-                    onPress={() => {
-                      setSelectedState(item);
-                      setStateModal(false);
-                      loadClubsByState(item.stateId);
-                    }}
-                  >
-                    <Text style={styles.pickerItemText}>{item.stateName}</Text>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
-              />
-              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setStateModal(false)}>
-                <Text style={styles.pickerCancelText}>Cancel</Text>
-              </TouchableOpacity>
+          {/* ── State Modal ── */}
+          <Modal visible={stateModal} transparent animationType="slide" onRequestClose={() => setStateModal(false)}>
+            <View style={styles.pickerOverlay}>
+              <View style={styles.pickerSheet}>
+                <Text style={styles.pickerTitle}>Select State</Text>
+                <FlatList
+                  ref={stateListRef}
+                  data={states}
+                  keyExtractor={item => String(item.stateId)}
+                  style={{ maxHeight: 380 }}
+                  getItemLayout={(data, index) => ({ length: 48, offset: 48 * index, index })}
+                  onScrollToIndexFailed={(info) => {
+                    setTimeout(() => {
+                      stateListRef.current?.scrollToIndex({
+                        index: info.index,
+                        animated: true,
+                        viewPosition: 0.3,
+                      });
+                    }, 200);
+                  }}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.pickerItem}
+                      onPress={() => {
+                        setSelectedState(item);
+                        setStateModal(false);
+                        loadClubsByState(item.stateId);
+                      }}
+                    >
+                      <Text style={styles.pickerItemText}>{item.stateName}</Text>
+                    </TouchableOpacity>
+                  )}
+                  ListEmptyComponent={<Text style={styles.pickerEmpty}>No states found</Text>}
+                />
+                <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setStateModal(false)}>
+                  <Text style={styles.pickerCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Modal>
+          </Modal>
 
-        {/* ── Club Modal ── */}
-        <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
-          <View style={styles.pickerOverlay}>
-            <View style={styles.pickerSheet}>
-              <Text style={styles.pickerTitle}>Select Club</Text>
-              <FlatList
-                data={clubs}
-                keyExtractor={item => String(item.clubId)}
-                style={{ maxHeight: 380 }}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[styles.pickerItem, selectedClub?.clubId === item.clubId && styles.pickerItemActive]}
-                    onPress={() => {
-                      setSelectedClub(item);
-                      setClubModal(false);
-                      setErrors(prev => ({
-                        ...prev,
-                        club: undefined,
-                      }));
-                    }}
-                  >
-                    <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
-                      {item.clubName}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
-              />
-              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setClubModal(false)}>
-                <Text style={styles.pickerCancelText}>Cancel</Text>
-              </TouchableOpacity>
+          {/* ── Club Modal ── */}
+          <Modal visible={clubModal} transparent animationType="slide" onRequestClose={() => setClubModal(false)}>
+            <View style={styles.pickerOverlay}>
+              <View style={styles.pickerSheet}>
+                <Text style={styles.pickerTitle}>Select Club</Text>
+                <FlatList
+                  data={clubs}
+                  keyExtractor={item => String(item.clubId)}
+                  style={{ maxHeight: 380 }}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[styles.pickerItem, selectedClub?.clubId === item.clubId && styles.pickerItemActive]}
+                      onPress={() => {
+                        setSelectedClub(item);
+                        setClubModal(false);
+                        setErrors(prev => ({
+                          ...prev,
+                          club: undefined,
+                        }));
+                      }}
+                    >
+                      <Text style={[styles.pickerItemText, selectedClub?.clubId === item.clubId && styles.pickerItemTextActive]}>
+                        {item.clubName}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  ListEmptyComponent={<Text style={styles.pickerEmpty}>No clubs in this state</Text>}
+                />
+                <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setClubModal(false)}>
+                  <Text style={styles.pickerCancelText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </Modal>
-      </ScrollView>
+          </Modal>
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );

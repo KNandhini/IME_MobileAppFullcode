@@ -19,20 +19,23 @@ public class PaymentController : ControllerBase
 
     public PaymentController(IPaymentRepository paymentRepository, IConfiguration configuration, EmailService emailService, EmailTemplateService emailTemplateService)
     {
-        _paymentRepository    = paymentRepository;
-        _configuration        = configuration;
-        _emailService         = emailService;
+        _paymentRepository = paymentRepository;
+        _configuration = configuration;
+        _emailService = emailService;
         _emailTemplateService = emailTemplateService;
     }
 
+    // CHANGED: PaymentOrderDTO must now include a RoleId property
+    // (1 = Serving/Retired, 2 = Students, 3 = Organisations) so the order
+    // amount matches the category the user actually picked.
     [HttpPost("create-order")]
     public async Task<ActionResult<ApiResponse<object>>> CreateOrder([FromBody] PaymentOrderDTO request)
     {
         try
         {
-            var fee = await _paymentRepository.GetCurrentFeeAsync();
+            var fee = await _paymentRepository.GetCurrentFeeAsync(request.RoleId);
             if (fee == null)
-                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found" });
+                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found for this category" });
 
             return Ok(new ApiResponse<object>
             {
@@ -40,11 +43,11 @@ public class PaymentController : ControllerBase
                 Message = "Order created successfully",
                 Data = new
                 {
-                    OrderId  = $"order_{DateTime.Now.Ticks}",
-                    Amount   = fee.Amount,
-                    FeeId    = fee.FeeId,
+                    OrderId = $"order_{DateTime.Now.Ticks}",
+                    Amount = fee.Amount,
+                    FeeId = fee.FeeId,
                     Currency = "INR",
-                    KeyId    = _configuration["Razorpay:KeyId"] ?? "rzp_test_key"
+                    KeyId = _configuration["Razorpay:KeyId"] ?? "rzp_test_key"
                 }
             });
         }
@@ -68,7 +71,7 @@ public class PaymentController : ControllerBase
             {
                 Success = true,
                 Message = "Payment verified successfully",
-                Data    = new { PaymentId = paymentId }
+                Data = new { PaymentId = paymentId }
             });
         }
         catch (Exception ex)
@@ -77,14 +80,15 @@ public class PaymentController : ControllerBase
         }
     }
 
+    // CHANGED: QRPaymentDTO must now include a RoleId property too.
     [HttpPost("generate-qr")]
     public async Task<ActionResult<ApiResponse<object>>> GenerateQRCode([FromBody] QRPaymentDTO request)
     {
         try
         {
-            var fee = await _paymentRepository.GetCurrentFeeAsync();
+            var fee = await _paymentRepository.GetCurrentFeeAsync(request.RoleId);
             if (fee == null)
-                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found" });
+                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found for this category" });
 
             string upiString = $"upi://pay?pa=ime@upi&pn=IME&am={fee.Amount}&cu=INR&tn=Membership-{request.MemberId}";
 
@@ -94,10 +98,10 @@ public class PaymentController : ControllerBase
                 Message = "QR code generated",
                 Data = new
                 {
-                    FeeId     = fee.FeeId,
-                    Amount    = fee.Amount,
+                    FeeId = fee.FeeId,
+                    Amount = fee.Amount,
                     UpiString = upiString,
-                    UpiId     = "ime@upi",
+                    UpiId = "ime@upi",
                     Reference = $"IME_{request.MemberId}_{DateTime.Now.Ticks}"
                 }
             });
@@ -120,7 +124,7 @@ public class PaymentController : ControllerBase
             {
                 Success = true,
                 Message = "Payment submitted for verification",
-                Data    = new { PaymentId = paymentId }
+                Data = new { PaymentId = paymentId }
             });
         }
         catch (Exception ex)
@@ -178,16 +182,20 @@ public class PaymentController : ControllerBase
         }
     }
 
-    [HttpGet("current-fee")]
-    public async Task<ActionResult<ApiResponse<MembershipFeeDTO>>> GetCurrentFee()
+    // CHANGED: now requires a roleId route parameter so the app gets the
+    // fee for the specific category the user picked, not a single global fee.
+    // Example: GET /api/payment/current-fee/2  → fee for Engineering Students
+    [HttpGet("current-fee/{roleId}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<MembershipFeeDTO>>> GetCurrentFee(int roleId)
     {
         try
         {
-            var fee = await _paymentRepository.GetCurrentFeeAsync();
+            var fee = await _paymentRepository.GetCurrentFeeAsync(roleId);
             if (fee != null)
                 return Ok(new ApiResponse<MembershipFeeDTO> { Success = true, Data = fee });
 
-            return Ok(new ApiResponse<MembershipFeeDTO> { Success = false, Message = "No active fee found" });
+            return Ok(new ApiResponse<MembershipFeeDTO> { Success = false, Message = "No active fee found for this category" });
         }
         catch (Exception ex)
         {
@@ -195,6 +203,25 @@ public class PaymentController : ControllerBase
         }
     }
 
+    // NEW: returns the active fee for all 3 categories in one call.
+    // Used by MembershipBenefitsScreen to show live DB-driven prices.
+    [HttpGet("current-fees")]
+    [AllowAnonymous]
+    public async Task<ActionResult<ApiResponse<List<MembershipFeeDTO>>>> GetAllCurrentFees()
+    {
+        try
+        {
+            var fees = await _paymentRepository.GetAllCurrentFeesAsync();
+            return Ok(new ApiResponse<List<MembershipFeeDTO>> { Success = true, Data = fees });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<List<MembershipFeeDTO>> { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
+    // CHANGED: SetFeeDTO must now include a RoleId property — the admin app
+    // sends which of the 3 categories this fee change applies to.
     [HttpPost("set-fee")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<ApiResponse<object>>> SetMembershipFee([FromBody] SetFeeDTO request)
@@ -202,13 +229,13 @@ public class PaymentController : ControllerBase
         try
         {
             var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var (feeId, message) = await _paymentRepository.SetFeeAsync(request.Amount, request.EffectiveFrom, userId);
+            var (feeId, message) = await _paymentRepository.SetFeeAsync(request.RoleId, request.Amount, request.EffectiveFrom, userId);
 
             return Ok(new ApiResponse<object>
             {
                 Success = feeId > 0,
                 Message = message,
-                Data    = new { FeeId = feeId }
+                Data = new { FeeId = feeId }
             });
         }
         catch (Exception ex)
@@ -217,26 +244,31 @@ public class PaymentController : ControllerBase
         }
     }
 
+    // CHANGED: RegistrationPaymentDTO must now include a RoleId property.
+    // We no longer trust request.Amount from the client — the authoritative
+    // amount is looked up server-side from the current fee for that RoleId.
+    // This closes a tampering hole where a modified client could submit any
+    // amount it wants.
     [HttpPost("register-payment")]
     [AllowAnonymous]
     public async Task<ActionResult<ApiResponse<object>>> RegisterPayment([FromBody] RegistrationPaymentDTO request)
     {
         try
         {
-            var fee = await _paymentRepository.GetLatestFeeAsync();
+            var fee = await _paymentRepository.GetCurrentFeeAsync(request.RoleId);
             if (fee == null)
-                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found" });
+                return Ok(new ApiResponse<object> { Success = false, Message = "No active membership fee found for this category" });
 
             var (success, email, fullName, error) = await _paymentRepository.CompleteRegistrationPaymentAsync(
                 request.MemberId, request.UserId, fee.FeeId,
-                request.Amount, request.PaymentMode, request.TransactionReference);
+                fee.Amount, request.PaymentMode, request.TransactionReference);
 
             if (!success)
                 return Ok(new ApiResponse<object> { Success = false, Message = error });
 
             // Use email from DB result; fall back to what the client sent
             var recipientEmail = !string.IsNullOrEmpty(email) ? email : request.MemberEmail;
-            var recipientName  = !string.IsNullOrEmpty(fullName) ? fullName : "Member";
+            var recipientName = !string.IsNullOrEmpty(fullName) ? fullName : "Member";
 
             if (!string.IsNullOrEmpty(recipientEmail))
             {
@@ -246,12 +278,12 @@ public class PaymentController : ControllerBase
                     try
                     {
                         var body = _emailTemplateService.RegistrationSuccess(
-                            fullName:             recipientName,
-                            email:                recipientEmail,
-                            plainPassword:        request.PlainPassword,
-                            amount:               request.Amount,
+                            fullName: recipientName,
+                            email: recipientEmail,
+                            plainPassword: request.PlainPassword,
+                            amount: fee.Amount,
                             transactionReference: request.TransactionReference,
-                            paymentDate:          DateTime.Now);
+                            paymentDate: DateTime.Now);
 
                         await _emailService.SendEmailAsync(
                             recipientEmail,
@@ -269,7 +301,7 @@ public class PaymentController : ControllerBase
             {
                 Success = true,
                 Message = "Registration complete! Your account is now active.",
-                Data    = new { MemberId = request.MemberId }
+                Data = new { MemberId = request.MemberId }
             });
         }
         catch (Exception ex)
@@ -378,7 +410,7 @@ public class PaymentController : ControllerBase
                 total += r.PaymentAmount;
                 row++;
             }
-         
+
             sheet.Cell(row, 5).Value = "Total Amount";
             sheet.Cell(row, 5).Style.Font.Bold = true;
             sheet.Cell(row, 6).Value = total;

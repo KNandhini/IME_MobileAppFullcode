@@ -14,7 +14,7 @@ const PRIMARY = COLORS.primary;
 const GOLD = COLORS.accent;
 
 // ── Magazine Card ─────────────────────────────────────────────────────────
-const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole }) => {
+const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole, isStudent }) => {
   const dateStr = item.publishedDate
     ? new Date(item.publishedDate).toLocaleDateString('en-IN', {
         day: '2-digit', month: 'short', year: 'numeric',
@@ -29,7 +29,7 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole }) => {
         <View style={s.badge}>
           <Text style={s.badgeText}>📖 Magazine</Text>
         </View>
-        {userRole === 'Admin' && (
+        {!isStudent && (
           <View style={s.actionContainer}>
             <TouchableOpacity
               onPress={() => onEdit(item)}
@@ -93,6 +93,7 @@ const MagazinesScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const [isStudent, setIsStudent] = useState(false);
   const [search, setSearch] = useState('');
   const insets = useSafeAreaInsets();
 
@@ -115,6 +116,7 @@ const MagazinesScreen = ({ navigation }) => {
     const parsed = JSON.parse(raw);
     const role = (parsed.roleName || parsed.role || '').trim().toLowerCase();
     setUserRole(role === 'admin' ? 'Admin' : 'Member');
+    setIsStudent(role === 'student');
   };
 
   const load = async (isRefresh = false) => {
@@ -179,7 +181,7 @@ const MagazinesScreen = ({ navigation }) => {
         <View style={s.centered}>
           <MaterialCommunityIcons name="book-open-page-variant-outline" size={56} color="#A0C878" />
           <Text style={s.emptyTitle}>No magazines yet</Text>
-          <Text style={s.emptyText}>Tap + to add one!</Text>
+          <Text style={s.emptyText}>{isStudent ? 'Check back later!' : 'Tap + to add one!'}</Text>
         </View>
       ) : (
         <FlatList
@@ -189,6 +191,7 @@ const MagazinesScreen = ({ navigation }) => {
               item={item}
               index={index}
               userRole={userRole}
+              isStudent={isStudent}
               onPress={() => navigation.navigate('MagazineDetail', { item })}
               onDelete={handleDelete}
               onEdit={handleEdit}
@@ -203,13 +206,15 @@ const MagazinesScreen = ({ navigation }) => {
         />
       )}
 
-      <TouchableOpacity
-        style={[s.fab, { bottom: 0 + insets.bottom }]}
-        onPress={() => navigation.navigate('MagazineForm')}
-        activeOpacity={0.85}
-      >
-        <Text style={s.fabText}>+</Text>
-      </TouchableOpacity>
+      {!isStudent && (
+        <TouchableOpacity
+          style={[s.fab, { bottom: 0 + insets.bottom }]}
+          onPress={() => navigation.navigate('MagazineForm')}
+          activeOpacity={0.85}
+        >
+          <Text style={s.fabText}>+</Text>
+        </TouchableOpacity>
+      )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

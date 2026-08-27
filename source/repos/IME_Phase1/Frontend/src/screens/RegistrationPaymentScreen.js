@@ -3,7 +3,6 @@ import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
 import { IconButton } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,29 +16,41 @@ import logoImage from '../../assets/logo-clean.png';
 const RAZORPAY_KEY = 'rzp_test_6pwjCwtwwp3YOu';
 
 const RegistrationPaymentScreen = ({ route, navigation }) => {
-  const { userId, memberId, memberName, memberEmail, memberPassword, profilePhotoUri } = route.params || {};
+    console.log('========== PAYMENT SCREEN ==========');
+  console.log('ALL PARAMS:', route.params);
+const {
+  userId,
+  memberId,
+  memberName,
+  memberEmail,
+  memberPassword,
+  profilePhotoUri,
+  pendingSignup,
+  membershipCategory,
+} = route.params || {};
 
-  const insets = useSafeAreaInsets();
+// Exact membership selected on MembershipBenefitsScreen
+const feeAmount = Number(membershipCategory?.amount ?? 0);
+const feeId = membershipCategory?.feeId ?? null;
+const roleId = membershipCategory?.roleId ?? null;
+const roleName = membershipCategory?.roleName ?? '';
 
-  const [profilePhoto,      setProfilePhoto]      = useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
-  const [showWebView,       setShowWebView]        = useState(false);
-  const [processingPayment, setProcessingPayment]  = useState(false);
-  const [feeAmount,         setFeeAmount]          = useState(route.params?.feeAmount ?? 0);
-  const [feeId,             setFeeId]              = useState(null);
-  const [logoDataUri,       setLogoDataUri]        = useState(null);
+console.log('SELECTED MEMBERSHIP:', membershipCategory);
+console.log('SELECTED ROLE ID:', roleId);
+console.log('SELECTED FEE ID:', feeId);
+console.log('SELECTED FEE AMOUNT:', feeAmount);
 
-  // Always fetch the current fee from the backend — params value may be stale or 0
-  useEffect(() => {
-    api.get('/payment/latest-fee')
-      .then(res => {
-        if (res.data?.success && res.data?.data) {
-          setFeeAmount(parseFloat(res.data.data.amount) || 0);
-          setFeeId(res.data.data.feeId ?? null);
-        }
-      })
-      .catch(() => {}); // silently keep param value if request fails
-  }, []);
+const insets = useSafeAreaInsets();
 
+const [profilePhoto, setProfilePhoto] =
+  useState(profilePhotoUri ? { uri: profilePhotoUri } : null);
+
+const [showWebView, setShowWebView] = useState(false);
+const [processingPayment, setProcessingPayment] = useState(false);
+const [logoDataUri, setLogoDataUri] = useState(null);
+
+
+  
   // Convert the local logo asset to a base64 data URI once, so it can be
   // handed to Razorpay's checkout.js as the `image` option — the WebView
   // needs an actual image string, not a bundler asset reference.
@@ -77,7 +88,7 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
     }
   };
 
-  const uploadProfilePhoto = async (photoUri) => {
+  const uploadProfilePhoto = async (photoUri, memberId) => {
     try {
       const formData = new FormData();
       formData.append('file', {
@@ -274,8 +285,8 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
               image: '${logoDataUri || ''}',
               theme: { color: '#A0C878' },
               prefill: {
-                name: '${(memberName || '').replace(/'/g, "\\'")}',
-                email: '${(memberEmail || '').replace(/'/g, "\\'")}',
+                name: '${(pendingSignup?.fullName || '').replace(/'/g, "\\'")}',
+                email: '${(pendingSignup?.email || '').replace(/'/g, "\\'")}',
               },
               handler: function(response) {
                 document.getElementById('statusText').innerText = 'Payment successful!';
@@ -330,23 +341,40 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
         setShowWebView(false);
         setProcessingPayment(true);
         try {
-          // Upload profile photo first if selected
-          if (profilePhoto?.uri) {
-            await uploadProfilePhoto(profilePhoto.uri);
+          // Only now — after Razorpay has confirmed the payment — do we
+          // actually create the account. Anything that goes wrong from here
+          // is a "payment captured, account creation/activation needs
+          // reconciling" case, not a "nothing happened" case, so we always
+          // point them to support with the payment ID rather than losing it.
+          const signupResponse = await api.post('/Auth/signup', pendingSignup);
+          const signupRes = signupResponse.data;
+
+          if (!signupRes.success) {
+            Alert.alert(
+              'Payment Received, Account Not Created',
+              `Your payment (ID: ${data.paymentId}) was captured, but we could not create your account: ${getSafeErrorMessage(signupRes)}\n\nPlease contact support with this payment ID.`,
+              [{ text: 'OK' }],
+              { cancelable: false }
+            );
+            return;
           }
 
-          // Confirm registration payment
+          const { userId, memberId } = signupRes.data;
+
+          if (profilePhoto?.uri) {
+            await uploadProfilePhoto(profilePhoto.uri, memberId);
+          }
+
           const res = await api.post('/payment/register-payment', {
             memberId,
             userId,
             amount: feeAmount,
             paymentMode: 'Razorpay',
             transactionReference: data.paymentId,
-            memberEmail: memberEmail ?? '',
-            plainPassword: memberPassword ?? '',
+            memberEmail: pendingSignup?.email ?? '',
+            plainPassword: pendingSignup?.password ?? '',
           });
 
-          await AsyncStorage.removeItem('paymentGrace');
           if (res.data.success) {
             Alert.alert(
               'Registration Complete!',
@@ -355,7 +383,8 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
               { cancelable: false }
             );
           } else {
-            // Payment captured by Razorpay but backend confirmation failed.
+            // Account was created and payment was captured by Razorpay, but
+            // marking the payment against the account failed on our side.
             // Still navigate — support can reconcile using the payment ID.
             Alert.alert(
               'Payment Received',
@@ -365,11 +394,12 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
             );
           }
         } catch (e) {
-          await AsyncStorage.removeItem('paymentGrace');
-          // Network/server error after Razorpay success — still navigate to Login
+          // Network/server error somewhere after Razorpay success. We don't
+          // know whether the account got created, so send them to support
+          // with the payment ID rather than guessing.
           Alert.alert(
             'Payment Received',
-            `Payment ID: ${data.paymentId}\n\nPlease try logging in. If your account is not active, contact support.`,
+            `Payment ID: ${data.paymentId}\n\nPlease try logging in. If your account is not active, contact support with this payment ID.`,
             [{ text: 'Go to Login', onPress: () => navigation.replace('Login') }],
             { cancelable: false }
           );
@@ -379,11 +409,11 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
 
       } else if (data.type === 'PAYMENT_CANCELLED') {
         setShowWebView(false);
-        Alert.alert('Cancelled', 'Payment was cancelled.');
+        Alert.alert('Cancelled', 'Payment was cancelled. No account was created — you can try again anytime.');
 
       } else if (data.type === 'PAYMENT_FAILED') {
         setShowWebView(false);
-        Alert.alert('Payment Failed', getSafeErrorMessage(data));
+        Alert.alert('Payment Failed', getSafeErrorMessage(data) + '\n\nNo account was created.');
 
       } else if (data.type === 'SCRIPT_LOAD_FAILED') {
         console.log('Razorpay script failed to load');
@@ -394,12 +424,30 @@ const RegistrationPaymentScreen = ({ route, navigation }) => {
   };
 
   const handlePayNow = () => {
-    if (!memberId) {
-      Alert.alert('Error', 'Member information not found. Please go back and re-register.');
-      return;
-    }
-    setShowWebView(true);
-  };
+
+  // FIRST TIME PAY NOW:
+  // pendingSignup will exist
+
+  // PAY LATER:
+  // account already exists, so userId + memberId will exist
+  if (!pendingSignup && (!userId || !memberId)) {
+    Alert.alert(
+      'Error',
+      'Payment details not found. Please login again.'
+    );
+    return;
+  }
+
+  if (!feeAmount || feeAmount <= 0) {
+    Alert.alert(
+      'Error',
+      'Membership fee is not available.'
+    );
+    return;
+  }
+
+  setShowWebView(true);
+};
 
   // ---------------------------------------------------------------------
   // Full-screen WebView "page" instead of a <Modal>. When showWebView is

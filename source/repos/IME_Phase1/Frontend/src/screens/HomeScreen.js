@@ -7,6 +7,7 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import { feedService } from '../services/feedService';
 import { HomeScreenStyles as styles } from './screenStyles';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const PAGE_SIZE = 10;
 
 const HomeScreen = ({ navigation }) => {
@@ -46,10 +47,45 @@ const HomeScreen = ({ navigation }) => {
         `Your membership registration payment is pending.\n\nYou have ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining to complete payment before your account expires.`,
         [
           {
-            text: 'Pay Now',
-            onPress: () => navigation.navigate('RegistrationPayment', { memberId: user?.memberId }),
-          },
-          { text: 'Remind Me Later', style: 'cancel' },
+  text: 'Pay Now',
+  onPress: async () => {
+    try {
+      const stored = await AsyncStorage.getItem('paymentGrace');
+
+      if (!stored) {
+        Alert.alert(
+          'Payment Details Missing',
+          'Unable to find your pending membership payment details.'
+        );
+        return;
+      }
+
+      const graceData = JSON.parse(stored);
+
+      console.log('PAYMENT GRACE DATA:', graceData);
+      console.log(
+        'MEMBERSHIP CATEGORY:',
+        graceData?.paymentParams?.membershipCategory
+      );
+
+      navigation.navigate(
+        'RegistrationPayment',
+        graceData.paymentParams
+      );
+
+    } catch (error) {
+      console.error(
+        'Failed to load pending payment:',
+        error
+      );
+
+      Alert.alert(
+        'Error',
+        'Unable to load your pending payment.'
+      );
+    }
+  },
+},          { text: 'Remind Me Later', style: 'cancel' },
         ],
       );
     } catch (_) { }
@@ -99,16 +135,17 @@ const HomeScreen = ({ navigation }) => {
 
   // ── Welcome strip (Law Bot card removed) ────────────────────────────
   const renderFeedHeader = () => (
-    <View>
-      <View style={styles.welcomeStrip}>
-        <View style={styles.welcomeAvatar}>
-          <Text style={styles.welcomeAvatarLetter}>
-            {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.welcomeTexts}>
-          <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
-        </View>
+  <View>
+    <View style={styles.welcomeStrip}>
+      <View style={styles.welcomeAvatar}>
+        <Text style={styles.welcomeAvatarLetter}>
+          {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
+        </Text>
+      </View>
+      <View style={styles.welcomeTexts}>
+        <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
+      </View>
+      {user?.roleName?.toLowerCase() !== 'student' && (
         <TouchableOpacity
           style={styles.newPostBtn}
           onPress={() => navigation.navigate('CreatePost')}
@@ -116,9 +153,10 @@ const HomeScreen = ({ navigation }) => {
         >
           <Text style={styles.newPostBtnText}>+</Text>
         </TouchableOpacity>
-      </View>
+      )}
     </View>
-  );
+  </View>
+);
 
   // ── Footer loader / end message ──────────────
   const renderFeedFooter = () => (

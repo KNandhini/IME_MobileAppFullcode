@@ -102,6 +102,43 @@ public class AuthController : ControllerBase
         }
     }
 
+    // ── Read-only email lookup ───────────────────────────────────────────
+    // Lets the client warn about a duplicate email BEFORE anything is
+    // created (e.g. before choosing Pay Now / Pay Later on signup). Reuses
+    // the same lookup Signup() already does, just without creating a user.
+    // GET /api/Auth/check-email?email=someone@example.com
+    [HttpGet("check-email")]
+    public async Task<ActionResult<ApiResponse<object>>> CheckEmail([FromQuery] string email)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Email is required"
+                });
+            }
+
+            var existingUser = await _authRepository.GetUserByEmailAsync(email);
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Data = new { Exists = existingUser != null }
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            {
+                Success = false,
+                Message = $"Error: {ex.Message}"
+            });
+        }
+    }
+
     [HttpPost("signup")]
     public async Task<ActionResult<ApiResponse<object>>> Signup([FromBody] SignupRequestDTO request)
     {
@@ -199,38 +236,38 @@ public class AuthController : ControllerBase
     {
         try
         {
-           // Check if email exists
-var emailUser = await _authRepository.GetUserByEmailAsync(request.Email);
+            // Check if email exists
+            var emailUser = await _authRepository.GetUserByEmailAsync(request.Email);
 
-if (emailUser == null)
-{
-    return Ok(new ApiResponse<object>
-    {
-        Success = false,
-        Message = "Email address not found."
-    });
-}
+            if (emailUser == null)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "Email address not found."
+                });
+            }
 
-// Check if DOB matches
-var user = await _authRepository.ValidateUserForPasswordResetAsync(
-    request.Email,
-    request.DateOfBirth);
+            // Check if DOB matches
+            var user = await _authRepository.ValidateUserForPasswordResetAsync(
+                request.Email,
+                request.DateOfBirth);
 
-if (user == null)
-{
-    return Ok(new ApiResponse<object>
-    {
-        Success = false,
-        Message = "The date of birth does not match our records."
-    });
-}
+            if (user == null)
+            {
+                return Ok(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "The date of birth does not match our records."
+                });
+            }
 
-return Ok(new ApiResponse<object>
-{
-    Success = true,
-    Message = "Validation successful",
-    Data = new { UserId = user.UserId }
-});
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = "Validation successful",
+                Data = new { UserId = user.UserId }
+            });
         }
         catch (Exception ex)
         {

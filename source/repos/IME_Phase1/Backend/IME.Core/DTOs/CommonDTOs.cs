@@ -49,6 +49,7 @@ public class PaymentRequestDTO
 public class PaymentOrderDTO
 {
     public int MemberId { get; set; }
+    public int RoleId { get; set; }
 }
 
 public class PaymentVerificationDTO
@@ -64,6 +65,8 @@ public class PaymentVerificationDTO
 public class QRPaymentDTO
 {
     public int MemberId { get; set; }
+    public int RoleId { get; set; }
+
 }
 
 public class QRPaymentConfirmDTO
@@ -80,6 +83,10 @@ public class MembershipFeeDTO
     public decimal Amount { get; set; }
     public DateTime EffectiveFrom { get; set; }
     public bool IsActive { get; set; }
+
+    public int RoleId { get; set; }
+
+    public string RoleName { get; set; }
 }
 
 public class PaymentAllDTO
@@ -103,11 +110,15 @@ public class RegistrationPaymentDTO
     public string TransactionReference { get; set; } = string.Empty;
     public string MemberEmail { get; set; } = string.Empty;
     public string PlainPassword { get; set; } = string.Empty;
+
+    public int RoleId { get; set; }
 }
 
 public class SetFeeDTO
 {
     public decimal Amount { get; set; }
+
+    public int RoleId { get; set; }
     public DateTime EffectiveFrom { get; set; }
     public DateTime? EffectiveTo { get; set; }
 }

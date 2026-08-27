@@ -287,7 +287,7 @@ const LoginScreen = ({ navigation }) => {
               }
             >
               <Text style={styles.signupBtnText}>
-                Register New Member
+                Register Now
               </Text>
             </TouchableOpacity>
           </View>

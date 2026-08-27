@@ -10,12 +10,13 @@ import {
     TouchableOpacity,
     SafeAreaView,
     Dimensions,
+    Modal,
 } from 'react-native';
+import { paymentService } from '../services/paymentService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Checkbox } from 'react-native-paper';
 import IMELogo from '../components/IMELogo';
-import api from '../utils/api';
 import { MembershipBenefitsScreenStyles as styles } from './screenStyles';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -115,7 +116,25 @@ const MembershipBenefitsScreen = ({ navigation }) => {
     // Single combined acceptance for Welcome Message + Membership Benefits +
     // Terms & Conditions, all of which are now rendered inline on this page.
     const [accepted, setAccepted] = useState(false);
-    const [currentFee, setCurrentFee] = useState(null);
+    const [showCategoryModal, setShowCategoryModal] = useState(false);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [membershipFees, setMembershipFees] = useState([]);
+    const [loadingFees, setLoadingFees] = useState(true);
+    const getMembershipCategoryName = (roleName) => {
+        switch (roleName) {
+            case 'Member':
+                return 'Serving / Retired Engineers';
+
+            case 'Student':
+                return 'Engineering Students';
+
+            case 'Others':
+                return 'Organisations / Others';
+
+            default:
+                return roleName;
+        }
+    };
 
     useEffect(() => {
         Animated.parallel([
@@ -131,20 +150,8 @@ const MembershipBenefitsScreen = ({ navigation }) => {
             }),
         ]).start();
 
-        fetchFee();
+        loadMembershipFees();
     }, []);
-
-    const fetchFee = async () => {
-        try {
-            const res = await api.get('/payment/latest-fee');
-
-            if (res.data.success) {
-                setCurrentFee(res.data.data);
-            }
-        } catch (e) {
-            console.warn('Fee fetch failed:', e.message);
-        }
-    };
 
     // No signup API call happens here — the form fields don't exist yet at
     // this stage. We just carry the acceptance + fee forward as route params
@@ -153,10 +160,32 @@ const MembershipBenefitsScreen = ({ navigation }) => {
     const handleContinue = () => {
         if (!accepted) return;
 
-        navigation.navigate('Signup', {
-            termsAccepted: true,
-            feeAmount: currentFee ? parseFloat(currentFee.amount) : 0,
-        });
+        setShowCategoryModal(true);
+    };
+
+    const loadMembershipFees = async () => {
+        try {
+            setLoadingFees(true);
+
+            const response = await paymentService.getCurrentFees();
+
+            console.log('CURRENT FEES API RESPONSE:', response);
+
+            if (response?.success && Array.isArray(response.data)) {
+                setMembershipFees(response.data);
+            } else {
+                setMembershipFees([]);
+                console.log(
+                    'Failed to load membership fees:',
+                    response?.message
+                );
+            }
+        } catch (error) {
+            console.error('Error loading membership fees:', error);
+            setMembershipFees([]);
+        } finally {
+            setLoadingFees(false);
+        }
     };
 
     return (
@@ -314,116 +343,52 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                         </View>
                     </View>
 
-                    {/* ── Registration Fee ── */}
-                    <View style={styles.section}>
-                        <Text
-                            style={[
-                                styles.eyebrow,
-                                { marginBottom: 12 },
-                            ]}
-                        >
-                            REGISTRATION FEE
-                        </Text>
+                    <View style={styles.membershipFeeInfoCard}>
 
-                        {/* Membership Category Fees */}
-                        <View style={styles.membershipFeeInfoCard}>
-                            <View style={styles.membershipFeeHeader}>
-                                <MaterialCommunityIcons
-                                    name="account-group-outline"
-                                    size={22}
-                                    color={NAVY}
-                                />
+                        <View style={styles.membershipFeeHeader}>
+                            <MaterialCommunityIcons
+                                name="account-group-outline"
+                                size={22}
+                                color={NAVY}
+                            />
 
-                                <Text style={styles.membershipFeeTitle}>
-                                    Membership Fee Details
-                                </Text>
-                            </View>
-
-                            <View style={styles.membershipFeeRow}>
-                                <Text style={styles.membershipFeeCategory}>
-                                    Serving / Retired Engineers
-                                </Text>
-
-                                <Text style={styles.membershipFeeAmount}>
-                                    ₹1,000/-
-                                </Text>
-                            </View>
-
-                            <View style={styles.membershipFeeDivider} />
-
-                            <View style={styles.membershipFeeRow}>
-                                <Text style={styles.membershipFeeCategory}>
-                                    Engineering Students
-                                </Text>
-
-                                <Text style={styles.membershipFeeAmount}>
-                                    ₹500/-
-                                </Text>
-                            </View>
-
-                            <View style={styles.membershipFeeDivider} />
-
-                            <View style={styles.membershipFeeRow}>
-                                <Text style={styles.membershipFeeCategory}>
-                                    Organisations / Others
-                                </Text>
-
-                                <Text style={styles.membershipFeeAmount}>
-                                    ₹5,000/-
-                                </Text>
-                            </View>
+                            <Text style={styles.membershipFeeTitle}>
+                                Membership Fee Details
+                            </Text>
                         </View>
 
-                        {/* Registration Fee from API */}
-                        {currentFee ? (
-                            <View style={styles.feeCard}>
-                                <View style={styles.feeIconWrap}>
-                                    <MaterialCommunityIcons
-                                        name="cash-check"
-                                        size={26}
-                                        color={NAVY}
-                                    />
-                                </View>
-
-                                <View style={styles.feeCardBody}>
-                                    <Text style={styles.feeCardLabel}>
-                                        REGISTRATION FEE
-                                    </Text>
-
-                                    <Text style={styles.feeCardAmount}>
-                                        <Text style={styles.feeCardCurrency}>
-                                            ₹
-                                        </Text>
-
-                                        {parseFloat(
-                                            currentFee.amount
-                                        ).toFixed(2)}
-                                    </Text>
-
-                                    <View style={styles.feeCardBadge}>
-                                        <MaterialCommunityIcons
-                                            name="clock-outline"
-                                            size={12}
-                                            color={NAVY}
-                                        />
-
-                                        <Text
-                                            style={
-                                                styles.feeCardBadgeText
-                                            }
-                                        >
-                                            Payable now or within 3 days
-                                        </Text>
-                                    </View>
-                                </View>
-                            </View>
+                        {loadingFees ? (
+                            <Text style={styles.membershipFeeCategory}>
+                                Loading membership fees...
+                            </Text>
+                        ) : membershipFees.length === 0 ? (
+                            <Text style={styles.membershipFeeCategory}>
+                                Membership fees are currently unavailable.
+                            </Text>
                         ) : (
-                            <View style={styles.feeCard}>
-                                <Text style={styles.noFee}>
-                                    No fee currently set. Contact admin.
-                                </Text>
-                            </View>
+                            membershipFees.map((fee, index) => (
+                                <React.Fragment key={fee.feeId}>
+
+                                    <View style={styles.membershipFeeRow}>
+
+                                        <Text style={styles.membershipFeeCategory}>
+                                            {getMembershipCategoryName(fee.roleName)}
+                                        </Text>
+
+                                        <Text style={styles.membershipFeeAmount}>
+                                            ₹{Number(fee.amount).toLocaleString('en-IN')}/-
+                                        </Text>
+
+                                    </View>
+
+                                    {index < membershipFees.length - 1 && (
+                                        <View style={styles.membershipFeeDivider} />
+                                    )}
+
+                                </React.Fragment>
+                            ))
                         )}
+
                     </View>
 
                     {/* ── Acceptance ── */}
@@ -454,7 +419,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                             style={[
                                 styles.continueBtn,
                                 !accepted &&
-                                    styles.continueBtnDisabled,
+                                styles.continueBtnDisabled,
                             ]}
                             activeOpacity={0.85}
                             disabled={!accepted}
@@ -485,6 +450,132 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                         approval by the National Council.
                     </Text>
                 </Animated.View>
+                <Modal
+                    visible={showCategoryModal}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowCategoryModal(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.categoryModal}>
+
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>
+                                    Select Membership Category
+                                </Text>
+
+                                <TouchableOpacity
+                                    onPress={() => setShowCategoryModal(false)}
+                                >
+                                    <MaterialCommunityIcons
+                                        name="close"
+                                        size={24}
+                                        color={MUTED}
+                                    />
+                                </TouchableOpacity>
+                            </View>
+
+                            <Text style={styles.modalSubtitle}>
+                                Please select your membership category to continue.
+                            </Text>
+
+                            {/* Serving / Retired Engineers */}
+                            {loadingFees ? (
+                                <Text style={styles.modalSubtitle}>
+                                    Loading membership categories...
+                                </Text>
+                            ) : membershipFees.length === 0 ? (
+                                <Text style={styles.modalSubtitle}>
+                                    Membership categories are currently unavailable.
+                                </Text>
+                            ) : (
+                                membershipFees.map((fee) => (
+                                    <TouchableOpacity
+                                        key={fee.feeId}
+                                        style={[
+                                            styles.categoryOption,
+                                            selectedCategory?.roleId === fee.roleId &&
+                                            styles.categoryOptionSelected,
+                                        ]}
+                                        onPress={() => setSelectedCategory(fee)}
+                                        activeOpacity={0.8}
+                                    >
+
+                                        <MaterialCommunityIcons
+                                            name="radiobox-marked"
+                                            size={24}
+                                            color={
+                                                selectedCategory?.roleId === fee.roleId
+                                                    ? NAVY
+                                                    : MUTED
+                                            }
+                                        />
+
+                                        <View style={{ flex: 1 }}>
+                                            <Text style={styles.categoryOptionText}>
+                                                {getMembershipCategoryName(fee.roleName)}
+                                            </Text>
+
+                                            <Text
+                                                style={{
+                                                    marginTop: 3,
+                                                    color: MUTED,
+                                                    fontSize: 14,
+                                                }}
+                                            >
+                                                ₹{Number(fee.amount).toLocaleString('en-IN')}/-
+                                            </Text>
+                                        </View>
+
+                                        <MaterialCommunityIcons
+                                            name={
+                                                selectedCategory?.roleId === fee.roleId
+                                                    ? 'radiobox-marked'
+                                                    : 'radiobox-blank'
+                                            }
+                                            size={24}
+                                            color={
+                                                selectedCategory?.roleId === fee.roleId
+                                                    ? NAVY
+                                                    : MUTED
+                                            }
+                                        />
+
+                                    </TouchableOpacity>
+                                ))
+                            )}
+                            {/* Continue */}
+                            <TouchableOpacity
+                                style={[
+                                    styles.modalContinueBtn,
+                                    !selectedCategory &&
+                                    styles.modalContinueBtnDisabled,
+                                ]}
+                                disabled={!selectedCategory}
+                                onPress={() => {
+                                    setShowCategoryModal(false);
+
+                                    navigation.navigate('Signup', {
+                                        termsAccepted: true,
+                                        membershipCategory: selectedCategory,
+                                    });
+                                }}
+                            >
+                                <Text style={styles.modalContinueText}>
+                                    Proceed to Registration
+                                </Text>
+
+                                <MaterialCommunityIcons
+                                    name="arrow-right"
+                                    size={18}
+                                    color={COLORS.white}
+                                />
+                            </TouchableOpacity>
+
+                        </View>
+                    </View>
+                </Modal>
+
             </ScrollView>
         </SafeAreaView>
     );

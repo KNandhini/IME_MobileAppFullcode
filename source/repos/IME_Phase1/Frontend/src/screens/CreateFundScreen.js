@@ -11,14 +11,14 @@ import * as FileSystem from "expo-file-system/legacy";
 import DOBField from '../components/DOBField';
 
 // ─── API Base ─────────────────────────────────────────────────────────────────
-//const API_BASE_URL = "http://10.0.2.2:51150/api";
-const API_BASE_URL = 'https://imei.co.in/api';
+const API_BASE_URL = "http://10.0.2.2:51150/api";
+//const API_BASE_URL = 'https://imei.co.in/api';
 
 // Static file host (same host as API, but WITHOUT the /api segment) — used to
 // build direct image URLs. Fixed: previously this still had "/api" in it,
 // which produced broken image URLs like ".../api/Uploads/...".
-//const STATIC_BASE_URL = "http://10.0.2.2:51150";
-const STATIC_BASE_URL = "https://imei.co.in";
+const STATIC_BASE_URL = "http://10.0.2.2:51150";
+//const STATIC_BASE_URL = "https://imei.co.in";
 //const API_BASE_URL_PROD = "https://prasath-001-site1.ftempurl.com/api";
 
 /**

@@ -482,80 +482,207 @@ export const MembershipBenefitsScreenStyles = StyleSheet.create({
     lineHeight: 17,
   },
 
-  membershipFeeInfoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#DCE5EF',
+ // =========================
+// MEMBERSHIP FEE CARD
+// =========================
 
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+membershipFeeInfoCard: {
+  backgroundColor: '#FFFFFF',
 
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
+  // Same horizontal spacing as your other sections
+  marginHorizontal: 20,
 
-    elevation: 3,
+  // Space between Terms & Conditions and Fee Details
+  marginTop: 18,
+
+  marginBottom: 8,
+
+  borderRadius: 16,
+
+  paddingHorizontal: 16,
+  paddingVertical: 14,
+
+  borderWidth: 1,
+  borderColor: '#E2E8F0',
+
+  shadowColor: '#000',
+  shadowOpacity: 0.06,
+  shadowRadius: 8,
+  shadowOffset: {
+    width: 0,
+    height: 3,
   },
 
-  membershipFeeHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  elevation: 3,
+},
 
-    paddingBottom: 13,
-    marginBottom: 5,
+membershipFeeHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
 
-    borderBottomWidth: 1,
-    borderBottomColor: '#E8EDF3',
+  paddingBottom: 12,
+  marginBottom: 2,
+
+  borderBottomWidth: 1,
+  borderBottomColor: '#E8EDF3',
+},
+
+membershipFeeTitle: {
+  marginLeft: 9,
+
+  fontSize: 15,
+  fontWeight: '800',
+
+  color: '#252943',
+},
+
+membershipFeeRow: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+
+  paddingVertical: 12,
+},
+
+membershipFeeCategory: {
+  flex: 1,
+
+  paddingRight: 10,
+
+  fontSize: 13,
+  lineHeight: 18,
+  fontWeight: '600',
+
+  color: '#334155',
+},
+
+membershipFeeAmount: {
+  fontSize: 14,
+  fontWeight: '800',
+
+  color: '#252943',
+},
+
+membershipFeeDivider: {
+  height: 1,
+  backgroundColor: '#E8EDF3',
+},
+modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(15, 23, 42, 0.58)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 18,
+},
+
+categoryModal: {
+  width: '100%',
+  maxWidth: 420,
+  backgroundColor: '#FFFFFF',
+  borderRadius: 22,
+  paddingHorizontal: 18,
+  paddingTop: 20,
+  paddingBottom: 18,
+
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 8,
   },
+  shadowOpacity: 0.20,
+  shadowRadius: 18,
+  elevation: 10,
+},
 
-  membershipFeeTitle: {
-    marginLeft: 9,
+modalHeader: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 6,
+},
 
-    fontSize: 16,
-    fontWeight: '700',
+modalTitle: {
+  flex: 1,
+  fontSize: 19,
+  fontWeight: '800',
+  color: COLORS.primary,
+},
 
-    color: '#252943',
+modalSubtitle: {
+  fontSize: 13,
+  color: '#64748B',
+  lineHeight: 19,
+  marginBottom: 16,
+},
+
+categoryOption: {
+  flexDirection: 'row',
+  alignItems: 'center',
+
+  minHeight: 64,
+
+  borderWidth: 1,
+  borderColor: '#E2E8F0',
+  borderRadius: 14,
+
+  paddingHorizontal: 13,
+  paddingVertical: 11,
+
+  marginBottom: 10,
+
+  backgroundColor: '#FFFFFF',
+},
+
+categoryOptionSelected: {
+  borderColor: COLORS.primary,
+  backgroundColor: '#F1F5FF',
+  borderWidth: 1.5,
+},
+
+categoryOptionText: {
+  flex: 1,
+  fontSize: 14,
+  fontWeight: '700',
+  color: '#1E293B',
+  marginLeft: 10,
+},
+
+modalContinueBtn: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+
+  backgroundColor: COLORS.primary,
+
+  borderRadius: 14,
+
+  minHeight: 50,
+
+  marginTop: 5,
+  paddingHorizontal: 16,
+
+  shadowColor: COLORS.primary,
+  shadowOffset: {
+    width: 0,
+    height: 4,
   },
+  shadowOpacity: 0.20,
+  shadowRadius: 7,
+  elevation: 4,
+},
 
-  membershipFeeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+modalContinueBtnDisabled: {
+  backgroundColor: '#CBD5E1',
+  shadowOpacity: 0,
+  elevation: 0,
+},
 
-    paddingVertical: 13,
-  },
-
-  membershipFeeCategory: {
-    flex: 1,
-
-    paddingRight: 12,
-
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: '500',
-
-    color: '#334155',
-  },
-
-  membershipFeeAmount: {
-    fontSize: 15,
-    fontWeight: '800',
-
-    color: '#252943',
-  },
-
-  membershipFeeDivider: {
-    height: 1,
-
-    backgroundColor: '#E8EDF3',
-  },
-
-
+modalContinueText: {
+  color: COLORS.white,
+  fontSize: 15,
+  fontWeight: '800',
+  marginRight: 8,
+},
 });
 // AboutScreen
 export const AboutScreenStyles = (() => {

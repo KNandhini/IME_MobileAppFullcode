@@ -13,23 +13,53 @@ public class PaymentRepository : IPaymentRepository
         _dbContext = dbContext;
     }
 
-    public async Task<MembershipFeeDTO?> GetCurrentFeeAsync()
+    // CHANGED: now takes roleId and calls the per-category stored procedure.
+    public async Task<MembershipFeeDTO?> GetCurrentFeeAsync(int roleId)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_GetCurrentMembershipFee", connection);
+        command.Parameters.AddWithValue("@RoleId", roleId);
         using var reader = await command.ExecuteReaderAsync();
 
         if (await reader.ReadAsync())
         {
             return new MembershipFeeDTO
             {
-                FeeId        = reader.GetInt32(reader.GetOrdinal("FeeId")),
-                Amount       = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                FeeId = reader.GetInt32(reader.GetOrdinal("FeeId")),
+                RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
+                RoleName = reader.GetString(reader.GetOrdinal("RoleName")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
                 EffectiveFrom = reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
-                IsActive     = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
         return null;
+    }
+
+    // NEW: returns the active fee for all 3 categories at once.
+    public async Task<List<MembershipFeeDTO>> GetAllCurrentFeesAsync()
+    {
+        var fees = new List<MembershipFeeDTO>();
+
+        using var connection = await _dbContext.CreateOpenConnectionAsync();
+        using var command = _dbContext.CreateStoredProcCommand("sp_GetAllCurrentMembershipFees", connection);
+        using var reader = await command.ExecuteReaderAsync();
+
+        while (await reader.ReadAsync())
+        {
+            fees.Add(new MembershipFeeDTO
+            {
+                FeeId = reader.GetInt32(reader.GetOrdinal("FeeId")),
+                RoleId = reader.GetInt32(reader.GetOrdinal("RoleId")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                RoleName = reader.IsDBNull(reader.GetOrdinal("RoleName")) ? null
+                : reader.GetString(reader.GetOrdinal("RoleName")),
+
+                EffectiveFrom = reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+            });
+        }
+        return fees;
     }
 
     public async Task<MembershipFeeDTO?> GetLatestFeeAsync()
@@ -42,20 +72,22 @@ public class PaymentRepository : IPaymentRepository
         {
             return new MembershipFeeDTO
             {
-                FeeId        = reader.GetInt32(reader.GetOrdinal("FeeId")),
-                Amount       = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                FeeId = reader.GetInt32(reader.GetOrdinal("FeeId")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
                 EffectiveFrom = reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
-                IsActive     = reader.GetBoolean(reader.GetOrdinal("IsActive"))
+                IsActive = reader.GetBoolean(reader.GetOrdinal("IsActive"))
             };
         }
         return null;
     }
 
-    public async Task<(int feeId, string message)> SetFeeAsync(decimal amount, DateTime effectiveFrom, int createdBy)
+    // CHANGED: now takes roleId and passes it to sp_CreateMembershipFee.
+    public async Task<(int feeId, string message)> SetFeeAsync(int roleId, decimal amount, DateTime effectiveFrom, int createdBy)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = _dbContext.CreateStoredProcCommand("sp_CreateMembershipFee", connection);
 
+        command.Parameters.AddWithValue("@RoleId", roleId);
         command.Parameters.AddWithValue("@Amount", amount);
         command.Parameters.AddWithValue("@EffectiveFrom", effectiveFrom);
         command.Parameters.AddWithValue("@CreatedBy", createdBy);
@@ -114,14 +146,14 @@ public class PaymentRepository : IPaymentRepository
         {
             payments.Add(new PaymentHistoryDTO
             {
-                PaymentId            = reader.GetInt32(reader.GetOrdinal("PaymentId")),
-                Amount               = reader.GetDecimal(reader.GetOrdinal("Amount")),
-                PaymentDate          = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
-                PaymentMode          = reader.IsDBNull(reader.GetOrdinal("PaymentMode")) ? null : reader.GetString(reader.GetOrdinal("PaymentMode")),
+                PaymentId = reader.GetInt32(reader.GetOrdinal("PaymentId")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                PaymentDate = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
+                PaymentMode = reader.IsDBNull(reader.GetOrdinal("PaymentMode")) ? null : reader.GetString(reader.GetOrdinal("PaymentMode")),
                 TransactionReference = reader.IsDBNull(reader.GetOrdinal("TransactionReference")) ? null : reader.GetString(reader.GetOrdinal("TransactionReference")),
-                Status               = reader.GetString(reader.GetOrdinal("Status")),
-                EffectiveFrom        = reader.IsDBNull(reader.GetOrdinal("EffectiveFrom")) ? null : reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
-                EffectiveTo          = reader.IsDBNull(reader.GetOrdinal("EffectiveTo")) ? null : reader.GetDateTime(reader.GetOrdinal("EffectiveTo"))
+                Status = reader.GetString(reader.GetOrdinal("Status")),
+                EffectiveFrom = reader.IsDBNull(reader.GetOrdinal("EffectiveFrom")) ? null : reader.GetDateTime(reader.GetOrdinal("EffectiveFrom")),
+                EffectiveTo = reader.IsDBNull(reader.GetOrdinal("EffectiveTo")) ? null : reader.GetDateTime(reader.GetOrdinal("EffectiveTo"))
             });
         }
         return payments;
@@ -142,14 +174,14 @@ public class PaymentRepository : IPaymentRepository
         {
             payments.Add(new PaymentAllDTO
             {
-                PaymentId            = reader.GetInt32(reader.GetOrdinal("PaymentId")),
-                MemberName           = reader.GetString(reader.GetOrdinal("MemberName")),
-                DesignationName      = reader.IsDBNull(reader.GetOrdinal("DesignationName")) ? null : reader.GetString(reader.GetOrdinal("DesignationName")),
-                Amount               = reader.GetDecimal(reader.GetOrdinal("Amount")),
-                PaymentDate          = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
-                PaymentMode          = reader.IsDBNull(reader.GetOrdinal("PaymentMode")) ? null : reader.GetString(reader.GetOrdinal("PaymentMode")),
+                PaymentId = reader.GetInt32(reader.GetOrdinal("PaymentId")),
+                MemberName = reader.GetString(reader.GetOrdinal("MemberName")),
+                DesignationName = reader.IsDBNull(reader.GetOrdinal("DesignationName")) ? null : reader.GetString(reader.GetOrdinal("DesignationName")),
+                Amount = reader.GetDecimal(reader.GetOrdinal("Amount")),
+                PaymentDate = reader.GetDateTime(reader.GetOrdinal("PaymentDate")),
+                PaymentMode = reader.IsDBNull(reader.GetOrdinal("PaymentMode")) ? null : reader.GetString(reader.GetOrdinal("PaymentMode")),
                 TransactionReference = reader.IsDBNull(reader.GetOrdinal("TransactionReference")) ? null : reader.GetString(reader.GetOrdinal("TransactionReference")),
-                Status               = reader.GetString(reader.GetOrdinal("Status"))
+                Status = reader.GetString(reader.GetOrdinal("Status"))
             });
         }
         return payments;
@@ -172,9 +204,9 @@ public class PaymentRepository : IPaymentRepository
 
         if (await reader.ReadAsync())
         {
-            var email     = reader.IsDBNull(reader.GetOrdinal("Email"))     ? string.Empty : reader.GetString(reader.GetOrdinal("Email"));
-            var fullName  = reader.IsDBNull(reader.GetOrdinal("FullName"))  ? string.Empty : reader.GetString(reader.GetOrdinal("FullName"));
-            var error     = reader.IsDBNull(reader.GetOrdinal("ErrorMessage")) ? string.Empty : reader.GetString(reader.GetOrdinal("ErrorMessage"));
+            var email = reader.IsDBNull(reader.GetOrdinal("Email")) ? string.Empty : reader.GetString(reader.GetOrdinal("Email"));
+            var fullName = reader.IsDBNull(reader.GetOrdinal("FullName")) ? string.Empty : reader.GetString(reader.GetOrdinal("FullName"));
+            var error = reader.IsDBNull(reader.GetOrdinal("ErrorMessage")) ? string.Empty : reader.GetString(reader.GetOrdinal("ErrorMessage"));
             return (!string.IsNullOrEmpty(email), email, fullName, error);
         }
         return (false, string.Empty, string.Empty, "No result returned");

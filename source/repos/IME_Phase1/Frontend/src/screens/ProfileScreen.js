@@ -113,50 +113,53 @@ const ProfileScreen = ({ navigation }) => {
 
       {/* ── Actions ── */}
       <View style={styles.actions}>
-        <Button
-          mode="contained"
-          onPress={() => navigation.navigate('ProfileEdit')}
-          style={styles.button}
-          buttonColor={NAVY}
-           textColor={GOLD}
-        >
-          Edit Profile
-        </Button>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('PaymentHistory')}
-          style={styles.button}
-           textColor={GOLD}
-        >
-          Payment History
-        </Button>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('ChangePassword')}
-          style={styles.button}
-           textColor={GOLD}
+  <Button
+    mode="contained"
+    onPress={() => navigation.navigate('ProfileEdit')}
+    style={styles.button}
+    buttonColor={NAVY}
+    textColor={GOLD}
+  >
+    Edit Profile
+  </Button>
+  <Button
+    mode="outlined"
+    onPress={() => navigation.navigate('PaymentHistory')}
+    style={styles.button}
+    textColor={GOLD}
+  >
+    Payment History
+  </Button>
+  <Button
+    mode="outlined"
+    onPress={() => navigation.navigate('ChangePassword')}
+    style={styles.button}
+    textColor={GOLD}
+  >
+    Change Password
+  </Button>
 
-        >
-          Change Password
-        </Button>
-        <Button
-          mode="outlined"
-          onPress={() => navigation.navigate('MyPost')}
-          style={styles.button}
-           textColor={GOLD}
-        >
-          My Post
-        </Button>
-        <Button
-          mode="contained"
-          onPress={handleLogout}
-          style={[styles.button, styles.logoutButton]}
-          buttonColor="#f80511"
-          textColor={COLORS.white}
-        >
-          Logout
-        </Button>
-      </View>
+  {user?.roleName?.toLowerCase() !== 'student' && (
+    <Button
+      mode="outlined"
+      onPress={() => navigation.navigate('MyPost')}
+      style={styles.button}
+      textColor={GOLD}
+    >
+      My Post
+    </Button>
+  )}
+
+  <Button
+    mode="contained"
+    onPress={handleLogout}
+    style={[styles.button, styles.logoutButton]}
+    buttonColor="#f80511"
+    textColor={COLORS.white}
+  >
+    Logout
+  </Button>
+</View>
     </ScrollView>
   );
 };
