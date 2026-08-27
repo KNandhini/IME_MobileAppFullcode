@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import FeedCard from '../components/FeedCard';
@@ -7,7 +7,6 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import { feedService } from '../services/feedService';
 import { HomeScreenStyles as styles } from './screenStyles';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 const PAGE_SIZE = 10;
 
 const HomeScreen = ({ navigation }) => {
@@ -20,76 +19,6 @@ const HomeScreen = ({ navigation }) => {
   const [hasMore, setHasMore] = useState(true);
   const [initialLoad, setInitialLoad] = useState(true);
   const [error, setError] = useState(null);
-  const paymentPopupShown = useRef(false);
-
-  // ── Payment pending popup (once per session, driven by server roleId/membershipStatus/graceExpiryDate) ──
-  useEffect(() => {
-    if (paymentPopupShown.current) return;
-    checkPaymentGrace();
-  }, [user]);
-
-  const checkPaymentGrace = async () => {
-    try {
-      if (user?.roleId === 1) return;
-      if (user?.roleId !== 2) return;
-      if (user?.membershipStatus !== 'Pending') return;
-      if (!user?.graceExpiryDate) return;
-
-      const expiry = new Date(user.graceExpiryDate).getTime();
-      const msLeft = expiry - Date.now();
-      if (msLeft <= 0) return;
-
-      const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
-      paymentPopupShown.current = true;
-
-      Alert.alert(
-        '⚠️ Payment Pending',
-        `Your membership registration payment is pending.\n\nYou have ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining to complete payment before your account expires.`,
-        [
-          {
-  text: 'Pay Now',
-  onPress: async () => {
-    try {
-      const stored = await AsyncStorage.getItem('paymentGrace');
-
-      if (!stored) {
-        Alert.alert(
-          'Payment Details Missing',
-          'Unable to find your pending membership payment details.'
-        );
-        return;
-      }
-
-      const graceData = JSON.parse(stored);
-
-      console.log('PAYMENT GRACE DATA:', graceData);
-      console.log(
-        'MEMBERSHIP CATEGORY:',
-        graceData?.paymentParams?.membershipCategory
-      );
-
-      navigation.navigate(
-        'RegistrationPayment',
-        graceData.paymentParams
-      );
-
-    } catch (error) {
-      console.error(
-        'Failed to load pending payment:',
-        error
-      );
-
-      Alert.alert(
-        'Error',
-        'Unable to load your pending payment.'
-      );
-    }
-  },
-},          { text: 'Remind Me Later', style: 'cancel' },
-        ],
-      );
-    } catch (_) { }
-  };
 
   // ── Reload on screen focus ──────────────────
   useFocusEffect(useCallback(() => {
@@ -135,28 +64,28 @@ const HomeScreen = ({ navigation }) => {
 
   // ── Welcome strip (Law Bot card removed) ────────────────────────────
   const renderFeedHeader = () => (
-  <View>
-    <View style={styles.welcomeStrip}>
-      <View style={styles.welcomeAvatar}>
-        <Text style={styles.welcomeAvatarLetter}>
-          {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
-        </Text>
+    <View>
+      <View style={styles.welcomeStrip}>
+        <View style={styles.welcomeAvatar}>
+          <Text style={styles.welcomeAvatarLetter}>
+            {(user?.fullName || user?.email || 'M').charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <View style={styles.welcomeTexts}>
+          <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
+        </View>
+        {user?.roleName?.toLowerCase() !== 'student' && (
+          <TouchableOpacity
+            style={styles.newPostBtn}
+            onPress={() => navigation.navigate('CreatePost')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.newPostBtnText}>+</Text>
+          </TouchableOpacity>
+        )}
       </View>
-      <View style={styles.welcomeTexts}>
-        <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
-      </View>
-      {user?.roleName?.toLowerCase() !== 'student' && (
-        <TouchableOpacity
-          style={styles.newPostBtn}
-          onPress={() => navigation.navigate('CreatePost')}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.newPostBtnText}>+</Text>
-        </TouchableOpacity>
-      )}
     </View>
-  </View>
-);
+  );
 
   // ── Footer loader / end message ──────────────
   const renderFeedFooter = () => (

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Alert, StatusBar } from 'react-native';
 import { Card, Title, Menu } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { AdminDashboardScreenStyles as styles } from './screenStyles.js';
 import { COLORS } from './theme';
@@ -23,6 +24,72 @@ const ADMIN_MENU = [
 const AdminDashboardScreen = ({ navigation }) => {
   const { user, logout } = useAuth();
   const [menuVisible, setMenuVisible] = useState(false);
+  const paymentPopupShown = useRef(false);
+
+  // ── Payment pending popup (once per session, driven by server roleId/membershipStatus/graceExpiryDate) ──
+  useEffect(() => {
+    if (paymentPopupShown.current) return;
+    checkPaymentGrace();
+  }, [user]);
+
+  const checkPaymentGrace = async () => {
+    try {
+      if (user?.roleId === 1) return;
+      if (user?.roleId !== 2) return;
+      if (user?.membershipStatus !== 'Pending') return;
+      if (!user?.graceExpiryDate) return;
+
+      const expiry = new Date(user.graceExpiryDate).getTime();
+      const msLeft = expiry - Date.now();
+      if (msLeft <= 0) return;
+
+      const GRACE_DAYS = 3;
+      const daysLeft = Math.min(GRACE_DAYS, Math.ceil(msLeft / (24 * 60 * 60 * 1000)));
+      paymentPopupShown.current = true;
+
+      Alert.alert(
+        '⚠️ Payment Pending',
+        `Your membership registration payment is pending.\n\nYou have ${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining to complete payment before your account expires.`,
+        [
+          {
+            text: 'Pay Now',
+            onPress: async () => {
+              try {
+                const stored = await AsyncStorage.getItem('paymentGrace');
+
+                if (!stored) {
+                  Alert.alert(
+                    'Payment Details Missing',
+                    'Unable to find your pending membership payment details.'
+                  );
+                  return;
+                }
+
+                const graceData = JSON.parse(stored);
+
+                navigation.navigate(
+                  'RegistrationPayment',
+                  graceData.paymentParams
+                );
+
+              } catch (error) {
+                console.error(
+                  'Failed to load pending payment:',
+                  error
+                );
+
+                Alert.alert(
+                  'Error',
+                  'Unable to load your pending payment.'
+                );
+              }
+            },
+          },
+          { text: 'Remind Me Later', style: 'cancel' },
+        ],
+      );
+    } catch (_) { }
+  };
 
   const handlePress = (item) => {
     if (!item.route) {

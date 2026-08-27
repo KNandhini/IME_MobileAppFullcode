@@ -453,54 +453,51 @@ const SignupScreen = ({ navigation, route }) => {
 
   // "Pay Later" is the only path that creates the account here — the person
   // gets an active-but-unpaid account with a grace period, same as before.
-  const registerAndGoToLogin = async (payload) => {
-    setLoading(true);
-    try {
-      const response = await api.post('/Auth/signup', payload);
-      const res = response.data;
+ const registerAndGoToLogin = async (payload) => {
+  setLoading(true);
+  try {
+    const response = await api.post('/Auth/signup', payload);
+    const res = response.data;
 
-      if (res.success) {
-        const paymentParams = {
-  userId: res.data.userId,
-  memberId: res.data.memberId,
-  membershipCategory: membershipCategory,
-  memberName: formData.fullName,
-  memberEmail: formData.email,
-  memberPassword: formData.password,
-  profilePhotoUri: profilePhoto?.uri ?? null,
+    if (res.success) {
+      const paymentParams = {
+        userId: res.data.userId,
+        memberId: res.data.memberId,
+        membershipCategory: membershipCategory,
+        memberName: formData.fullName,
+        memberEmail: formData.email,
+        memberPassword: formData.password,
+        profilePhotoUri: profilePhoto?.uri ?? null,
+      };
+      await AsyncStorage.setItem('paymentGrace', JSON.stringify({
+        pending: true,
+        registeredAt: Date.now(),
+        memberId: res.data.memberId,
+        paymentParams,
+      }));
+
+     
+  // User already chose "Pay Later" on the previous screen — don't ask
+  // Pay Now / Pay Later again. Just confirm success and send them to Login.
+  Alert.alert(
+    'Registration Successful! 🎉',
+    'Your account is active for 3 days. Please login and complete your payment before it expires.',
+    [
+      {
+        text: 'Login',
+        onPress: () => navigation.navigate('Login'),
+      },
+    ],
+  );
+} else {
+  Alert.alert('Registration Failed', getSafeErrorMessage(res));
+}
+  } catch (e) {
+    Alert.alert('Error', getSafeErrorMessage(e));
+  } finally {
+    setLoading(false);
+  }
 };
-        await AsyncStorage.setItem('paymentGrace', JSON.stringify({
-          pending: true,
-          registeredAt: Date.now(),
-          memberId: res.data.memberId,
-          paymentParams,
-        }));
-
-        Alert.alert(
-          'Registration Successful! 🎉',
-          'Do you want to complete your payment now?\n\nYou can also pay within 3 days to keep your account active.',
-          [
-            {
-              text: 'Pay Now',
-
-              onPress: () => navigation.navigate('RegistrationPayment', paymentParams),
-            },
-            {
-              text: 'Pay Later (3 Days)',
-              style: 'cancel',
-              onPress: () => navigation.navigate('Login'),
-            },
-          ],
-        );
-      } else {
-        Alert.alert('Registration Failed', getSafeErrorMessage(res));
-      }
-    } catch (e) {
-      Alert.alert('Error', getSafeErrorMessage(e));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSignup = async () => {
     if (!validate()) return;
