@@ -1,0 +1,82 @@
+{
+  "id": "institution-1",
+  "name": "Institute of Municipal Engineers India",
+  "type": "institution",
+  "children": [
+    {
+      "id": "committee-green",
+      "name": "Adhoc Executive Committee Members",
+      "color": "green",
+      "type": "committee",
+      "children": [
+        {
+          "id": "member-1",
+          "name": "Er T.Gnanvel",
+          "type": "member",
+          "role": "President",
+          "designation": "Chief Engineer GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-2",
+          "name": "Dr M.VAITHEESWARAN PhD",
+          "type": "member",
+          "role": "Vice President",
+          "designation": "Officer on Special Duty",
+          "department": "MA&WS Dept",
+          "organization": "Govt of Tamil Nadu",
+          "photo": ""
+        },
+        {
+          "id": "member-3",
+          "name": "Dr V. Murugesan PhD",
+          "type": "member",
+          "role": "Secretary General",
+          "designation": "Chief Engineer Rtd",
+          "organization": "Directorate of Town Panchayat Chennai",
+          "photo": ""
+        },
+        {
+          "id": "member-4",
+          "name": "Er. C Kannan",
+          "type": "member",
+          "role": "Treasurer General",
+          "designation": "SE Vellore Corporation",
+          "photo": ""
+        },
+        {
+          "id": "member-5",
+          "name": "Er.M. Saravanan",
+          "type": "member",
+          "role": "EC Member",
+          "designation": "SE/ Mech GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-6",
+          "name": "Er Devendiran",
+          "type": "member",
+          "role": "EC Member",
+          "designation": "EE Zone GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-7",
+          "name": "Mr.L. Gopalakrishnan",
+          "type": "member",
+          "role": "Deputy Director",
+          "designation": "Deputy Director/ Planning Rtd",
+          "organization": "Office of DMA Chennai",
+          "photo": ""
+        }
+      ]
+    },
+    {
+      "id": "committee-pink",
+      "name": "Future committee data",
+      "color": "pink",
+      "type": "committee",
+      "children": []
+    }
+  ]
+}
