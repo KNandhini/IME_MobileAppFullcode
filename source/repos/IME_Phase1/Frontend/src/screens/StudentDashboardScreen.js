@@ -105,14 +105,14 @@ const StudentDashboardScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar backgroundColor="#252943" barStyle="light-content" />
 
-      {/* ── IME Header (same as HomeScreen/AdminDashboard/MemberDashboard) ── */}
+      {/* ── IUE Header (same as HomeScreen/AdminDashboard/MemberDashboard) ── */}
       <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>IME</Text>
+            <Text style={styles.logoText}>IUE</Text>
           </View>
           <View>
-            <Text style={styles.appName}>Institution of Municipal Engineers</Text>
+            <Text style={styles.appName}>Institution of Urban Engineers</Text>
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>

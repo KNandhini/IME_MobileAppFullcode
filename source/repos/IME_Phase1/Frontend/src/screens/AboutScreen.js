@@ -13,7 +13,7 @@ const WHITE = COLORS.white;
 const GREY = '#6B7A8D';
 
 // ── Data ───────────────────────────────────────────────────────
-// Real historical anchors, not a "founding year" — IME itself is a
+// Real historical anchors, not a "founding year" — IUE itself is a
 // proposed institution, so these stats trace the lineage it stands on.
 const STATS = [
   { value: '1688', label: 'First Municipal Institution (Madras)' },
@@ -163,12 +163,12 @@ const AboutScreen = ({ navigation }) => {
           </View>
         </FadeIn>
 
-        {/* ── Short Intro: About IME ── */}
+        {/* ── Short Intro: About IUE ── */}
         <FadeIn delay={500}>
           <View style={styles.section}>
             <View style={styles.sectionHead}>
               <View style={styles.goldAccent} />
-              <Text style={styles.sectionTitle}>About IME</Text>
+              <Text style={styles.sectionTitle}>About IUE</Text>
             </View>
             <Text style={styles.bodyText}>
               Local bodies meet the basic needs of rural and urban populations — water,

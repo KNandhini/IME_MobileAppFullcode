@@ -198,7 +198,7 @@ const LoginScreen = ({ navigation }) => {
             </Text>
 
             <Text style={styles.cardSub}>
-              Welcome back to IME Portal
+              Welcome back to IUE Portal
             </Text>
 
             <Field label="Email Address">
@@ -297,7 +297,7 @@ const LoginScreen = ({ navigation }) => {
           <View style={styles.quickRow}>
             <QuickAction
               icon="information-outline"
-              label="About IME"
+              label="About IUE"
               onPress={() =>
                 navigation.navigate('About')
               }
@@ -352,7 +352,7 @@ const LoginScreen = ({ navigation }) => {
 
           <Text style={styles.footerText}>
             © {new Date().getFullYear()} Institution
-            of Municipal Engineers · All rights
+            of Urban Engineers · All rights
             reserved
           </Text>
         </ScrollView>

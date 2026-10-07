@@ -1,71 +1,74 @@
 {
   "id": "institution-1",
-  "name": "Institute of Municipal Engineers India",
+  "name": "Institution of Urban Engineers, India.",
   "type": "institution",
   "children": [
     {
       "id": "committee-green",
-      "name": "Adhoc Executive Committee Members",
+      "name": "Adhoc Executive Committee",
       "color": "green",
       "type": "committee",
       "children": [
         {
           "id": "member-1",
-          "name": "Er T.Gnanvel",
-          "type": "member",
+          "name": "Er. T. Gnanvel",
           "role": "President",
-          "designation": "Chief Engineer GCC",
+          "profileDesignation": "Chief Engineer GCC",
+          "designation": "Chief Engineer",
+          "department": "Greater Chennai Corporation",
+          "departmentShortName": "GCC",
           "photo": ""
         },
         {
           "id": "member-2",
-          "name": "Dr M.VAITHEESWARAN PhD",
-          "type": "member",
+          "name": "Dr. M. Vaitheeswaran, Ph.D.",
           "role": "Vice President",
           "designation": "Officer on Special Duty",
-          "department": "MA&WS Dept",
-          "organization": "Govt of Tamil Nadu",
+          "department": "MA&WS - Government of Tamil Nadu",
+          "departmentShortName": "MA&WS",
           "photo": ""
         },
         {
           "id": "member-3",
-          "name": "Dr V. Murugesan PhD",
-          "type": "member",
+          "name": "Dr. V. Murugesan, Ph.D.",
           "role": "Secretary General",
-          "designation": "Chief Engineer Rtd",
+          "designation": "Chief Engineer (Rtd)",
+          "departmentShortName": "DTP",
           "organization": "Directorate of Town Panchayat Chennai",
           "photo": ""
         },
         {
           "id": "member-4",
-          "name": "Er. C Kannan",
-          "type": "member",
+          "name": "Er. C. Kannan",
           "role": "Treasurer General",
-          "designation": "SE Vellore Corporation",
+          "designation": "Superintending Engineer",
+          "department": "Vellore Corporation",
+          "departmentShortName": "Vellore Corporation",
           "photo": ""
         },
         {
           "id": "member-5",
-          "name": "Er.M. Saravanan",
-          "type": "member",
+          "name": "Er. M. Saravanan",
           "role": "EC Member",
-          "designation": "SE/ Mech GCC",
+          "designation": "Superintending Engineer",
+          "department": "Greater Chennai Corporation",
+          "departmentShortName": "Mech GCC",
           "photo": ""
         },
         {
           "id": "member-6",
-          "name": "Er Devendiran",
-          "type": "member",
+          "name": "Er. K. Devendiran",
           "role": "EC Member",
-          "designation": "EE Zone GCC",
+          "designation": "Electrical Engineer",
+          "department": "Greater Chennai Corporation",
+          "departmentShortName": "GCC",
           "photo": ""
         },
         {
           "id": "member-7",
-          "name": "Mr.L. Gopalakrishnan",
-          "type": "member",
-          "role": "Deputy Director",
-          "designation": "Deputy Director/ Planning Rtd",
+          "name": "Mr. L. Gopalakrishnan",
+          "role": "EC Member",
+          "designation": "Deputy Director / Planning (Rtd)",
           "organization": "Office of DMA Chennai",
           "photo": ""
         }
@@ -73,10 +76,141 @@
     },
     {
       "id": "committee-pink",
-      "name": "Future committee data",
+      "name": "Governing Council Commitee",
+      "shortname": "Governing Council Commitee Member",
       "color": "pink",
       "type": "committee",
-      "children": []
+      "children": [
+        {
+          "id": "member-1",
+          "name": "Er. T. Gnanvel",
+          "role": "President",
+          "profileDesignation": "Chief Engineer GCC",
+          "designation": "Chief Engineer",
+          "department": "Greater Chennai Corporation",
+          "departmentShortName": "GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-2",
+          "name": "Dr. M. Vaitheeswaran, Ph.D.",
+          "role": "Vice President",
+          "designation": "Officer on Special Duty",
+          "department": "MA&WS - Government of Tamil Nadu",
+          "departmentShortName": "MA&WS",
+          "photo": ""
+        },
+        {
+          "id": "member-3",
+          "name": "Dr. V. Murugesan, Ph.D.",
+          "role": "Secretary General",
+          "designation": "Chief Engineer (Rtd)",
+          "departmentShortName": "DTP",
+          "organization": "Directorate of Town Panchayat Chennai",
+          "photo": ""
+        },
+        {
+          "id": "member-4",
+          "name": "Er. C. Kannan",
+          "role": "Treasurer General",
+          "designation": "Superintending Engineer",
+          "department": "Vellore Corporation",
+          "departmentShortName": "Vellore Corporation",
+          "photo": ""
+        },
+        {
+          "id": "member-5",
+          "name": "Er. M. Saravanan",
+          "role": "EC Member",
+          "designation": "Superintending Engineer",
+          "department": "Greater Chennai Corporation",
+          "departmentShortName": "Mech GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-6",
+          "name": "Er. K. Devendiran",
+          "role": "EC Member",
+          "designation": "Electrical Engineer",
+          "department": "Greater Chennai Corporation",
+          "departmentShortName": "GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-7",
+          "name": "Mr. L. Gopalakrishnan",
+          "role": "EC Member",
+          "designation": "Deputy Director / Planning (Rtd)",
+          "organization": "Office of DMA Chennai",
+          "photo": ""
+        },
+        {
+          "id": "member-8",
+          "name": "Mr. J. Subramanian",
+          "role": "EC Member",
+          "designation": "Executive Engineer",
+          "department": "Town Panchayat",
+          "departmentShortName": "Trichy Zone",
+          "photo": ""
+        },
+        {
+          "id": "member-9",
+          "name": "Mr. K. Boopathy",
+          "role": "EC Member",
+          "designation": "Superintending Engineer (Rtd)",
+          "photo": ""
+        },
+        {
+          "id": "member-10",
+          "name": "Ms. V. Hemalatha",
+          "role": "EC Member",
+          "designation": "Executive Engineer",
+          "department": "Storm Water Department",
+          "departmentShortName": "GCC",
+          "photo": ""
+        },
+        {
+          "id": "member-11",
+          "name": "Mr. V. Srinivasan",
+          "role": "EC Member",
+          "designation": "Regional Executive Engineer",
+          "department": "O/O RDMA",
+          "departmentShortName": "Madurai",
+          "photo": ""
+        },
+        {
+          "id": "member-12",
+          "name": "Mr. P. Pradhan Babu",
+          "role": "EC Member",
+          "designation": "Assistant Engineer",
+          "department": "Thanjavur Corporation",
+          "photo": ""
+        },
+        {
+          "id": "member-13",
+          "name": "Ms. P. Nalini",
+          "role": "EC Member",
+          "designation": "Assistant Executive Engineer",
+          "department": "O/O DMA",
+          "departmentShortName": "Chennai",
+          "photo": ""
+        },
+        {
+          "id": "member-14",
+          "name": "Dr. R. Ragunathan",
+          "role": "EC Member",
+          "designation": "Chief Engineer (Rtd)",
+          "department": "O/O CMA",
+          "photo": ""
+        },
+        {
+          "id": "member-15",
+          "name": "Er. A. Shanmugam",
+          "role": "EC Member",
+          "designation": "Superintending Engineer (Rtd)",
+          "photo": ""
+        }
+      ]
     }
   ]
 }

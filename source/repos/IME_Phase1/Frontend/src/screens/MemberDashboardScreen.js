@@ -104,11 +104,11 @@ const MemberDashboardScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar backgroundColor="#252943" barStyle="light-content" />
 
-      {/* ── IME Header (same as HomeScreen/AdminDashboard) ── */}
+      {/* ── IUE Header (same as HomeScreen/AdminDashboard) ── */}
       <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>IME</Text>
+            <Text style={styles.logoText}>IUE</Text>
           </View>
           <View>
             <Text style={styles.appName}>Institution of Municipal Engineers</Text>

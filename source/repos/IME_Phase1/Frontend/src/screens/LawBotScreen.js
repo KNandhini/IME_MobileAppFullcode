@@ -2,7 +2,7 @@ import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 /**
  * LawBotScreen.js
- * IME Law Bot — 74th Constitutional Amendment AI Assistant
+ * IUE Law Bot — 74th Constitutional Amendment AI Assistant
  * Place this file in: src/screens/LawBotScreen.js
  */
 
@@ -44,7 +44,7 @@ const MessageBubble = React.memo(({ item }) => {
         isErr   ? styles.bubbleErr  : null,
       ]}>
         {isBot && (
-          <Text style={styles.bubbleSender}>IME Law Assistant</Text>
+          <Text style={styles.bubbleSender}>IUE Law Assistant</Text>
         )}
         <Text style={[
           styles.bubbleText,
@@ -70,10 +70,10 @@ const insets = useSafeAreaInsets();
       id: '0',
       sender: 'bot',
       text:
-        'Hello! I am the IME Law Assistant 🏛️\n\n' +
+        'Hello! I am the IUE Law Assistant 🏛️\n\n' +
         'I can answer your questions about the 74th Constitutional Amendment Act, 1992 — ' +
         'including all articles from 243-P to 243-ZG, the 12th Schedule, and how they ' +
-        'apply to Municipal Engineers.\n\n' +
+        'apply to Urban Engineers.\n\n' +
         'Ask me anything about municipal governance law!',
       time: formatNow(),
     },
@@ -155,7 +155,7 @@ const insets = useSafeAreaInsets();
           <Text style={styles.headerIconText}>⚖</Text>
         </View>
         <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>IME Law Assistant</Text>
+          <Text style={styles.headerTitle}>IUE Law Assistant</Text>
           <Text style={styles.headerSub}>74th Constitutional Amendment</Text>
         </View>
         <View style={styles.liveTag}>

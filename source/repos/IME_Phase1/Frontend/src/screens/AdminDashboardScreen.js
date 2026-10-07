@@ -108,14 +108,14 @@ const AdminDashboardScreen = ({ navigation }) => {
     <View style={styles.container}>
       <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
  
-      {/* ── IME Header (gradient, matches Chats screen) ── */}
+      {/* ── IUE Header (gradient, matches Chats screen) ── */}
       <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>IME</Text>
+            <Text style={styles.logoText}>IUE</Text>
           </View>
           <View>
-            <Text style={styles.appName}>Institution of Municipal Engineers</Text>
+            <Text style={styles.appName}>Institution of Urban Engineers</Text>
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>

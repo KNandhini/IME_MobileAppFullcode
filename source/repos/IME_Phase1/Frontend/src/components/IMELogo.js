@@ -32,7 +32,7 @@ const IMELogo = ({ size = 'large', animated = true }) => {
       {!isSmall && (
         <>
           <Text style={styles.orgName}>
-            Institution of Municipal Engineers
+            Institution of Urban Engineers
           </Text>
 
           <Text style={styles.systemName}>
@@ -46,7 +46,7 @@ const IMELogo = ({ size = 'large', animated = true }) => {
         </>
       )}
 
-      {isSmall && <Text style={styles.acronym}>IME</Text>}
+      {isSmall && <Text style={styles.acronym}>IUE</Text>}
     </Animated.View>
   );
 };

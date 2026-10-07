@@ -36,7 +36,7 @@ const SLIDES = [
         label: 'Vision',
         colors: HEADER_COLORS,
         body:
-            'To be the apex professional body for Municipal Engineers in India, ' +
+            'To be the apex professional body for Urban Engineers in India, ' +
             'fostering excellence, innovation, and sustainability in urban ' +
             'infrastructure to engineer livable, resilient, and inclusive cities ' +
             'across the nation.',
@@ -51,7 +51,7 @@ const SLIDES = [
         label: 'Mission',
         colors: HEADER_COLORS,
         body:
-            'Upgrade the skills of municipal engineers nationwide, serve as a ' +
+            'Upgrade the skills of Urban engineers nationwide, serve as a ' +
             'technical think-tank for urban infrastructure policy, disseminate ' +
             'best practices through journals and conferences, promote ' +
             'professional ethics, and connect engineers pan-India with ' +
@@ -61,11 +61,11 @@ const SLIDES = [
         buttonLabel: 'Show More',
         // Full detail shown in the modal — mirrors the Mission accordion on the About screen.
         detailItems: [
-            { number: '1', text: 'Professional Development — Upgrade skills of municipal engineers across all States/UTs in roads, water supply, sewerage, street lighting, solid waste, survey & planning, and urban greenery through training, certification, and knowledge exchange.' },
-            { number: '2', text: 'Policy Advocacy — Serve as a technical think-tank to MoHUA, State Governments, and ULBs on urban infrastructure norms, service standards, and municipal reforms.' },
+            { number: '1', text: 'Professional Development — Upgrade skills of Urban engineers across all States/UTs in roads, water supply, sewerage, street lighting, solid waste, survey & planning, and urban greenery through training, certification, and knowledge exchange.' },
+            { number: '2', text: 'Policy Advocacy — Serve as a technical think-tank to MoHUA, State Governments, and ULBs on urban infrastructure norms, service standards, and Urban reforms.' },
             { number: '3', text: 'Knowledge Hub — Disseminate best practices, research, and technology solutions for Indian cities through journals, conferences, and digital platforms.' },
-            { number: '4', text: 'Ethics & Standards — Promote professional ethics, safety, and citizen-centric engineering practices in municipal governance.' },
-            { number: '5', text: 'Networking — Connect municipal engineers pan-India and foster collaboration with CPWD, PWD, smart city SPVs, academia, and global bodies.' },
+            { number: '4', text: 'Ethics & Standards — Promote professional ethics, safety, and citizen-centric engineering practices in Urban governance.' },
+            { number: '5', text: 'Networking — Connect Urban engineers pan-India and foster collaboration with CPWD, PWD, smart city SPVs, academia, and global bodies.' },
         ],
     },
     {
@@ -94,9 +94,9 @@ const SLIDES = [
             {
                 title: 'Institutional',
                 bullets: [
-                    'Represent municipal engineering cadre in national forums; work for cadre strengthening and service conditions.',
-                    'Establish State Chapters in all States/UTs under IME (India).',
-                    'Institute national awards for excellence in municipal engineering projects.',
+                    'Represent Urban engineering cadre in national forums; work for cadre strengthening and service conditions.',
+                    'Establish State Chapters in all States/UTs under IUE (India).',
+                    'Institute national awards for excellence in Urban engineering projects.',
                 ],
             },
             {
@@ -139,7 +139,7 @@ const WelcomeCard = ({ onViewMore }) => {
 
     const openDetail = (item) => {
         // Only opens the local modal for THIS slide's content — does not navigate
-        // to the full About IME screen. `onViewMore` is intentionally not called
+        // to the full About IUE screen. `onViewMore` is intentionally not called
         // here so tapping "View More" / "Show More" never triggers navigation.
         setModalItem(item);
     };

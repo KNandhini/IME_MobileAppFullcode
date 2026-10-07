@@ -159,7 +159,7 @@ const AboutIMEScreen = ({ navigation }) => {
                         </SubAccordion>
                         <SubAccordion title="Institutional">
                             <BulletItem text="Represent municipal engineering cadre in national forums; work for cadre strengthening and service conditions." />
-                            <BulletItem text="Establish State Chapters in all States/UTs under IME (India)." />
+                            <BulletItem text="Establish State Chapters in all States/UTs under IUE (India)." />
                             <BulletItem text="Institute national awards for excellence in municipal engineering projects." />
                         </SubAccordion>
                         <SubAccordion title="Capacity Building">
@@ -200,7 +200,7 @@ const AboutIMEScreen = ({ navigation }) => {
                             <Text style={styles.docLabel}>Name</Text>
                             <Text style={styles.paragraph}>
                                 The name of the Society shall be "Institution of Municipal
-                                Engineers, India", hereinafter referred to as "IME (India)".
+                                Engineers, India", hereinafter referred to as "IUE (India)".
                             </Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Registered Office</Text>
@@ -282,7 +282,7 @@ const AboutIMEScreen = ({ navigation }) => {
 
                         <SubAccordion title="3. State Chapters">
                             <Text style={styles.paragraph}>
-                                IME (India) may establish State Chapters in any State/UT with
+                                IUE (India) may establish State Chapters in any State/UT with
                                 minimum 20 members.{'\n\n'}
                                 Each Chapter shall have own Executive Committee: Chairman,
                                 Secretary, Treasurer.{'\n\n'}
@@ -334,12 +334,12 @@ const AboutIMEScreen = ({ navigation }) => {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <Text style={styles.footerTitle}>
-                        Institution of Municipal Engineers, India (IME India)
+                        Institution of Municipal Engineers, India (IUE India)
                     </Text>
                     <Text style={styles.footerTagline}>
                         "Engineering Better Cities for Tomorrow"
                     </Text>
-                    <Text style={styles.footerCopy}>© IME (India)</Text>
+                    <Text style={styles.footerCopy}>© IUE (India)</Text>
                 </View>
             </Animated.ScrollView>
         </SafeAreaView>

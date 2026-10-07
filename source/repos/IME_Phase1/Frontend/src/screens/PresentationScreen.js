@@ -14,7 +14,7 @@ const HTML = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>IME App Overview</title>
+<title>IUE App Overview</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"/>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -200,7 +200,7 @@ const HTML = `<!DOCTYPE html>
   <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-brand">
-      <div class="logo-box">IME</div>
+      <div class="logo-box">IUE</div>
       <span class="brand-label">Member Connect</span>
     </div>
     <div class="topbar-center" id="dots"></div>
@@ -215,8 +215,8 @@ const HTML = `<!DOCTYPE html>
     <div class="slide slide-center active" id="s0">
       <div class="big-icon">🏛️</div>
       <div class="slide-tag">Project Overview</div>
-      <div class="slide-title">IME Member Connect App</div>
-      <div class="slide-sub">A dedicated mobile platform for Institution  of Municipal Engineers — connecting over 2,500 professionals across 12 regional chapters nationwide.</div>
+      <div class="slide-title">IUE Member Connect App</div>
+      <div class="slide-sub">A dedicated mobile platform for Institution  of Urban Engineers — connecting over 2,500 professionals across 12 regional chapters nationwide.</div>
       <div class="tagline-row">
         <div class="tagline-pill">Connect</div>
         <div class="tagline-pill">Grow</div>
@@ -224,10 +224,10 @@ const HTML = `<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- SLIDE 2: WHO IS IME -->
+    <!-- SLIDE 2: WHO IS IUE -->
     <div class="slide" id="s1">
       <div class="slide-tag">Who We Are</div>
-      <div class="slide-title">Institution of Municipal Engineers (IME)</div>
+      <div class="slide-title">Institution of Urban Engineers (IUE)</div>
       <div class="gold-divider"></div>
       <div class="slide-sub">India's premier professional body of engineers working in urban local bodies — municipalities, corporations, and town panchayats. Members work on roads, water supply, drainage, sanitation, and public infrastructure serving millions of citizens every day.</div>
       <div class="stat-row">
@@ -243,12 +243,12 @@ const HTML = `<!DOCTYPE html>
       <div class="slide-tag">What We Built</div>
       <div class="slide-title">A Full-Featured Member App</div>
       <div class="gold-divider"></div>
-      <div class="slide-sub">Built with React Native (Expo) — a digital home for every IME member to network, learn, pay dues, raise concerns, and stay informed.</div>
+      <div class="slide-sub">Built with React Native (Expo) — a digital home for every IUE member to network, learn, pay dues, raise concerns, and stay informed.</div>
       <div class="feat-grid">
-        <div class="feat-card"><div class="feat-icon">📰</div><div class="feat-title">News & Feed</div><div class="feat-desc">Live updates and announcements from IME leadership.</div></div>
+        <div class="feat-card"><div class="feat-icon">📰</div><div class="feat-title">News & Feed</div><div class="feat-desc">Live updates and announcements from IUE leadership.</div></div>
         <div class="feat-card"><div class="feat-icon">📅</div><div class="feat-title">Activities & Events</div><div class="feat-desc">Browse and register for workshops and seminars.</div></div>
         <div class="feat-card"><div class="feat-icon">💬</div><div class="feat-title">Chat & Community</div><div class="feat-desc">Peer-to-peer messaging among members.</div></div>
-        <div class="feat-card"><div class="feat-icon">💸</div><div class="feat-title">Fundraising</div><div class="feat-desc">Create and contribute to IME fund campaigns.</div></div>
+        <div class="feat-card"><div class="feat-icon">💸</div><div class="feat-title">Fundraising</div><div class="feat-desc">Create and contribute to IUE fund campaigns.</div></div>
         <div class="feat-card"><div class="feat-icon">🤝</div><div class="feat-title">Support Services</div><div class="feat-desc">Request technical, legal, health, and financial support.</div></div>
         <div class="feat-card"><div class="feat-icon">📄</div><div class="feat-title">GO & Circulars</div><div class="feat-desc">Access Government Orders and circulars instantly.</div></div>
       </div>
@@ -322,8 +322,8 @@ const HTML = `<!DOCTYPE html>
     <div class="slide slide-center" id="s5">
       <div class="big-icon">⚙️</div>
       <div class="slide-tag">Our Vision</div>
-      <div class="slide-title">Digitizing Municipal Engineering for India</div>
-      <div class="slide-sub">The IME Member Connect App covers the complete lifecycle of membership — from joining and paying dues, to learning, networking, fundraising, and real-time support — all in one place.</div>
+      <div class="slide-title">Digitizing Urban Engineering for India</div>
+      <div class="slide-sub">The IUE Member Connect App covers the complete lifecycle of membership — from joining and paying dues, to learning, networking, fundraising, and real-time support — all in one place.</div>
       <div class="tagline-row">
         <div class="tagline-pill">Connect</div>
         <div class="tagline-pill">Grow</div>

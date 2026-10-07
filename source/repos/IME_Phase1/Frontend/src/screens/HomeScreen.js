@@ -72,7 +72,7 @@ const HomeScreen = ({ navigation }) => {
           </Text>
         </View>
         <View style={styles.welcomeTexts}>
-          <Text style={styles.welcomeGreeting}>What's happening in IME today?</Text>
+          <Text style={styles.welcomeGreeting}>What's happening in IUE today?</Text>
         </View>
         {user?.roleName?.toLowerCase() !== 'student' && (
           <TouchableOpacity
@@ -110,10 +110,10 @@ const HomeScreen = ({ navigation }) => {
       <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>IME</Text>
+            <Text style={styles.logoText}>IUE</Text>
           </View>
           <View>
-            <Text style={styles.appName}>Institution of Municipal Engineers</Text>
+            <Text style={styles.appName}>Institution of Urban Engineers</Text>
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>

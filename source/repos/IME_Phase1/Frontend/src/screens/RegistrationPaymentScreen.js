@@ -201,7 +201,7 @@ const [logoDataUri, setLogoDataUri] = useState(null);
       <body>
         <div class="card">
           <div class="logo">💳</div>
-          <div class="title">IME Membership</div>
+          <div class="title">IUE Membership</div>
           <div class="subtitle">Secure Registration Payment</div>
 
           <div class="amount-box">
@@ -280,7 +280,7 @@ const [logoDataUri, setLogoDataUri] = useState(null);
               key: '${RAZORPAY_KEY}',
               amount: amountPaise,
               currency: 'INR',
-              name: 'IME Membership',
+              name: 'IUE Membership',
               description: 'One-Time Membership Registration Fee',
               image: '${logoDataUri || ''}',
               theme: { color: '#A0C878' },

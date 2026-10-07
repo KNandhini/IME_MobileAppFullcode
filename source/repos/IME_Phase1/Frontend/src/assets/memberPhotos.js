@@ -23,6 +23,15 @@ const memberPhotos = {
   "member-5": require("./../assets/memberPhotos/member-5.png"),
   "member-6": require("./../assets/memberPhotos/member-6.png"),
   "member-7": require("./../assets/memberPhotos/member-7.png"),
+  "member-8": require("./../assets/memberPhotos/member-8.png"),
+  "member-9": require("./../assets/memberPhotos/member-9.png"),
+  //"member-10": require("./../assets/memberPhotos/member-10.png"),
+ "member-11": require("./../assets/memberPhotos/member-11.png"),
+  "member-12": require("./../assets/memberPhotos/member-12.png"),
+ // "member-13": require("./../assets/memberPhotos/member-13.png"),
+  "member-14": require("./../assets/memberPhotos/member-14.png"),
+  "member-15": require("./../assets/memberPhotos/member-15.png"),
+
 };
 
 

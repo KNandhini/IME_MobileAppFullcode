@@ -415,7 +415,7 @@ const SingleImage = ({ imagePath, onOpenViewer }) => {
 const FeedCard = ({ item, navigation }) => {
   const colorIndex = (item.id || 0) % AVATAR_COLORS.length;
   const avatarColor = AVATAR_COLORS[colorIndex];
-  const memberName = item.memberName || 'IME Admin';
+  const memberName = item.memberName || 'IUE Admin';
   const typeMeta = TYPE_LABELS[item.type] || { label: item.type || '', icon: '📌' };
   const timeAgo = getTimeAgo(item.postedDate);
 

@@ -566,7 +566,7 @@ const SignupScreen = ({ navigation, route }) => {
           </TouchableOpacity>
         )}
         <Text style={styles.headerTitle}>Create Account</Text>
-        <Text style={styles.headerSubtitle}>Join IME to access member benefits</Text>
+        <Text style={styles.headerSubtitle}>Join IUE to access member benefits</Text>
       </LinearGradient>
 
       <KeyboardAvoidingView
