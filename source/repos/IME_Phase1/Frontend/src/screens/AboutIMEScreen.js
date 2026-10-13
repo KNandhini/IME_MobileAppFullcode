@@ -130,7 +130,7 @@ const AboutIMEScreen = ({ navigation }) => {
                 <View onLayout={registerY('vision')}>
                     <Accordion title="Vision" icon="visibility" defaultOpen>
                         <Text style={styles.paragraph}>
-                            To be the apex professional body for Municipal Engineers in India,
+                            To be the apex professional body for Urban Engineers in India,
                             fostering excellence, innovation, and sustainability in urban
                             infrastructure to engineer livable, resilient, and inclusive
                             cities across the nation.
@@ -173,7 +173,7 @@ const AboutIMEScreen = ({ navigation }) => {
                 <View onLayout={registerY('aims')}>
                     <Accordion title="Aims & Objects" icon="assignment">
                         <SubAccordion title="A. Technical Objects" defaultOpen>
-                            <NumberedItem number="1" text="To promote integrated planning, design, execution, and O&M of municipal infrastructure across 7 core domains: Roads & Urban Transport, Water Supply & Distribution, Waste Water & Sewerage, Street Lighting & Energy Efficiency, Solid Waste Management, Survey, GIS & Town Planning, Urban Parks, Greenery & Public Spaces." />
+                            <NumberedItem number="1" text="To promote integrated planning, design, execution, and O&M of municipal infrastructure across 7 core domains: Roads & Municipal Transport, Water Supply & Distribution, Waste Water & Sewerage, Street Lighting & Energy Efficiency, Solid Waste Management, Survey, GIS & Town Planning, Urban Parks, Greenery & Public Spaces." />
                             <NumberedItem number="2" text="To develop technical standards, manuals, SOPs, and model bye-laws for Indian ULBs." />
                             <NumberedItem number="3" text="To promote adoption of new technologies in municipal services: GIS, SCADA, IoT, C&D waste recycling, smart lighting." />
                             <NumberedItem number="4" text="To undertake research, pilot projects, and documentation of best practices from Indian cities." />
@@ -199,7 +199,7 @@ const AboutIMEScreen = ({ navigation }) => {
                         <View style={styles.docCard}>
                             <Text style={styles.docLabel}>Name</Text>
                             <Text style={styles.paragraph}>
-                                The name of the Society shall be "Institution of Municipal
+                                The name of the Society shall be "Institution of Urban
                                 Engineers, India", hereinafter referred to as "IUE (India)".
                             </Text>
 
@@ -231,7 +231,7 @@ const AboutIMEScreen = ({ navigation }) => {
                         <View style={styles.docCard}>
                             <Text style={styles.docLabel}>Between</Text>
                             <Text style={styles.paragraph}>
-                                Institution of Municipal Engineers, India, a national
+                                Institution of Urban Engineers, India, a national
                                 professional body, Registered Office at Chennai AND [Partner
                                 Institution / State Govt / ULB].
                             </Text>
@@ -334,7 +334,7 @@ const AboutIMEScreen = ({ navigation }) => {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <Text style={styles.footerTitle}>
-                        Institution of Municipal Engineers, India (IUE India)
+                        Institution of Urban Engineers, India (IUE India)
                     </Text>
                     <Text style={styles.footerTagline}>
                         "Engineering Better Cities for Tomorrow"

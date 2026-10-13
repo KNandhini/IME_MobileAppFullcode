@@ -111,7 +111,7 @@ const MemberDashboardScreen = ({ navigation }) => {
             <Text style={styles.logoText}>IUE</Text>
           </View>
           <View>
-            <Text style={styles.appName}>Institution of Municipal Engineers</Text>
+            <Text style={styles.appName}>Institution of Urban Engineers</Text>
             <Text style={styles.appTagline}>Connect · Grow · Achieve</Text>
           </View>
         </View>
