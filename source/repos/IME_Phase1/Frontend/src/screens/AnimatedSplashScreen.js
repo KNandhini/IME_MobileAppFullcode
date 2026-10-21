@@ -1,343 +1,217 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import {
-    View,
-    StyleSheet,
-    Animated,
-    Easing,
-    useWindowDimensions,
-} from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Image, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
-import { Audio } from 'expo-av';
-import { AnimatedSplashScreenStyles as styles } from './screenStyles';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { COLORS } from './theme';
+import IMELogo from '../components/IMELogo';
 
-const COLORS = {
-    top: '#F4F6F8',
-    middle: '#E8EDF3',
-    bottom: '#D8E1EA',
-};
+// File location: Frontend/assets/video/rainwater_circular_transparent.webm
+const SPLASH_VIDEO = require('../../assets/video/rainwater_circular_transparent.webm');
 
-const SPARKLE_COUNT = 20;
-const SPARKLE_COLOR = '#B8860B'; // dark goldenrod
+// Static logo shown for the hold after the video ends.
+// File location: Frontend/assets/logo-clean.png (change if you want a different image)
+const HOLD_LOGO = require('../../assets/logo-clean.png');
 
-// Logo, sparkles, title, and music all start together at t=0 (no lead-in delay).
-const LOGO_START_DELAY_MS = 0;
+// true  = after the video ends, show HOLD_LOGO for HOLD_MS (reliable)
+// false = keep the video's own last frame on screen for HOLD_MS
+const HOLD_WITH_STATIC_LOGO = true;
 
-// How long the logo + music play together (after the logo appears)
-// before the fade-out begins.
-const SYNCED_PLAY_DURATION_MS = 7520;
+// Video frame size as a fraction of the screen's short side (1 = full width).
+const VIDEO_SIZE_RATIO = 1;
 
-// Total time-on-screen before the exit (fade-out) animation starts.
-// = 1s music-alone lead-in + 6s logo-and-music-together.
-const SPLASH_DURATION_MS = LOGO_START_DELAY_MS + SYNCED_PLAY_DURATION_MS;
+// Circular clip as a fraction of the video frame. Android draws the video's
+// transparent pixels as black, so this cuts away the black corners and ring.
+const CLIP_SCALE = 0.95;
 
-const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+// After the video ends, the logo stays visible this long before login opens.
+// 5000 = 5 seconds.
+const HOLD_MS = 5000;
+// Fade-out length. Matches the 480 ms fade-in of LoginScreen.
+const FADE_MS = 480;
+
+// Treat the video as ended when this close to its duration (seconds).
+const END_TOLERANCE_S = 0.2;
+
+// Safety nets so the app can never get stuck:
+const READY_FALLBACK_MS = 1500; // hide native splash even if first frame never fires
+const MAX_VIDEO_MS = 13000;     // video is ~10.05s long; move on if it stalls
 
 export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart }) {
     const { width, height } = useWindowDimensions();
+    const size = Math.round(Math.min(width, height) * VIDEO_SIZE_RATIO);
+    const clipSize = Math.round(size * CLIP_SCALE);
 
-    const layout = useMemo(() => {
-        const shortSide = Math.min(width, height);
-        const scale = clamp(shortSide / 375, 0.82, 1.3);
+    const [failed, setFailed] = useState(false);
+    const [holding, setHolding] = useState(false);
+    const fade = useRef(new Animated.Value(1)).current;
 
-        const logoSize = clamp(200 * scale, 118, 236);
-        const maxSparkleRadius = Math.max(70, shortSide / 2 - 36);
-        const sparkleRadius = Math.min(logoSize * 0.66, maxSparkleRadius);
+    // Always call the latest callbacks without re-subscribing listeners.
+    const callbacks = useRef({ onFinish, onReady, onExitStart });
+    callbacks.current = { onFinish, onReady, onExitStart };
 
-        return {
-            logoSize,
-            sparkleRadius,
-            sparkleStep: clamp(10 * scale, 6, 14),
-            titleSize: clamp(27 * scale, 20, 32),
-        };
-    }, [width, height]);
+    const readySent = useRef(false);
+    const holdStarted = useRef(false);
+    const exited = useRef(false);
+    const finished = useRef(false);
+    const holdTimer = useRef(null);
+    const finishTimer = useRef(null);
 
-    const logoScale = useRef(new Animated.Value(0.85)).current;
-    const logoOpacity = useRef(new Animated.Value(0)).current;
-
-    const titleOpacity = useRef(new Animated.Value(0)).current;
-    const titleTranslate = useRef(new Animated.Value(14)).current;
-
-    const screenFade = useRef(new Animated.Value(1)).current;
-    const screenScale = useRef(new Animated.Value(1)).current;
-
-    const sparkleAnims = useRef(
-        Array.from({ length: SPARKLE_COUNT }, () => new Animated.Value(0)),
-    ).current;
-
-    // Ref to the loaded background music Sound object
-    const soundRef = useRef(null);
-
-    // Tell the parent (App.js) that this screen has actually painted a frame,
-    // so the native splash screen can be hidden without a white gap showing
-    // between it and this gradient.
-    useEffect(() => {
-        const raf1 = requestAnimationFrame(() => {
-            const raf2 = requestAnimationFrame(() => {
-                onReady && onReady();
-            });
-            return () => cancelAnimationFrame(raf2);
-        });
-        return () => cancelAnimationFrame(raf1);
+    const signalReady = useCallback(() => {
+        if (readySent.current) return;
+        readySent.current = true;
+        callbacks.current.onReady && callbacks.current.onReady();
     }, []);
 
-    // Load and immediately play the background music — this starts the
-    // instant it's ready, in lockstep with the logo/sparkle/title animation.
-    useEffect(() => {
-        let isMounted = true;
-
-        const loadAndPlay = async () => {
-            try {
-                await Audio.setAudioModeAsync({
-                    playsInSilentModeIOS: true,
-                    staysActiveInBackground: false,
-                    shouldDuckAndroid: true,
-                });
-
-                const { sound } = await Audio.Sound.createAsync(
-                    require('../assets/audio/splash-theme.mp3'),
-                    { shouldPlay: true, volume: 1.0 },
-                );
-
-                if (!isMounted) {
-                    await sound.unloadAsync();
-                    return;
-                }
-
-                soundRef.current = sound;
-            } catch (e) {
-                console.warn('Splash audio failed to load/play:', e.message);
-            }
-        };
-
-        loadAndPlay();
-
-        return () => {
-            isMounted = false;
-            if (soundRef.current) {
-                soundRef.current.stopAsync().catch(() => { });
-                soundRef.current.unloadAsync().catch(() => { });
-                soundRef.current = null;
-            }
-        };
+    const finishOnce = useCallback(() => {
+        if (finished.current) return;
+        finished.current = true;
+        callbacks.current.onFinish && callbacks.current.onFinish();
     }, []);
 
-    useEffect(() => {
-        const activeLoops = [];
-
-        Animated.sequence([
-            Animated.delay(LOGO_START_DELAY_MS),
-            Animated.parallel([
-                Animated.timing(logoOpacity, {
-                    toValue: 1,
-                    duration: 520,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.spring(logoScale, {
-                    toValue: 1,
-                    friction: 7,
-                    tension: 55,
-                    useNativeDriver: true,
-                }),
-            ]),
-        ]).start();
-
-        sparkleAnims.forEach((anim) => {
-            // Staged relative to logo start (t=0), each sparkle begins at a
-            // slightly randomized offset so they don't all pulse in unison.
-            const delay = LOGO_START_DELAY_MS + 700 + Math.random() * 700;
-            let cancelled = false;
-
-            const loop = () => {
-                if (cancelled) return;
-
-                Animated.sequence([
-                    Animated.delay(delay),
-                    Animated.timing(anim, {
-                        toValue: 1,
-                        duration: 600 + Math.random() * 300,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                    Animated.timing(anim, {
-                        toValue: 0,
-                        duration: 600 + Math.random() * 300,
-                        easing: Easing.inOut(Easing.ease),
-                        useNativeDriver: true,
-                    }),
-                ]).start(() => loop());
-            };
-
-            loop();
-
-            activeLoops.push(() => {
-                cancelled = true;
-            });
-        });
-
-        Animated.sequence([
-            // Title appears shortly after the logo starts (still at t≈0 base).
-            Animated.delay(LOGO_START_DELAY_MS + 750),
-            Animated.parallel([
-                Animated.timing(titleOpacity, {
-                    toValue: 1,
-                    duration: 450,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-                Animated.timing(titleTranslate, {
-                    toValue: 0,
-                    duration: 450,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: true,
-                }),
-            ]),
-        ]).start();
-
-      const exitTimer = setTimeout(() => {
-    const FADE_MS = 1000;   // 1 full second of fade — matches screen fade
-    const STEP_MS = 40;
-    const fadeSteps = Math.round(FADE_MS / STEP_MS);
-
-    let step = 0;
-    const MIN_VOLUME = 0.0001;
-    const startVolume = 1.0;
-
-    const volumeInterval = setInterval(() => {
-        step += 1;
-        const t = Math.min(1, step / fadeSteps);
-        const nextVolume = startVolume * Math.pow(MIN_VOLUME / startVolume, t);
-
-        if (soundRef.current) {
-            soundRef.current.setVolumeAsync(t >= 1 ? 0 : nextVolume).catch(() => {});
-        }
-
-        if (step >= fadeSteps) {
-            clearInterval(volumeInterval);
-            if (soundRef.current) {
-                soundRef.current.stopAsync().catch(() => { });
-            }
-        }
-    }, STEP_MS);
-
-    // Audio fade and screen fade start together and both last 1000ms,
-    // so both music and visuals finish at the exact same instant: t=9s.
-    if (onExitStart) {
-        onExitStart();
-    }
-
-    Animated.parallel([
-        Animated.timing(screenFade, {
+    // After the hold: tell the app the exit starts (login fades in), fade out, then finish.
+    const exit = useCallback(() => {
+        if (exited.current) return;
+        exited.current = true;
+        console.log('[Splash] hold finished (' + Date.now() + '), opening login');
+        callbacks.current.onExitStart && callbacks.current.onExitStart();
+        Animated.timing(fade, {
             toValue: 0,
             duration: FADE_MS,
-            easing: Easing.in(Easing.ease),
             useNativeDriver: true,
-        }),
-        Animated.timing(screenScale, {
-            toValue: 1.06,
-            duration: FADE_MS,
-            easing: Easing.in(Easing.ease),
-            useNativeDriver: true,
-        }),
-    ]).start(() => {
-        clearInterval(volumeInterval);
-        if (soundRef.current) {
-            soundRef.current.unloadAsync().catch(() => {});
-            soundRef.current = null;
+        }).start(({ finished: done }) => {
+            if (done) finishOnce();
+        });
+        // Fallback in case the animation callback never fires.
+        finishTimer.current = setTimeout(finishOnce, FADE_MS + 400);
+    }, [fade, finishOnce]);
+
+    const player = useVideoPlayer(SPLASH_VIDEO, (p) => {
+        p.loop = false;   // play exactly once
+        p.muted = false;  // keep the video's own audio track
+        p.volume = 1.0;
+        p.timeUpdateEventInterval = 0.2;
+        try {
+            p.audioMixingMode = 'doNotMix'; // take audio focus on Android
+        } catch (e) {
+            // not available on this expo-video version: safe to ignore
         }
-        if (onFinish) {
-            onFinish();
-        }
+        p.play();
     });
-}, SPLASH_DURATION_MS);
+
+    // Starts the hold. Runs once, whether the video ended, failed or stalled.
+    const startHold = useCallback(() => {
+        if (holdStarted.current) return;
+        holdStarted.current = true;
+        console.log('[Splash] video ended, logo hold started (' + Date.now() + ')');
+        signalReady();
+        try {
+            player.pause(); // freeze, so nothing restarts or blanks the frame
+        } catch (e) {
+            // player may already be released: safe to ignore
+        }
+        setHolding(true);
+        holdTimer.current = setTimeout(exit, HOLD_MS);
+    }, [exit, signalReady, player]);
+
+    useEffect(() => {
+        const endSub = player.addListener('playToEnd', startHold);
+
+        // Backup end detection in case 'playToEnd' is late or never fires on Android.
+        const timeSub = player.addListener('timeUpdate', ({ currentTime }) => {
+            const duration = player.duration;
+            if (duration > 0 && currentTime >= duration - END_TOLERANCE_S) {
+                startHold();
+            }
+        });
+
+        const statusSub = player.addListener('statusChange', ({ status, error }) => {
+            if (status === 'error') {
+                console.warn('Splash video failed:', error && error.message);
+                setFailed(true);
+                startHold();
+            }
+        });
+        const readyTimer = setTimeout(signalReady, READY_FALLBACK_MS);
+        const maxTimer = setTimeout(startHold, MAX_VIDEO_MS);
 
         return () => {
-            clearTimeout(exitTimer);
-            activeLoops.forEach((cancel) => cancel());
+            endSub.remove();
+            timeSub.remove();
+            statusSub.remove();
+            clearTimeout(readyTimer);
+            clearTimeout(maxTimer);
+        };
+    }, [player, startHold, signalReady]);
+
+    // Clean up the hold and finish timers on unmount.
+    useEffect(() => {
+        return () => {
+            clearTimeout(holdTimer.current);
+            clearTimeout(finishTimer.current);
         };
     }, []);
 
-    return (
-        <Animated.View
-            style={[
-                StyleSheet.absoluteFill,
-                {
-                    opacity: screenFade,
-                    transform: [{ scale: screenScale }],
-                },
-            ]}
-        >
-            <StatusBar style="light" hidden animated />
+    const showStaticLogo = holding && HOLD_WITH_STATIC_LOGO && !failed;
 
+    let body;
+    if (failed) {
+        // Video could not play: show the app logo for the same hold time.
+        body = <IMELogo size="large" animated={false} />;
+    } else if (showStaticLogo) {
+        body = (
+            <Image
+                source={HOLD_LOGO}
+                style={{ width: clipSize, height: clipSize }}
+                resizeMode="contain"
+                fadeDuration={0}
+            />
+        );
+    } else {
+        body = (
+            <View
+                style={{
+                    width: clipSize,
+                    height: clipSize,
+                    borderRadius: clipSize / 2,
+                    overflow: 'hidden',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                }}
+            >
+                <VideoView
+                    player={player}
+                    style={{ width: size, height: size }}
+                    contentFit="contain"
+                    nativeControls={false}
+                    fullscreenOptions={{ enable: false }}
+                    allowsPictureInPicture={false}
+                    surfaceType="textureView"
+                    onFirstFrameRender={signalReady}
+                />
+            </View>
+        );
+    }
+
+    return (
+        <Animated.View style={[styles.container, { opacity: fade }]} pointerEvents="none">
+            <StatusBar style="light" hidden animated />
             <LinearGradient
-                colors={[COLORS.top, COLORS.middle, COLORS.bottom]}
+                colors={[COLORS.headerStart, COLORS.headerEnd]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
+                style={styles.container}
             >
-                <View style={styles.center}>
-                    {sparkleAnims.map((anim, i) => {
-                        const angle = (2 * Math.PI * i) / SPARKLE_COUNT;
-                        const radius =
-                            layout.sparkleRadius + (i % 3) * layout.sparkleStep;
-
-                        const x = radius * Math.cos(angle);
-                        const y = radius * Math.sin(angle) * 0.9;
-
-                        return (
-                            <Animated.View
-                                key={i}
-                                pointerEvents="none"
-                                style={[
-                                    styles.sparkle,
-                                    {
-                                        backgroundColor: SPARKLE_COLOR,
-                                        opacity: anim,
-                                        transform: [
-                                            { translateX: x },
-                                            { translateY: y },
-                                            {
-                                                scale: anim.interpolate({
-                                                    inputRange: [0, 1],
-                                                    outputRange: [0.4, 1.1],
-                                                }),
-                                            },
-                                        ],
-                                    },
-                                ]}
-                            />
-                        );
-                    })}
-
-                    <Animated.Image
-                        source={require('../../assets/logo-clean.png')}
-                        style={[
-                            styles.logo,
-                            {
-                                width: layout.logoSize,
-                                height: layout.logoSize,
-                                opacity: logoOpacity,
-                                transform: [{ scale: logoScale }],
-                            },
-                        ]}
-                        resizeMode="contain"
-                    />
-
-                    <Animated.Text
-                        style={[
-                            styles.title,
-                            {
-                                fontSize: layout.titleSize,
-                                opacity: titleOpacity,
-                                transform: [{ translateY: titleTranslate }],
-                            },
-                        ]}
-                    >
-                        
-                    </Animated.Text>
-                </View>
+                {body}
             </LinearGradient>
         </Animated.View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+});
