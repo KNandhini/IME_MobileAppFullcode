@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "IME App",
+    "name": "Institution of Urban Engineers(India)",
     "slug": "imeapp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -32,7 +32,8 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-logo.png",
+          "image": "./assets/splash.png",
+          "imageWidth": 240,
           "resizeMode": "contain",
           "backgroundColor": "#FBF6EA"
         }
