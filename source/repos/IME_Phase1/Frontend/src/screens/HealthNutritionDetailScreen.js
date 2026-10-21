@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Dimensions, Linking, ActivityIndicator } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { Video, Audio } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import { WebView } from 'react-native-webview';
 import { healthNutritionService } from '../services/healthNutritionService';
 import { HealthNutritionDetailScreenStyles as styles } from './screenStyles';
@@ -35,101 +36,63 @@ function ImagePreview({ uri }) {
 // no extra transport controls. Always starts (and resets to) 0:00.
 // Uses the shared styles.audioCard / styles.audioButton / styles.audioHint
 // from screenStyles.js instead of a local StyleSheet.
+//
+
+// and the time labels below are all in seconds.
 function AudioPreview({ uri }) {
-  const soundRef = useRef(null);
+  const player = useAudioPlayer(uri, { updateInterval: 500 });
+  const status = useAudioPlayerStatus(player);
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [wantsPlay, setWantsPlay] = useState(false); // user pressed play at least once
+  const [seeking, setSeeking] = useState(false);
+  const [seekValue, setSeekValue] = useState(0);
 
+  // Let audio play even when the iPhone silent switch is on.
   useEffect(() => {
-    return () => {
-      if (soundRef.current) {
-        soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
-    };
+    setAudioModeAsync({ playsInSilentMode: true }).catch(() => {});
   }, []);
 
-  const formatTime = (milliseconds) => {
-    const totalSeconds = Math.floor((milliseconds || 0) / 1000);
+  // Audio finished: go back to 0:00 and show the play icon again.
+  useEffect(() => {
+    if (status.didJustFinish) {
+      player.pause();
+      player.seekTo(0).catch(() => {});
+    }
+  }, [status.didJustFinish, player]);
+
+  const isPlaying = !!status.playing;
+  const loading = wantsPlay && !status.isLoaded;
+  const duration = status.duration || 0;
+  const position = seeking ? seekValue : (status.currentTime || 0);
+
+  const formatTime = (seconds) => {
+    const totalSeconds = Math.floor(seconds || 0);
     const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    const secs = totalSeconds % 60;
 
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const createSound = async () => {
-    const { sound } = await Audio.Sound.createAsync(
-      { uri },
-      {
-        shouldPlay: true,
-        positionMillis: 0,
-        progressUpdateIntervalMillis: 500,
-      },
-      (status) => {
-        if (!status.isLoaded) return;
-
-        setPosition(status.positionMillis || 0);
-        setDuration(status.durationMillis || 0);
-        setIsPlaying(status.isPlaying);
-
-        // Audio finished
-        if (status.didJustFinish) {
-          setIsPlaying(false);
-          setPosition(0);
-
-          soundRef.current?.setPositionAsync(0);
-        }
-      }
-    );
-
-    soundRef.current = sound;
-  };
-
-  const togglePlay = async () => {
-    setLoading(true);
-
+  const togglePlay = () => {
     try {
-      // First time play
-      if (!soundRef.current) {
-        await createSound();
-        return;
-      }
-
-      const status = await soundRef.current.getStatusAsync();
-
-      if (!status.isLoaded) return;
-
-      if (status.isPlaying) {
-        // Pause
-        await soundRef.current.pauseAsync();
-        setIsPlaying(false);
+      setWantsPlay(true);
+      if (player.playing) {
+        player.pause();
       } else {
-        // Continue from current position
-        await soundRef.current.playAsync();
-        setIsPlaying(true);
+        player.play();
       }
     } catch (error) {
       console.log('Audio playback error:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSeek = async (value) => {
     try {
-      if (!soundRef.current) return;
-
-      const status = await soundRef.current.getStatusAsync();
-
-      if (!status.isLoaded) return;
-
-      await soundRef.current.setPositionAsync(value);
-      setPosition(value);
+      await player.seekTo(value);
     } catch (error) {
       console.log('Audio seek error:', error);
+    } finally {
+      setSeeking(false);
     }
   };
 
@@ -194,8 +157,9 @@ function AudioPreview({ uri }) {
             minimumValue={0}
             maximumValue={duration || 1}
             value={position}
+            onSlidingStart={() => setSeeking(true)}
             onValueChange={(value) => {
-              setPosition(value);
+              setSeekValue(value);
             }}
             onSlidingComplete={handleSeek}
             minimumTrackTintColor={GOLD}
@@ -224,6 +188,7 @@ function AudioPreview({ uri }) {
     </View>
   );
 }
+
 // Preserves the uploaded video's real aspect ratio instead of forcing a fixed
 // box — landscape videos display landscape, portrait videos display portrait.
 function VideoPreview({ uri }) {
@@ -231,19 +196,35 @@ function VideoPreview({ uri }) {
   const maxHeight = screenHeight * 0.6;
   const computedHeight = Math.min(MEDIA_WIDTH / aspectRatio, maxHeight);
 
+  const player = useVideoPlayer(uri, (p) => {
+    p.loop = false;
+  });
+
+  // expo-video has no onReadyForDisplay/naturalSize; read the size from the
+  // video track instead.
+  useEffect(() => {
+    const applySize = (track) => {
+      const size = track?.size;
+      if (size?.width && size?.height) {
+        setAspectRatio(size.width / size.height);
+      }
+    };
+
+    const subs = [
+      player.addListener('sourceLoad', ({ availableVideoTracks }) =>
+        applySize(availableVideoTracks?.[0])
+      ),
+      player.addListener('videoTrackChange', ({ videoTrack }) => applySize(videoTrack)),
+    ];
+    return () => subs.forEach((s) => s.remove());
+  }, [player]);
+
   return (
-    <Video
-      source={{ uri }}
+    <VideoView
+      player={player}
       style={{ width: MEDIA_WIDTH, height: computedHeight, borderRadius: 12, backgroundColor: '#000' }}
-      useNativeControls
-      resizeMode="contain"
-      isLooping={false}
-      onReadyForDisplay={(event) => {
-        const naturalSize = event?.naturalSize;
-        if (naturalSize?.width && naturalSize?.height) {
-          setAspectRatio(naturalSize.width / naturalSize.height);
-        }
-      }}
+      nativeControls
+      contentFit="contain"
     />
   );
 }
