@@ -153,7 +153,7 @@ const MemberDashboardScreen = ({ navigation }) => {
         >
           <Text style={styles.lawBotTitle}>⚖️ Law Assistant</Text>
           <Text style={styles.lawBotSubtitle}>
-            Ask questions about the 74th Amendment Act
+            Ask questions
           </Text>
         </TouchableOpacity>
 
