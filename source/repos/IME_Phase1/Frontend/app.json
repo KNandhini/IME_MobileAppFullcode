@@ -7,9 +7,15 @@
     "icon": "./assets/icon.png",
     "scheme": "imeapp",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF6EA"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
+    
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.ime.app"
