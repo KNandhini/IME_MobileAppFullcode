@@ -92,7 +92,7 @@ const LawBotScreen = ({ navigation }) => {
       id: '0',
       sender: 'bot',
       text:
-        'Hello! I am the IME Law Assistant 🏛️\n\n' +
+        'Hello! I am the IUEI Law Assistant 🏛️\n\n' +
         'I can answer your questions about:\n' +
         '• The 74th Constitutional Amendment Act, 1992 (Articles 243-P to 243-ZG, the 12th Schedule)\n' +
         '• The Bylaws of Institution of Urban Engineers, India (IUEI) — membership, governance, elections, and funds\n\n' +
@@ -207,7 +207,7 @@ const LawBotScreen = ({ navigation }) => {
           <Text style={styles.headerIconText}>⚖</Text>
         </View>
         <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>IME Law Assistant</Text>
+          <Text style={styles.headerTitle}>IUEI Law Assistant</Text>
           <Text style={styles.headerSub}>74th Amendment & IUEI Bylaws</Text>
         </View>
         <View style={styles.liveTag}>

@@ -80,7 +80,7 @@ const sendErrorToBackend = (details) => {
 
 export const handleError = (error, context = {}) => {
   const details = buildErrorDetails(error, context);
-  console.error('[IME Error]', details);
+  console.error('[IUE Error]', details);
   sendErrorToBackend(details);
   return getSafeErrorMessage(details.status);
 };
