@@ -22,6 +22,31 @@ public class LawBotController : ControllerBase
         _logger = logger;
     }
 
+    /// <summary>
+    /// GET /api/lawbot/documents
+    /// Returns the registered law documents and their sample questions,
+    /// so the mobile app can render one quick-questions row per document
+    /// without hardcoding the list on the frontend.
+    /// </summary>
+    [HttpGet("documents")]
+    public ActionResult<List<LawBotDocumentDTO>> GetDocuments()
+    {
+        var docs = _lawBot.GetDocuments()
+            .Select(d => new LawBotDocumentDTO
+            {
+                Key = d.Key,
+                DisplayName = d.DisplayName,
+                SampleQuestions = d.SampleQuestions.ToList(),
+            })
+            .ToList();
+
+        return Ok(docs);
+    }
+
+    /// <summary>
+    /// POST /api/lawbot/ask
+    /// Routes the question to the relevant document(s) and returns an answer.
+    /// </summary>
     [HttpPost("ask")]
     public async Task<ActionResult<LawBotResponseDTO>> Ask([FromBody] LawBotRequestDTO request)
     {
@@ -46,13 +71,22 @@ public class LawBotController : ControllerBase
                 Message = "Law book PDF not found on server. Please contact admin."
             });
         }
+        catch (TimeoutException ex)
+        {
+            _logger.LogError(ex, "LawBot request timed out");
+            return StatusCode(504, new LawBotResponseDTO
+            {
+                Success = false,
+                Message = ex.Message
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "LawBot unexpected error");
             return StatusCode(500, new LawBotResponseDTO
             {
                 Success = false,
-                Message = $"Server error: {ex.Message}"  // shows real error in response for debugging
+                Message = $"Server error: {ex.Message}"
             });
         }
     }

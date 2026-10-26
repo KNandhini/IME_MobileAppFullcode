@@ -1,5 +1,7 @@
 import api, { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch } from 'expo/fetch';
+import { File as ExpoFile } from 'expo-file-system';
 
 // Reads the JWT from the parsed userData object in AsyncStorage — same
 // pattern used by achievementService for multipart requests, since axios
@@ -11,33 +13,51 @@ const getToken = async () => {
   return parsed?.token || parsed?.accessToken || null;
 };
 
-const multipartPost = async (url, formData) => {
-  const token = await getToken();
-  const res = await fetch(`${BASE_URL}/api${url}`, {
-    method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: formData,
+// expo/fetch rejects the old React Native file part { uri, name, type }
+// ("Unsupported FormDataPart implementation"). The screens still build their
+// FormData that way, so convert it here: every { uri } part becomes a real
+// ExpoFile, text fields are copied across unchanged. No screen changes needed.
+const toExpoFormData = (formData) => {
+  const converted = new FormData();
+  const parts = formData?._parts || [];
+
+  parts.forEach(([key, value]) => {
+    if (value && typeof value === 'object' && typeof value.uri === 'string') {
+      converted.append(key, new ExpoFile(value.uri));
+    } else {
+      converted.append(key, value);
+    }
   });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-  return res.json();
+
+  return converted;
 };
 
-const multipartPut = async (url, formData) => {
+const multipartRequest = async (method, url, formData) => {
   const token = await getToken();
-  const res = await fetch(`${BASE_URL}/api${url}`, {
-    method: 'PUT',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: formData,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
+  const fullUrl = `${BASE_URL}/api${url}`;
+
+  try {
+    const res = await fetch(fullUrl, {
+      method,
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: toExpoFormData(formData),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.log(`[healthNutrition ${method}] FAILED:`, res.status, fullUrl, text);
+      throw new Error(text || `HTTP ${res.status}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.log(`[healthNutrition ${method}] ERROR:`, fullUrl, error?.message);
+    throw error;
   }
-  return res.json();
 };
+
+const multipartPost = (url, formData) => multipartRequest('POST', url, formData);
+
+const multipartPut = (url, formData) => multipartRequest('PUT', url, formData);
 
 // Health & Nutrition is a standalone, read-only-for-members module — it is
 // intentionally NOT part of feedService / the Post feed. Posts only surface

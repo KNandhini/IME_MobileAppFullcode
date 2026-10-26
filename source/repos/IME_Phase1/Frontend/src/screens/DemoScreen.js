@@ -17,9 +17,9 @@ const AUTO_ADVANCE_MS = 5000;
 const SLIDES = [
   {
     id: 'welcome',
-    title: 'Institution of Municipal Engineers (IME)',
+    title: 'Institution of Urban Engineers (IUE)',
     subtitle: 'Member Portal',
-    desc: 'A unified platform for IME members to connect, collaborate, and stay informed. Available on Android and iOS.',
+    desc: 'A unified platform for IUE members to connect, collaborate, and stay informed. Available on Android and iOS.',
     icon: 'city-variant-outline',
     color: GREEN,
     accent: GREEN,
@@ -29,7 +29,7 @@ const SLIDES = [
     id: 'login',
     title: 'Step 1 — Open the App',
     subtitle: 'Sign In Screen',
-    desc: 'Launch the IME app to reach the sign-in screen. Tap "Sign In" with your registered email and password.',
+    desc: 'Launch the IUE app to reach the sign-in screen. Tap "Sign In" with your registered email and password.',
     icon: 'login',
     color: NAVY,
     accent: GREEN,
@@ -99,7 +99,7 @@ const SLIDES = [
     id: 'map',
     title: 'Step 8 — Explore Map',
     subtitle: 'Find Corporations',
-    desc: 'Browse municipal corporations across India. Drill down by State → District → Corporation to view full details.',
+    desc: 'Browse Urban corporations across India. Drill down by State → District → Corporation to view full details.',
     icon: 'map-search-outline',
     color: GREEN,
     accent: GREEN,
@@ -108,8 +108,8 @@ const SLIDES = [
   {
     id: 'done',
     title: "You're All Set!",
-    subtitle: 'Start Your IME Journey',
-    desc: 'Sign in with your member credentials to access all features. New member? Register to join the IME community.',
+    subtitle: 'Start Your IUE Journey',
+    desc: 'Sign in with your member credentials to access all features. New member? Register to join the IUE community.',
     icon: 'check-circle-outline',
     color: NAVY,
     accent: GREEN,
@@ -147,8 +147,8 @@ const MockupContent = ({ type, accent }) => {
           <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: GREEN, alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
             <MaterialCommunityIcons name="city-variant-outline" size={32} color={NAVY} />
           </View>
-          <Text style={{ color: GREEN, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IME</Text>
-          <Text style={{ color: WHITE, fontSize: 10, marginTop: 2 }}>Institution of Municipal Corporation</Text>
+          <Text style={{ color: GREEN, fontWeight: '900', fontSize: 18, letterSpacing: 3 }}>IUE</Text>
+          <Text style={{ color: WHITE, fontSize: 10, marginTop: 2 }}>Institution of Urban Corporation</Text>
           <View style={{ marginTop: 20, width: 40, height: 3, backgroundColor: GREEN, borderRadius: 2 }} />
         </View>
       );
@@ -160,7 +160,7 @@ const MockupContent = ({ type, accent }) => {
             <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 2, borderColor: GREEN, alignItems: 'center', justifyContent: 'center' }}>
               <MaterialCommunityIcons name="city-variant-outline" size={20} color={GREEN} />
             </View>
-            <Text style={{ color: GREEN, fontSize: 10, fontWeight: '900', marginTop: 4 }}>IME</Text>
+            <Text style={{ color: GREEN, fontSize: 10, fontWeight: '900', marginTop: 4 }}>IUE</Text>
           </View>
           <View style={{ backgroundColor: WHITE, borderRadius: 10, margin: 8, padding: 10 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 11, marginBottom: 6 }}>Sign In</Text>
@@ -241,7 +241,7 @@ const MockupContent = ({ type, accent }) => {
               <Text style={{ color: WHITE, fontSize: 16, fontWeight: '700' }}>M</Text>
             </View>
             <Text style={{ color: WHITE, fontWeight: '700', fontSize: 10 }}>Member Name</Text>
-            <Text style={{ color: GREEN, fontSize: 8 }}>IME Member · Active</Text>
+            <Text style={{ color: GREEN, fontSize: 8 }}>IUE Member · Active</Text>
           </View>
           {['Full Name', 'Email', 'Contact', 'Location'].map((f, i) => (
             <View key={i} style={{ backgroundColor: WHITE, marginHorizontal: 8, marginTop: 4, borderRadius: 6, padding: 6 }}>
@@ -369,7 +369,7 @@ const MockupContent = ({ type, accent }) => {
             Ready to Go!
           </Text>
           <Text style={{ color: '#6B7A8D', fontSize: 9, marginTop: 6, textAlign: 'center', paddingHorizontal: 20 }}>
-            Sign in to your IME account{'\n'}and start exploring all features.
+            Sign in to your IUE account{'\n'}and start exploring all features.
           </Text>
           <View style={{ marginTop: 16, backgroundColor: GREEN, borderRadius: 20, paddingVertical: 8, paddingHorizontal: 20 }}>
             <Text style={{ color: NAVY, fontWeight: '700', fontSize: 10 }}>Sign In Now</Text>

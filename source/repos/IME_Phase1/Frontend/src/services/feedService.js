@@ -1,6 +1,8 @@
 import api, { BASE_URL } from '../utils/api';
 import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch } from 'expo/fetch';
+import { File as ExpoFile } from 'expo-file-system';
 
 export const feedService = {
   getFeed: async (pageNumber = 1, pageSize = 10) => {
@@ -33,7 +35,7 @@ export const feedService = {
       console.warn('Could not read auth token:', e);
     }
 
-    const response = await api.get(`/feed/member/${memberId}`, {
+    const response = await api.get(`/Feed/member/${memberId}`, {
       params: {
         pageNumber,
         pageSize,
@@ -51,8 +53,13 @@ export const feedService = {
   }
 },
 
-  // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.
-  createPost: async (content, mediaItems = [], clubId = 0) => {
+  // Uses expo/fetch + ExpoFile: the Expo fetch no longer accepts the old
+  // { uri, name, type } FormData object, and the global File needs
+  // (parts, name), so we use expo-file-system's File (reads from a uri).
+createPost: async (content, mediaItems = [], clubId = 0) => {
+  const url = `${BASE_URL}/api/Feed/post`;
+
+  try {
     const token = await AsyncStorage.getItem('authToken');
 
     const formData = new FormData();
@@ -61,38 +68,64 @@ export const feedService = {
     }
     formData.append('clubId', String(clubId));
     formData.append('createdDate', new Date().toISOString());
+
     mediaItems.forEach((item) => {
-      formData.append('files', {
-        uri:  item.uri,
-        name: item.fileName || `media_${Date.now()}`,
-        type: item.mimeType || (item.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-      });
+      console.log('[createPost] file uri:', item.uri);
+      formData.append('files', new ExpoFile(item.uri));
     });
 
-    const response = await fetch(`${BASE_URL}/api/feed/post`, {
+    console.log('[createPost] URL:', url, 'files:', mediaItems.length, 'hasToken:', !!token);
+
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
-        // Do NOT set Content-Type — fetch sets multipart/form-data with boundary automatically
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: formData,
     });
 
+    console.log('[createPost] status:', response.status);
+
+    const text = await response.text();
+    let body;
+    try { body = JSON.parse(text); } catch { body = { message: text }; }
+
+    // HTTP error (400, 401, 413, 500 ...)
     if (!response.ok) {
-      const text = await response.text();
-      let parsed;
-      try { parsed = JSON.parse(text); } catch { parsed = { message: text }; }
-      throw Object.assign(new Error(parsed?.message || `HTTP ${response.status}`), {
-        response: { status: response.status, data: parsed },
+      console.log('[createPost] FAILED:', response.status, text);
+      throw Object.assign(new Error(body?.message || `HTTP ${response.status}`), {
+        response: { status: response.status, data: body },
       });
     }
 
-    return response.json(); // { success, message, data: { postId, mediaCount } }
-  },
+    // The API returns 200 with success:false for business errors
+    if (body?.success === false) {
+      console.log('[createPost] API said no:', body.message);
+      throw Object.assign(new Error(body.message || 'Post failed.'), {
+        response: { status: response.status, data: body },
+      });
+    }
+
+    // Files sent but none saved (usually a missing/unsupported extension)
+    const sent = mediaItems.length;
+    const saved = body?.data?.mediaCount ?? 0;
+    if (sent > 0 && saved < sent) {
+      console.log(`[createPost] WARNING: sent ${sent} file(s), server saved ${saved}`);
+    }
+
+    return body; // { success, message, data: { postId, mediaCount } }
+  } catch (error) {
+    console.log('[createPost] ERROR:', {
+      url,
+      status: error?.response?.status,
+      message: error?.message,
+    });
+    throw error;
+  }
+},
   deletePost: async (postId) => {
     debugger;
   const response = await api.delete(`/Feed/post/${postId}`);
   return response.data;
 },
 };
-

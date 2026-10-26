@@ -1,13 +1,12 @@
 {
   "expo": {
-    "name": "IME App",
+    "name": "Institution of Urban Engineers(India)",
     "slug": "imeapp",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "imeapp",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-logo.png",
       "resizeMode": "contain",
@@ -16,6 +15,7 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.ime.app"
@@ -38,12 +38,19 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash-logo.png",
+          "image": "./assets/splash.png",
+          "imageWidth": 240,
           "resizeMode": "contain",
           "backgroundColor": "#FBF6EA"
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-secure-store",
+      "expo-sharing",
+      "expo-status-bar",
+      "expo-video",
+      "expo-audio",
+      "expo-asset"
     ],
     "extra": {
       "eas": {

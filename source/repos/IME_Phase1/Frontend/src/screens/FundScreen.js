@@ -10,13 +10,13 @@ const FundScreen = ({ navigation }) => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.heroBanner}>
         <Text style={styles.heroIcon}>💰</Text>
-        <Text style={styles.heroTitle}>IME Fund</Text>
-        <Text style={styles.heroSubtitle}>Support & Contribute to IME Initiatives</Text>
+        <Text style={styles.heroTitle}>IUE Fund</Text>
+        <Text style={styles.heroSubtitle}>Support & Contribute to IUE Initiatives</Text>
       </View>
 
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Membership Fee</Text>
-        <Text style={styles.cardDesc}>Pay your one-time membership fee to stay active and access all IME benefits.</Text>
+        <Text style={styles.cardDesc}>Pay your one-time membership fee to stay active and access all IUE benefits.</Text>
         <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate('Payment')}>
           <Text style={styles.btnText}>Pay Fee →</Text>
         </TouchableOpacity>
@@ -32,14 +32,14 @@ const FundScreen = ({ navigation }) => {
 
       <View style={[styles.card, styles.comingSoonCard]}>
         <Text style={styles.comingSoonBadge}>Coming Soon</Text>
-        <Text style={styles.cardTitle}>Donate to IME</Text>
-        <Text style={styles.cardDesc}>Contribute to special projects and events organised by IME.</Text>
+        <Text style={styles.cardTitle}>Donate to IUE</Text>
+        <Text style={styles.cardDesc}>Contribute to special projects and events organised by IUE.</Text>
       </View>
 
       <View style={[styles.card, styles.comingSoonCard]}>
         <Text style={styles.comingSoonBadge}>Coming Soon</Text>
-        <Text style={styles.cardTitle}>IME Welfare Fund</Text>
-        <Text style={styles.cardDesc}>Support fellow members in times of need through the IME Welfare Fund.</Text>
+        <Text style={styles.cardTitle}>IUE Welfare Fund</Text>
+        <Text style={styles.cardDesc}>Support fellow members in times of need through the IUE Welfare Fund.</Text>
       </View>
     </ScrollView>
   );

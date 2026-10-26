@@ -16,7 +16,7 @@ import {
   Modal,
 } from 'react-native';
 
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { feedService } from '../services/feedService';
@@ -55,6 +55,572 @@ const toPublicUrl = (filePath) => {
   if (idx === -1) return filePath;
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
+};
+
+// ── Muted looping preview for one video inside the carousel ──
+// expo-video needs one player per video, created with a hook, and hooks
+// can't run inside .map() — so each video gets this small component.
+const CarouselVideo = ({ mediaId, uri, onFail }) => {
+  const player = useVideoPlayer(uri, (p) => {
+    p.muted = true;
+    p.loop = true;
+    p.play();
+  });
+
+  React.useEffect(() => {
+    console.log('[VIDEO START]', { mediaId, uri });
+    const sub = player.addListener('statusChange', ({ status, error }) => {
+      if (status === 'readyToPlay') {
+        console.log('[VIDEO SUCCESS]', { mediaId, uri });
+      } else if (status === 'error') {
+        console.log('[VIDEO FAILED]', { mediaId, uri, error });
+        onFail && onFail(error);
+      }
+    });
+    return () => sub.remove();
+  }, [player, mediaId, uri]);
+
+  return (
+    <VideoView
+      player={player}
+      style={{ width: '100%', height: '100%', position: 'absolute' }}
+      contentFit="contain"
+      nativeControls={false}
+      pointerEvents="none"
+    />
+  );
+};
+
+// ── MediaCarousel: plain ScrollView (not a nested FlatList), mirroring the
+// pattern that already works in FeedCard.js. Each slide is a View with FIXED
+// pixel width/height (CAROUSEL_WIDTH / CAROUSEL_HEIGHT) — the Image/Video
+// inside can then safely use '100%' because its parent has a real,
+// non-ambiguous size. A nested horizontal FlatList's auto-sized cell wrapper
+// was the root cause of the blank/gray boxes.
+// Defined at module level (not inside MyPostScreen) so it isn't recreated on
+// every parent render — required now that it contains video player hooks. ──
+const MediaCarousel = ({ media, onOpenViewer }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [failedIds, setFailedIds] = useState({});
+
+  if (!Array.isArray(media) || media.length === 0) {
+    return null;
+  }
+
+  const markFailed = (mediaId, uri, error) => {
+    console.log('[MEDIA ERROR]', {
+      mediaId,
+      uri,
+      error,
+    });
+
+    setFailedIds(prev => ({
+      ...prev,
+      [mediaId]: true,
+    }));
+  };
+
+  const handleScroll = (event) => {
+    const index = Math.round(
+      event.nativeEvent.contentOffset.x / CAROUSEL_WIDTH
+    );
+    setActiveIndex(index);
+  };
+
+  return (
+    <View
+      style={[
+        styles.postImage,
+        {
+          width: CAROUSEL_WIDTH,
+          height: CAROUSEL_HEIGHT,
+          overflow: 'hidden',
+          backgroundColor: '#EEEEEE',
+        },
+      ]}
+    >
+
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={handleScroll}
+        scrollEventThrottle={16}
+      >
+        {media.map((m, index) => {
+          const mediaId = m.mediaId;
+          const uri = toPublicUrl(m.filePath);
+          const mediaType = (m.mediaType || 'image').toLowerCase();
+
+          // Fixed-size slide wrapper — this is the key difference vs the
+          // old FlatList version. width/height here are real numbers, so
+          // the Image/Video's '100%' inside has something concrete to fill.
+          const slideStyle = {
+            width: CAROUSEL_WIDTH,
+            height: CAROUSEL_HEIGHT,
+          };
+
+          if (!mediaId) {
+            return (
+              <View
+                key={`media-missing-${index}`}
+                style={[
+                  slideStyle,
+                  { justifyContent: 'center', alignItems: 'center' },
+                ]}
+              >
+                <Text>Media ID missing</Text>
+              </View>
+            );
+          }
+
+          if (failedIds[mediaId]) {
+            return (
+              <View
+                key={`media-failed-${mediaId}-${index}`}
+                style={[
+                  slideStyle,
+                  {
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    backgroundColor: '#EEEEEE',
+                  },
+                ]}
+              >
+                <Text style={{ fontSize: 12, color: '#888' }}>
+                  Couldn't load media
+                </Text>
+              </View>
+            );
+          }
+
+          if (mediaType === 'video') {
+            return (
+              <TouchableOpacity
+                key={`media-${mediaId}-${index}`}
+                style={slideStyle}
+                activeOpacity={0.9}
+                onPress={() => onOpenViewer && onOpenViewer(media, index)}
+              >
+                <View
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#000',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {/* Muted, no controls — lightweight preview thumbnail;
+                      contain so the full frame is visible, not cropped.
+                      Tapping anywhere opens the full-screen viewer. */}
+                  <CarouselVideo
+                    mediaId={mediaId}
+                    uri={uri}
+                    onFail={(error) => markFailed(mediaId, uri, error)}
+                  />
+                  <View
+                    style={{
+                      width: 52,
+                      height: 52,
+                      borderRadius: 26,
+                      backgroundColor: 'rgba(0,0,0,0.45)',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Text style={{ fontSize: 24, color: '#FFFFFF', marginLeft: 2 }}>▶</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          }
+
+          return (
+            <TouchableOpacity
+              key={`media-${mediaId}-${index}`}
+              style={slideStyle}
+              activeOpacity={0.9}
+              onPress={() => onOpenViewer && onOpenViewer(media, index)}
+            >
+              <Image
+                source={{ uri }}
+                style={{ width: '100%', height: '100%' }}
+                resizeMode="contain"
+                onLoadStart={() => {
+                  console.log('[IMAGE START]', { mediaId, uri });
+                }}
+                onLoad={() => {
+                  console.log('[IMAGE SUCCESS]', { mediaId, uri });
+                }}
+                onError={(error) => {
+                  console.log('[IMAGE FAILED]', {
+                    mediaId,
+                    uri,
+                    error: error?.nativeEvent,
+                  });
+                  markFailed(mediaId, uri, error?.nativeEvent);
+                }}
+              />
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+
+      {/* Counter */}
+
+      {media.length > 1 && (
+        <View
+          style={{
+            position: 'absolute',
+            top: 10,
+            right: 14,
+            maxWidth: CAROUSEL_WIDTH - 20,
+            zIndex: 10,
+            elevation: 10,
+            backgroundColor: 'rgba(0,0,0,0.75)',
+            borderRadius: 12,
+            paddingHorizontal: 10,
+            paddingVertical: 5,
+          }}
+        >
+          <Text
+            style={{
+              color: '#FFFFFF',
+              fontSize: 13,
+              fontWeight: '700',
+            }}
+          >
+            {activeIndex + 1}/{media.length}
+          </Text>
+        </View>
+      )}
+
+      {/* Dots */}
+
+      {media.length > 1 && (
+        <View
+          style={{
+            position: 'absolute',
+            bottom: 8,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+            elevation: 10,
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          {media.map((m, index) => (
+            <View
+              key={`dot-${m.mediaId}-${index}`}
+              style={{
+                width:
+                  index === activeIndex ? 16 : 6,
+                height: 6,
+                borderRadius: 3,
+                marginHorizontal: 3,
+                backgroundColor:
+                  index === activeIndex
+                    ? '#3B82F6'
+                    : 'rgba(255,255,255,0.7)',
+              }}
+            />
+          ))}
+        </View>
+      )}
+
+    </View>
+  );
+};
+
+// ── Full-screen media viewer: tap an image/video in the carousel to open
+// this. Shows one slide at a time, swipeable, with a close (✕) button.
+// Video gets custom controls (play/pause, ±10s seek, progress bar, time
+// labels) instead of native controls — matches FeedCard.js's viewer.
+// Also at module level, for the same reason as MediaCarousel above. ──
+const LIGHT_GREEN = '#A0C878';
+
+const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
+  const [index, setIndex] = useState(startIndex);
+  const [isPlaying, setIsPlaying] = useState(true);
+  // position/duration are kept in milliseconds so formatMs keeps working.
+  const [playbackStatus, setPlaybackStatus] = useState({ position: 0, duration: 0 });
+  const scrollRef = React.useRef(null);
+
+  const current = mediaList?.[index];
+  const currentIsVideo = (current?.mediaType || 'image').toLowerCase() === 'video';
+
+  // null source while the modal is closed or an image slide is showing,
+  // so nothing buffers needlessly.
+  const currentVideoUrl =
+    visible && currentIsVideo ? toPublicUrl(current.filePath) : null;
+
+  // One player; expo-video recreates it when the source URL changes.
+  const player = useVideoPlayer(currentVideoUrl, (p) => {
+    p.loop = false;
+    p.timeUpdateEventInterval = 0.25; // seconds
+    p.play();
+  });
+
+  // Keep React state in sync with the player (expo-video works in seconds).
+  React.useEffect(() => {
+    const subs = [
+      player.addListener('playingChange', ({ isPlaying: playing }) => setIsPlaying(playing)),
+      player.addListener('timeUpdate', ({ currentTime }) =>
+        setPlaybackStatus({
+          position: (currentTime || 0) * 1000,
+          duration: (player.duration || 0) * 1000,
+        })
+      ),
+      player.addListener('sourceLoad', ({ duration }) =>
+        setPlaybackStatus((s) => ({ ...s, duration: (duration || 0) * 1000 }))
+      ),
+      player.addListener('playToEnd', () => setIsPlaying(false)),
+    ];
+    return () => subs.forEach((s) => s.remove());
+  }, [player]);
+
+  // Pause when the modal closes.
+  React.useEffect(() => {
+    if (!visible) {
+      try { player.pause(); } catch (e) { /* player may already be released */ }
+    }
+  }, [visible, player]);
+
+  React.useEffect(() => {
+    if (visible) {
+      setIndex(startIndex);
+      setIsPlaying(true);
+      setPlaybackStatus({ position: 0, duration: 0 });
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ x: startIndex * SCREEN_WIDTH, animated: false });
+      });
+    }
+  }, [visible, startIndex]);
+
+  const handleScroll = (event) => {
+    const i = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+    setIndex(i);
+    setIsPlaying(true);
+    setPlaybackStatus({ position: 0, duration: 0 });
+  };
+
+  const togglePlayPause = () => {
+    try {
+      // If the video already finished, pressing play restarts it.
+      if (playbackStatus.duration && playbackStatus.position >= playbackStatus.duration - 250) {
+        player.currentTime = 0;
+        player.play();
+        return;
+      }
+      if (player.playing) player.pause();
+      else player.play();
+    } catch (e) {
+      // ignore — player not ready
+    }
+  };
+
+  // Seek by deltaMs (e.g. ±10000), clamped to [0, duration].
+  const seekBy = (deltaMs) => {
+    try {
+      const duration = player.duration || 0;
+      const next = Math.max(0, Math.min(player.currentTime + deltaMs / 1000, duration));
+      player.currentTime = next;
+    } catch (e) {
+      // ignore — e.g. video not loaded yet
+    }
+  };
+
+  if (!mediaList || mediaList.length === 0) return null;
+
+  const hasMultiple = mediaList.length > 1;
+
+  const progressPct = playbackStatus.duration
+    ? Math.min(100, (playbackStatus.position / playbackStatus.duration) * 100)
+    : 0;
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <StatusBar hidden />
+      <View style={{ flex: 1, backgroundColor: '#000' }}>
+
+        {/* Close button */}
+        <TouchableOpacity
+          onPress={onClose}
+          activeOpacity={0.7}
+          style={{
+            position: 'absolute',
+            top: 44,
+            right: 16,
+            zIndex: 20,
+            elevation: 20,
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>✕</Text>
+        </TouchableOpacity>
+
+        {hasMultiple && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 50,
+              alignSelf: 'center',
+              zIndex: 20,
+              elevation: 20,
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              borderRadius: 12,
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
+              {index + 1}/{mediaList.length}
+            </Text>
+          </View>
+        )}
+
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleScroll}
+          scrollEventThrottle={16}
+          // While viewing a video, disable swipe-scroll so it doesn't fight
+          // with seeking — the ‹ › buttons take over there instead.
+          scrollEnabled={!currentIsVideo}
+        >
+          {mediaList.map((m, i) => {
+            const uri = toPublicUrl(m.filePath);
+            const isVideo = (m.mediaType || 'image').toLowerCase() === 'video';
+            return (
+              <View
+                key={`viewer-${m.mediaId ?? i}`}
+                style={{
+                  width: SCREEN_WIDTH,
+                  height: SCREEN_HEIGHT,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                {isVideo ? (
+                  // Only mount the player view for the currently visible slide —
+                  // avoids every video in the post trying to buffer at once.
+                  index === i ? (
+                    <VideoView
+                      player={player}
+                      style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+                      contentFit="contain"
+                      nativeControls={false}
+                    />
+                  ) : (
+                    <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }} />
+                  )
+                ) : (
+                  <Image
+                    source={{ uri }}
+                    style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
+                    resizeMode="contain"
+                  />
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* ── Controls: only shown for video — progress line, seek back, play/pause, seek forward ── */}
+        {currentIsVideo && (
+          <>
+            <View
+              pointerEvents="none"
+              style={{ position: 'absolute', bottom: 116, left: 20, right: 20 }}
+            >
+              <View
+                style={{
+                  height: 3,
+                  borderRadius: 1.5,
+                  backgroundColor: 'rgba(255,255,255,0.3)',
+                  overflow: 'hidden',
+                }}
+              >
+                <View style={{ height: 3, backgroundColor: LIGHT_GREEN, width: `${progressPct}%` }} />
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
+                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
+                  {formatMs(playbackStatus.position)}
+                </Text>
+                <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
+                  {formatMs(playbackStatus.duration)}
+                </Text>
+              </View>
+            </View>
+
+            <View
+              pointerEvents="box-none"
+              style={{
+                position: 'absolute',
+                bottom: 48,
+                left: 0,
+                right: 0,
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => seekBy(-10000)}
+                activeOpacity={0.7}
+                style={{
+                  width: 48, height: 48, borderRadius: 24,
+                  backgroundColor: LIGHT_GREEN,
+                  justifyContent: 'center', alignItems: 'center',
+                  marginHorizontal: 20,
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 }}>‹</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={togglePlayPause}
+                activeOpacity={0.7}
+                style={{
+                  width: 56, height: 56, borderRadius: 28,
+                  backgroundColor: LIGHT_GREEN,
+                  justifyContent: 'center', alignItems: 'center',
+                  marginHorizontal: 12,
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>
+                  {isPlaying ? '❚❚' : '▶'}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => seekBy(10000)}
+                activeOpacity={0.7}
+                style={{
+                  width: 48, height: 48, borderRadius: 24,
+                  backgroundColor: LIGHT_GREEN,
+                  justifyContent: 'center', alignItems: 'center',
+                  marginHorizontal: 20,
+                }}
+              >
+                <Text style={{ color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 }}>›</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </View>
+    </Modal>
+  );
 };
 
 const MyPostScreen = ({ navigation }) => {
@@ -181,534 +747,6 @@ const MyPostScreen = ({ navigation }) => {
     </GradientHeader>
   );
 
-  // ── MediaCarousel: rebuilt using a plain ScrollView (not a nested FlatList),
-  // mirroring the pattern that already works in FeedCard.js. Each slide is a
-  // View with FIXED pixel width/height (CAROUSEL_WIDTH / CAROUSEL_HEIGHT) —
-  // the Image/Video inside can then safely use '100%' because its parent has
-  // a real, non-ambiguous size. A nested horizontal FlatList's auto-sized
-  // cell wrapper was the root cause of the blank/gray boxes. ──
-  const MediaCarousel = ({ media, onOpenViewer }) => {
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [failedIds, setFailedIds] = useState({});
-
-    if (!Array.isArray(media) || media.length === 0) {
-      return null;
-    }
-
-    const markFailed = (mediaId, uri, error) => {
-      console.log('[MEDIA ERROR]', {
-        mediaId,
-        uri,
-        error,
-      });
-
-      setFailedIds(prev => ({
-        ...prev,
-        [mediaId]: true,
-      }));
-    };
-
-    const handleScroll = (event) => {
-      const index = Math.round(
-        event.nativeEvent.contentOffset.x / CAROUSEL_WIDTH
-      );
-      setActiveIndex(index);
-    };
-
-    return (
-      <View
-        style={[
-          styles.postImage,
-          {
-            width: CAROUSEL_WIDTH,
-            height: CAROUSEL_HEIGHT,
-            overflow: 'hidden',
-            backgroundColor: '#EEEEEE',
-          },
-        ]}
-      >
-
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onMomentumScrollEnd={handleScroll}
-          scrollEventThrottle={16}
-        >
-          {media.map((m, index) => {
-            const mediaId = m.mediaId;
-            const uri = toPublicUrl(m.filePath);
-            const mediaType = (m.mediaType || 'image').toLowerCase();
-
-          
-
-            // Fixed-size slide wrapper — this is the key difference vs the
-            // old FlatList version. width/height here are real numbers, so
-            // the Image/Video's '100%' inside has something concrete to fill.
-            const slideStyle = {
-              width: CAROUSEL_WIDTH,
-              height: CAROUSEL_HEIGHT,
-            };
-
-            if (!mediaId) {
-              return (
-                <View
-                  key={`media-missing-${index}`}
-                  style={[
-                    slideStyle,
-                    { justifyContent: 'center', alignItems: 'center' },
-                  ]}
-                >
-                  <Text>Media ID missing</Text>
-                </View>
-              );
-            }
-
-            if (failedIds[mediaId]) {
-              return (
-                <View
-                  key={`media-failed-${mediaId}-${index}`}
-                  style={[
-                    slideStyle,
-                    {
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      backgroundColor: '#EEEEEE',
-                    },
-                  ]}
-                >
-                  <Text style={{ fontSize: 12, color: '#888' }}>
-                    Couldn't load media
-                  </Text>
-                </View>
-              );
-            }
-
-            if (mediaType === 'video') {
-              return (
-                <TouchableOpacity
-                  key={`media-${mediaId}-${index}`}
-                  style={slideStyle}
-                  activeOpacity={0.9}
-                  onPress={() => onOpenViewer && onOpenViewer(media, index)}
-                >
-                  <View
-                    style={{
-                      flex: 1,
-                      backgroundColor: '#000',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    {/* Muted, no controls — lightweight preview thumbnail;
-                        contain so the full frame is visible, not cropped.
-                        Tapping anywhere opens the full-screen viewer. */}
-                    <Video
-                      source={{ uri }}
-                      style={{ width: '100%', height: '100%', position: 'absolute' }}
-                      resizeMode={ResizeMode.CONTAIN}
-                      isMuted
-                      shouldPlay
-                      isLooping
-                      useNativeControls={false}
-                      onLoadStart={() => {
-                        console.log('[VIDEO START]', { mediaId, uri });
-                      }}
-                      onLoad={() => {
-                        console.log('[VIDEO SUCCESS]', { mediaId, uri });
-                      }}
-                      onError={(error) => {
-                        console.log('[VIDEO FAILED]', { mediaId, uri, error });
-                        markFailed(mediaId, uri, error);
-                      }}
-                    />
-                    <View
-                      style={{
-                        width: 52,
-                        height: 52,
-                        borderRadius: 26,
-                        backgroundColor: 'rgba(0,0,0,0.45)',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                      }}
-                    >
-                      <Text style={{ fontSize: 24, color: '#FFFFFF', marginLeft: 2 }}>▶</Text>
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              );
-            }
-
-            return (
-              <TouchableOpacity
-                key={`media-${mediaId}-${index}`}
-                style={slideStyle}
-                activeOpacity={0.9}
-                onPress={() => onOpenViewer && onOpenViewer(media, index)}
-              >
-                <Image
-                  source={{ uri }}
-                  style={{ width: '100%', height: '100%' }}
-                  resizeMode="contain"
-                  onLoadStart={() => {
-                    console.log('[IMAGE START]', { mediaId, uri });
-                  }}
-                  onLoad={() => {
-                    console.log('[IMAGE SUCCESS]', { mediaId, uri });
-                  }}
-                  onError={(error) => {
-                    console.log('[IMAGE FAILED]', {
-                      mediaId,
-                      uri,
-                      error: error?.nativeEvent,
-                    });
-                    markFailed(mediaId, uri, error?.nativeEvent);
-                  }}
-                />
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {/* Counter */}
-
-        {media.length > 1 && (
-          <View
-            style={{
-              position: 'absolute',
-              top: 10,
-              right: 14,
-              maxWidth: CAROUSEL_WIDTH - 20,
-              zIndex: 10,
-              elevation: 10,
-              backgroundColor: 'rgba(0,0,0,0.75)',
-              borderRadius: 12,
-              paddingHorizontal: 10,
-              paddingVertical: 5,
-            }}
-          >
-            <Text
-              style={{
-                color: '#FFFFFF',
-                fontSize: 13,
-                fontWeight: '700',
-              }}
-            >
-              {activeIndex + 1}/{media.length}
-            </Text>
-          </View>
-        )}
-
-        {/* Dots */}
-
-        {media.length > 1 && (
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 8,
-              left: 0,
-              right: 0,
-              zIndex: 10,
-              elevation: 10,
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            {media.map((m, index) => (
-              <View
-                key={`dot-${m.mediaId}-${index}`}
-                style={{
-                  width:
-                    index === activeIndex ? 16 : 6,
-                  height: 6,
-                  borderRadius: 3,
-                  marginHorizontal: 3,
-                  backgroundColor:
-                    index === activeIndex
-                      ? '#3B82F6'
-                      : 'rgba(255,255,255,0.7)',
-                }}
-              />
-            ))}
-          </View>
-        )}
-
-      </View>
-    );
-  };
-
-  // ── Full-screen media viewer: tap an image/video in the carousel to open
-  // this. Shows one slide at a time, swipeable, with a close (✕) button.
-  // Video gets custom controls (play/pause, ±10s seek, progress bar, time
-  // labels) instead of native controls — matches FeedCard.js's viewer. ──
-  const LIGHT_GREEN = '#A0C878';
-
-  const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
-    const [index, setIndex] = useState(startIndex);
-    const [isPlaying, setIsPlaying] = useState(true);
-    const [playbackStatus, setPlaybackStatus] = useState({ position: 0, duration: 0 });
-    const scrollRef = React.useRef(null);
-    const videoRef = React.useRef(null);
-
-    React.useEffect(() => {
-      if (visible) {
-        setIndex(startIndex);
-        setIsPlaying(true);
-        setPlaybackStatus({ position: 0, duration: 0 });
-        requestAnimationFrame(() => {
-          scrollRef.current?.scrollTo({ x: startIndex * SCREEN_WIDTH, animated: false });
-        });
-      }
-    }, [visible, startIndex]);
-
-    const handleScroll = (event) => {
-      const i = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-      setIndex(i);
-      setIsPlaying(true);
-      setPlaybackStatus({ position: 0, duration: 0 });
-    };
-
-    const togglePlayPause = async () => {
-      if (!videoRef.current) return;
-
-      if (playbackStatus.duration && playbackStatus.position >= playbackStatus.duration) {
-        await videoRef.current.setPositionAsync(0);
-        await videoRef.current.playAsync();
-        setIsPlaying(true);
-        return;
-      }
-
-      if (isPlaying) {
-        await videoRef.current.pauseAsync();
-        setIsPlaying(false);
-      } else {
-        await videoRef.current.playAsync();
-        setIsPlaying(true);
-      }
-    };
-
-    const seekBy = async (deltaMs) => {
-      if (!videoRef.current) return;
-      try {
-        const status = await videoRef.current.getStatusAsync();
-        if (!status.isLoaded) return;
-        const duration = status.durationMillis ?? 0;
-        const newPos = Math.max(0, Math.min((status.positionMillis || 0) + deltaMs, duration));
-        await videoRef.current.setPositionAsync(newPos);
-      } catch (e) {
-        // ignore — e.g. video not loaded yet
-      }
-    };
-
-    const handlePlaybackStatusUpdate = (status) => {
-      if (!status.isLoaded) return;
-      setPlaybackStatus({
-        position: status.positionMillis || 0,
-        duration: status.durationMillis || 0,
-      });
-      if (status.didJustFinish) {
-        setIsPlaying(false);
-      }
-    };
-
-    if (!mediaList || mediaList.length === 0) return null;
-
-    const current = mediaList[index];
-    const currentIsVideo = (current?.mediaType || 'image').toLowerCase() === 'video';
-    const hasMultiple = mediaList.length > 1;
-
-    const progressPct = playbackStatus.duration
-      ? Math.min(100, (playbackStatus.position / playbackStatus.duration) * 100)
-      : 0;
-
-    return (
-      <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-        <StatusBar hidden />
-        <View style={{ flex: 1, backgroundColor: '#000' }}>
-
-          {/* Close button */}
-          <TouchableOpacity
-            onPress={onClose}
-            activeOpacity={0.7}
-            style={{
-              position: 'absolute',
-              top: 44,
-              right: 16,
-              zIndex: 20,
-              elevation: 20,
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>✕</Text>
-          </TouchableOpacity>
-
-          {hasMultiple && (
-            <View
-              style={{
-                position: 'absolute',
-                top: 50,
-                alignSelf: 'center',
-                zIndex: 20,
-                elevation: 20,
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                borderRadius: 12,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}
-            >
-              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>
-                {index + 1}/{mediaList.length}
-              </Text>
-            </View>
-          )}
-
-          <ScrollView
-            ref={scrollRef}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={handleScroll}
-            scrollEventThrottle={16}
-            // While viewing a video, disable swipe-scroll so it doesn't fight
-            // with seeking — the ‹ › buttons take over there instead.
-            scrollEnabled={!currentIsVideo}
-          >
-            {mediaList.map((m, i) => {
-              const uri = toPublicUrl(m.filePath);
-              const isVideo = (m.mediaType || 'image').toLowerCase() === 'video';
-              return (
-                <View
-                  key={`viewer-${m.mediaId ?? i}`}
-                  style={{
-                    width: SCREEN_WIDTH,
-                    height: SCREEN_HEIGHT,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  {isVideo ? (
-                    // Only mount the player for the currently visible slide —
-                    // avoids every video in the post trying to buffer at once.
-                    index === i ? (
-                      <Video
-                        ref={i === index ? videoRef : null}
-                        source={{ uri }}
-                        style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-                        resizeMode={ResizeMode.CONTAIN}
-                        useNativeControls={false}
-                        shouldPlay={visible && isPlaying}
-                        isLooping={false}
-                        onPlaybackStatusUpdate={i === index ? handlePlaybackStatusUpdate : undefined}
-                      />
-                    ) : (
-                      <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }} />
-                    )
-                  ) : (
-                    <Image
-                      source={{ uri }}
-                      style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }}
-                      resizeMode="contain"
-                    />
-                  )}
-                </View>
-              );
-            })}
-          </ScrollView>
-
-          {/* ── Controls: only shown for video — progress line, seek back, play/pause, seek forward ── */}
-          {currentIsVideo && (
-            <>
-              <View
-                pointerEvents="none"
-                style={{ position: 'absolute', bottom: 116, left: 20, right: 20 }}
-              >
-                <View
-                  style={{
-                    height: 3,
-                    borderRadius: 1.5,
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    overflow: 'hidden',
-                  }}
-                >
-                  <View style={{ height: 3, backgroundColor: LIGHT_GREEN, width: `${progressPct}%` }} />
-                </View>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
-                    {formatMs(playbackStatus.position)}
-                  </Text>
-                  <Text style={{ color: '#fff', fontSize: 11, fontWeight: '600' }}>
-                    {formatMs(playbackStatus.duration)}
-                  </Text>
-                </View>
-              </View>
-
-              <View
-                pointerEvents="box-none"
-                style={{
-                  position: 'absolute',
-                  bottom: 48,
-                  left: 0,
-                  right: 0,
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => seekBy(-10000)}
-                  activeOpacity={0.7}
-                  style={{
-                    width: 48, height: 48, borderRadius: 24,
-                    backgroundColor: LIGHT_GREEN,
-                    justifyContent: 'center', alignItems: 'center',
-                    marginHorizontal: 20,
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 }}>‹</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={togglePlayPause}
-                  activeOpacity={0.7}
-                  style={{
-                    width: 56, height: 56, borderRadius: 28,
-                    backgroundColor: LIGHT_GREEN,
-                    justifyContent: 'center', alignItems: 'center',
-                    marginHorizontal: 12,
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 20, fontWeight: '700' }}>
-                    {isPlaying ? '❚❚' : '▶'}
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => seekBy(10000)}
-                  activeOpacity={0.7}
-                  style={{
-                    width: 48, height: 48, borderRadius: 24,
-                    backgroundColor: LIGHT_GREEN,
-                    justifyContent: 'center', alignItems: 'center',
-                    marginHorizontal: 20,
-                  }}
-                >
-                  <Text style={{ color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 }}>›</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-      </Modal>
-    );
-  };
-
   // ── Single post card (mirrors the feed card look, plus a delete icon) ──
   const renderPost = ({ item }) => {
     const media = Array.isArray(item.mediaItems)
@@ -720,9 +758,6 @@ const MyPostScreen = ({ navigation }) => {
               (b.sortOrder ?? 0)
           )
       : [];
-
-    // ── Diagnostic: how many media items this specific post has ──
-  
 
     return (
       <View style={styles.card}>

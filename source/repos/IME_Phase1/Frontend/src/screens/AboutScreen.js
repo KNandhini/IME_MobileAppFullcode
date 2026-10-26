@@ -13,7 +13,7 @@ const WHITE = COLORS.white;
 const GREY = '#6B7A8D';
 
 // ── Data ───────────────────────────────────────────────────────
-// Real historical anchors, not a "founding year" — IME itself is a
+// Real historical anchors, not a "founding year" — IUE itself is a
 // proposed institution, so these stats trace the lineage it stands on.
 const STATS = [
   { value: '1688', label: 'First Municipal Institution (Madras)' },
@@ -136,7 +136,7 @@ const AboutScreen = ({ navigation }) => {
             <Text style={styles.heroEyebrow}>PROPOSED INSTITUTION</Text>
           </FadeIn>
           <FadeIn delay={100}>
-            <Text style={styles.heroTitle}>Institution of{'\n'}Municipal Engineers</Text>
+            <Text style={styles.heroTitle}>Institution of{'\n'}Urban Engineers</Text>
           </FadeIn>
           <FadeIn delay={200}>
             <Animated.View style={[styles.goldDivider, { width: goldWidth }]} />
@@ -163,12 +163,12 @@ const AboutScreen = ({ navigation }) => {
           </View>
         </FadeIn>
 
-        {/* ── Short Intro: About IME ── */}
+        {/* ── Short Intro: About IUE ── */}
         <FadeIn delay={500}>
           <View style={styles.section}>
             <View style={styles.sectionHead}>
               <View style={styles.goldAccent} />
-              <Text style={styles.sectionTitle}>About IME</Text>
+              <Text style={styles.sectionTitle}>About IUE</Text>
             </View>
             <Text style={styles.bodyText}>
               Local bodies meet the basic needs of rural and urban populations — water,
@@ -182,7 +182,7 @@ const AboutScreen = ({ navigation }) => {
               body behind institutions like the Institution of Public Health Engineers
               (Calcutta) and the Indian Water Works Association (Mumbai) — yet no
               separate institution exists for municipal engineers. The Institution of
-              Municipal Engineers, India is proposed to fill that gap, on the same
+              Urban Engineers, India is proposed to fill that gap, on the same
               lines as IEI Calcutta.
             </Text>
           </View>
@@ -231,7 +231,7 @@ const AboutScreen = ({ navigation }) => {
           <View style={styles.footer}>
             <View style={styles.footerGoldLine} />
             <Text style={styles.footerText}>
-              © {new Date().getFullYear()} Institution of Municipal Engineers, India
+              © {new Date().getFullYear()} Institution Urban Engineers, India
             </Text>
             <Text style={styles.footerSub}>Registered office — Chennai</Text>
 

@@ -175,7 +175,7 @@ const AuthStack = () => (
       component={AboutScreen}
       options={{
         ...GRADIENT_HEADER_OPTIONS,
-        title: 'About IME',
+        title: 'About IUE',
       }}
     />
     <Stack.Screen name="MembershipDetails" component={MembershipDetailsScreen} options={{ headerShown: false }} />
@@ -301,7 +301,7 @@ const MainTabs = () => {
           name="AboutIMETab"
           component={AboutIMEScreen}
           options={{
-            title: 'IME Profile',
+            title: 'IUE Profile',
             headerBackground: renderGradientHeaderBackground,
             headerStyle: { backgroundColor: 'transparent' },
             headerTintColor: COLORS.white,
@@ -309,7 +309,7 @@ const MainTabs = () => {
             tabBarIcon: ({ color, focused }) => (
               <View style={{ alignItems: 'center' }}>
                 <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IME Profile</Text>
+                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IUE Profile</Text>
               </View>
             ),
           }}
@@ -374,7 +374,7 @@ const MainStack = () => (
     <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Membership Payment' }} />
     <Stack.Screen name="PaymentHistory" component={PaymentHistoryScreen} options={{ title: 'Payment History' }} />
     {/* Content */}
-    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ title: 'IME Profile' }} />
+    <Stack.Screen name="AboutIME" component={AboutIMEScreen} options={{ title: 'IUE Profile' }} />
     <Stack.Screen
       name="ContentViewer"
       component={ContentViewerScreen}
@@ -400,7 +400,7 @@ const MainStack = () => (
     <Stack.Screen name="StudentDashboard" component={StudentDashboardScreen} options={{ headerShown: false }} />
     <Stack.Screen name="SetAnnualFee" component={SetAnnualFeeScreen} options={{ title: 'Set One-Time Membership Fee' }} />
     <Stack.Screen name="MemberManagement" component={MemberManagementScreen} options={{ title: 'Members' }} />
-    <Stack.Screen name="About" component={AboutIMEScreen} options={{ title: 'About IME' }} />
+    <Stack.Screen name="About" component={AboutIMEScreen} options={{ title: 'About IUE' }} />
     <Stack.Screen
       name="FundraiseList"
       component={FundraiseListScreen}

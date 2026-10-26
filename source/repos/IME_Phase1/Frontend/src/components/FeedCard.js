@@ -5,7 +5,7 @@ import {
   ScrollView, Image, Dimensions, TextInput, ActivityIndicator,
   Modal, StatusBar,
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import api from '../utils/api';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -118,18 +118,56 @@ const formatMs = (ms) => {
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-// ── Full-screen media viewer — images + playing video, with seek/nav ──────────
 // ── Full-screen media viewer — images + playing video, with seek ──────────────
 const LIGHT_GREEN = '#A0C878';
 
 const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
   const [index, setIndex] = useState(startIndex);
   const [isPlaying, setIsPlaying] = useState(true);
-  // Live playback position/duration for the current video, used to draw
-  // the progress line and time label under the controls.
+  // Live playback position/duration (in ms) for the current video, used to
+  // draw the progress line and time label under the controls.
   const [playbackStatus, setPlaybackStatus] = useState({ position: 0, duration: 0 });
   const scrollRef = useRef(null);
-  const videoRef = useRef(null);
+
+  const current = mediaList?.[index];
+  const currentIsVideo = current?.mediaType === 'video';
+
+  // null source while the modal is closed or an image slide is showing,
+  // so nothing buffers needlessly.
+  const currentVideoUrl =
+    visible && currentIsVideo ? toPublicUrl(current.filePath ?? current.imagePath) : null;
+
+  // One player; expo-video recreates it when the source URL changes.
+  const player = useVideoPlayer(currentVideoUrl, (p) => {
+    p.loop = false;
+    p.timeUpdateEventInterval = 0.25; // seconds
+    p.play();
+  });
+
+  // Keep React state in sync with the player.
+  React.useEffect(() => {
+    const subs = [
+      player.addListener('playingChange', ({ isPlaying: playing }) => setIsPlaying(playing)),
+      player.addListener('timeUpdate', ({ currentTime }) =>
+        setPlaybackStatus({
+          position: (currentTime || 0) * 1000,
+          duration: (player.duration || 0) * 1000,
+        })
+      ),
+      player.addListener('sourceLoad', ({ duration }) =>
+        setPlaybackStatus((s) => ({ ...s, duration: (duration || 0) * 1000 }))
+      ),
+      player.addListener('playToEnd', () => setIsPlaying(false)),
+    ];
+    return () => subs.forEach((s) => s.remove());
+  }, [player]);
+
+  // Pause when the modal closes.
+  React.useEffect(() => {
+    if (!visible) {
+      try { player.pause(); } catch (e) { /* player may already be released */ }
+    }
+  }, [visible, player]);
 
   // Reset to the tapped slide whenever the modal (re)opens.
   React.useEffect(() => {
@@ -150,62 +188,36 @@ const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
     setPlaybackStatus({ position: 0, duration: 0 });
   }, []);
 
-  const togglePlayPause = useCallback(async () => {
-    if (!videoRef.current) return;
-
-    // If the video already finished, pressing play should restart it
-    // from the beginning instead of doing nothing.
-    if (playbackStatus.duration && playbackStatus.position >= playbackStatus.duration) {
-      await videoRef.current.setPositionAsync(0);
-      await videoRef.current.playAsync();
-      setIsPlaying(true);
-      return;
+  const togglePlayPause = useCallback(() => {
+    try {
+      // If the video already finished, pressing play should restart it
+      // from the beginning instead of doing nothing.
+      if (playbackStatus.duration && playbackStatus.position >= playbackStatus.duration - 250) {
+        player.currentTime = 0;
+        player.play();
+        return;
+      }
+      if (player.playing) player.pause();
+      else player.play();
+    } catch (e) {
+      // ignore — player not ready
     }
-
-    if (isPlaying) {
-      await videoRef.current.pauseAsync();
-      setIsPlaying(false);
-    } else {
-      await videoRef.current.playAsync();
-      setIsPlaying(true);
-    }
-  }, [isPlaying, playbackStatus]);
+  }, [player, playbackStatus]);
 
   // Seek the current video forward/backward by deltaMs (e.g. ±10000 for 10s),
-  // clamped to [0, duration].
-  const seekBy = useCallback(async (deltaMs) => {
-    if (!videoRef.current) return;
+  // clamped to [0, duration]. expo-video works in seconds, hence the /1000.
+  const seekBy = useCallback((deltaMs) => {
     try {
-      const status = await videoRef.current.getStatusAsync();
-      if (!status.isLoaded) return;
-      const duration = status.durationMillis ?? 0;
-      const newPos = Math.max(0, Math.min((status.positionMillis || 0) + deltaMs, duration));
-      await videoRef.current.setPositionAsync(newPos);
+      const duration = player.duration || 0;
+      const next = Math.max(0, Math.min(player.currentTime + deltaMs / 1000, duration));
+      player.currentTime = next;
     } catch (e) {
       // ignore — e.g. video not loaded yet
     }
-  }, []);
-
-  // Fires continuously while the video is loaded/playing — keeps the
-  // progress bar in sync, and flips the icon back to "play" once the
-  // video reaches the end instead of leaving it stuck on "pause".
-  const handlePlaybackStatusUpdate = useCallback((status) => {
-    if (!status.isLoaded) return;
-
-    setPlaybackStatus({
-      position: status.positionMillis || 0,
-      duration: status.durationMillis || 0,
-    });
-
-    if (status.didJustFinish) {
-      setIsPlaying(false);
-    }
-  }, []);
+  }, [player]);
 
   if (!mediaList || mediaList.length === 0) return null;
 
-  const current = mediaList[index];
-  const currentIsVideo = current?.mediaType === 'video';
   const hasMultiple = mediaList.length > 1;
 
   const progressPct = playbackStatus.duration
@@ -243,18 +255,14 @@ const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
             return (
               <View key={media.mediaId ?? i} style={viewerStyles.slide}>
                 {isVideo ? (
-                  // Only mount the player for the currently visible slide —
+                  // Only mount the player view for the currently visible slide —
                   // avoids every video in the post trying to buffer at once.
                   index === i ? (
-                    <Video
-                      ref={i === index ? videoRef : null}
-                      source={{ uri: url }}
+                    <VideoView
+                      player={player}
                       style={viewerStyles.media}
-                      resizeMode={ResizeMode.CONTAIN}
-                      useNativeControls={false}
-                      shouldPlay={visible && isPlaying}
-                      isLooping={false}
-                      onPlaybackStatusUpdate={i === index ? handlePlaybackStatusUpdate : undefined}
+                      contentFit="contain"
+                      nativeControls={false}
                     />
                   ) : (
                     <View style={viewerStyles.media} />
@@ -315,6 +323,27 @@ const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
   );
 };
 
+// ── Muted looping preview for a video inside the carousel ─────────────────────
+// Each video needs its own player, and hooks can't run inside .map(),
+// so this lives in its own small component.
+const CarouselVideo = ({ url }) => {
+  const player = useVideoPlayer(url, (p) => {
+    p.muted = true;
+    p.loop = true;
+    p.play();
+  });
+
+  return (
+    <VideoView
+      player={player}
+      style={StyleSheet.absoluteFill}
+      contentFit="contain"
+      nativeControls={false}
+      pointerEvents="none"
+    />
+  );
+};
+
 // ── Media carousel for Post-type items ────────────────────────────────────────
 const MediaCarousel = ({ mediaItems, onOpenViewer }) => {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -351,15 +380,7 @@ const MediaCarousel = ({ mediaItems, onOpenViewer }) => {
                 <View style={carousel.videoPlaceholder}>
                   {/* Muted, no controls — lightweight preview thumbnail;
                       contain so the full frame is visible, not cropped. */}
-                  <Video
-                    source={{ uri: url }}
-                    style={StyleSheet.absoluteFill}
-                    resizeMode={ResizeMode.CONTAIN}
-                    isMuted
-                    shouldPlay
-                    isLooping
-                    useNativeControls={false}
-                  />
+                  <CarouselVideo url={url} />
                   <View style={carousel.videoPlayBadge}>
                     <Text style={carousel.videoPlay}>▶</Text>
                   </View>
@@ -415,7 +436,7 @@ const SingleImage = ({ imagePath, onOpenViewer }) => {
 const FeedCard = ({ item, navigation }) => {
   const colorIndex = (item.id || 0) % AVATAR_COLORS.length;
   const avatarColor = AVATAR_COLORS[colorIndex];
-  const memberName = item.memberName || 'IME Admin';
+  const memberName = item.memberName || 'IUE Admin';
   const typeMeta = TYPE_LABELS[item.type] || { label: item.type || '', icon: '📌' };
   const timeAgo = getTimeAgo(item.postedDate);
 
@@ -690,7 +711,6 @@ const FeedCard = ({ item, navigation }) => {
   );
 };
 
-// ── Full-screen viewer styles ──────────────────────────────────────────────────
 // ── Full-screen viewer styles ──────────────────────────────────────────────────
 const viewerStyles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: '#000' },

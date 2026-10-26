@@ -39,13 +39,13 @@ const BENEFITS = [
         icon: 'shield-check-outline',
         title: 'Professional Recognition',
         blurb:
-            'Stand out as a certified member of India’s premier municipal engineering body.',
+            'Stand out as a certified member of India’s premier Urban engineering body.',
     },
     {
         icon: 'certificate-outline',
         title: 'Official Membership Certificate',
         blurb:
-            'A formal certificate acknowledging your grade and standing within IME.',
+            'A formal certificate acknowledging your grade and standing within IUE.',
     },
     {
         icon: 'card-account-details-outline',
@@ -57,7 +57,7 @@ const BENEFITS = [
         icon: 'account-group-outline',
         title: 'National Networking Opportunities',
         blurb:
-            'Connect with municipal engineers and administrators across every State.',
+            'Connect with Urban engineers and administrators across every State.',
     },
     {
         icon: 'school-outline',
@@ -69,7 +69,7 @@ const BENEFITS = [
         icon: 'office-building-outline',
         title: 'Conferences & Annual Conventions',
         blurb:
-            'Attend the flagship All-India gathering of the municipal engineering fraternity.',
+            'Attend the flagship All-India gathering of the Urban engineering fraternity.',
     },
     {
         icon: 'lightbulb-on-outline',
@@ -81,7 +81,7 @@ const BENEFITS = [
         icon: 'book-open-page-variant-outline',
         title: 'Technical Journals & Publications',
         blurb:
-            'Regular access to IME research, case studies, and best-practice manuals.',
+            'Regular access to IUE research, case studies, and best-practice manuals.',
     },
     {
         icon: 'briefcase-outline',
@@ -225,12 +225,12 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                     <IMELogo size="medium" animated={false} />
 
                     <Text style={styles.heroTitle}>
-                        Become an IME Member
+                        Become an IUE Member
                     </Text>
 
                     <Text style={styles.heroSubtitle}>
                         Join India’s premier professional institution dedicated
-                        to Municipal Engineering excellence, innovation, and
+                        to Urban Engineering excellence, innovation, and
                         sustainable urban development.
                     </Text>
 
@@ -320,7 +320,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
 
                             <Text style={styles.termsText}>
                                 Membership activation is subject to successful
-                                payment verification and approval by the IME
+                                payment verification and approval by the IUE
                                 administration.
                             </Text>
 
@@ -336,7 +336,7 @@ const MembershipBenefitsScreen = ({ navigation }) => {
                                     { marginBottom: 0 },
                                 ]}
                             >
-                                You agree to follow IME member guidelines and
+                                You agree to follow IUE member guidelines and
                                 understand that misuse of the account may lead
                                 to restricted access.
                             </Text>
