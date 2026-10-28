@@ -7,11 +7,9 @@
     "icon": "./assets/icon.png",
     "scheme": "imeapp",
     "userInterfaceStyle": "light",
-    
     "assetBundlePatterns": [
       "**/*"
     ],
-    
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.ime.app"
@@ -31,6 +29,15 @@
     },
     "plugins": [
       "expo-font",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableProguardInReleaseBuilds": false,
+            "enableShrinkResourcesInReleaseBuilds": false
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
