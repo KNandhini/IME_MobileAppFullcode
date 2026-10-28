@@ -76,8 +76,8 @@
     },
     {
       "id": "committee-pink",
-      "name": "Governing Council Commitee",
-      "shortname": "Governing Council Commitee Member",
+      "name": "Governing Council Committee",
+      "shortname": "Governing Council Committee Member",
       "color": "pink",
       "type": "committee",
       "children": [
