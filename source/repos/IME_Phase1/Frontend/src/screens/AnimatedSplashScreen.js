@@ -6,13 +6,11 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from './theme';
 
-const SPLASH_VIDEO = require('../../assets/video/rainwater_circular_transparent.webm');
-// Same gradient as the Login screen is used for video + hold (no colour shift).
-// Exact last frame of the video (white circular badge, transparent outside the circle).
-// Shown at the same size/position as the video so the hand-off is seamless.
+const SPLASH_VIDEO = require('../../assets/video/splash-intro.mp4');
 const HOLD_LOGO = require('../../assets/splash-final-frame.png');
-const HOLD_MS = 5000;
+const ERROR_FALLBACK_MS = 1500;
 const READY_FALLBACK_MS = 1500;
+const MAX_VIDEO_MS = 13000;
 
 export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart }) {
     const { width, height } = useWindowDimensions();
@@ -26,7 +24,7 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
     const callbacks = useRef({ onFinish, onReady, onExitStart });
     callbacks.current = { onFinish, onReady, onExitStart };
     const readySent = useRef(false);
-    const holdStarted = useRef(false);
+    const fallbackStarted = useRef(false);
     const finished = useRef(false);
 
     const signalReady = useCallback(() => {
@@ -35,55 +33,54 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
         callbacks.current.onReady?.();
     }, []);
 
-    const player = useVideoPlayer(SPLASH_VIDEO, (p) => {
-        p.loop = false;
-        p.muted = false;
-        p.volume = 1.0;
-        try {
-            p.audioMixingMode = 'doNotMix';
-        } catch (e) {
-            // Not available on every playback platform.
-        }
+    const finishOnce = useCallback(() => {
+        if (finished.current) return;
+        finished.current = true;
+        callbacks.current.onExitStart?.();
+        callbacks.current.onFinish?.();
+    }, []);
+
+    const player = useVideoPlayer(SPLASH_VIDEO, (videoPlayer) => {
+        videoPlayer.loop = false;
+        videoPlayer.muted = false;
+        videoPlayer.volume = 1;
     });
 
-    const startHold = useCallback(() => {
-        if (holdStarted.current) return;
-        holdStarted.current = true;
+    const showFallback = useCallback(() => {
+        if (fallbackStarted.current || finished.current) return;
+        fallbackStarted.current = true;
         player.pause();
         signalReady();
         setHolding(true);
     }, [player, signalReady]);
 
     useEffect(() => {
-        // Subscribe before playing; only actual completion triggers the normal hold.
-        const endSub = player.addListener('playToEnd', startHold);
-        const statusSub = player.addListener('statusChange', ({ status, error }) => {
+        const endSubscription = player.addListener('playToEnd', finishOnce);
+        const statusSubscription = player.addListener('statusChange', ({ status, error }) => {
             if (status === 'error') {
-                console.warn('Splash video failed:', error?.message);
-                startHold(); // Preserve the logo fallback on playback failure.
+                console.warn('Splash video failed:', error?.message ?? 'Unknown playback error');
+                showFallback();
             }
         });
         const readyTimer = setTimeout(signalReady, READY_FALLBACK_MS);
-        if (!holdStarted.current) player.play();
+        const videoTimer = setTimeout(showFallback, MAX_VIDEO_MS);
+
+        if (!fallbackStarted.current && !finished.current) player.play();
+
         return () => {
-            endSub.remove();
-            statusSub.remove();
+            endSubscription.remove();
+            statusSubscription.remove();
             clearTimeout(readyTimer);
+            clearTimeout(videoTimer);
             player.pause();
         };
-    }, [player, startHold, signalReady]);
+    }, [finishOnce, player, showFallback, signalReady]);
 
-    // Start the hold after the fully opaque, static logo is mounted.
     useEffect(() => {
-        if (!holding) return;
-        const timer = setTimeout(() => {
-            if (finished.current) return;
-            finished.current = true;
-            callbacks.current.onExitStart?.();
-            callbacks.current.onFinish?.();
-        }, HOLD_MS);
+        if (!holding) return undefined;
+        const timer = setTimeout(finishOnce, ERROR_FALLBACK_MS);
         return () => clearTimeout(timer);
-    }, [holding]);
+    }, [finishOnce, holding]);
 
     return (
         <Modal
@@ -101,7 +98,6 @@ export default function AnimatedSplashScreen({ onFinish, onReady, onExitStart })
                 style={styles.container}
             >
                 <StatusBar style="light" hidden />
-                {/* Same box for video and hold image => identical size/position, no jump. */}
                 <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
                     {holding ? (
                         <Image

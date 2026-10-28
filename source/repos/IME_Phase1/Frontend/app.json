@@ -1,21 +1,15 @@
 {
   "expo": {
-    "name": "Institution of Urban Engineers(India)",
+    "name": "IUEI",
     "slug": "imeapp",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
     "scheme": "imeapp",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash-logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FBF6EA"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
-    
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.ime.app"
@@ -45,6 +39,14 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": false
+          }
+        }
+      ],
       "expo-secure-store",
       "expo-sharing",
       "expo-status-bar",
