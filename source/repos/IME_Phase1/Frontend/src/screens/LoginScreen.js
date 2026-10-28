@@ -5,7 +5,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';
 import WelcomeCard from '../components/WelcomeCard';
-import { SplashFadeContext } from '../navigation/AppNavigator';
+import { SplashFadeContext } from '../navigation/SplashFadeContext';
 import { LoginScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import { LinearGradient } from 'expo-linear-gradient';

@@ -48,6 +48,14 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": false
+          }
+        }
+      ],
       "expo-secure-store",
       "expo-sharing",
       "expo-status-bar",

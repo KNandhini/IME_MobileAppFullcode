@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect, useRef, createContext } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { ActivityIndicator, View, Text, StyleSheet, Animated } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,6 +10,8 @@ import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS, RADIUS, SHADOW } from '../screens/theme';
+import { SplashFadeContext } from './SplashFadeContext';
+export { SplashFadeContext } from './SplashFadeContext';
 
 // Screens
 import AnimatedSplashScreen from '../screens/AnimatedSplashScreen';
@@ -89,12 +91,6 @@ import MembershipBenefitsScreen from '../screens/Membershipbenefitsscreen';
 import PaymentReportsScreen from '../screens/Paymentreportsscreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
-
-// Lets LoginScreen (mounted underneath the splash overlay from app start)
-// know when to begin its own fade-in. Defaults to `true` so any screen
-// reached later (e.g. Login after a logout) just fades in immediately
-// instead of waiting for a splash signal that will never come again.
-export const SplashFadeContext = createContext(true);
 
 // Small scale + color-pop animation used for the Feed tab icon so it
 // visibly reacts when the tab becomes active, similar to how Facebook's
