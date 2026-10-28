@@ -417,9 +417,7 @@ export default function OrganisationScreen() {
       </View>
 
       <View style={styles.committeeSection}>
-        <Text style={styles.eyebrow}>
-          OUR COMMITTEES
-        </Text>
+        
 
         <Text style={styles.sectionTitle}>
           Committees
