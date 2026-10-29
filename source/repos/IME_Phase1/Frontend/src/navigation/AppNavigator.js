@@ -112,6 +112,28 @@ const AnimatedTabIcon = ({ name, focused, color, activeColor, size = 24 }) => {
   );
 };
 
+const renderBottomTabItem = (icon, label, color, focused) => (
+  <View style={{ width: '100%', height: 46, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: 28, height: 26, alignItems: 'center', justifyContent: 'center' }}>
+      {icon}
+    </View>
+    <Text
+      numberOfLines={1}
+      style={{
+        height: 14,
+        lineHeight: 12,
+        marginTop: 1,
+        fontSize: 10,
+        color,
+        fontWeight: focused ? '700' : '400',
+        textAlign: 'center',
+      }}
+    >
+      {label}
+    </Text>
+  </View>
+);
+
 // ── Shared gradient background for native stack headers ──
 // React Navigation's stack header can't take arbitrary child components the
 // way an in-screen <GradientHeader> can, but it exposes `headerBackground`
@@ -238,6 +260,8 @@ const MainTabs = () => {
           tabBarActiveTintColor: COLORS.dark,
           tabBarInactiveTintColor: COLORS.inactive,
           tabBarShowLabel: false,
+          tabBarItemStyle: { justifyContent: 'center', alignItems: 'center' },
+          tabBarIconStyle: { flex: 1, justifyContent: 'center', alignItems: 'center' },
           tabBarStyle: {
             height: 64,
             paddingBottom: 6,
@@ -258,11 +282,11 @@ const MainTabs = () => {
           component={HomeComponent}
           options={{
             headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
-              </View>
+            tabBarIcon: ({ color, focused }) => renderBottomTabItem(
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />,
+              'Home',
+              color,
+              focused,
             ),
           }}
         />
@@ -271,25 +295,16 @@ const MainTabs = () => {
           component={HomeScreen}
           options={{
             headerShown: false,
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <AnimatedTabIcon
+            tabBarIcon: ({ color, focused }) => renderBottomTabItem(
+              <AnimatedTabIcon
                   name={focused ? 'add-circle' : 'add-circle-outline'}
                   focused={focused}
                   color={color}
                   activeColor={COLORS.dark}
-                />
-                <Text
-                  style={{
-                    fontSize: 10,
-                    color: focused ? COLORS.dark : color,
-                    fontWeight: focused ? '700' : '400',
-                    marginTop: 2,
-                  }}
-                >
-                  Feed
-                </Text>
-              </View>
+              />,
+              'Feed',
+              focused ? COLORS.dark : color,
+              focused,
             ),
           }}
         />
@@ -302,11 +317,11 @@ const MainTabs = () => {
             headerStyle: { backgroundColor: 'transparent' },
             headerTintColor: COLORS.white,
             headerTitleStyle: { fontWeight: '700' },
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IUE Profile</Text>
-              </View>
+            tabBarIcon: ({ color, focused }) => renderBottomTabItem(
+              <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />,
+              'IUE Profile',
+              color,
+              focused,
             ),
           }}
         />
@@ -319,11 +334,11 @@ const MainTabs = () => {
             options={{
               title: 'Chats',
               headerShown: false,
-              tabBarIcon: ({ color, focused }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={24} color={color} />
-                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
-                </View>
+              tabBarIcon: ({ color, focused }) => renderBottomTabItem(
+                <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={24} color={color} />,
+                'Chats',
+                color,
+                focused,
               ),
             }}
           />
@@ -333,11 +348,11 @@ const MainTabs = () => {
           component={View}
           options={{
             title: 'Logout',
-            tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Logout</Text>
-              </View>
+            tabBarIcon: ({ color, focused }) => renderBottomTabItem(
+              <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />,
+              'Logout',
+              color,
+              focused,
             ),
           }}
           listeners={() => ({

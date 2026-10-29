@@ -112,7 +112,7 @@ const AdminDashboardScreen = ({ navigation }) => {
       <GradientHeader style={styles.appHeader}>
         <View style={styles.headerLeft}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoText}>IUE</Text>
+            <Text style={styles.logoText}>IUE Profile </Text>
           </View>
           <View>
             <Text style={styles.appName}>Institution of Urban Engineers</Text>
