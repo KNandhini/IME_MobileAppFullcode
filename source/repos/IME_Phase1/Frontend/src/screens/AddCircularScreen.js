@@ -27,6 +27,7 @@ import { AddCircularScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import DOBField from '../components/DOBField';
 import * as FileSystem from 'expo-file-system/legacy';
+import AttachmentPickerModal from '../components/AttachmentPickerModal';
 const NAVY = COLORS.primary;
 const GOLD = COLORS.accent;
 
@@ -34,8 +35,8 @@ const GOLD = COLORS.accent;
 // ── Validation & Sanitization Helpers (same pattern as ActivityFormScreen) ─
 // ─────────────────────────────────────────────────────────────────────────
 
-const MAX_TITLE           = 150;
-const MAX_DESCRIPTION     = 500;
+const MAX_TITLE = 150;
+const MAX_DESCRIPTION = 500;
 const MAX_CIRCULAR_NUMBER = 20;
 
 // Title: letters, numbers, spaces, dot, comma, hyphen
@@ -123,6 +124,8 @@ const AddCircularScreen = ({ route, navigation }) => {
   const [saving, setSaving] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
+  const [attachmentPickerVisible, setAttachmentPickerVisible] = useState(false);
+  const [attachmentPickerOptions, setAttachmentPickerOptions] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
 
   const [formData, setFormData] = useState({
@@ -146,51 +149,51 @@ const AddCircularScreen = ({ route, navigation }) => {
     const d = new Date(date);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
-// Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
-const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+  // Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
+  const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
 
-const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
-// Resolve a picked asset's size in bytes, whichever field the picker
-// happened to populate (DocumentPicker uses `size`, ImagePicker usually
-// gives `fileSize`, but neither is guaranteed on every platform/version —
-// fall back to asking the filesystem directly for the real size).
-const getAssetSize = async (asset) => {
-  if (typeof asset.size === 'number') return asset.size;
-  if (typeof asset.fileSize === 'number') return asset.fileSize;
-  try {
-    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
-    if (info?.exists && typeof info.size === 'number') return info.size;
-  } catch (e) {
-    console.warn('Could not determine file size for', asset?.uri, e);
-  }
-  return null; // unknown — let it through rather than block a valid pick
-};
-
-// Splits picked assets into { accepted, rejected }, checking each one's
-// real size against MAX_ATTACHMENT_BYTES.
-const partitionBySize = async (assets) => {
-  const accepted = [];
-  const rejected = [];
-  for (const asset of assets) {
-    const size = await getAssetSize(asset);
-    if (size != null && size > MAX_ATTACHMENT_BYTES) {
-      rejected.push({ name: asset.fileName || asset.name || 'file', size });
-    } else {
-      accepted.push(asset);
+  // Resolve a picked asset's size in bytes, whichever field the picker
+  // happened to populate (DocumentPicker uses `size`, ImagePicker usually
+  // gives `fileSize`, but neither is guaranteed on every platform/version —
+  // fall back to asking the filesystem directly for the real size).
+  const getAssetSize = async (asset) => {
+    if (typeof asset.size === 'number') return asset.size;
+    if (typeof asset.fileSize === 'number') return asset.fileSize;
+    try {
+      const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+      if (info?.exists && typeof info.size === 'number') return info.size;
+    } catch (e) {
+      console.warn('Could not determine file size for', asset?.uri, e);
     }
-  }
-  return { accepted, rejected };
-};
+    return null; // unknown — let it through rather than block a valid pick
+  };
 
-const warnIfRejected = (rejected) => {
-  if (rejected.length === 0) return;
-  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
-  Alert.alert(
-    'File too large',
-    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
-  );
-};
+  // Splits picked assets into { accepted, rejected }, checking each one's
+  // real size against MAX_ATTACHMENT_BYTES.
+  const partitionBySize = async (assets) => {
+    const accepted = [];
+    const rejected = [];
+    for (const asset of assets) {
+      const size = await getAssetSize(asset);
+      if (size != null && size > MAX_ATTACHMENT_BYTES) {
+        rejected.push({ name: asset.fileName || asset.name || 'file', size });
+      } else {
+        accepted.push(asset);
+      }
+    }
+    return { accepted, rejected };
+  };
+
+  const warnIfRejected = (rejected) => {
+    if (rejected.length === 0) return;
+    const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+    Alert.alert(
+      'File too large',
+      `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+    );
+  };
   useEffect(() => {
     if (editData) loadExisting();
   }, [editData]);
@@ -224,61 +227,82 @@ const warnIfRejected = (rejected) => {
     if (total >= 5) { Alert.alert('Limit reached', 'Max 5 attachments.'); return; }
     const slots = 5 - total;
 
-    Alert.alert('Attach File', 'Choose file type', [
-  {
-    text: 'PDF / Document',
-    onPress: async () => {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: [
-          'application/pdf',
-          'application/msword',
-          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        ],
-        copyToCacheDirectory: true,
-        multiple: true,
-      });
-      if (!result.canceled && result.assets?.length > 0) {
-        const { accepted, rejected } = await partitionBySize(result.assets);
-        warnIfRejected(rejected);
-        const picked = accepted.slice(0, slots).map(a => ({
-          uri: a.uri,
-          fileName: a.name,
-          mimeType: a.mimeType || 'application/pdf',
-          type: 'document',
-        }));
-        setAttachments(p => [...p, ...picked]);
-      }
-    },
-  },
-  {
-    text: 'Photo / Video',
-    onPress: async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Allow photo library access.');
-        return;
-      }
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images', 'videos'],
-        allowsMultipleSelection: true,
-        selectionLimit: slots,
-        quality: 0.85,
-      });
-      if (!result.canceled && result.assets?.length > 0) {
-        const { accepted, rejected } = await partitionBySize(result.assets);
-        warnIfRejected(rejected);
-        const picked = accepted.slice(0, slots).map(a => ({
-          uri: a.uri,
-          fileName: a.fileName || `media_${Date.now()}`,
-          mimeType: a.mimeType || (a.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-          type: a.type === 'video' ? 'video' : 'image',
-        }));
-        setAttachments(p => [...p, ...picked]);
-      }
-    },
-  },
-  { text: 'Cancel', style: 'cancel' },
-])
+    setAttachmentPickerOptions([
+      {
+        text: 'PDF / Document',
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: [
+              'application/pdf',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
+            copyToCacheDirectory: false,
+            multiple: true,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const { accepted, rejected } = await partitionBySize(result.assets);
+            warnIfRejected(rejected);
+            const picked = accepted.slice(0, slots).map(a => ({
+              uri: a.uri,
+              fileName: a.name,
+              mimeType: a.mimeType || 'application/pdf',
+              type: 'document',
+            }));
+            setAttachments(p => [...p, ...picked]);
+          }
+        },
+      },
+      {
+        text: 'Photo',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Allow photo library access.');
+            return;
+          }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsMultipleSelection: true,
+            selectionLimit: slots,
+            quality: 0.85,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const { accepted, rejected } = await partitionBySize(result.assets);
+            warnIfRejected(rejected);
+            const picked = accepted.slice(0, slots).map(a => ({
+              uri: a.uri,
+              fileName: a.fileName || `media_${Date.now()}`,
+              mimeType: a.mimeType || 'image/jpeg',
+              type: 'image',
+            }));
+            setAttachments(p => [...p, ...picked]);
+          }
+        },
+      },
+      {
+        text: 'Video',
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: 'video/*',
+            copyToCacheDirectory: false,
+            multiple: true,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const { accepted, rejected } = await partitionBySize(result.assets);
+            warnIfRejected(rejected);
+            const picked = accepted.slice(0, slots).map((asset) => ({
+              uri: asset.uri,
+              fileName: asset.name,
+              mimeType: asset.mimeType || 'video/mp4',
+              type: 'video',
+            }));
+            setAttachments((current) => [...current, ...picked]);
+          }
+        },
+      },
+    ]);
+    setAttachmentPickerVisible(true);
   };
 
   const openFile = (uri, type) => {
@@ -339,10 +363,27 @@ const warnIfRejected = (rejected) => {
       };
 
       const response = isEditMode
-        ? await circularService.update(editData.circularId, payload, attachments)
-        : await circularService.create(payload, attachments);
+        ? await circularService.update(editData.circularId, payload)
+        : await circularService.create(payload);
 
       if (response?.success) {
+        const circularId = isEditMode
+          ? editData.circularId
+          : response.data?.circularId ?? response.data?.CircularId;
+
+        if (attachments.length > 0) {
+          if (!circularId) {
+            Alert.alert('Partial Success', 'Circular saved, but its ID was not returned so attachments could not be uploaded.');
+            return;
+          }
+          try {
+            await circularService.uploadAttachments(circularId, attachments);
+          } catch (e) {
+            Alert.alert('Partial Success', `Circular saved, but attachment upload failed: ${e.message}`);
+            return;
+          }
+        }
+
         Alert.alert('Success', isEditMode ? 'Updated successfully.' : 'Created successfully.', [
           { text: 'OK', onPress: () => navigation.goBack() },
         ]);
@@ -370,214 +411,219 @@ const warnIfRejected = (rejected) => {
         <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
           {/* ── Top navbar ── */}
           <GradientHeader style={styles.navbar}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.navSide}
-            disabled={saving}
-          >
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-          <Text style={styles.navTitle}>{isEditMode ? 'Edit Circular' : 'New Circular'}</Text>
-          <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
-            {saving
-              ? <ActivityIndicator size="small" color={GOLD} />
-              : <Text style={styles.saveText}>{isEditMode ? 'Update' : 'Save'}</Text>}
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.navSide}
+              disabled={saving}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+            <Text style={styles.navTitle}>{isEditMode ? 'Edit Circular' : 'New Circular'}</Text>
+            <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
+              {saving
+                ? <ActivityIndicator size="small" color={GOLD} />
+                : <Text style={styles.saveText}>{isEditMode ? 'Update' : 'Save'}</Text>}
+            </TouchableOpacity>
           </GradientHeader>
         </SafeAreaView>
       </LinearGradient>
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={{ flex: 1 }}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
         >
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
+
+          {/* ── Circular Details ── */}
+          <Field
+            label="Title"
+            required
+            error={errors.title}
+            charCount={formData.title.length}
+            maxChars={MAX_TITLE}
           >
-
-            {/* ── Circular Details ── */}
-            <Field
-              label="Title"
-              required
-              error={errors.title}
-              charCount={formData.title.length}
-              maxChars={MAX_TITLE}
-            >
-              <StyledInput
-                placeholder="Enter title"
-                value={formData.title}
-                maxLength={MAX_TITLE}
-                onChangeText={(v) => update('title', sanitizeTitle(v))}
-                hasError={!!errors.title}
-                returnKeyType="next"
-              />
-            </Field>
-
-            <Field
-              label="Description"
-              error={errors.description}
-              charCount={formData.description.length}
-              maxChars={MAX_DESCRIPTION}
-            >
-              <StyledInput
-                placeholder="Enter description"
-                value={formData.description}
-                maxLength={MAX_DESCRIPTION}
-                onChangeText={(v) => update('description', sanitizeDescription(v))}
-                hasError={!!errors.description}
-                multiline
-              />
-            </Field>
-
-            <Field
-              label="Circular Number"
-              error={errors.circularNumber}
-              hint="e.g. C-2024/001"
-            >
-              <StyledInput
-                placeholder="e.g. C-2024/001"
-                value={formData.circularNumber}
-                autoCapitalize="characters"
-                maxLength={MAX_CIRCULAR_NUMBER}
-                onChangeText={(v) => update('circularNumber', sanitizeCircularNumber(v))}
-                hasError={!!errors.circularNumber}
-                returnKeyType="done"
-              />
-            </Field>
-
-            {/* ── Publish Date ── */}
-            <DOBField
-              label="Publish Date"
-              value={publishDate}
-              minDate={publishMinDate}
-              maxDate={publishMaxDate}
-              FieldComponent={Field}
-              InputComponent={StyledInput}
-              onChange={setPublishDate}
+            <StyledInput
+              placeholder="Enter title"
+              value={formData.title}
+              maxLength={MAX_TITLE}
+              onChangeText={(v) => update('title', sanitizeTitle(v))}
+              hasError={!!errors.title}
+              returnKeyType="next"
             />
+          </Field>
 
-            {/* ── Visibility ── */}
-            <Text style={styles.label}>Visibility</Text>
-            <View style={styles.radioGroup}>
-              {VISIBILITY_OPTIONS.map((opt) => {
-                const selected = formData.visibility === opt.value;
-                return (
-                  <TouchableOpacity
-                    key={opt.value}
-                    style={[styles.radioOption, selected && styles.radioOptionSelected]}
-                    onPress={() => update('visibility', opt.value)}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
-                      {selected && <View style={styles.radioInner} />}
-                    </View>
-                    <View style={styles.radioTextWrap}>
-                      <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
-                        {opt.label}
-                      </Text>
-                      <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
-                        {opt.sub}
-                      </Text>
-                    </View>
-                    <Text style={styles.radioIcon}>
-                      {opt.value === 'Public(All Clubs)' ? '🌐' : '🔒'}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+          <Field
+            label="Description"
+            error={errors.description}
+            charCount={formData.description.length}
+            maxChars={MAX_DESCRIPTION}
+          >
+            <StyledInput
+              placeholder="Enter description"
+              value={formData.description}
+              maxLength={MAX_DESCRIPTION}
+              onChangeText={(v) => update('description', sanitizeDescription(v))}
+              hasError={!!errors.description}
+              multiline
+            />
+          </Field>
 
-            {/* ── Attachments ── */}
-            <Text style={styles.label}>Attachments</Text>
-            <View style={styles.attachGrid}>
+          <Field
+            label="Circular Number"
+            error={errors.circularNumber}
+            hint="e.g. C-2024/001"
+          >
+            <StyledInput
+              placeholder="e.g. C-2024/001"
+              value={formData.circularNumber}
+              autoCapitalize="characters"
+              maxLength={MAX_CIRCULAR_NUMBER}
+              onChangeText={(v) => update('circularNumber', sanitizeCircularNumber(v))}
+              hasError={!!errors.circularNumber}
+              returnKeyType="done"
+            />
+          </Field>
 
-              {/* Existing (server) attachments */}
-              {existingAttachments.map((a) => {
-                const uri = a.filePath;
-                const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                  a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-                return (
-                  <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
-                    <TouchableOpacity
-                      style={{ flex: 1 }}
-                      onPress={() => openFile(uri, isImage ? 'image' : 'file')}
-                    >
-                      {isImage ? (
-                        <Image source={{ uri }} style={styles.thumbImg} resizeMode="cover" />
-                      ) : (
-                        <View style={styles.thumbDoc}>
-                          <Text style={styles.thumbIcon}>📄</Text>
-                          <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.thumbRemove}
-                      onPress={() => deleteExisting(a.attachmentId, a.fileName)}
-                    >
-                      <Text style={styles.thumbRemoveText}>✕</Text>
-                    </TouchableOpacity>
+          {/* ── Publish Date ── */}
+          <DOBField
+            label="Publish Date"
+            value={publishDate}
+            minDate={publishMinDate}
+            maxDate={publishMaxDate}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={setPublishDate}
+          />
+
+          {/* ── Visibility ── */}
+          <Text style={styles.label}>Visibility</Text>
+          <View style={styles.radioGroup}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const selected = formData.visibility === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.radioOption, selected && styles.radioOptionSelected]}
+                  onPress={() => update('visibility', opt.value)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+                    {selected && <View style={styles.radioInner} />}
                   </View>
-                );
-              })}
+                  <View style={styles.radioTextWrap}>
+                    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
+                      {opt.label}
+                    </Text>
+                    <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
+                      {opt.sub}
+                    </Text>
+                  </View>
+                  <Text style={styles.radioIcon}>
+                    {opt.value === 'Public(All Clubs)' ? '🌐' : '🔒'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-              {/* New, not-yet-uploaded attachments */}
-              {attachments.map((a, i) => (
-                <View key={`new-${i}`} style={styles.thumb}>
-                  <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(a.uri, a.type)}>
-                    {a.type === 'image' ? (
-                      <Image source={{ uri: a.uri }} style={styles.thumbImg} resizeMode="cover" />
+          {/* ── Attachments ── */}
+          <Text style={styles.label}>Attachments</Text>
+          <View style={styles.attachGrid}>
+
+            {/* Existing (server) attachments */}
+            {existingAttachments.map((a) => {
+              const uri = a.filePath;
+              const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              return (
+                <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => openFile(uri, isImage ? 'image' : 'file')}
+                  >
+                    {isImage ? (
+                      <Image source={{ uri }} style={styles.thumbImg} resizeMode="cover" />
                     ) : (
                       <View style={styles.thumbDoc}>
-                        <Text style={styles.thumbIcon}>
-                          {a.type === 'video' ? '🎬' : '📄'}
-                        </Text>
+                        <Text style={styles.thumbIcon}>📄</Text>
                         <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
                       </View>
                     )}
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.thumbRemove}
-                    onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
+                    onPress={() => deleteExisting(a.attachmentId, a.fileName)}
                   >
                     <Text style={styles.thumbRemoveText}>✕</Text>
                   </TouchableOpacity>
                 </View>
-              ))}
+              );
+            })}
 
-              {totalAttachments < 5 && (
-                <TouchableOpacity style={styles.thumbAdd} onPress={handlePickAttachment} activeOpacity={0.8}>
-                  <Text style={styles.thumbAddIcon}>📷</Text>
-                  <Text style={styles.thumbAddText}>Add ({totalAttachments}/5)</Text>
+            {/* New, not-yet-uploaded attachments */}
+            {attachments.map((a, i) => (
+              <View key={`new-${i}`} style={styles.thumb}>
+                <TouchableOpacity style={{ flex: 1 }} onPress={() => openFile(a.uri, a.type)}>
+                  {a.type === 'image' ? (
+                    <Image source={{ uri: a.uri }} style={styles.thumbImg} resizeMode="cover" />
+                  ) : (
+                    <View style={styles.thumbDoc}>
+                      <Text style={styles.thumbIcon}>
+                        {a.type === 'video' ? '🎬' : '📄'}
+                      </Text>
+                      <Text style={styles.thumbName} numberOfLines={2}>{a.fileName}</Text>
+                    </View>
+                  )}
                 </TouchableOpacity>
-              )}
-            </View>
-            <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4 · Max 50 MB each</Text>
+                <TouchableOpacity
+                  style={styles.thumbRemove}
+                  onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
+                >
+                  <Text style={styles.thumbRemoveText}>✕</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
 
-          </ScrollView>
-        </KeyboardAvoidingView>
-
-        {/* Image viewer */}
-        <Modal
-          visible={fileViewer.visible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setFileViewer({ visible: false, uri: null })}
-        >
-          <View style={styles.viewerOverlay}>
-            <TouchableOpacity
-              style={styles.viewerClose}
-              onPress={() => setFileViewer({ visible: false, uri: null })}
-            >
-              <Text style={styles.viewerCloseText}>✕</Text>
-            </TouchableOpacity>
-            {fileViewer.uri && (
-              <Image source={{ uri: fileViewer.uri }} style={styles.viewerImage} resizeMode="contain" />
+            {totalAttachments < 5 && (
+              <TouchableOpacity style={styles.thumbAdd} onPress={handlePickAttachment} activeOpacity={0.8}>
+                <Text style={styles.thumbAddIcon}>📷</Text>
+                <Text style={styles.thumbAddText}>Add ({totalAttachments}/5)</Text>
+              </TouchableOpacity>
             )}
           </View>
-        </Modal>
+          <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4 · Max 50 MB each</Text>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      {/* Image viewer */}
+      <Modal
+        visible={fileViewer.visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFileViewer({ visible: false, uri: null })}
+      >
+        <View style={styles.viewerOverlay}>
+          <TouchableOpacity
+            style={styles.viewerClose}
+            onPress={() => setFileViewer({ visible: false, uri: null })}
+          >
+            <Text style={styles.viewerCloseText}>✕</Text>
+          </TouchableOpacity>
+          {fileViewer.uri && (
+            <Image source={{ uri: fileViewer.uri }} style={styles.viewerImage} resizeMode="contain" />
+          )}
+        </View>
+      </Modal>
+      <AttachmentPickerModal
+        visible={attachmentPickerVisible}
+        options={attachmentPickerOptions}
+        onClose={() => setAttachmentPickerVisible(false)}
+      />
 
     </View>
   );

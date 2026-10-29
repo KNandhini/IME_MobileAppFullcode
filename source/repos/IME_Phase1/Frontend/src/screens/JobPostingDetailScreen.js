@@ -78,6 +78,12 @@ const MIME_TYPES = {
   gif: 'image/gif',
   webp: 'image/webp',
   mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  m4v: 'video/mp4',
+  avi: 'video/x-msvideo',
+  mkv: 'video/x-matroska',
+  '3gp': 'video/3gpp',
+  webm: 'video/webm',
 };
 
 const getMimeType = (fileName = '') => {
@@ -87,9 +93,9 @@ const getMimeType = (fileName = '') => {
 
 const JobPostingDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
-  const [imgViewer,     setImgViewer]     = useState(null);
-  const [attachments,   setAttachments]   = useState([]);
-  const [loading,       setLoading]       = useState(true);
+  const [imgViewer, setImgViewer] = useState(null);
+  const [attachments, setAttachments] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState(null);
 
   if (!item) return null;
@@ -185,8 +191,8 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
 
   const closingDateStr = item.vacancyClosingDate
     ? new Date(item.vacancyClosingDate).toLocaleDateString('en-IN', {
-        day: '2-digit', month: 'long', year: 'numeric',
-      })
+      day: '2-digit', month: 'long', year: 'numeric',
+    })
     : '';
 
   const handleOpenWebsite = () => {
@@ -248,11 +254,11 @@ const JobPostingDetailScreen = ({ route, navigation }) => {
 
         {/* ── Key info ── */}
         <View style={styles.infoCard}>
-          <InfoRow icon="map-marker-outline"      label="Location"        value={item.location} />
-          <InfoRow icon="clock-outline"            label="Working Hours"   value={item.workingHours} />
-          <InfoRow icon="currency-inr"             label="Salary Package"  value={item.salaryPackage} />
-          <InfoRow icon="calendar-remove-outline"  label={isClosed ? 'Closed on' : 'Closes on'} value={closingDateStr} />
-          <InfoRow icon="account-outline"          label="Posted by"       value={item.createdBy} />
+          <InfoRow icon="map-marker-outline" label="Location" value={item.location} />
+          <InfoRow icon="clock-outline" label="Working Hours" value={item.workingHours} />
+          <InfoRow icon="currency-inr" label="Salary Package" value={item.salaryPackage} />
+          <InfoRow icon="calendar-remove-outline" label={isClosed ? 'Closed on' : 'Closes on'} value={closingDateStr} />
+          <InfoRow icon="account-outline" label="Posted by" value={item.createdBy} />
         </View>
 
         {/* ── About the Role ── */}

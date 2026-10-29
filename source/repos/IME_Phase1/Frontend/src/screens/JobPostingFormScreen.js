@@ -20,7 +20,7 @@ const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
 const EMPLOYMENT_TYPES = ['Full Time', 'Contract', 'Part Time', 'Internship'];
-const WORK_MODES       = ['Remote', 'Hybrid', 'Office'];
+const WORK_MODES = ['Remote', 'Hybrid', 'Office'];
 
 const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
@@ -40,38 +40,38 @@ const toPublicUrl = (filePath) => {
 // ─────────────────────────────────────────────────────────────────────────
 
 // Field max lengths
-const MAX_TITLE    = 150;
-const MAX_COMPANY  = 200;
+const MAX_TITLE = 150;
+const MAX_COMPANY = 200;
 const MAX_LOCATION = 50;
-const MAX_ABOUT    = 500;
-const MAX_SKILLS   = 500;
-const MAX_CONTACT  = 10; // digits
+const MAX_ABOUT = 500;
+const MAX_SKILLS = 500;
+const MAX_CONTACT = 10; // digits
 
 // Job Title: letters, numbers, spaces, dot, hyphen — no other special characters
-const TITLE_REGEX    = /^[A-Za-z0-9\s.-]*$/;
+const TITLE_REGEX = /^[A-Za-z0-9\s.-]*$/;
 // Company Name: letters, spaces, dot, hyphen — no numbers
-const COMPANY_REGEX  = /^[A-Za-z\s.-]*$/;
+const COMPANY_REGEX = /^[A-Za-z\s.-]*$/;
 // Location: letters + spaces only
 const LOCATION_REGEX = /^[A-Za-z\s]*$/;
 // Working Hours: numbers, letters (AM/PM), colon, dot, hyphen, spaces e.g. "10.00 AM - 6.00pm"
-const HOURS_REGEX    = /^[0-9A-Za-z:.\s-]*$/;
+const HOURS_REGEX = /^[0-9A-Za-z:.\s-]*$/;
 // Salary Package: numbers, letters (LPA), hyphen, spaces e.g. "6-7 LPA", "25000 - 40000"
-const SALARY_REGEX   = /^[0-9A-Za-z\s-]*$/;
+const SALARY_REGEX = /^[0-9A-Za-z\s-]*$/;
 // Contact: either a 10-digit phone number OR an email address
 const MAX_CONTACT_LEN = 100; // generous cap since emails can be long
 const CONTACT_PHONE_REGEX = new RegExp(`^[0-9]{${MAX_CONTACT}}$`);
 const CONTACT_EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 // Website / URL
-const URL_REGEX      = /^https?:\/\/[^\s]+$/;
+const URL_REGEX = /^https?:\/\/[^\s]+$/;
 
-const sanitizeTitle    = (v) => v.replace(/[^A-Za-z0-9\s.-]/g, '').slice(0, MAX_TITLE);
-const sanitizeCompany  = (v) => v.replace(/[^A-Za-z\s.-]/g, '').slice(0, MAX_COMPANY);
+const sanitizeTitle = (v) => v.replace(/[^A-Za-z0-9\s.-]/g, '').slice(0, MAX_TITLE);
+const sanitizeCompany = (v) => v.replace(/[^A-Za-z\s.-]/g, '').slice(0, MAX_COMPANY);
 const sanitizeLocation = (v) => v.replace(/[^A-Za-z\s]/g, '').slice(0, MAX_LOCATION);
-const sanitizeHours    = (v) => v.replace(/[^0-9A-Za-z:.\s-]/g, '');
-const sanitizeSalary   = (v) => v.replace(/[^0-9A-Za-z\s-]/g, '');
+const sanitizeHours = (v) => v.replace(/[^0-9A-Za-z:.\s-]/g, '');
+const sanitizeSalary = (v) => v.replace(/[^0-9A-Za-z\s-]/g, '');
 // Allows digits (for a phone number), the characters emails use, plus "," and
 // space so multiple contacts can be listed e.g. "name@x.com, 9677611569".
-const sanitizeContact  = (v) => v.replace(/[^A-Za-z0-9@._%+,\s-]/g, '').slice(0, MAX_CONTACT_LEN);
+const sanitizeContact = (v) => v.replace(/[^A-Za-z0-9@._%+,\s-]/g, '').slice(0, MAX_CONTACT_LEN);
 
 // Validates on blur/submit only (not sanitized while typing).
 const isValidUrl = (url) => URL_REGEX.test(url);
@@ -176,34 +176,34 @@ const JobPostingFormScreen = ({ route, navigation }) => {
   const { user } = useAuth();
 
   const [currentUserName, setCurrentUserName] = useState('');
-  const [currentClubId, setCurrentClubId]     = useState(null);
+  const [currentClubId, setCurrentClubId] = useState(null);
 
   // Form fields
-  const [jobTitle,                 setJobTitle]                 = useState(item?.jobTitle || '');
-  const [companyName,              setCompanyName]              = useState(item?.companyName || '');
-  const [location,                 setLocation]                 = useState(item?.location || '');
-  const [employmentType,           setEmploymentType]           = useState(item?.employmentType || EMPLOYMENT_TYPES[0]);
-  const [workingHours,             setWorkingHours]             = useState(item?.workingHours || '');
-  const [workMode,                 setWorkMode]                 = useState(item?.workMode || WORK_MODES[0]);
-  const [aboutRole,                setAboutRole]                = useState(item?.aboutRole || '');
-  const [requiredSkills,           setRequiredSkills]           = useState(item?.requiredSkillsExperience || '');
-  const [contactInfo,              setContactInfo]              = useState(item?.contactInfo || '');
-  const [salaryPackage,            setSalaryPackage]            = useState(item?.salaryPackage || '');
-  const [website,                  setWebsite]                  = useState(item?.website || '');
-  const [closingDate,              setClosingDate]              = useState(
+  const [jobTitle, setJobTitle] = useState(item?.jobTitle || '');
+  const [companyName, setCompanyName] = useState(item?.companyName || '');
+  const [location, setLocation] = useState(item?.location || '');
+  const [employmentType, setEmploymentType] = useState(item?.employmentType || EMPLOYMENT_TYPES[0]);
+  const [workingHours, setWorkingHours] = useState(item?.workingHours || '');
+  const [workMode, setWorkMode] = useState(item?.workMode || WORK_MODES[0]);
+  const [aboutRole, setAboutRole] = useState(item?.aboutRole || '');
+  const [requiredSkills, setRequiredSkills] = useState(item?.requiredSkillsExperience || '');
+  const [contactInfo, setContactInfo] = useState(item?.contactInfo || '');
+  const [salaryPackage, setSalaryPackage] = useState(item?.salaryPackage || '');
+  const [website, setWebsite] = useState(item?.website || '');
+  const [closingDate, setClosingDate] = useState(
     item?.vacancyClosingDate ? new Date(item.vacancyClosingDate) : null
   );
   //const [showDate,    setShowDate]    = useState(false);
-  const [loading,     setLoading]     = useState(false);
-  const [errors,      setErrors]      = useState({});
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
   // Attachments
-  const [attachments,         setAttachments]         = useState([]);          // new (not yet uploaded)
+  const [attachments, setAttachments] = useState([]);          // new (not yet uploaded)
   const [existingAttachments, setExistingAttachments] = useState([]);          // already on server
-  const [fileViewer,          setFileViewer]          = useState({ visible: false, uri: null });
-const today = new Date();
-const closingMinDate = new Date(today.getFullYear() - 100, 0, 1);
-const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
+  const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
+  const today = new Date();
+  const closingMinDate = new Date(today.getFullYear() - 100, 0, 1);
+  const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
   // ── Bootstrap ──────────────────────────────────────────────────────────────
   useEffect(() => {
     const bootstrap = async () => {
@@ -211,7 +211,7 @@ const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
         const raw = await AsyncStorage.getItem('userData');
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        const name   = parsed.fullName || parsed.name || user?.fullName || 'Admin';
+        const name = parsed.fullName || parsed.name || user?.fullName || 'Admin';
         const clubId = parsed.clubId || null;
         setCurrentUserName(name);
         setCurrentClubId(clubId);
@@ -226,51 +226,72 @@ const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
   useEffect(() => {
     if (isEdit && item?.jobPostingId) loadExistingAttachments();
   }, []);
-// Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
-const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+  // Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
+  const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
 
-const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
-// Resolve a picked asset's size in bytes, whichever field the picker
-// happened to populate (DocumentPicker uses `size`, ImagePicker usually
-// gives `fileSize`, but neither is guaranteed on every platform/version —
-// fall back to asking the filesystem directly for the real size).
-const getAssetSize = async (asset) => {
-  if (typeof asset.size === 'number') return asset.size;
-  if (typeof asset.fileSize === 'number') return asset.fileSize;
-  try {
-    const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
-    if (info?.exists && typeof info.size === 'number') return info.size;
-  } catch (e) {
-    console.warn('Could not determine file size for', asset?.uri, e);
-  }
-  return null; // unknown — let it through rather than block a valid pick
-};
-
-// Splits picked assets into { accepted, rejected }, checking each one's
-// real size against MAX_ATTACHMENT_BYTES.
-const partitionBySize = async (assets) => {
-  const accepted = [];
-  const rejected = [];
-  for (const asset of assets) {
-    const size = await getAssetSize(asset);
-    if (size != null && size > MAX_ATTACHMENT_BYTES) {
-      rejected.push({ name: asset.fileName || asset.name || 'file', size });
-    } else {
-      accepted.push(asset);
+  // Resolve a picked asset's size in bytes, whichever field the picker
+  // happened to populate (DocumentPicker uses `size`, ImagePicker usually
+  // gives `fileSize`, but neither is guaranteed on every platform/version —
+  // fall back to asking the filesystem directly for the real size).
+  const getAssetSize = async (asset) => {
+    if (typeof asset.size === 'number') return asset.size;
+    if (typeof asset.fileSize === 'number') return asset.fileSize;
+    try {
+      const info = await FileSystem.getInfoAsync(asset.uri, { size: true });
+      if (info?.exists && typeof info.size === 'number') return info.size;
+    } catch (e) {
+      console.warn('Could not determine file size for', asset?.uri, e);
     }
-  }
-  return { accepted, rejected };
-};
+    return null; // unknown — let it through rather than block a valid pick
+  };
 
-const warnIfRejected = (rejected) => {
-  if (rejected.length === 0) return;
-  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
-  Alert.alert(
-    'File too large',
-    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
-  );
-};
+  // Splits picked assets into { accepted, rejected }, checking each one's
+  // real size against MAX_ATTACHMENT_BYTES.
+  const partitionBySize = async (assets) => {
+    const accepted = [];
+    const rejected = [];
+    for (const asset of assets) {
+      const size = await getAssetSize(asset);
+      if (size != null && size > MAX_ATTACHMENT_BYTES) {
+        rejected.push({ name: asset.fileName || asset.name || 'file', size });
+      } else {
+        accepted.push(asset);
+      }
+    }
+    return { accepted, rejected };
+  };
+
+  const isAllowedAttachment = (asset) => {
+    const extension = (asset.fileName || asset.name || asset.uri || '')
+      .split('?')[0]
+      .split('.')
+      .pop()
+      .toLowerCase();
+    const mimeType = (asset.mimeType || '').toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'pdf', 'doc', 'docx'].includes(extension)
+      || ['image/jpeg', 'image/png', 'application/pdf', 'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'].includes(mimeType);
+  };
+
+  const filterAllowedAttachments = (assets) => {
+    const accepted = assets.filter(isAllowedAttachment);
+    const rejected = assets.filter((asset) => !isAllowedAttachment(asset));
+    if (rejected.length > 0) {
+      Alert.alert('Unsupported file type', 'Only JPG, PNG, PDF, DOC, and DOCX files are allowed.');
+    }
+    return accepted;
+  };
+
+  const warnIfRejected = (rejected) => {
+    if (rejected.length === 0) return;
+    const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+    Alert.alert(
+      'File too large',
+      `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+    );
+  };
   const loadExistingAttachments = async () => {
     try {
       const res = await jobPostingService.getAttachments(item.jobPostingId);
@@ -282,80 +303,82 @@ const warnIfRejected = (rejected) => {
 
   // ── Attachment picker (same UX as AchievementFormScreen) ──────────────────
   const handlePickAttachment = async () => {
-  const totalUsed = existingAttachments.length + attachments.length;
-  const slotsLeft = 5 - totalUsed;
-  if (slotsLeft <= 0) {
-    Alert.alert('Limit reached', 'Max 5 attachments per job posting.');
-    return;
-  }
+    const totalUsed = existingAttachments.length + attachments.length;
+    const slotsLeft = 5 - totalUsed;
+    if (slotsLeft <= 0) {
+      Alert.alert('Limit reached', 'Max 5 attachments per job posting.');
+      return;
+    }
 
-  Alert.alert('Attach File', 'Choose file type', [
-    {
-      text: 'PDF / Document',
-      onPress: async () => {
-        const result = await DocumentPicker.getDocumentAsync({
-          type: [
-            'application/pdf',
-            'application/msword',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-          ],
-          copyToCacheDirectory: true,
-          multiple: true,
-        });
-        if (!result.canceled && result.assets?.length > 0) {
-          // ✅ Check size before slicing to slots
-          const { accepted, rejected } = await partitionBySize(result.assets);
-          warnIfRejected(rejected);
+    Alert.alert('Attach File', 'Choose file type', [
+      {
+        text: 'PDF / Document',
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: [
+              'application/pdf',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
+            copyToCacheDirectory: false,
+            multiple: true,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            // ✅ Check size before slicing to slots
+            const allowedAssets = filterAllowedAttachments(result.assets);
+            const { accepted, rejected } = await partitionBySize(allowedAssets);
+            warnIfRejected(rejected);
 
-          const picked = accepted.slice(0, slotsLeft).map((asset) => ({
-            uri: asset.uri, fileName: asset.name,
-            mimeType: asset.mimeType || 'application/pdf', type: 'document',
-          }));
-          setAttachments((prev) => [...prev, ...picked]);
+            const picked = accepted.slice(0, slotsLeft).map((asset) => ({
+              uri: asset.uri, fileName: asset.name,
+              mimeType: asset.mimeType || 'application/pdf', type: 'document',
+            }));
+            setAttachments((prev) => [...prev, ...picked]);
 
-          if (accepted.length > slotsLeft) {
-            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            if (accepted.length > slotsLeft) {
+              Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            }
           }
-        }
+        },
       },
-    },
-    {
-      text: 'Photo / Image',
-      onPress: async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') { Alert.alert('Permission needed'); return; }
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.All,
-          allowsMultipleSelection: true,
-          selectionLimit: slotsLeft,
-          quality: 0.85,
-        });
-        if (!result.canceled && result.assets?.length > 0) {
-          // ✅ Check size before slicing to slots
-          const { accepted, rejected } = await partitionBySize(result.assets);
-          warnIfRejected(rejected);
+      {
+        text: 'Photo',
+        onPress: async () => {
+          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+          if (status !== 'granted') { Alert.alert('Permission needed'); return; }
+          const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsMultipleSelection: true,
+            selectionLimit: slotsLeft,
+            quality: 0.85,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            // ✅ Check size before slicing to slots
+            const allowedAssets = filterAllowedAttachments(result.assets);
+            const { accepted, rejected } = await partitionBySize(allowedAssets);
+            warnIfRejected(rejected);
 
-          const picked = accepted.slice(0, slotsLeft).map((asset) => ({
-            uri: asset.uri,
-            fileName: asset.fileName || `image_${Date.now()}.jpg`,
-            mimeType: asset.mimeType || 'image/jpeg',
-            type: 'image',
-          }));
-          setAttachments((prev) => [...prev, ...picked]);
+            const picked = accepted.slice(0, slotsLeft).map((asset) => ({
+              uri: asset.uri,
+              fileName: asset.fileName || `image_${Date.now()}.jpg`,
+              mimeType: asset.mimeType || 'image/jpeg',
+              type: 'image',
+            }));
+            setAttachments((prev) => [...prev, ...picked]);
 
-          if (accepted.length > slotsLeft) {
-            Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            if (accepted.length > slotsLeft) {
+              Alert.alert('Limit applied', `Only ${slotsLeft} file(s) added. Max 5 total.`);
+            }
           }
-        }
+        },
       },
-    },
-    { text: 'Cancel', style: 'cancel' },
-  ]);
-};
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
 
   const formatDate = (d) => {
-    const y   = d.getFullYear();
-    const m   = String(d.getMonth() + 1).padStart(2, '0');
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   };
@@ -363,7 +386,7 @@ const warnIfRejected = (rejected) => {
   // ── Save ───────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     const e = {};
-    if (!jobTitle.trim())    e.jobTitle    = 'Job Title is required.';
+    if (!jobTitle.trim()) e.jobTitle = 'Job Title is required.';
     else if (jobTitle.trim().length > MAX_TITLE) e.jobTitle = `Job Title must be ${MAX_TITLE} characters or fewer.`;
     else if (!TITLE_REGEX.test(jobTitle.trim())) e.jobTitle = 'Only letters, numbers, spaces, "." and "-" are allowed.';
 
@@ -371,7 +394,7 @@ const warnIfRejected = (rejected) => {
     else if (companyName.trim().length > MAX_COMPANY) e.companyName = `Company Name must be ${MAX_COMPANY} characters or fewer.`;
     else if (!COMPANY_REGEX.test(companyName.trim())) e.companyName = 'Only letters, spaces, "." and "-" are allowed.';
 
-    if (!location.trim())    e.location    = 'Location is required.';
+    if (!location.trim()) e.location = 'Location is required.';
     else if (location.trim().length > MAX_LOCATION) e.location = `Location must be ${MAX_LOCATION} characters or fewer.`;
     else if (!LOCATION_REGEX.test(location.trim())) e.location = 'Only letters and spaces are allowed.';
 
@@ -409,10 +432,10 @@ const warnIfRejected = (rejected) => {
       let recordId;
 
       if (isEdit) {
-        res      = await jobPostingService.update(item.jobPostingId, { ...payload, modifiedBy: currentUserName });
+        res = await jobPostingService.update(item.jobPostingId, { ...payload, modifiedBy: currentUserName });
         recordId = item.jobPostingId;
       } else {
-        res      = await jobPostingService.create({
+        res = await jobPostingService.create({
           ...payload,
           clubId: Number(currentClubId),
           createdBy: currentUserName,
@@ -425,14 +448,17 @@ const warnIfRejected = (rejected) => {
         return;
       }
 
-      // Upload new attachments one-by-one (same as AchievementFormScreen)
-      for (const file of attachments) {
+      if (attachments.length > 0) {
+        if (!recordId) {
+          Alert.alert('Partial Success', 'Job posting saved, but its ID was not returned so attachments could not be uploaded.');
+          return;
+        }
         try {
-          const fd = new FormData();
-          fd.append('files', { uri: file.uri, name: file.fileName, type: file.mimeType });
-          await jobPostingService.uploadAttachments(recordId, fd);
+          await jobPostingService.uploadAttachments(recordId, attachments);
         } catch (e) {
-          console.warn('Attachment upload failed:', e.message);
+          console.warn('Job posting attachment upload failed:', e.message);
+          Alert.alert('Partial Success', `Job posting saved, but attachment upload failed: ${e.message}`);
+          return;
         }
       }
 
@@ -469,194 +495,228 @@ const warnIfRejected = (rejected) => {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
-        {/* ── Job Title ── */}
-        <Field label="Job Title" required error={errors.jobTitle} charCount={jobTitle.length} maxChars={MAX_TITLE}>
-          <StyledInput
-            placeholder="Enter Job Title"
-            value={jobTitle}
-            maxLength={MAX_TITLE}
-            onChangeText={(t) => {
-              const clean = sanitizeTitle(t);
-              setJobTitle(clean);
-              if (errors.jobTitle) setErrors(p => ({ ...p, jobTitle: '' }));
-            }}
-            hasError={!!errors.jobTitle}
-          />
-        </Field>
-
-        {/* ── Company Name ── */}
-        <Field label="Company Name" required error={errors.companyName} charCount={companyName.length} maxChars={MAX_COMPANY}>
-          <StyledInput
-            placeholder="Enter Company Name"
-            value={companyName}
-            maxLength={MAX_COMPANY}
-            onChangeText={(t) => {
-              const clean = sanitizeCompany(t);
-              setCompanyName(clean);
-              if (errors.companyName) setErrors(p => ({ ...p, companyName: '' }));
-            }}
-            hasError={!!errors.companyName}
-          />
-        </Field>
-
-        {/* ── Location ── */}
-        <Field label="Location" required error={errors.location} charCount={location.length} maxChars={MAX_LOCATION}>
-          <StyledInput
-            placeholder="Enter Location"
-            value={location}
-            maxLength={MAX_LOCATION}
-            onChangeText={(t) => {
-              const clean = sanitizeLocation(t);
-              setLocation(clean);
-              if (errors.location) setErrors(p => ({ ...p, location: '' }));
-            }}
-            hasError={!!errors.location}
-          />
-        </Field>
-
-        <ChipSelector label="Employment Type *" options={EMPLOYMENT_TYPES}
-          value={employmentType} onChange={setEmploymentType} />
-
-        {/* ── Working Hours ── */}
-        <Field label="Working Hours" hint="e.g. 10.00 AM - 6.00 PM">
-          <StyledInput
-            placeholder="e.g. 10.00 AM - 6.00pm"
-            value={workingHours}
-            onChangeText={(t) => setWorkingHours(sanitizeHours(t))}
-          />
-        </Field>
-
-        <ChipSelector label="Work Mode *" options={WORK_MODES}
-          value={workMode} onChange={setWorkMode} />
-
-        {/* ── About the Role ── */}
-        <Field label="About the Role" charCount={aboutRole.length} maxChars={MAX_ABOUT}>
-          <StyledInput
-            placeholder="Describe the role"
-            value={aboutRole}
-            maxLength={MAX_ABOUT}
-            onChangeText={(t) => setAboutRole(t.slice(0, MAX_ABOUT))}
-            multiline
-          />
-        </Field>
-
-        {/* ── Required Skills & Experience ── */}
-        <Field label="Required Skills & Experience" charCount={requiredSkills.length} maxChars={MAX_SKILLS}>
-          <StyledInput
-            placeholder="List required skills and experience"
-            value={requiredSkills}
-            maxLength={MAX_SKILLS}
-            onChangeText={(t) => setRequiredSkills(t.slice(0, MAX_SKILLS))}
-            multiline
-          />
-        </Field>
-
-        {/* ── Salary Package ── */}
-        <Field label="Salary Package" hint="e.g. 6-7 LPA or 25000 - 40000">
-          <StyledInput
-            placeholder="e.g. 6-7 LPA"
-            value={salaryPackage}
-            onChangeText={(t) => setSalaryPackage(sanitizeSalary(t))}
-          />
-        </Field>
-
-        {/* ── Contact Info (number and/or email, comma-separated) ── */}
-        <Field label="If Interested, Please Contact" required error={errors.contactInfo} hint={`e.g. name@example.com, ${'9'.repeat(MAX_CONTACT)}`}>
-          <StyledInput
-            placeholder="Email and/or phone number"
-            value={contactInfo}
-            maxLength={MAX_CONTACT_LEN}
-            onChangeText={(t) => {
-              const clean = sanitizeContact(t);
-              setContactInfo(clean);
-              if (errors.contactInfo) setErrors(p => ({ ...p, contactInfo: '' }));
-            }}
-            onBlur={() => {
-              const val = contactInfo.trim();
-              if (val && !isValidContact(val)) {
-                setErrors(p => ({ ...p, contactInfo: `Each entry must be a valid ${MAX_CONTACT}-digit contact number or a valid email address.` }));
-              }
-            }}
-            hasError={!!errors.contactInfo}
-            keyboardType="default"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </Field>
-
-        {/* ── Vacancy Closing Date — same dd/mm/yyyy typing + wheel-list picker used in AchievementFormScreen ── */}
-<DOBField
-  label="Vacancy Closing Date"
-  required
-  value={closingDate}
-  minDate={closingMinDate}
-  maxDate={closingMaxDate}
-  error={errors.closingDate}
-  FieldComponent={Field}
-  InputComponent={StyledInput}
-  onChange={(d) => {
-    setClosingDate(d);
-    if (errors.closingDate) setErrors(p => ({ ...p, closingDate: '' }));
-  }}
-/>
-        {/* ── Website (new field, right after Vacancy Closing Date) ── */}
-        <Field label="Website" error={errors.website} hint="e.g. https://www.example.com">
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          {/* ── Job Title ── */}
+          <Field label="Job Title" required error={errors.jobTitle} charCount={jobTitle.length} maxChars={MAX_TITLE}>
             <StyledInput
-              style={{ flex: 1 }}
-              placeholder="https://www.example.com"
-              value={website}
+              placeholder="Enter Job Title"
+              value={jobTitle}
+              maxLength={MAX_TITLE}
               onChangeText={(t) => {
-                setWebsite(t);
-                if (errors.website) setErrors(p => ({ ...p, website: '' }));
+                const clean = sanitizeTitle(t);
+                setJobTitle(clean);
+                if (errors.jobTitle) setErrors(p => ({ ...p, jobTitle: '' }));
+              }}
+              hasError={!!errors.jobTitle}
+            />
+          </Field>
+
+          {/* ── Company Name ── */}
+          <Field label="Company Name" required error={errors.companyName} charCount={companyName.length} maxChars={MAX_COMPANY}>
+            <StyledInput
+              placeholder="Enter Company Name"
+              value={companyName}
+              maxLength={MAX_COMPANY}
+              onChangeText={(t) => {
+                const clean = sanitizeCompany(t);
+                setCompanyName(clean);
+                if (errors.companyName) setErrors(p => ({ ...p, companyName: '' }));
+              }}
+              hasError={!!errors.companyName}
+            />
+          </Field>
+
+          {/* ── Location ── */}
+          <Field label="Location" required error={errors.location} charCount={location.length} maxChars={MAX_LOCATION}>
+            <StyledInput
+              placeholder="Enter Location"
+              value={location}
+              maxLength={MAX_LOCATION}
+              onChangeText={(t) => {
+                const clean = sanitizeLocation(t);
+                setLocation(clean);
+                if (errors.location) setErrors(p => ({ ...p, location: '' }));
+              }}
+              hasError={!!errors.location}
+            />
+          </Field>
+
+          <ChipSelector label="Employment Type *" options={EMPLOYMENT_TYPES}
+            value={employmentType} onChange={setEmploymentType} />
+
+          {/* ── Working Hours ── */}
+          <Field label="Working Hours" hint="e.g. 10.00 AM - 6.00 PM">
+            <StyledInput
+              placeholder="e.g. 10.00 AM - 6.00pm"
+              value={workingHours}
+              onChangeText={(t) => setWorkingHours(sanitizeHours(t))}
+            />
+          </Field>
+
+          <ChipSelector label="Work Mode *" options={WORK_MODES}
+            value={workMode} onChange={setWorkMode} />
+
+          {/* ── About the Role ── */}
+          <Field label="About the Role" charCount={aboutRole.length} maxChars={MAX_ABOUT}>
+            <StyledInput
+              placeholder="Describe the role"
+              value={aboutRole}
+              maxLength={MAX_ABOUT}
+              onChangeText={(t) => setAboutRole(t.slice(0, MAX_ABOUT))}
+              multiline
+            />
+          </Field>
+
+          {/* ── Required Skills & Experience ── */}
+          <Field label="Required Skills & Experience" charCount={requiredSkills.length} maxChars={MAX_SKILLS}>
+            <StyledInput
+              placeholder="List required skills and experience"
+              value={requiredSkills}
+              maxLength={MAX_SKILLS}
+              onChangeText={(t) => setRequiredSkills(t.slice(0, MAX_SKILLS))}
+              multiline
+            />
+          </Field>
+
+          {/* ── Salary Package ── */}
+          <Field label="Salary Package" hint="e.g. 6-7 LPA or 25000 - 40000">
+            <StyledInput
+              placeholder="e.g. 6-7 LPA"
+              value={salaryPackage}
+              onChangeText={(t) => setSalaryPackage(sanitizeSalary(t))}
+            />
+          </Field>
+
+          {/* ── Contact Info (number and/or email, comma-separated) ── */}
+          <Field label="If Interested, Please Contact" required error={errors.contactInfo} hint={`e.g. name@example.com, ${'9'.repeat(MAX_CONTACT)}`}>
+            <StyledInput
+              placeholder="Email and/or phone number"
+              value={contactInfo}
+              maxLength={MAX_CONTACT_LEN}
+              onChangeText={(t) => {
+                const clean = sanitizeContact(t);
+                setContactInfo(clean);
+                if (errors.contactInfo) setErrors(p => ({ ...p, contactInfo: '' }));
               }}
               onBlur={() => {
-                const val = website.trim();
-                if (val && !isValidUrl(val)) {
-                  setErrors(p => ({ ...p, website: 'Enter a valid URL starting with http:// or https://' }));
+                const val = contactInfo.trim();
+                if (val && !isValidContact(val)) {
+                  setErrors(p => ({ ...p, contactInfo: `Each entry must be a valid ${MAX_CONTACT}-digit contact number or a valid email address.` }));
                 }
               }}
-              hasError={!!errors.website}
+              hasError={!!errors.contactInfo}
+              keyboardType="default"
               autoCapitalize="none"
               autoCorrect={false}
-              keyboardType="url"
             />
-            {!!website.trim() && (
-              <TouchableOpacity
-                onPress={() => {
+          </Field>
+
+          {/* ── Vacancy Closing Date — same dd/mm/yyyy typing + wheel-list picker used in AchievementFormScreen ── */}
+          <DOBField
+            label="Vacancy Closing Date"
+            required
+            value={closingDate}
+            minDate={closingMinDate}
+            maxDate={closingMaxDate}
+            error={errors.closingDate}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={(d) => {
+              setClosingDate(d);
+              if (errors.closingDate) setErrors(p => ({ ...p, closingDate: '' }));
+            }}
+          />
+          {/* ── Website (new field, right after Vacancy Closing Date) ── */}
+          <Field label="Website" error={errors.website} hint="e.g. https://www.example.com">
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <StyledInput
+                style={{ flex: 1 }}
+                placeholder="https://www.example.com"
+                value={website}
+                onChangeText={(t) => {
+                  setWebsite(t);
+                  if (errors.website) setErrors(p => ({ ...p, website: '' }));
+                }}
+                onBlur={() => {
                   const val = website.trim();
-                  if (isValidUrl(val)) {
-                    Linking.openURL(val);
-                  } else {
-                    Alert.alert('Invalid URL', 'Please enter a valid website URL (starting with http:// or https://) before opening.');
+                  if (val && !isValidUrl(val)) {
+                    setErrors(p => ({ ...p, website: 'Enter a valid URL starting with http:// or https://' }));
                   }
                 }}
-                style={{ marginLeft: 8, padding: 10 }}
-                accessibilityLabel="Open website"
-              >
-                <MaterialCommunityIcons name="open-in-new" size={20} color={NAVY} />
-              </TouchableOpacity>
-            )}
-          </View>
-        </Field>
+                hasError={!!errors.website}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="url"
+              />
+              {!!website.trim() && (
+                <TouchableOpacity
+                  onPress={() => {
+                    const val = website.trim();
+                    if (isValidUrl(val)) {
+                      Linking.openURL(val);
+                    } else {
+                      Alert.alert('Invalid URL', 'Please enter a valid website URL (starting with http:// or https://) before opening.');
+                    }
+                  }}
+                  style={{ marginLeft: 8, padding: 10 }}
+                  accessibilityLabel="Open website"
+                >
+                  <MaterialCommunityIcons name="open-in-new" size={20} color={NAVY} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </Field>
 
-        {/* ── Attachments (same grid as AchievementFormScreen — unchanged) ── */}
-        <Text style={styles.attachLabel}>ATTACHMENTS</Text>
-        <View style={styles.attachGrid}>
-          {existingAttachments.map((a) => {
-            const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-            const url = toPublicUrl(a.filePath);
-            return (
-              <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
+          {/* ── Attachments (same grid as AchievementFormScreen — unchanged) ── */}
+          <Text style={styles.attachLabel}>ATTACHMENTS</Text>
+          <View style={styles.attachGrid}>
+            {existingAttachments.map((a) => {
+              const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              const url = toPublicUrl(a.filePath);
+              return (
+                <View key={`ex-${a.attachmentId}`} style={styles.gridThumb}>
+                  <TouchableOpacity style={{ flex: 1 }} onPress={() => {
+                    if (isImage) setFileViewer({ visible: true, uri: url });
+                    else Linking.openURL(url);
+                  }}>
+                    {isImage ? (
+                      <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+                    ) : (
+                      <View style={styles.gridDoc}>
+                        <Text style={styles.gridDocIcon}>📄</Text>
+                        <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.gridRemove} onPress={() => {
+                    Alert.alert('Delete', `Delete "${a.fileName}"?`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete', style: 'destructive', onPress: async () => {
+                          try {
+                            await jobPostingService.deleteAttachment(a.attachmentId);
+                            setExistingAttachments((prev) => prev.filter((x) => x.attachmentId !== a.attachmentId));
+                          } catch { Alert.alert('Error', 'Failed to delete attachment.'); }
+                        },
+                      },
+                    ]);
+                  }}>
+                    <Text style={styles.gridRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+
+            {attachments.map((a, i) => (
+              <View key={`new-${i}`} style={styles.gridThumb}>
                 <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-                  if (isImage) setFileViewer({ visible: true, uri: url });
-                  else Linking.openURL(url);
+                  if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri });
+                  else Linking.openURL(a.uri);
                 }}>
-                  {isImage ? (
-                    <Image source={{ uri: url }} style={styles.gridImg} resizeMode="cover" />
+                  {a.type === 'image' ? (
+                    <Image source={{ uri: a.uri }} style={styles.gridImg} resizeMode="cover" />
                   ) : (
                     <View style={styles.gridDoc}>
                       <Text style={styles.gridDocIcon}>📄</Text>
@@ -664,57 +724,23 @@ const warnIfRejected = (rejected) => {
                     </View>
                   )}
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.gridRemove} onPress={() => {
-                  Alert.alert('Delete', `Delete "${a.fileName}"?`, [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                      text: 'Delete', style: 'destructive', onPress: async () => {
-                        try {
-                          await jobPostingService.deleteAttachment(a.attachmentId);
-                          setExistingAttachments((prev) => prev.filter((x) => x.attachmentId !== a.attachmentId));
-                        } catch { Alert.alert('Error', 'Failed to delete attachment.'); }
-                      },
-                    },
-                  ]);
-                }}>
+                <TouchableOpacity style={styles.gridRemove}
+                  onPress={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}>
                   <Text style={styles.gridRemoveText}>✕</Text>
                 </TouchableOpacity>
               </View>
-            );
-          })}
+            ))}
 
-          {attachments.map((a, i) => (
-            <View key={`new-${i}`} style={styles.gridThumb}>
-              <TouchableOpacity style={{ flex: 1 }} onPress={() => {
-                if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri });
-                else Linking.openURL(a.uri);
-              }}>
-                {a.type === 'image' ? (
-                  <Image source={{ uri: a.uri }} style={styles.gridImg} resizeMode="cover" />
-                ) : (
-                  <View style={styles.gridDoc}>
-                    <Text style={styles.gridDocIcon}>📄</Text>
-                    <Text style={styles.gridDocName} numberOfLines={2}>{a.fileName}</Text>
-                  </View>
-                )}
+            {totalAttachments < 5 && (
+              <TouchableOpacity style={styles.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
+                <Text style={styles.gridAddIcon}>📷</Text>
+                <Text style={styles.gridAddText}>Add ({totalAttachments}/5)</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.gridRemove}
-                onPress={() => setAttachments((prev) => prev.filter((_, idx) => idx !== i))}>
-                <Text style={styles.gridRemoveText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+            )}
+          </View>
+          <Text style={styles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
 
-          {totalAttachments < 5 && (
-            <TouchableOpacity style={styles.gridAddBtn} onPress={handlePickAttachment} activeOpacity={0.8}>
-              <Text style={styles.gridAddIcon}>📷</Text>
-              <Text style={styles.gridAddText}>Add ({totalAttachments}/5)</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <Text style={styles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
-
-        {/* ── Save button ── 
+          {/* ── Save button ── 
         <TouchableOpacity
           style={[styles.saveBtn, loading && { opacity: 0.7 }]}
           onPress={handleSave} disabled={loading} activeOpacity={0.85}
@@ -728,7 +754,7 @@ const warnIfRejected = (rejected) => {
             </>
           )}
         </TouchableOpacity>*/}
-      </ScrollView>
+        </ScrollView>
       </KeyboardAvoidingView>
 
       {/* ── Image viewer modal ── */}

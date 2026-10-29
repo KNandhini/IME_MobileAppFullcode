@@ -82,27 +82,27 @@ const MagazineDetailScreen = ({ route, navigation }) => {
 
   // Pull logged-in member info — adjust keys to whatever you store at login
   const loadCurrentMember = async () => {
-  try {
-    debugger;
-    const userData = await AsyncStorage.getItem("userData");
+    try {
+      debugger;
+      const userData = await AsyncStorage.getItem("userData");
 
-    if (userData) {
-      const user = JSON.parse(userData);
-console.log(userData,"user");
-      setCurrentMember({
-        memberId: user.memberId ?? null,
-        memberName: user.fullName ?? "Guest",
-      });
-    } else {
-      setCurrentMember({
-        memberId: null,
-        memberName: "Guest",
-      });
+      if (userData) {
+        const user = JSON.parse(userData);
+        console.log(userData, "user");
+        setCurrentMember({
+          memberId: user.memberId ?? null,
+          memberName: user.fullName ?? "Guest",
+        });
+      } else {
+        setCurrentMember({
+          memberId: null,
+          memberName: "Guest",
+        });
+      }
+    } catch (e) {
+      console.warn("loadCurrentMember error:", e);
     }
-  } catch (e) {
-    console.warn("loadCurrentMember error:", e);
-  }
-};
+  };
   // Always re-fetches full history from the server, so it shows
   // everything again whenever you come back to this screen
   const loadDiscussion = async () => {
@@ -124,7 +124,7 @@ console.log(userData,"user");
 
     setSending(true);
     try {
-        debugger;
+      debugger;
       const res = await magazineService.addForumDiscussion({
         magazineId: item.magazineId,
         memberId: currentMember.memberId,
@@ -156,8 +156,8 @@ console.log(userData,"user");
 
   const dateStr = item.publishedDate
     ? new Date(item.publishedDate).toLocaleDateString('en-IN', {
-        day: '2-digit', month: 'long', year: 'numeric',
-      })
+      day: '2-digit', month: 'long', year: 'numeric',
+    })
     : '';
 
   const isPdf = (path) => path?.toLowerCase().endsWith('.pdf');
@@ -209,6 +209,13 @@ console.log(userData,"user");
           case "xlsx":
             mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             break;
+          case "mp4":
+          case "m4v": mimeType = "video/mp4"; break;
+          case "mov": mimeType = "video/quicktime"; break;
+          case "avi": mimeType = "video/x-msvideo"; break;
+          case "mkv": mimeType = "video/x-matroska"; break;
+          case "3gp": mimeType = "video/3gpp"; break;
+          case "webm": mimeType = "video/webm"; break;
         }
 
         const destUri = await FileSystem.StorageAccessFramework.createFileAsync(
@@ -255,50 +262,50 @@ console.log(userData,"user");
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : (StatusBar.currentHeight || 0) + 56}
       >
         <ScrollView contentContainerStyle={styles.body} ref={scrollRef}>
-<View style={styles.headerCard}>
-  {/* Tag row: badge + category together */}
-  <View style={styles.tagRow}>
-    <View style={styles.badge}>
-      <MaterialCommunityIcons name="book-open-page-variant-outline" size={12} color="#B7791F" />
-      <Text style={styles.badgeText}>Magazine</Text>
-    </View>
-    {!!item.category && (
-      <View style={styles.categoryPill}>
-        <Text style={styles.categoryText}>{item.category}</Text>
-      </View>
-    )}
-  </View>
-  <Text style={styles.title}>{item.title}</Text>
- <View style={styles.metaRow}>
-  {!!item.issueNumber && (
-    <View style={styles.metaItem}>
-      <MaterialCommunityIcons name="book" size={15} color={GOLD} />
-      <Text style={styles.metaText}>{item.issueNumber}</Text>
-    </View>
-  )}
-</View>
-  <View style={styles.metaRow}>
-    {!!item.authorName && (
-      <View style={styles.metaItem}>
-        <MaterialCommunityIcons name="account-outline" size={15} color={GOLD} />
-        <Text style={styles.metaText}>{item.authorName}</Text>
-      </View>
-    )}
-    {!!dateStr && (
-      <View style={styles.metaItem}>
-        <MaterialCommunityIcons name="calendar-outline" size={15} color={GOLD} />
-        <Text style={styles.metaText}>{dateStr}</Text>
-      </View>
-    )}
-  </View>
+          <View style={styles.headerCard}>
+            {/* Tag row: badge + category together */}
+            <View style={styles.tagRow}>
+              <View style={styles.badge}>
+                <MaterialCommunityIcons name="book-open-page-variant-outline" size={12} color="#B7791F" />
+                <Text style={styles.badgeText}>Magazine</Text>
+              </View>
+              {!!item.category && (
+                <View style={styles.categoryPill}>
+                  <Text style={styles.categoryText}>{item.category}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.title}>{item.title}</Text>
+            <View style={styles.metaRow}>
+              {!!item.issueNumber && (
+                <View style={styles.metaItem}>
+                  <MaterialCommunityIcons name="book" size={15} color={GOLD} />
+                  <Text style={styles.metaText}>{item.issueNumber}</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.metaRow}>
+              {!!item.authorName && (
+                <View style={styles.metaItem}>
+                  <MaterialCommunityIcons name="account-outline" size={15} color={GOLD} />
+                  <Text style={styles.metaText}>{item.authorName}</Text>
+                </View>
+              )}
+              {!!dateStr && (
+                <View style={styles.metaItem}>
+                  <MaterialCommunityIcons name="calendar-outline" size={15} color={GOLD} />
+                  <Text style={styles.metaText}>{dateStr}</Text>
+                </View>
+              )}
+            </View>
 
-  {!!item.description && (
-    <View style={styles.descBlock}>
-      <Text style={styles.descLabel}>Description</Text>
-      <Text style={styles.descText}>{item.description}</Text>
-    </View>
-  )}
-</View>
+            {!!item.description && (
+              <View style={styles.descBlock}>
+                <Text style={styles.descLabel}>Description</Text>
+                <Text style={styles.descText}>{item.description}</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.attachLabel}>ATTACHMENTS</Text>
           {loading ? (
             <ActivityIndicator color={GOLD} style={{ marginVertical: 20 }} />
@@ -400,8 +407,8 @@ console.log(userData,"user");
             value={messageText}
             onChangeText={setMessageText}
             multiline
-             
-            
+
+
           />
           <TouchableOpacity
             style={[styles.sendBtn, sending && { opacity: 0.6 }]}

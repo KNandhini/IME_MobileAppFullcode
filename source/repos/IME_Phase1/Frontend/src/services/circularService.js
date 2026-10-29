@@ -1,8 +1,11 @@
 import api, { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { uploadAttachments as uploadLocalAttachments } from '../utils/uploadAttachments';
 
 const getToken = async () => {
   try {
+    const authToken = await AsyncStorage.getItem('authToken');
+    if (authToken) return authToken;
     const raw = await AsyncStorage.getItem('userData');
     if (!raw) return null;
     const parsed = JSON.parse(raw);
@@ -22,7 +25,11 @@ const multipartFetch = async (method, url, form) => {
     },
     body: form,
   });
-  return response.json();
+  const text = await response.text();
+  let data;
+  try { data = JSON.parse(text); } catch { data = { message: text }; }
+  if (!response.ok) throw new Error(data?.message || `HTTP ${response.status}`);
+  return data;
 };
 
 export const circularService = {
@@ -42,43 +49,30 @@ export const circularService = {
     return response.data;
   },
 
-  create: async (data, attachments = []) => {
+  create: async (data) => {
     const form = new FormData();
-    form.append('title',       data.title);
+    form.append('title', data.title);
     form.append('publishDate', data.publishDate);
-    if (data.description)    form.append('description',    data.description);
+    if (data.description) form.append('description', data.description);
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
-    form.append('visibility',  data.visibility || 'All');
-
-    attachments.forEach((file) => {
-      form.append('files', {
-        uri:  file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-        name: file.fileName || file.name || `file_${Date.now()}.jpg`,
-        type: file.mimeType || file.type || 'application/octet-stream',
-      });
-    });
+    form.append('visibility', data.visibility || 'All');
 
     return multipartFetch('POST', '/circular', form);
   },
 
-  update: async (circularId, data, attachments = []) => {
+  update: async (circularId, data) => {
     const form = new FormData();
-    form.append('title',       data.title);
+    form.append('title', data.title);
     form.append('publishDate', data.publishDate);
-    if (data.description)    form.append('description',    data.description);
+    if (data.description) form.append('description', data.description);
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
-    form.append('visibility',  data.visibility || 'All');
-
-    attachments.forEach((file) => {
-      form.append('files', {
-        uri:  file.uri.startsWith('file://') ? file.uri : `file://${file.uri}`,
-        name: file.fileName || file.name || `file_${Date.now()}.jpg`,
-        type: file.mimeType || file.type || 'application/octet-stream',
-      });
-    });
+    form.append('visibility', data.visibility || 'All');
 
     return multipartFetch('PUT', `/circular/${circularId}`, form);
   },
+
+  uploadAttachments: async (circularId, files) =>
+    uploadLocalAttachments(`${BASE_URL}/api/circular/${circularId}/attachments`, files),
 
   delete: async (circularId) => {
     const response = await api.delete(`/circular/${circularId}`);

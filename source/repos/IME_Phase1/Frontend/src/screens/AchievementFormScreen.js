@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AchievementFormScreenDrop as drop, AchievementFormScreenStyles as styles, AddCircularScreenStyles as circStyles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import DOBField from '../components/DOBField';
+import AttachmentPickerModal from '../components/AttachmentPickerModal';
 
 const NAVY = COLORS.primary;
 const GOLD = COLORS.accent;
@@ -222,6 +223,8 @@ const AchievementFormScreen = ({ route, navigation }) => {
 
   const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
+  const [attachmentPickerVisible, setAttachmentPickerVisible] = useState(false);
+  const [attachmentPickerOptions, setAttachmentPickerOptions] = useState([]);
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
   const [errors, setErrors] = useState({});
 
@@ -229,7 +232,7 @@ const AchievementFormScreen = ({ route, navigation }) => {
   // today (an achievement can't be dated in the future).
   const today = new Date();
   const dateMinDate = new Date(today.getFullYear() - 100, 0, 1);
-  const dateMaxDate =  new Date(today.getFullYear() + 80, 11, 31);
+  const dateMaxDate = new Date(today.getFullYear() + 80, 11, 31);
 
   // ── Bootstrap ─────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -355,13 +358,13 @@ const AchievementFormScreen = ({ route, navigation }) => {
     const totalUsed = existingAttachments.length + attachments.length;
     const slotsLeft = 5 - totalUsed;
     if (slotsLeft <= 0) { Alert.alert('Limit reached', 'Max 5 attachments per achievement.'); return; }
-    Alert.alert('Attach File', 'Choose file type', [
+    setAttachmentPickerOptions([
       {
         text: 'PDF / Document',
         onPress: async () => {
           const result = await DocumentPicker.getDocumentAsync({
             type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
-            copyToCacheDirectory: true, multiple: true,
+            copyToCacheDirectory: false, multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
             const { accepted, rejected } = await partitionBySize(result.assets);
@@ -374,16 +377,14 @@ const AchievementFormScreen = ({ route, navigation }) => {
         },
       },
       {
-        text: 'Image / Video',
+        text: 'Photo',
         onPress: async () => {
           const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
           if (status !== 'granted') { Alert.alert('Permission needed'); return; }
           const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All, allowsMultipleSelection: true, selectionLimit: slotsLeft, quality: 0.85,
+            mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: slotsLeft, quality: 0.85,
           });
           if (!result.canceled && result.assets?.length > 0) {
-            // "Photo / Image" here can also return videos since
-            // MediaTypeOptions.All is used — every asset gets size-checked.
             const { accepted, rejected } = await partitionBySize(result.assets);
             warnIfRejected(rejected);
             const picked = accepted.slice(0, slotsLeft).map(asset => ({
@@ -393,8 +394,29 @@ const AchievementFormScreen = ({ route, navigation }) => {
           }
         },
       },
-      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Video',
+        onPress: async () => {
+          const result = await DocumentPicker.getDocumentAsync({
+            type: 'video/*',
+            copyToCacheDirectory: false,
+            multiple: true,
+          });
+          if (!result.canceled && result.assets?.length > 0) {
+            const { accepted, rejected } = await partitionBySize(result.assets);
+            warnIfRejected(rejected);
+            const picked = accepted.slice(0, slotsLeft).map((asset) => ({
+              uri: asset.uri,
+              fileName: asset.name,
+              mimeType: asset.mimeType || 'video/mp4',
+              type: 'video',
+            }));
+            setAttachments((prev) => [...prev, ...picked]);
+          }
+        },
+      },
     ]);
+    setAttachmentPickerVisible(true);
   };
 
   const formatDate = (d) => {
@@ -471,30 +493,17 @@ const AchievementFormScreen = ({ route, navigation }) => {
       if (!res?.success) { Alert.alert('Error', getSafeErrorMessage(res)); return; }
 
       if (attachments.length > 0) {
-        debugger;
         if (!recordId) {
           console.warn('No recordId resolved after save — attachments cannot be uploaded.');
-          Alert.alert('Warning', 'Achievement was saved, but the attachment(s) could not be uploaded (no record id returned).');
+          Alert.alert('Partial Success', 'Achievement was saved, but attachments could not be uploaded because its ID was not returned.');
+          return;
         } else {
-          let failedUploads = 0;
-          for (const file of attachments) {
-            try {
-              debugger;
-              const fd = new FormData();
-              fd.append('file', { uri: file.uri, name: file.fileName, type: file.mimeType });
-              fd.append('moduleName', 'Achievements');
-              fd.append('recordId', String(recordId));
-              const uploadRes = await achievementService.uploadFile(fd);
-              if (uploadRes && uploadRes.success === false) {
-                failedUploads++;
-              }
-            } catch (e) {
-              failedUploads++;
-              console.warn('Attachment upload failed:', e.message);
-            }
-          }
-          if (failedUploads > 0) {
-            Alert.alert('Note', `${failedUploads} of ${attachments.length} attachment(s) failed to upload.`);
+          try {
+            await achievementService.uploadAttachments(recordId, attachments);
+          } catch (e) {
+            console.warn('Achievement attachment upload failed:', e.message);
+            Alert.alert('Partial Success', `Achievement saved, but attachment upload failed: ${e.message}`);
+            return;
           }
         }
       }
@@ -534,89 +543,129 @@ const AchievementFormScreen = ({ route, navigation }) => {
       >
         <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
-        {/* ── Member avatar (shown for both roles) ── */}
+          {/* ── Member avatar (shown for both roles) ── */}
 
 
-        {/* ── Member field ── */}
-        {!roleResolved ? (
-          <View style={styles.roleLoadingRow}>
-            <ActivityIndicator size="small" color={GOLD} />
-            <Text style={styles.roleLoadingText}>Loading…</Text>
-          </View>
-        ) : userRole === 'Admin' ? (
-          <SimpleDropdown
-            label="Person Name *"
-            options={members}
-            value={selectedMemberId}
-            onChange={handleMemberChange}
-            placeholder="Select person name"
-            loading={membersLoading}
-            error={errors.member}
-          />
-        ) : (
-          <Field label="Member Name">
-            <StyledInput value={selectedMemberName} editable={false} />
+          {/* ── Member field ── */}
+          {!roleResolved ? (
+            <View style={styles.roleLoadingRow}>
+              <ActivityIndicator size="small" color={GOLD} />
+              <Text style={styles.roleLoadingText}>Loading…</Text>
+            </View>
+          ) : userRole === 'Admin' ? (
+            <SimpleDropdown
+              label="Person Name *"
+              options={members}
+              value={selectedMemberId}
+              onChange={handleMemberChange}
+              placeholder="Select person name"
+              loading={membersLoading}
+              error={errors.member}
+            />
+          ) : (
+            <Field label="Member Name">
+              <StyledInput value={selectedMemberName} editable={false} />
+            </Field>
+          )}
+
+          {/* ── Title ── */}
+          <Field label="Achievement Title" required error={errors.title}>
+            <StyledInput
+              placeholder="Enter Achievement Title"
+              value={title}
+              onChangeText={(text) => {
+                setTitle(text);
+                setErrors(prev => ({ ...prev, title: '' }));
+              }}
+              hasError={!!errors.title}
+            />
           </Field>
-        )}
 
-        {/* ── Title ── */}
-        <Field label="Achievement Title" required error={errors.title}>
-          <StyledInput
-            placeholder="Enter Achievement Title"
-            value={title}
-            onChangeText={(text) => {
-              setTitle(text);
-              setErrors(prev => ({ ...prev, title: '' }));
-            }}
-            hasError={!!errors.title}
-          />
-        </Field>
+          {/* ── Description ── */}
+          <Field label="Description">
+            <StyledInput
+              placeholder="Enter Description"
+              value={description}
+              onChangeText={setDescription}
+              multiline
+            />
+          </Field>
 
-        {/* ── Description ── */}
-        <Field label="Description">
-          <StyledInput
-            placeholder="Enter Description"
-            value={description}
-            onChangeText={setDescription}
-            multiline
-          />
-        </Field>
-
-        {/* ── Date picker — same dd/mm/yyyy typing + wheel-list picker used
+          {/* ── Date picker — same dd/mm/yyyy typing + wheel-list picker used
              across the app (ActivityFormScreen's Activity Date) ── */}
-        <DOBField
-          label="Achievement Date"
-          required
-          value={date}
-          minDate={dateMinDate}
-          maxDate={dateMaxDate}
-          error={errors.date}
-          FieldComponent={Field}
-          InputComponent={StyledInput}
-          onChange={(d) => {
-            setDate(d);
-            if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
-          }}
-        />
+          <DOBField
+            label="Achievement Date"
+            required
+            value={date}
+            minDate={dateMinDate}
+            maxDate={dateMaxDate}
+            error={errors.date}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={(d) => {
+              setDate(d);
+              if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
+            }}
+          />
 
-        {/* ── Attachments — reuses AddCircularScreenStyles (circStyles) so the format is identical to AddCircularScreen ── */}
-        <Text style={styles.attachLabel}>ATTACHMENTS</Text>
-        <View style={circStyles.attachGrid}>
-          {existingAttachments.map((a) => {
-            const url = toPublicUrl(a.filePath);
-            const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-              a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
-            return (
-              <View key={`ex-${a.attachmentId}`} style={circStyles.thumb}>
+          {/* ── Attachments — reuses AddCircularScreenStyles (circStyles) so the format is identical to AddCircularScreen ── */}
+          <Text style={styles.attachLabel}>ATTACHMENTS</Text>
+          <View style={circStyles.attachGrid}>
+            {existingAttachments.map((a) => {
+              const url = toPublicUrl(a.filePath);
+              const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+                a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              return (
+                <View key={`ex-${a.attachmentId}`} style={circStyles.thumb}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => {
+                      if (isImage) setFileViewer({ visible: true, uri: url });
+                      else Linking.openURL(url);
+                    }}
+                  >
+                    {isImage ? (
+                      <Image source={{ uri: url }} style={circStyles.thumbImg} resizeMode="cover" />
+                    ) : (
+                      <View style={circStyles.thumbDoc}>
+                        <Text style={circStyles.thumbIcon}>📄</Text>
+                        <Text style={circStyles.thumbName} numberOfLines={2}>{a.fileName}</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={circStyles.thumbRemove}
+                    onPress={() => {
+                      Alert.alert('Delete', `Delete "${a.fileName}"?`, [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Delete', style: 'destructive', onPress: async () => {
+                            try {
+                              await achievementService.deleteAttachment(a.attachmentId);
+                              setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
+                            } catch { Alert.alert('Error', 'Failed to delete'); }
+                          }
+                        },
+                      ]);
+                    }}
+                  >
+                    <Text style={circStyles.thumbRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+
+            {attachments.map((a, i) => (
+              <View key={`new-${i}`} style={circStyles.thumb}>
                 <TouchableOpacity
                   style={{ flex: 1 }}
                   onPress={() => {
-                    if (isImage) setFileViewer({ visible: true, uri: url });
-                    else Linking.openURL(url);
+                    if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri });
+                    else Linking.openURL(a.uri);
                   }}
                 >
-                  {isImage ? (
-                    <Image source={{ uri: url }} style={circStyles.thumbImg} resizeMode="cover" />
+                  {a.type === 'image' ? (
+                    <Image source={{ uri: a.uri }} style={circStyles.thumbImg} resizeMode="cover" />
                   ) : (
                     <View style={circStyles.thumbDoc}>
                       <Text style={circStyles.thumbIcon}>📄</Text>
@@ -626,63 +675,23 @@ const AchievementFormScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={circStyles.thumbRemove}
-                  onPress={() => {
-                    Alert.alert('Delete', `Delete "${a.fileName}"?`, [
-                      { text: 'Cancel', style: 'cancel' },
-                      {
-                        text: 'Delete', style: 'destructive', onPress: async () => {
-                          try {
-                            await achievementService.deleteAttachment(a.attachmentId);
-                            setExistingAttachments(prev => prev.filter(x => x.attachmentId !== a.attachmentId));
-                          } catch { Alert.alert('Error', 'Failed to delete'); }
-                        }
-                      },
-                    ]);
-                  }}
+                  onPress={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
                 >
                   <Text style={circStyles.thumbRemoveText}>✕</Text>
                 </TouchableOpacity>
               </View>
-            );
-          })}
+            ))}
 
-          {attachments.map((a, i) => (
-            <View key={`new-${i}`} style={circStyles.thumb}>
-              <TouchableOpacity
-                style={{ flex: 1 }}
-                onPress={() => {
-                  if (a.type === 'image') setFileViewer({ visible: true, uri: a.uri });
-                  else Linking.openURL(a.uri);
-                }}
-              >
-                {a.type === 'image' ? (
-                  <Image source={{ uri: a.uri }} style={circStyles.thumbImg} resizeMode="cover" />
-                ) : (
-                  <View style={circStyles.thumbDoc}>
-                    <Text style={circStyles.thumbIcon}>📄</Text>
-                    <Text style={circStyles.thumbName} numberOfLines={2}>{a.fileName}</Text>
-                  </View>
-                )}
+            {totalAttachments < 5 && (
+              <TouchableOpacity style={circStyles.thumbAdd} onPress={handlePickAttachment} activeOpacity={0.8}>
+                <Text style={circStyles.thumbAddIcon}>📷</Text>
+                <Text style={circStyles.thumbAddText}>Add ({totalAttachments}/5)</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={circStyles.thumbRemove}
-                onPress={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))}
-              >
-                <Text style={circStyles.thumbRemoveText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+            )}
+          </View>
+          <Text style={circStyles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
 
-          {totalAttachments < 5 && (
-            <TouchableOpacity style={circStyles.thumbAdd} onPress={handlePickAttachment} activeOpacity={0.8}>
-              <Text style={circStyles.thumbAddIcon}>📷</Text>
-              <Text style={circStyles.thumbAddText}>Add ({totalAttachments}/5)</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <Text style={circStyles.attachHint}>JPG, PNG, PDF, Word · Max 50 MB each</Text>
-
-        {/* ── Save button ── 
+          {/* ── Save button ── 
         <TouchableOpacity
           style={[styles.saveBtn, loading && { opacity: 0.7 }]}
           onPress={handleSave} disabled={loading} activeOpacity={0.85}
@@ -711,6 +720,11 @@ const AchievementFormScreen = ({ route, navigation }) => {
           )}
         </View>
       </Modal>
+      <AttachmentPickerModal
+        visible={attachmentPickerVisible}
+        options={attachmentPickerOptions}
+        onClose={() => setAttachmentPickerVisible(false)}
+      />
     </View>
   );
 };

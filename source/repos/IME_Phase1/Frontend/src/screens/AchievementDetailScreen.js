@@ -172,10 +172,10 @@ const AchievementDetailScreen = ({ route, navigation }) => {
 
   const dateStr = item.achievementDate
     ? new Date(item.achievementDate).toLocaleDateString('en-IN', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-      })
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    })
     : '';
 
   // Club name — check every likely field name the API might return it under.
@@ -244,6 +244,13 @@ const AchievementDetailScreen = ({ route, navigation }) => {
             mimeType =
               'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
             break;
+          case 'mp4':
+          case 'm4v': mimeType = 'video/mp4'; break;
+          case 'mov': mimeType = 'video/quicktime'; break;
+          case 'avi': mimeType = 'video/x-msvideo'; break;
+          case 'mkv': mimeType = 'video/x-matroska'; break;
+          case '3gp': mimeType = 'video/3gpp'; break;
+          case 'webm': mimeType = 'video/webm'; break;
         }
 
         const destUri = await FileSystem.StorageAccessFramework.createFileAsync(

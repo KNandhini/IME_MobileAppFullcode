@@ -2,6 +2,7 @@
 import api, { BASE_URL } from '../utils/api';
 import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { uploadAttachments as uploadLocalAttachments } from '../utils/uploadAttachments';
 
 export const magazineService = {
   getAll: async () => {
@@ -69,12 +70,25 @@ export const magazineService = {
     }
   },
 
-  // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.
-  uploadAttachments: async (id, formData) => {
-    const token = await AsyncStorage.getItem('authToken');
+  uploadAttachments: async (id, files) =>
+    uploadLocalAttachments(`${BASE_URL}/api/Magazines/${id}/attachments`, files),
 
-    const response = await fetch(`${BASE_URL}/api/Magazines/${id}/attachments`, {
-      method: 'POST',
+  deleteAttachment: async (attachmentId) => {
+    try {
+      const response = await api.delete(`/Magazines/attachments/${attachmentId}`);
+      return response.data;
+    } catch (error) {
+      console.error('deleteAttachment error:', error);
+      return toSafeServiceError(error, { source: 'magazineService' });
+    }
+  },
+  // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.
+  updateWithMedia: async (id, formData) => {
+    debugger;
+    const token = await AsyncStorage.getItem('authToken');
+    debugger;
+    const response = await fetch(`${BASE_URL}/api/Magazines/${id}`, {
+      method: 'PUT',
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
@@ -92,71 +106,37 @@ export const magazineService = {
 
     return response.json();
   },
+  // =========================================================
+  // Add these two functions inside your existing magazineService
+  // (same pattern as getAttachments — adjust axios/fetch base
+  // instance to match what magazineService already uses)
+  // =========================================================
 
-  deleteAttachment: async (attachmentId) => {
+  getForumDiscussion: async (magazineId) => {
     try {
-      const response = await api.delete(`/Magazines/attachments/${attachmentId}`);
-      return response.data;
-    } catch (error) {
-      console.error('deleteAttachment error:', error);
-      return toSafeServiceError(error, { source: 'magazineService' });
+      const res = await api.get(`/Magazines/${magazineId}/discussion`);
+      return res.data; // { success, data: [...] }
+    } catch (e) {
+      console.warn('getForumDiscussion error:', e);
+      return { success: false, data: [] };
     }
   },
-  // Use native fetch instead of axios — axios + FormData has reliability issues in React Native.
-updateWithMedia: async (id, formData) => {
-    debugger;
-  const token = await AsyncStorage.getItem('authToken');
-debugger;
-  const response = await fetch(`${BASE_URL}/api/Magazines/${id}`, {
-    method: 'PUT',
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    body: formData,
-  });
 
-  if (!response.ok) {
-    const text = await response.text();
-    let parsed;
-    try { parsed = JSON.parse(text); } catch { parsed = { message: text }; }
-    throw Object.assign(new Error(parsed?.message || `HTTP ${response.status}`), {
-      response: { status: response.status, data: parsed },
-    });
-  }
+  addForumDiscussion: async ({ magazineId, memberId, memberName, comment }) => {
+    try {
+      debugger;
+      const res = await api.post(`/Magazines/${magazineId}/discussion`, {
+        magazineId,
+        memberId,
+        memberName,
+        comment,
+      });
+      return res.data; // { success, data: insertedRow }
+    } catch (e) {
+      debugger;
+      console.warn('addForumDiscussion error:', e);
+      return { success: false };
+    }
+  },
 
-  return response.json();
-},
-// =========================================================
-// Add these two functions inside your existing magazineService
-// (same pattern as getAttachments — adjust axios/fetch base
-// instance to match what magazineService already uses)
-// =========================================================
-
-getForumDiscussion: async (magazineId) => {
-  try {
-    const res = await api.get(`/Magazines/${magazineId}/discussion`);
-    return res.data; // { success, data: [...] }
-  } catch (e) {
-    console.warn('getForumDiscussion error:', e);
-    return { success: false, data: [] };
-  }
-},
-
-addForumDiscussion: async ({ magazineId, memberId, memberName, comment }) => {
-  try {
-    debugger;
-    const res = await api.post(`/Magazines/${magazineId}/discussion`, {
-      magazineId,
-      memberId,
-      memberName,
-      comment,
-    });
-    return res.data; // { success, data: insertedRow }
-  } catch (e) {
-    debugger;
-    console.warn('addForumDiscussion error:', e);
-    return { success: false };
-  }
-},
- 
 };

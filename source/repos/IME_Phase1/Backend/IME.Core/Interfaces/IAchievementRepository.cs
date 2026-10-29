@@ -15,12 +15,8 @@ public interface IAchievementRepository
     Task<bool> DeleteAchievementAsync(int achievementId);
     Task<List<AttachmentDTO>> GetAchievementAttachmentsAsync(int achievementId);
 
-    // ← uploadedBy added — fixes DBNull.Value crash
     Task<AttachmentDTO> AddAchievementAttachmentAsync(
-                                        int achievementId,
-                                        string fileName,
-                                        string filePath,
-                                        int uploadedBy);
+        int achievementId, string fileName, string filePath, long fileSize);
 
     Task<bool> DeleteAchievementAttachmentAsync(int attachmentId);
 }
