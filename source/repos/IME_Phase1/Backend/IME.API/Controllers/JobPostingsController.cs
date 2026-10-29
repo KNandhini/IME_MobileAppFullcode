@@ -19,7 +19,24 @@ public class JobPostingsController : ControllerBase
     private readonly FileStorageService _fileStorageService;
 
     private static readonly string[] AllowedAttachmentTypes =
-        { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx" ,".mp4" };
+        { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
+
+    private static string? ValidateAttachments(IEnumerable<IFormFile> files)
+    {
+        foreach (var file in files)
+        {
+            if (file.Length == 0)
+                return $"'{file.FileName}' is empty.";
+            if (file.Length > 50 * 1024 * 1024)
+                return $"'{file.FileName}' exceeds the 50 MB limit.";
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedAttachmentTypes.Contains(extension))
+                return $"'{file.FileName}' has an unsupported type. Allowed types: JPG, JPEG, PNG, PDF, DOC, DOCX.";
+        }
+
+        return null;
+    }
 
     public JobPostingsController(
         IJobPostingRepository jobPostingRepository,
@@ -177,7 +194,7 @@ public class JobPostingsController : ControllerBase
         SaveJobPostingUpdateAsync(id, request);
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult<ApiResponse<object>>> Delete(int id , string modifiedBy)
+    public async Task<ActionResult<ApiResponse<object>>> Delete(int id, string modifiedBy)
     {
         try
         {
@@ -232,17 +249,16 @@ public class JobPostingsController : ControllerBase
                 return NotFound(new ApiResponse<List<AttachmentDTO>>
                 { Success = false, Message = "Job posting not found." });
 
+            var validationError = ValidateAttachments(files);
+            if (validationError != null)
+                return BadRequest(new ApiResponse<List<AttachmentDTO>>
+                { Success = false, Message = validationError });
+
             var userId = GetUserId();
             var saved = new List<AttachmentDTO>();
 
             foreach (var file in files)
             {
-                if (file.Length == 0) continue;
-                if (file.Length > 50 * 1024 * 1024) continue;   // skip > 50 MB
-
-                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                if (!AllowedAttachmentTypes.Contains(ext)) continue;
-
                 var filePath = await _fileStorageService.SaveFileAsync(
      file.OpenReadStream(), "JobPostings", id, file.FileName);
 

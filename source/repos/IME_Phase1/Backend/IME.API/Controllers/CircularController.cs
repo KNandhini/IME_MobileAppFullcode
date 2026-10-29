@@ -16,7 +16,7 @@ public class CircularController : ControllerBase
 
     private static readonly string[] AllowedTypes =
         { ".jpg", ".jpeg", ".png", ".gif", ".webp",
-          ".mp4", ".mov", ".avi", ".mkv", ".webm",
+                    ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".webm",
           ".pdf", ".doc", ".docx" };
 
     public CircularController(ICircularRepository circularRepository, FileStorageService fileStorageService)
@@ -178,6 +178,38 @@ public class CircularController : ControllerBase
         }
     }
 
+    [HttpPost("{id}/attachments")]
+    [Authorize(Roles = "Admin")]
+    [DisableRequestSizeLimit]
+    [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
+    public async Task<ActionResult<ApiResponse<object>>> UploadAttachments(
+        int id, [FromForm] List<IFormFile>? files)
+    {
+        try
+        {
+            if (files == null || files.Count == 0)
+                return Ok(new ApiResponse<object> { Success = false, Message = "No files provided." });
+
+            if (await _circularRepository.GetCircularByIdAsync(id) == null)
+                return NotFound(new ApiResponse<object> { Success = false, Message = "Circular not found." });
+
+            var savedCount = await SaveAttachments(id, files);
+            if (savedCount == 0)
+                return Ok(new ApiResponse<object> { Success = false, Message = "No valid files were uploaded." });
+
+            return Ok(new ApiResponse<object>
+            {
+                Success = true,
+                Message = $"{savedCount} file(s) uploaded successfully."
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new ApiResponse<object>
+            { Success = false, Message = $"Error: {ex.Message}" });
+        }
+    }
+
     // ── DELETE /api/circular/{id} ─────────────────────────────
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
@@ -263,9 +295,10 @@ public class CircularController : ControllerBase
         return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);
     }
 
-    private async Task SaveAttachments(int circularId, List<IFormFile>? files)
+    private async Task<int> SaveAttachments(int circularId, List<IFormFile>? files)
     {
-        if (files == null || files.Count == 0) return;
+        if (files == null || files.Count == 0) return 0;
+        var savedCount = 0;
         foreach (var file in files)
         {
             if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
@@ -280,7 +313,9 @@ public class CircularController : ControllerBase
             var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
 
             await _circularRepository.AddCircularAttachmentAsync(circularId, file.FileName, fullAttachPath);
+            savedCount++;
         }
+        return savedCount;
     }
 
     private static string GetContentType(string ext) => ext switch

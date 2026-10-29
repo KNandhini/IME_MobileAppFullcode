@@ -18,6 +18,7 @@ import {
 import { Card, Chip } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
+import { File, UploadType } from 'expo-file-system';
 import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { activityService } from '../services/activityService';
@@ -25,6 +26,7 @@ import { BASE_URL } from '../utils/api';
 import { ActivityFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import DOBField from '../components/DOBField';
+import AttachmentPickerModal from '../components/AttachmentPickerModal';
 
 // ─────────────────────────────────────────────────────────────────────────
 // ── Validation & Sanitization Helpers ──────────────────────────────────────
@@ -32,10 +34,10 @@ import DOBField from '../components/DOBField';
 
 // Field max lengths
 const MAX_ACTIVITY_NAME = 200;
-const MAX_DESCRIPTION   = 500;
-const MAX_VENUE         = 100;
-const MAX_COORDINATOR   = 150;
-const MAX_CHIEF_GUEST   = 150;
+const MAX_DESCRIPTION = 500;
+const MAX_VENUE = 100;
+const MAX_COORDINATOR = 150;
+const MAX_CHIEF_GUEST = 150;
 
 // Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
@@ -81,7 +83,7 @@ const buildFileUrl = (filePath) => {
 const getAttachmentKind = (fileTypeOrName = "") => {
   const v = fileTypeOrName.toLowerCase();
   if (v.includes("image") || /\.(jpg|jpeg|png|gif|webp)$/.test(v)) return "image";
-  if (v.includes("video") || /\.(mp4|mov|avi|mkv)$/.test(v)) return "video";
+  if (v.includes("video") || /\.(mp4|mov|m4v|avi|mkv|3gp|webm)$/.test(v)) return "video";
   return "document";
 };
 
@@ -197,6 +199,8 @@ const ActivityFormScreen = ({ route, navigation }) => {
   const [saving, setSaving] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [existingAttachments, setExistingAttachments] = useState([]);
+  const [attachmentPickerVisible, setAttachmentPickerVisible] = useState(false);
+  const [attachmentPickerOptions, setAttachmentPickerOptions] = useState([]);
 
   const [formData, setFormData] = useState({
     activityName: '',
@@ -286,8 +290,33 @@ const ActivityFormScreen = ({ route, navigation }) => {
     const totalCount = existingAttachments.length + attachments.length;
     if (totalCount >= 5) { Alert.alert('Limit reached', 'Max 5 attachments.'); return; }
     const slots = 5 - totalCount;
+    const pickMedia = async (mediaTypes) => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Allow photo and video library access.');
+        return;
+      }
 
-    Alert.alert('Attach File', 'Choose file type', [
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes,
+        allowsMultipleSelection: true,
+        selectionLimit: slots,
+        quality: 0.85,
+      });
+      if (!result.canceled && result.assets?.length > 0) {
+        const { accepted, rejected } = await partitionBySize(result.assets);
+        warnIfRejected(rejected);
+        const picked = accepted.slice(0, slots).map((asset) => ({
+          uri: asset.uri,
+          fileName: asset.fileName || `media_${Date.now()}`,
+          mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+          type: asset.type === 'video' ? 'video' : 'image',
+        }));
+        setAttachments((current) => [...current, ...picked]);
+      }
+    };
+
+    setAttachmentPickerOptions([
       {
         text: 'PDF / Document',
         onPress: async () => {
@@ -297,7 +326,7 @@ const ActivityFormScreen = ({ route, navigation }) => {
               'application/msword',
               'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ],
-            copyToCacheDirectory: true,
+            copyToCacheDirectory: false,
             multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
@@ -314,36 +343,32 @@ const ActivityFormScreen = ({ route, navigation }) => {
         },
       },
       {
-        text: 'Photo / Video',
+        text: 'Photo',
+        onPress: () => pickMedia(['images']),
+      },
+      {
+        text: 'Video',
         onPress: async () => {
-          const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-          if (status !== 'granted') {
-            Alert.alert('Permission needed', 'Allow photo library access.');
-            return;
-          }
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ['images', 'videos'],
-            allowsMultipleSelection: true,
-            selectionLimit: slots,
-            quality: 0.85,
+          const result = await DocumentPicker.getDocumentAsync({
+            type: 'video/*',
+            copyToCacheDirectory: false,
+            multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
-            // Videos in particular can easily blow past 50MB, so every
-            // picked asset (image or video) gets checked before it's added.
             const { accepted, rejected } = await partitionBySize(result.assets);
             warnIfRejected(rejected);
-            const picked = accepted.slice(0, slots).map(a => ({
-              uri: a.uri,
-              fileName: a.fileName || `media_${Date.now()}`,
-              mimeType: a.mimeType || (a.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-              type: a.type === 'video' ? 'video' : 'image',
+            const picked = accepted.slice(0, slots).map((asset) => ({
+              uri: asset.uri,
+              fileName: asset.name,
+              mimeType: asset.mimeType || 'video/mp4',
+              type: 'video',
             }));
-            setAttachments(p => [...p, ...picked]);
+            setAttachments((current) => [...current, ...picked]);
           }
         },
       },
-      { text: 'Cancel', style: 'cancel' },
     ]);
+    setAttachmentPickerVisible(true);
   };
 
   const openFile = (uri, type) => {
@@ -355,36 +380,30 @@ const ActivityFormScreen = ({ route, navigation }) => {
   const uploadAttachments = async (id) => {
     if (attachments.length === 0) return;
 
-    const formDataBody = new FormData();
-    attachments.forEach(file => {
-      formDataBody.append("files", {
-        uri: Platform.OS === "android"
-          ? file.uri
-          : file.uri.replace("file://", ""),
-        name: file.fileName,
-        type: file.mimeType,
-      });
-    });
-
     const token = await AsyncStorage.getItem("authToken");
+    const uploadUrl = `${BASE_URL}/api/Activity/${id}/attachments`;
 
-    const response = await fetch(
-      `${BASE_URL}/api/Activity/${id}/attachments`,
-      {
-        method: "POST",
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: formDataBody,
+    for (const file of attachments) {
+      const response = await new File(file.uri).upload(uploadUrl, {
+        uploadType: UploadType.MULTIPART,
+        fieldName: "files",
+        mimeType: file.mimeType,
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+
+      let responseData = {};
+      try {
+        responseData = JSON.parse(response.body);
+      } catch {
+        // Keep the HTTP status as the useful failure detail for non-JSON responses.
       }
-    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Upload failed (${response.status}): ${errorText}`);
+      if (response.status < 200 || response.status >= 300 || responseData.success === false) {
+        throw new Error(
+          `Upload failed (${response.status}): ${responseData.message || response.body || "Unknown error"}`
+        );
+      }
     }
-
-    return response.json().catch(() => ({}));
   };
 
   const handleSave = async () => {
@@ -489,235 +508,269 @@ const ActivityFormScreen = ({ route, navigation }) => {
   };
 
   return (
-  <View style={styles.root}>
-    {/* ── Top navbar ── */}
-    <GradientHeader style={styles.navbar}>
-      <TouchableOpacity
-        onPress={() => navigation.goBack()}
-        style={styles.navSide}
-        disabled={saving}
+    <View style={styles.root}>
+      {/* ── Top navbar ── */}
+      <GradientHeader style={styles.navbar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.navSide}
+          disabled={saving}
+        >
+          <Text style={styles.navCancel}>Cancel</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>{isEditMode ? 'Edit Activity' : 'Add Activity'}</Text>
+        <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
+          {saving
+            ? <ActivityIndicator size="small" color={COLORS.accent} />
+            : <Text style={styles.navSave}>{isEditMode ? 'Update' : 'Save'}</Text>}
+        </TouchableOpacity>
+      </GradientHeader>
+
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
       >
-        <Text style={styles.navCancel}>Cancel</Text>
-      </TouchableOpacity>
-      <Text style={styles.navTitle}>{isEditMode ? 'Edit Activity' : 'Add Activity'}</Text>
-      <TouchableOpacity onPress={handleSave} style={styles.navSide} disabled={saving}>
-        {saving
-          ? <ActivityIndicator size="small" color={COLORS.accent} />
-          : <Text style={styles.navSave}>{isEditMode ? 'Update' : 'Save'}</Text>}
-      </TouchableOpacity>
-    </GradientHeader>
+        <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
 
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
-      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+          {/* ── Activity Details ── */}
+          <Field
+            label="Title"
+            required
+            error={errors.activityName}
+            charCount={formData.activityName.length}
+            maxChars={MAX_ACTIVITY_NAME}
+          >
+            <StyledInput
+              placeholder="Enter activity title"
+              value={formData.activityName}
+              maxLength={MAX_ACTIVITY_NAME}
+              onChangeText={(v) => update('activityName', sanitizeActivityName(v))}
+              hasError={!!errors.activityName}
+              returnKeyType="next"
+            />
+          </Field>
 
-        {/* ── Activity Details ── */}
-        <Field
-          label="Title"
-          required
-          error={errors.activityName}
-          charCount={formData.activityName.length}
-          maxChars={MAX_ACTIVITY_NAME}
-        >
-          <StyledInput
-            placeholder="Enter activity title"
-            value={formData.activityName}
-            maxLength={MAX_ACTIVITY_NAME}
-            onChangeText={(v) => update('activityName', sanitizeActivityName(v))}
-            hasError={!!errors.activityName}
-            returnKeyType="next"
+          <Field
+            label="Description"
+            required
+            error={errors.description}
+            charCount={formData.description.length}
+            maxChars={MAX_DESCRIPTION}
+          >
+            <StyledInput
+              placeholder="Describe the activity…"
+              value={formData.description}
+              maxLength={MAX_DESCRIPTION}
+              onChangeText={(v) => update('description', sanitizeDescription(v))}
+              hasError={!!errors.description}
+              multiline
+            />
+          </Field>
+
+          <Field
+            label="Venue"
+            required
+            error={errors.venue}
+            charCount={formData.venue.length}
+            maxChars={MAX_VENUE}
+          >
+            <StyledInput
+              placeholder="Enter venue"
+              value={formData.venue}
+              maxLength={MAX_VENUE}
+              onChangeText={(v) => update('venue', sanitizeVenue(v))}
+              hasError={!!errors.venue}
+              returnKeyType="next"
+            />
+          </Field>
+
+          <Field
+            label="Coordinator"
+            error={errors.coordinator}
+            charCount={formData.coordinator.length}
+            maxChars={MAX_COORDINATOR}
+          >
+            <StyledInput
+              placeholder="Enter coordinator name"
+              value={formData.coordinator}
+              maxLength={MAX_COORDINATOR}
+              onChangeText={(v) => update('coordinator', sanitizeCoordinator(v))}
+              hasError={!!errors.coordinator}
+              returnKeyType="next"
+            />
+          </Field>
+
+          <Field
+            label="Chief Guest"
+            error={errors.chiefGuest}
+            charCount={formData.chiefGuest.length}
+            maxChars={MAX_CHIEF_GUEST}
+          >
+            <StyledInput
+              placeholder="Enter chief guest name"
+              value={formData.chiefGuest}
+              maxLength={MAX_CHIEF_GUEST}
+              onChangeText={(v) => update('chiefGuest', sanitizeChiefGuest(v))}
+              hasError={!!errors.chiefGuest}
+              returnKeyType="next"
+            />
+          </Field>
+
+          <Field
+            label="Time"
+            error={errors.time}
+            hint="e.g. 10.00 AM - 11.00 PM or 10 am - 11pm"
+          >
+            <StyledInput
+              placeholder="e.g. 10:00 AM - 11:00 PM"
+              value={formData.time}
+              onChangeText={(v) => update('time', sanitizeTime(v))}
+              hasError={!!errors.time}
+              returnKeyType="done"
+            />
+          </Field>
+
+          {/* ── Date & Time ── */}
+          <DOBField
+            label="Activity Date"
+            required
+            value={activityDate}
+            minDate={activityMinDate}
+            maxDate={activityMaxDate}
+            error={errors.activityDate}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={(d) => {
+              setActivityDate(d);
+              if (errors.activityDate) setErrors(p => ({ ...p, activityDate: null }));
+            }}
           />
-        </Field>
 
-        <Field
-          label="Description"
-          required
-          error={errors.description}
-          charCount={formData.description.length}
-          maxChars={MAX_DESCRIPTION}
-        >
-          <StyledInput
-            placeholder="Describe the activity…"
-            value={formData.description}
-            maxLength={MAX_DESCRIPTION}
-            onChangeText={(v) => update('description', sanitizeDescription(v))}
-            hasError={!!errors.description}
-            multiline
+          <DOBField
+            label="Registration Deadline"
+            value={registrationDeadline}
+            minDate={activityMinDate}
+            maxDate={activityMaxDate}
+            FieldComponent={Field}
+            InputComponent={StyledInput}
+            onChange={setRegistrationDeadline}
           />
-        </Field>
 
-        <Field
-          label="Venue"
-          required
-          error={errors.venue}
-          charCount={formData.venue.length}
-          maxChars={MAX_VENUE}
-        >
-          <StyledInput
-            placeholder="Enter venue"
-            value={formData.venue}
-            maxLength={MAX_VENUE}
-            onChangeText={(v) => update('venue', sanitizeVenue(v))}
-            hasError={!!errors.venue}
-            returnKeyType="next"
-          />
-        </Field>
-
-        <Field
-          label="Coordinator"
-          error={errors.coordinator}
-          charCount={formData.coordinator.length}
-          maxChars={MAX_COORDINATOR}
-        >
-          <StyledInput
-            placeholder="Enter coordinator name"
-            value={formData.coordinator}
-            maxLength={MAX_COORDINATOR}
-            onChangeText={(v) => update('coordinator', sanitizeCoordinator(v))}
-            hasError={!!errors.coordinator}
-            returnKeyType="next"
-          />
-        </Field>
-
-        <Field
-          label="Chief Guest"
-          error={errors.chiefGuest}
-          charCount={formData.chiefGuest.length}
-          maxChars={MAX_CHIEF_GUEST}
-        >
-          <StyledInput
-            placeholder="Enter chief guest name"
-            value={formData.chiefGuest}
-            maxLength={MAX_CHIEF_GUEST}
-            onChangeText={(v) => update('chiefGuest', sanitizeChiefGuest(v))}
-            hasError={!!errors.chiefGuest}
-            returnKeyType="next"
-          />
-        </Field>
-
-        <Field
-          label="Time"
-          error={errors.time}
-          hint="e.g. 10.00 AM - 11.00 PM or 10 am - 11pm"
-        >
-          <StyledInput
-            placeholder="e.g. 10:00 AM - 11:00 PM"
-            value={formData.time}
-            onChangeText={(v) => update('time', sanitizeTime(v))}
-            hasError={!!errors.time}
-            returnKeyType="done"
-          />
-        </Field>
-
-        {/* ── Date & Time ── */}
-        <DOBField
-          label="Activity Date"
-          required
-          value={activityDate}
-          minDate={activityMinDate}
-          maxDate={activityMaxDate}
-          error={errors.activityDate}
-          FieldComponent={Field}
-          InputComponent={StyledInput}
-          onChange={(d) => {
-            setActivityDate(d);
-            if (errors.activityDate) setErrors(p => ({ ...p, activityDate: null }));
-          }}
-        />
-
-        <DOBField
-          label="Registration Deadline"
-          value={registrationDeadline}
-          minDate={activityMinDate}
-          maxDate={activityMaxDate}
-          FieldComponent={Field}
-          InputComponent={StyledInput}
-          onChange={setRegistrationDeadline}
-        />
-
-        {/* ── Status ── */}
-        <Text style={styles.sectionTitle}>Status</Text>
-     <View style={styles.statusRow}>
-  {STATUSES.map((s) => (
-    <TouchableOpacity key={s} onPress={() => update('status', s)}>
-      <Chip
-        selected={formData.status === s}
-        style={[styles.chip, formData.status === s && styles.chipSelected]}
-        textStyle={[
-          styles.chipText,
-          formData.status === s && styles.chipTextSelected,
-        ]}
-        selectedColor={formData.status === s ? '#FFFFFF' : undefined}
-      >
-        {s}
-      </Chip>
-    </TouchableOpacity>
-  ))}
-</View>
-
-        {/* ── Visibility ── */}
-        <Text style={styles.sectionTitle}>Visibility</Text>
-        <View style={styles.radioGroup}>
-          {VISIBILITY_OPTIONS.map((opt) => {
-            const selected = formData.visibility === opt.value;
-            return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[styles.radioOption, selected && styles.radioOptionSelected]}
-                onPress={() => update('visibility', opt.value)}
-                activeOpacity={0.8}
-              >
-                <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
-                  {selected && <View style={styles.radioInner} />}
-                </View>
-                <View style={styles.radioTextWrap}>
-                  <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
-                    {opt.label}
-                  </Text>
-                  <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
-                    {opt.sub}
-                  </Text>
-                </View>
-                <Text style={styles.radioIcon}>
-                  {opt.value === 'Public(All Clubs)' ? '🌐' : '🔒'}
-                </Text>
+          {/* ── Status ── */}
+          <Text style={styles.sectionTitle}>Status</Text>
+          <View style={styles.statusRow}>
+            {STATUSES.map((s) => (
+              <TouchableOpacity key={s} onPress={() => update('status', s)}>
+                <Chip
+                  selected={formData.status === s}
+                  style={[styles.chip, formData.status === s && styles.chipSelected]}
+                  textStyle={[
+                    styles.chipText,
+                    formData.status === s && styles.chipTextSelected,
+                  ]}
+                  selectedColor={formData.status === s ? '#FFFFFF' : undefined}
+                >
+                  {s}
+                </Chip>
               </TouchableOpacity>
-            );
-          })}
-        </View>
+            ))}
+          </View>
 
-        {/* ── Attachments ── */}
-        <Text style={styles.sectionTitle}>Attachments (Optional)</Text>
-        <View style={styles.attachGrid}>
+          {/* ── Visibility ── */}
+          <Text style={styles.sectionTitle}>Visibility</Text>
+          <View style={styles.radioGroup}>
+            {VISIBILITY_OPTIONS.map((opt) => {
+              const selected = formData.visibility === opt.value;
+              return (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.radioOption, selected && styles.radioOptionSelected]}
+                  onPress={() => update('visibility', opt.value)}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.radioCircle, selected && styles.radioCircleSelected]}>
+                    {selected && <View style={styles.radioInner} />}
+                  </View>
+                  <View style={styles.radioTextWrap}>
+                    <Text style={[styles.radioLabel, selected && styles.radioLabelSelected]}>
+                      {opt.label}
+                    </Text>
+                    <Text style={[styles.radioSub, selected && styles.radioSubSelected]}>
+                      {opt.sub}
+                    </Text>
+                  </View>
+                  <Text style={styles.radioIcon}>
+                    {opt.value === 'Public(All Clubs)' ? '🌐' : '🔒'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
 
-          {/* Existing (server) attachments */}
-          {existingAttachments.map((a) => {
-            const kind = getAttachmentKind(a.fileType || a.fileName);
-            const url = buildFileUrl(a.filePath);
-            return (
-              <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
+          {/* ── Attachments ── */}
+          <Text style={styles.sectionTitle}>Attachments (Optional)</Text>
+          <View style={styles.attachGrid}>
+
+            {/* Existing (server) attachments */}
+            {existingAttachments.map((a) => {
+              const kind = getAttachmentKind(a.fileType || a.fileName);
+              const url = buildFileUrl(a.filePath);
+              return (
+                <View key={`ex-${a.attachmentId}`} style={styles.thumb}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    onPress={() => {
+                      if (kind !== 'image') {
+                        Linking.openURL(url).catch(() =>
+                          Alert.alert('Error', 'Cannot open this file.')
+                        );
+                      }
+                    }}
+                  >
+                    {kind === 'image' ? (
+                      <Image
+                        source={{ uri: url }}
+                        style={styles.thumbImg}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.thumbDoc}>
+                        <Text style={styles.thumbIcon}>
+                          {kind === 'video' ? '🎬' : '📄'}
+                        </Text>
+                        <Text style={styles.thumbName} numberOfLines={2}>
+                          {a.fileName}
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.thumbRemove}
+                    onPress={() => deleteExisting(a.attachmentId, a.fileName)}
+                  >
+                    <Text style={styles.thumbRemoveText}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+
+            {/* New, not-yet-uploaded attachments */}
+            {attachments.map((a, i) => (
+              <View key={`new-${i}`} style={styles.thumb}>
                 <TouchableOpacity
                   style={{ flex: 1 }}
-                  onPress={() => {
-                    if (kind !== 'image') {
-                      Linking.openURL(url).catch(() =>
-                        Alert.alert('Error', 'Cannot open this file.')
-                      );
-                    }
-                  }}
+                  onPress={() => openFile(a.uri, a.type)}
                 >
-                  {kind === 'image' ? (
+                  {a.type === 'image' ? (
                     <Image
-                      source={{ uri: url }}
+                      source={{ uri: a.uri }}
                       style={styles.thumbImg}
                       resizeMode="cover"
                     />
                   ) : (
                     <View style={styles.thumbDoc}>
                       <Text style={styles.thumbIcon}>
-                        {kind === 'video' ? '🎬' : '📄'}
+                        {a.type === 'video' ? '🎬' : '📄'}
                       </Text>
                       <Text style={styles.thumbName} numberOfLines={2}>
                         {a.fileName}
@@ -727,66 +780,37 @@ const ActivityFormScreen = ({ route, navigation }) => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.thumbRemove}
-                  onPress={() => deleteExisting(a.attachmentId, a.fileName)}
+                  onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
                 >
                   <Text style={styles.thumbRemoveText}>✕</Text>
                 </TouchableOpacity>
               </View>
-            );
-          })}
+            ))}
 
-          {/* New, not-yet-uploaded attachments */}
-          {attachments.map((a, i) => (
-            <View key={`new-${i}`} style={styles.thumb}>
+            {(existingAttachments.length + attachments.length) < 5 && (
               <TouchableOpacity
-                style={{ flex: 1 }}
-                onPress={() => openFile(a.uri, a.type)}
+                style={styles.thumbAdd}
+                onPress={handlePickAttachment}
+                activeOpacity={0.8}
               >
-                {a.type === 'image' ? (
-                  <Image
-                    source={{ uri: a.uri }}
-                    style={styles.thumbImg}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.thumbDoc}>
-                    <Text style={styles.thumbIcon}>
-                      {a.type === 'video' ? '🎬' : '📄'}
-                    </Text>
-                    <Text style={styles.thumbName} numberOfLines={2}>
-                      {a.fileName}
-                    </Text>
-                  </View>
-                )}
+                <Text style={styles.thumbAddIcon}>📷</Text>
+                <Text style={styles.thumbAddText}>
+                  Add ({existingAttachments.length + attachments.length}/5)
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.thumbRemove}
-                onPress={() => setAttachments(p => p.filter((_, idx) => idx !== i))}
-              >
-                <Text style={styles.thumbRemoveText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+            )}
+          </View>
+          <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4, MOV, MKV · Max 50 MB each</Text>
 
-          {(existingAttachments.length + attachments.length) < 5 && (
-            <TouchableOpacity
-              style={styles.thumbAdd}
-              onPress={handlePickAttachment}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.thumbAddIcon}>📷</Text>
-              <Text style={styles.thumbAddText}>
-                Add ({existingAttachments.length + attachments.length}/5)
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-        <Text style={styles.attachHint}>JPG, PNG, PDF, DOC, MP4 · Max 50 MB each</Text>
-
-      </ScrollView>
-    </KeyboardAvoidingView>
-  </View>
-);
+        </ScrollView>
+      </KeyboardAvoidingView>
+      <AttachmentPickerModal
+        visible={attachmentPickerVisible}
+        options={attachmentPickerOptions}
+        onClose={() => setAttachmentPickerVisible(false)}
+      />
+    </View>
+  );
 };
 
 export default ActivityFormScreen;

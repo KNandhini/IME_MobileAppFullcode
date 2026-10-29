@@ -14,12 +14,12 @@ namespace IME.API.Controllers;
 public class ActivityController : ControllerBase
 {
     private readonly IActivityRepository _activityRepository;
-    private readonly FileStorageService  _fileStorageService;
+    private readonly FileStorageService _fileStorageService;
 
     private static readonly string[] AllowedTypes = {
         ".jpg", ".jpeg", ".png", ".gif", ".webp",
         ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx",
-        ".mp4", ".mov", ".avi", ".zip", ".rar"
+        ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".webm", ".zip", ".rar"
     };
 
     public ActivityController(IActivityRepository activityRepository, FileStorageService fileStorageService)
@@ -113,19 +113,19 @@ public class ActivityController : ControllerBase
 
             var activity = new Activity
             {
-                ActivityName         = request.ActivityName,
-                Description          = request.Description,
-                ActivityDate         = request.ActivityDate,
-                Venue                = request.Venue,
-                Time                 = request.Time,
-                ChiefGuest           = request.ChiefGuest,
-                Coordinator          = request.Coordinator,
-                Status               = request.Status ?? "Upcoming",
+                ActivityName = request.ActivityName,
+                Description = request.Description,
+                ActivityDate = request.ActivityDate,
+                Venue = request.Venue,
+                Time = request.Time,
+                ChiefGuest = request.ChiefGuest,
+                Coordinator = request.Coordinator,
+                Status = request.Status ?? "Upcoming",
                 RegistrationDeadline = request.RegistrationDeadline,
-                Visibility           = request.Visibility ?? "Public(All Clubs)",
-                ClubId               = clubId,
-                CreatedBy            = userId,
-                CreatedDate          = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
+                Visibility = request.Visibility ?? "Public(All Clubs)",
+                ClubId = clubId,
+                CreatedBy = userId,
+                CreatedDate = request.CreatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var activityId = await _activityRepository.CreateActivityAsync(activity);
@@ -165,18 +165,18 @@ public class ActivityController : ControllerBase
         {
             var activity = new Activity
             {
-                ActivityId           = id,
-                ActivityName         = request.ActivityName,
-                Description          = request.Description,
-                ActivityDate         = request.ActivityDate,
-                Venue                = request.Venue,
-                Time                 = request.Time,
-                ChiefGuest           = request.ChiefGuest,
-                Coordinator          = request.Coordinator,
-                Status               = request.Status,
+                ActivityId = id,
+                ActivityName = request.ActivityName,
+                Description = request.Description,
+                ActivityDate = request.ActivityDate,
+                Venue = request.Venue,
+                Time = request.Time,
+                ChiefGuest = request.ChiefGuest,
+                Coordinator = request.Coordinator,
+                Status = request.Status,
                 RegistrationDeadline = request.RegistrationDeadline,
-                Visibility           = request.Visibility,
-                UpdatedDate          = request.UpdatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
+                Visibility = request.Visibility,
+                UpdatedDate = request.UpdatedDate?.ToUniversalTime() ?? DateTime.UtcNow,
             };
 
             var success = await _activityRepository.UpdateActivityAsync(activity);
@@ -396,8 +396,8 @@ public class ActivityController : ControllerBase
                 return NotFound();
 
             var fullPath = _fileStorageService.GetFullPath(filePath);
-            var bytes    = await System.IO.File.ReadAllBytesAsync(fullPath);
-            var mime     = fileType ?? "application/octet-stream";
+            var bytes = await System.IO.File.ReadAllBytesAsync(fullPath);
+            var mime = fileType ?? "application/octet-stream";
 
             return File(bytes, mime, fileName ?? Path.GetFileName(filePath));
         }

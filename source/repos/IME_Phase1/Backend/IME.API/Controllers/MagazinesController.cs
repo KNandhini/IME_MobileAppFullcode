@@ -21,7 +21,24 @@ public class MagazinesController : ControllerBase
     private readonly FileStorageService _fileStorageService;
 
     private static readonly string[] AllowedAttachmentTypes =
-     { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx", ".mp4" };
+        { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx" };
+
+    private static string? ValidateAttachments(IEnumerable<IFormFile>? files)
+    {
+        foreach (var file in files ?? [])
+        {
+            if (file.Length == 0)
+                return $"'{file.FileName}' is empty.";
+            if (file.Length > 50 * 1024 * 1024)
+                return $"'{file.FileName}' exceeds the 50 MB limit.";
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!AllowedAttachmentTypes.Contains(extension))
+                return $"'{file.FileName}' has an unsupported type. Allowed types: PDF, JPG, JPEG, PNG, GIF, WEBP, DOC, DOCX.";
+        }
+
+        return null;
+    }
 
     public MagazinesController(
         IMagazineRepository magazineRepository,
@@ -38,7 +55,7 @@ public class MagazinesController : ControllerBase
 
         return Path.Combine(
             Directory.GetCurrentDirectory(),
-            
+
             relativePath.Replace('/', Path.DirectorySeparatorChar)
                         .Replace('\\', Path.DirectorySeparatorChar));
     }
@@ -97,6 +114,10 @@ public class MagazinesController : ControllerBase
     {
         try
         {
+            var validationError = ValidateAttachments(request.Files);
+            if (validationError != null)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = validationError });
+
             var userId = GetUserId();
 
             var magazine = new Magazine
@@ -117,10 +138,6 @@ public class MagazinesController : ControllerBase
             {
                 foreach (var file in request.Files)
                 {
-                    if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
-                    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                    if (!AllowedAttachmentTypes.Contains(ext)) continue;
-
                     var relativePath = await _fileStorageService.SaveFileAsync(
                         file.OpenReadStream(), "Magazines", magazineId, file.FileName);
                     var fullFilePath = _fileStorageService.GetFullPath(relativePath);
@@ -149,6 +166,10 @@ public class MagazinesController : ControllerBase
     {
         try
         {
+            var validationError = ValidateAttachments(request.Files);
+            if (validationError != null)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = validationError });
+
             var userId = GetUserId();
 
             var magazine = new Magazine
@@ -171,11 +192,6 @@ public class MagazinesController : ControllerBase
             {
                 foreach (var file in request.Files)
                 {
-                    if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
-                    var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                    if (!AllowedAttachmentTypes.Contains(ext)) continue;
-
-
                     var relativePath = await _fileStorageService.SaveFileAsync(
                         file.OpenReadStream(), "Magazines", id, file.FileName);
 
@@ -249,15 +265,16 @@ public class MagazinesController : ControllerBase
                 return NotFound(new ApiResponse<List<MagazineAttachmentDTO>>
                 { Success = false, Message = "Magazine not found." });
 
+            var validationError = ValidateAttachments(files);
+            if (validationError != null)
+                return BadRequest(new ApiResponse<List<MagazineAttachmentDTO>>
+                { Success = false, Message = validationError });
+
             var userId = GetUserId();
             var saved = new List<MagazineAttachmentDTO>();
 
             foreach (var file in files)
             {
-                if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
-                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                if (!AllowedAttachmentTypes.Contains(ext)) continue;
-
                 var relativePath = await _fileStorageService.SaveFileAsync(
     file.OpenReadStream(),
     "Magazines",

@@ -110,6 +110,12 @@ const MIME_TYPES = {
   gif: 'image/gif',
   webp: 'image/webp',
   mp4: 'video/mp4',
+  mov: 'video/quicktime',
+  m4v: 'video/mp4',
+  avi: 'video/x-msvideo',
+  mkv: 'video/x-matroska',
+  '3gp': 'video/3gpp',
+  webm: 'video/webm',
 };
 
 const getMimeType = (fileName = '') => {
@@ -120,8 +126,8 @@ const getMimeType = (fileName = '') => {
 const CircularDetailScreen = ({ route, navigation }) => {
   const { item } = route.params || {};
   const [attachments, setAttachments] = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [imgViewer,   setImgViewer]   = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [imgViewer, setImgViewer] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
 
   if (!item) return null;
@@ -213,8 +219,8 @@ const CircularDetailScreen = ({ route, navigation }) => {
 
   const publishDate = item.publishDate
     ? new Date(item.publishDate).toLocaleDateString('en-IN', {
-        day: '2-digit', month: 'long', year: 'numeric',
-      })
+      day: '2-digit', month: 'long', year: 'numeric',
+    })
     : '';
 
   return (

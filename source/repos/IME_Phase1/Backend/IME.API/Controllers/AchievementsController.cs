@@ -23,7 +23,8 @@ public class AchievementsController : ControllerBase
         { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
     private static readonly string[] AllowedAttachmentTypes =
-        { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
+                { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx",
+                    ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".webm" };
 
     public AchievementsController(
         IAchievementRepository achievementRepository,
@@ -147,7 +148,7 @@ public class AchievementsController : ControllerBase
                 var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
 
                 await _achievementRepository.AddAchievementAttachmentAsync(
-                    achievementId, request.Attachment.FileName, fullAttachPath, userId);
+                    achievementId, request.Attachment.FileName, fullAttachPath, request.Attachment.Length);
             }
 
             // 4. Push notification
@@ -180,8 +181,6 @@ public class AchievementsController : ControllerBase
     {
         try
         {
-            var userId = GetUserId();
-
             // 1. Save new photo if provided
             string? newPhotoPath = null;
             if (request.Photo != null &&
@@ -218,7 +217,7 @@ public class AchievementsController : ControllerBase
                     await _achievementRepository.DeleteAchievementAttachmentAsync(att.AttachmentId);
 
                 await _achievementRepository.AddAchievementAttachmentAsync(
-                    id, request.Attachment.FileName, fullAttachPath, userId);
+                    id, request.Attachment.FileName, fullAttachPath, request.Attachment.Length);
             }
 
             return Ok(new ApiResponse<object>
@@ -287,8 +286,6 @@ public class AchievementsController : ControllerBase
             if (achievement == null)
                 return NotFound(new ApiResponse<List<AttachmentDTO>>
                 { Success = false, Message = "Achievement not found." });
-            // FIX: get real userId for UploadedBy
-            var userId = GetUserId();
             var saved = new List<AttachmentDTO>();
             foreach (var file in files)
             {
@@ -299,9 +296,8 @@ public class AchievementsController : ControllerBase
                 var filePath = await _fileStorageService.SaveFileAsync(
                     file.OpenReadStream(), "Achievements", id, file.FileName);
                 var fullFilePath = _fileStorageService.GetFullPath(filePath);
-                // FIX: pass userId — was missing before
                 var att = await _achievementRepository.AddAchievementAttachmentAsync(
-                    id, file.FileName, fullFilePath, userId);
+                    id, file.FileName, fullFilePath, file.Length);
                 att.FilePath = BuildFileUrl(att.FilePath);
                 saved.Add(att);
             }
@@ -341,5 +337,5 @@ public class AchievementsController : ControllerBase
             { Success = false, Message = $"Error: {ex.Message}" });
         }
     }
-   
+
 }

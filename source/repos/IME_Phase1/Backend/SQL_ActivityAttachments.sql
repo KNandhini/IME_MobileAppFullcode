@@ -30,14 +30,12 @@ CREATE OR ALTER PROCEDURE sp_AddActivityAttachment
     @ActivityId  INT,
     @FileName    NVARCHAR(255),
     @FilePath    NVARCHAR(500),
-    @FileSize    BIGINT,
-    @FileType    NVARCHAR(100),
-    @UploadedBy  INT
+    @FileSize    BIGINT
 AS
 BEGIN
     SET NOCOUNT ON;
-    INSERT INTO tbl_Attachments (ModuleName, ReferenceId, FileName, FilePath, FileSize, FileType, UploadedBy)
-    VALUES ('Activities', @ActivityId, @FileName, @FilePath, @FileSize, @FileType, @UploadedBy);
+    INSERT INTO tbl_Attachments (ModuleName, ReferenceId, FileName, FilePath, FileSize)
+    VALUES ('Activities', @ActivityId, @FileName, @FilePath, @FileSize);
     SELECT SCOPE_IDENTITY() AS AttachmentId;
 END;
 GO

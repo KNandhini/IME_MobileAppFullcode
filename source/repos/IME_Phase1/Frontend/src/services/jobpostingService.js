@@ -3,6 +3,7 @@
 
 import api, { BASE_URL } from '../utils/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { uploadAttachments as uploadLocalAttachments } from '../utils/uploadAttachments';
 
 const getToken = async () => {
   const authToken = await AsyncStorage.getItem('authToken');
@@ -34,21 +35,6 @@ const multipartPut = async (url, formData) => {
   const token = await getToken();
   const res = await fetch(`${BASE_URL}/api${url}`, {
     method: 'PUT',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-    body: formData,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-  return res.json();
-};
-
-// Generic file upload — hits /api/file/upload (same as achievements)
-const multipartAttachmentUpload = async (jobPostingId, formData) => {
-  const token = await getToken();
-  const res = await fetch(`${BASE_URL}/api/jobpostings/${jobPostingId}/attachments`, {
-    method: 'POST',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
     body: formData,
   });
@@ -94,12 +80,12 @@ export const jobPostingService = {
   },
 
   // ── DELETE job posting ────────────────────────────────────
- delete: async (jobPostingId, modifiedBy) => {
-  const response = await api.delete(`/jobpostings/${jobPostingId}`, {
-    params: { modifiedBy },
-  });
-  return response.data;
-},
+  delete: async (jobPostingId, modifiedBy) => {
+    const response = await api.delete(`/jobpostings/${jobPostingId}`, {
+      params: { modifiedBy },
+    });
+    return response.data;
+  },
   // ── GET attachments for a job posting ─────────────────────
   getAttachments: async (jobPostingId) => {
     const token = await getToken();
@@ -121,9 +107,9 @@ export const jobPostingService = {
     return response.data;
   },
 
-  // ── Generic file upload (same /api/file/upload as achievements) ──
-  uploadAttachments: async (jobPostingId, formData) =>
-    multipartAttachmentUpload(jobPostingId, formData),
+  // ── Upload attachments to this job posting ────────────────────
+  uploadAttachments: async (jobPostingId, files) =>
+    uploadLocalAttachments(`${BASE_URL}/api/jobpostings/${jobPostingId}/attachments`, files),
 
   // ── Build attachment URL from relative path ───────────────
   // Same helper as achievementService.getAttachmentUrl

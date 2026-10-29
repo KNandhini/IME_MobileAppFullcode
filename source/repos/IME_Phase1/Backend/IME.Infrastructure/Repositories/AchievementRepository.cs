@@ -104,7 +104,9 @@ public class AchievementRepository(DatabaseContext dbContext) : IAchievementRepo
     {
         var list = new List<AttachmentDTO>();
         using var connection = await _dbContext.CreateOpenConnectionAsync();
-        using var command = _dbContext.CreateStoredProcCommand("sp_GetAchievementAttachments", connection);
+        using var command = new SqlCommand(
+            "SELECT AttachmentId, FileName, FilePath, UploadedDate FROM tbl_Attachments WHERE ModuleName = 'Achievements' AND ReferenceId = @AchievementId ORDER BY UploadedDate DESC",
+            connection);
         command.Parameters.AddWithValue("@AchievementId", achievementId);
         using var reader = await command.ExecuteReaderAsync();
         while (await reader.ReadAsync())
@@ -121,22 +123,17 @@ public class AchievementRepository(DatabaseContext dbContext) : IAchievementRepo
     }
 
     // ── ADD ATTACHMENT ────────────────────────────────────────
-    // Uses direct SQL INSERT instead of SP to guarantee the record saves.
-    // The SP sp_AddAchievementAttachment is NOT called here because it was
-    // silently failing to insert (files saved to disk but no DB row).
-    // This direct INSERT always works and returns the new AttachmentId.
-    // FIX: uploadedBy now passed properly — no more DBNull crash
     public async Task<AttachmentDTO> AddAchievementAttachmentAsync(
-        int achievementId, string fileName, string filePath, int uploadedBy)
+        int achievementId, string fileName, string filePath, long fileSize)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
-        using var command = _dbContext.CreateStoredProcCommand("sp_AddAchievementAttachment", connection);
+        using var command = new SqlCommand(
+            "INSERT INTO tbl_Attachments (ModuleName, ReferenceId, FileName, FilePath, FileSize) VALUES ('Achievements', @AchievementId, @FileName, @FilePath, @FileSize); SELECT CAST(SCOPE_IDENTITY() AS INT);",
+            connection);
         command.Parameters.AddWithValue("@AchievementId", achievementId);
         command.Parameters.AddWithValue("@FileName", fileName);
         command.Parameters.AddWithValue("@FilePath", filePath);
-        command.Parameters.AddWithValue("@FileSize", 0);
-        command.Parameters.AddWithValue("@FileType", Path.GetExtension(fileName).TrimStart('.'));
-        command.Parameters.AddWithValue("@UploadedBy", uploadedBy);   // ← FIX: real userId, not DBNull
+        command.Parameters.AddWithValue("@FileSize", fileSize);
         var attachmentId = Convert.ToInt32(await command.ExecuteScalarAsync());
         return new AttachmentDTO
         {
@@ -151,57 +148,62 @@ public class AchievementRepository(DatabaseContext dbContext) : IAchievementRepo
     public async Task<bool> DeleteAchievementAttachmentAsync(int attachmentId)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
-        using var command = _dbContext.CreateStoredProcCommand("sp_DeleteAchievementAttachment", connection);
+        using var command = new SqlCommand(
+            "DELETE FROM tbl_Attachments WHERE AttachmentId = @AttachmentId AND ModuleName = 'Achievements'",
+            connection);
         command.Parameters.AddWithValue("@AttachmentId", attachmentId);
-        using var reader = await command.ExecuteReaderAsync();
-        if (await reader.ReadAsync())
-            return reader.GetInt32(reader.GetOrdinal("RowsAffected")) > 0;
-        return false;
+        return await command.ExecuteNonQueryAsync() > 0;
     }
 
     // ── MAPPER ────────────────────────────────────────────────
     private static AchievementDTO MapAchievement(SqlDataReader r)
     {
-        // ── PhotoPath: stored as relative path string ─────────────────
-        var photoPath = r.IsDBNull(r.GetOrdinal("AchievementPhotoPath"))
-            ? null
-            : r.GetString(r.GetOrdinal("AchievementPhotoPath"));
-
-        // ── MemberPhotoPath: ProfilePhoto is varbinary → convert to base64 data-URI ──
-        string? memberPhotoPath = null;
-        var photoOrdinal = r.GetOrdinal("MemberPhotoPath");
-        if (!r.IsDBNull(photoOrdinal))
-        {
-            var colType = r.GetFieldType(photoOrdinal);
-            if (colType == typeof(byte[]))
-            {
-                // varbinary → base64 data-URI (matches what the frontend expects)
-                var bytes = (byte[])r.GetValue(photoOrdinal);
-                memberPhotoPath = $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}";
-            }
-            else
-            {
-                // already a string path
-                memberPhotoPath = r.GetString(photoOrdinal);
-            }
-        }
-
-        var attachPath = r.IsDBNull(r.GetOrdinal("AttachmentPath"))
-            ? null
-            : r.GetString(r.GetOrdinal("AttachmentPath"));
+        var photoPath = ReadOptionalString(r, "AchievementPhotoPath", "PhotoPath");
+        var memberPhotoPath = ReadOptionalString(r, "MemberPhotoPath", "ProfilePhotoPath");
+        var attachPath = ReadOptionalString(r, "AttachmentPath");
+        var memberIdOrdinal = GetOptionalOrdinal(r, "MemberId");
+        var memberNameOrdinal = GetOptionalOrdinal(r, "MemberName");
+        var descriptionOrdinal = GetOptionalOrdinal(r, "Description");
+        var dateOrdinal = GetOptionalOrdinal(r, "AchievementDate");
+        var createdDateOrdinal = GetOptionalOrdinal(r, "CreatedDate");
 
         return new AchievementDTO
         {
             AchievementId = r.GetInt32(r.GetOrdinal("AchievementId")),
-            MemberId = r.GetInt32(r.GetOrdinal("MemberId")),
-            MemberName = r.IsDBNull(r.GetOrdinal("MemberName")) ? string.Empty : r.GetString(r.GetOrdinal("MemberName")),
+            MemberId = memberIdOrdinal >= 0 && !r.IsDBNull(memberIdOrdinal) ? r.GetInt32(memberIdOrdinal) : 0,
+            MemberName = memberNameOrdinal >= 0 && !r.IsDBNull(memberNameOrdinal) ? r.GetString(memberNameOrdinal) : string.Empty,
             PhotoPath = photoPath,
-            MemberPhotoPath = memberPhotoPath,   // ← base64 data-URI or null
+            MemberPhotoPath = memberPhotoPath,
             AttachmentPath = attachPath,
             Title = r.GetString(r.GetOrdinal("Title")),
-            Description = r.IsDBNull(r.GetOrdinal("Description")) ? null : r.GetString(r.GetOrdinal("Description")),
-            AchievementDate = r.IsDBNull(r.GetOrdinal("AchievementDate")) ? null : r.GetDateTime(r.GetOrdinal("AchievementDate")),
-            CreatedDate = r.GetDateTime(r.GetOrdinal("CreatedDate")),
+            Description = descriptionOrdinal >= 0 && !r.IsDBNull(descriptionOrdinal) ? r.GetString(descriptionOrdinal) : null,
+            AchievementDate = dateOrdinal >= 0 && !r.IsDBNull(dateOrdinal) ? r.GetDateTime(dateOrdinal) : null,
+            CreatedDate = createdDateOrdinal >= 0 && !r.IsDBNull(createdDateOrdinal) ? r.GetDateTime(createdDateOrdinal) : DateTime.MinValue,
         };
+    }
+
+    private static string? ReadOptionalString(SqlDataReader reader, params string[] columnNames)
+    {
+        foreach (var columnName in columnNames)
+        {
+            var ordinal = GetOptionalOrdinal(reader, columnName);
+            if (ordinal < 0 || reader.IsDBNull(ordinal)) continue;
+
+            if (reader.GetFieldType(ordinal) == typeof(byte[]))
+            {
+                var bytes = (byte[])reader.GetValue(ordinal);
+                return $"data:image/jpeg;base64,{Convert.ToBase64String(bytes)}";
+            }
+
+            return reader.GetString(ordinal);
+        }
+
+        return null;
+    }
+
+    private static int GetOptionalOrdinal(SqlDataReader reader, string columnName)
+    {
+        try { return reader.GetOrdinal(columnName); }
+        catch (IndexOutOfRangeException) { return -1; }
     }
 }
