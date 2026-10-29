@@ -1,5 +1,5 @@
 import GradientHeader from '../components/GradientHeader';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
