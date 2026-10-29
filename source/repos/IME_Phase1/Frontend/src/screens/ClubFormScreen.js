@@ -25,6 +25,8 @@ const toPublicUrl = (filePath) => {
 
 const CLUB_TYPES = ['Lions', 'Rotary', 'NGO', 'Professional', 'Sports', 'Cultural', 'Educational', 'Other'];
 
+const MAX_LOGO_BYTES = 5 * 1024 * 1024; // 5 MB — same limit the server enforces
+
 // ── Styled TextInput — matches AchievementFormScreen/JobPostingFormScreen ──
 function StyledInput({ hasError, multiline, style, ...props }) {
   const [focused, setFocused] = useState(false);
@@ -106,7 +108,6 @@ export default function ClubFormScreen({ route, navigation }) {
   useEffect(() => {
     loadLookups();
     if (isEditMode) {
-      debugger;
       loadClub();
       loadClubMembers(clubId);
     } else {
@@ -168,7 +169,6 @@ export default function ClubFormScreen({ route, navigation }) {
   };
 
   const loadClubMembers = async (id) => {
-    debugger;
     if (!id) return;
     const res = await memberService.getMembersByClub(id);
     if (res.success) {
@@ -247,7 +247,15 @@ export default function ClubFormScreen({ route, navigation }) {
       quality: 0.8,
     });
     if (!result.canceled && result.assets?.length > 0) {
-      setLogoUri(result.assets[0].uri);
+      const asset = result.assets[0];
+
+      // Stop oversized images here, before the user saves.
+      if (asset.fileSize && asset.fileSize > MAX_LOGO_BYTES) {
+        Alert.alert('Image Too Large', 'Please choose an image that is under 5 MB.');
+        return;
+      }
+
+      setLogoUri(asset.uri);
     }
   };
 
@@ -470,24 +478,40 @@ const maxDate = new Date(today.getFullYear() + 80, 11, 31);
     }
 
     const savedId = isEditMode ? clubId : res.data?.clubId;
+    const clubAction = isEditMode ? 'updated' : 'created';
 
+    // ── Logo upload: keep the result so we can report it ──
+    let logoResult = null;
     if (logoUri && savedId) {
       const fileName = logoUri.split('/').pop();
-      await clubService.uploadLogo(savedId, logoUri, fileName);
+      logoResult = await clubService.uploadLogo(savedId, logoUri, fileName);
     }
-    if (savedId && form.adminMembers.length > 0) {
-      const memberIds = form.adminMembers
-        .map(m => m.memberId)
-        .join(',');
 
-      await clubService.updateClubByMemberId(
-        memberIds,
-        savedId
-      );
+    if (savedId && form.adminMembers.length > 0) {
+      const memberIds = form.adminMembers.map(m => m.memberId).join(',');
+      await clubService.updateClubByMemberId(memberIds, savedId);
     }
 
     setSaving(false);
-    Alert.alert('Success', isEditMode ? 'Club updated.' : 'Club created.', [
+
+    // ── Logo was selected but the upload failed (e.g. "Image must be under 5 MB") ──
+    if (logoResult && !logoResult.success) {
+      let reason = (logoResult.message || getSafeErrorMessage(logoResult) || '').trim();
+      if (reason && !/[.!?]$/.test(reason)) reason += '.';
+      Alert.alert(
+        'Logo Not Uploaded',
+        `The club was ${clubAction} successfully, but the logo could not be uploaded. ${reason || 'Please try again.'}`.trim(),
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+      return;
+    }
+
+    // ── Everything succeeded ──
+    const successMessage = logoResult
+      ? `The club and its logo were ${clubAction} successfully.`
+      : `The club was ${clubAction} successfully.`;
+
+    Alert.alert('Success', successMessage, [
       { text: 'OK', onPress: () => navigation.goBack() },
     ]);
   };

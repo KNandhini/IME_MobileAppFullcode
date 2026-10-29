@@ -1,30 +1,44 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  Alert,
+  ActivityIndicator,
+  StatusBar,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { feedService } from '../services/feedService';
 import { CreatePostScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import * as FileSystem from 'expo-file-system/legacy';
-const MAX_MEDIA = 10;
 
-// ── Visibility options ────────────────────────────────────────────────────────
-const VISIBILITY_OPTIONS = [
-  { value: 'public',  label: 'Public',       sub: 'Visible to all members',    icon: '🌐' },
-  { value: 'private', label: 'My Club Only',  sub: 'Visible only to your club', icon: '🔒' },
-];
-
-const CreatePostScreen = ({ navigation }) => {
-  const [content,    setContent]    = useState('');
-  const [mediaItems, setMediaItems] = useState([]);
-  const [posting,    setPosting]    = useState(false);
-  const [visibility, setVisibility] = useState('public'); // 'public' | 'private'
 const MAX_MEDIA = 10;
 
 // Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+
+// ── Media grid layout ─────────────────────────────────────────────────────────
+// Tiles are sized from the REAL measured width of the grid, so they are always
+// square, evenly spaced, and the grid's height always matches its content —
+// which is what stops the tiles from overlapping the "Add More" button below.
+const GRID_GAP = 8;
+const WIDE_SCREEN_BREAKPOINT = 700; // 4 columns on wide grids, 3 otherwise
+
+// ── Visibility options ────────────────────────────────────────────────────────
+const VISIBILITY_OPTIONS = [
+  { value: 'public',  label: 'Public',       sub: 'Visible to all members',    icon: '🌐' },
+  { value: 'private', label: 'My Club Only', sub: 'Visible only to your club', icon: '🔒' },
+];
 
 const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
@@ -60,56 +74,70 @@ const partitionBySize = async (assets) => {
 
 const warnIfRejected = (rejected) => {
   if (rejected.length === 0) return;
-  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+  const list = rejected.map((r) => `• ${r.name} (${formatMB(r.size)})`).join('\n');
   Alert.alert(
     'File too large',
     `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
   );
 };
+
+const CreatePostScreen = ({ navigation }) => {
+  const [content,    setContent]    = useState('');
+  const [mediaItems, setMediaItems] = useState([]);
+  const [posting,    setPosting]    = useState(false);
+  const [visibility, setVisibility] = useState('public'); // 'public' | 'private'
+  const [gridWidth,  setGridWidth]  = useState(0);        // measured width of the media grid
+
+  // ── Tile size derived from the measured grid width ────────
+  const columns  = gridWidth >= WIDE_SCREEN_BREAKPOINT ? 4 : 3;
+  const tileSize = gridWidth > 0
+    ? Math.floor((gridWidth - GRID_GAP * (columns - 1)) / columns)
+    : 0;
+
   // ── Pick media ────────────────────────────────────────────
- const handlePickMedia = useCallback(async () => {
-  const remaining = MAX_MEDIA - mediaItems.length;
-  if (remaining <= 0) {
-    Alert.alert('Limit reached', `You can add up to ${MAX_MEDIA} media files per post.`);
-    return;
-  }
-
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== 'granted') {
-    Alert.alert('Permission needed', 'Allow access to your photo library to add media.');
-    return;
-  }
-
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images', 'videos'],
-    allowsMultipleSelection: true,
-    selectionLimit: remaining,
-    quality: 0.85,
-    videoMaxDuration: 60,
-  });
-
-  if (!result.canceled && result.assets?.length > 0) {
-    // ✅ Check size before slicing to the remaining slots
-    const { accepted, rejected } = await partitionBySize(result.assets);
-    warnIfRejected(rejected);
-
-    const newItems = accepted.map(asset => ({
-      uri:      asset.uri,
-      type:     asset.type === 'video' ? 'video' : 'image',
-      fileName: asset.fileName || asset.uri.split('/').pop(),
-      mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
-    }));
-    setMediaItems(prev => [...prev, ...newItems].slice(0, MAX_MEDIA));
-
-    if (accepted.length > remaining) {
-      Alert.alert('Limit applied', `Only ${remaining} file(s) added. Max ${MAX_MEDIA} total.`);
+  const handlePickMedia = useCallback(async () => {
+    const remaining = MAX_MEDIA - mediaItems.length;
+    if (remaining <= 0) {
+      Alert.alert('Limit reached', `You can add up to ${MAX_MEDIA} media files per post.`);
+      return;
     }
-  }
-}, [mediaItems.length]);
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow access to your photo library to add media.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images', 'videos'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.85,
+      videoMaxDuration: 60,
+    });
+
+    if (!result.canceled && result.assets?.length > 0) {
+      // Check size before slicing to the remaining slots
+      const { accepted, rejected } = await partitionBySize(result.assets);
+      warnIfRejected(rejected);
+
+      const newItems = accepted.map((asset) => ({
+        uri:      asset.uri,
+        type:     asset.type === 'video' ? 'video' : 'image',
+        fileName: asset.fileName || asset.uri.split('/').pop(),
+        mimeType: asset.mimeType || (asset.type === 'video' ? 'video/mp4' : 'image/jpeg'),
+      }));
+      setMediaItems((prev) => [...prev, ...newItems].slice(0, MAX_MEDIA));
+
+      if (accepted.length > remaining) {
+        Alert.alert('Limit applied', `Only ${remaining} file(s) added. Max ${MAX_MEDIA} total.`);
+      }
+    }
+  }, [mediaItems.length]);
 
   // ── Remove one media item ─────────────────────────────────
   const handleRemoveMedia = useCallback((index) => {
-    setMediaItems(prev => prev.filter((_, i) => i !== index));
+    setMediaItems((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   // ── Submit post ───────────────────────────────────────────
@@ -121,7 +149,6 @@ const warnIfRejected = (rejected) => {
 
     setPosting(true);
     try {
-      debugger;
       // Read clubId from AsyncStorage; 0 = public, >0 = private (club only)
       const raw      = await AsyncStorage.getItem('userData');
       const userData = raw ? JSON.parse(raw) : {};
@@ -136,7 +163,6 @@ const warnIfRejected = (rejected) => {
         Alert.alert('Failed', getSafeErrorMessage(res));
       }
     } catch (e) {
-      debugger;
       Alert.alert('Error', getSafeErrorMessage(e));
     } finally {
       setPosting(false);
@@ -171,7 +197,11 @@ const warnIfRejected = (rejected) => {
         </TouchableOpacity>
       </GradientHeader>
 
-      <ScrollView style={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={{ paddingBottom: 40 }}
+        keyboardShouldPersistTaps="handled"
+      >
 
         {/* ── Text input ── */}
         <TextInput
@@ -186,31 +216,106 @@ const warnIfRejected = (rejected) => {
           scrollEnabled={false}
         />
 
-        {/* ── Media grid ── */}
+        {/* ── Media grid ──
+            All layout-critical props are set inline (not from screenStyles) so
+            nothing in the shared stylesheet can make the tiles overflow the
+            grid and sit on top of the "Add More" button. */}
         {mediaItems.length > 0 && (
-          <View style={styles.mediaGrid}>
-            {mediaItems.map((item, index) => (
-              <View key={index} style={styles.mediaTile}>
-                <Image source={{ uri: item.uri }} style={styles.mediaTileImg} resizeMode="cover" />
-                {item.type === 'video' && (
-                  <View style={styles.videoOverlay}>
-                    <Text style={styles.videoIcon}>▶</Text>
+          <View
+            onLayout={(e) => setGridWidth(Math.floor(e.nativeEvent.layout.width))}
+            style={[
+              styles.mediaGrid,
+              {
+                alignSelf: 'stretch',
+                flexDirection: 'row',
+                flexWrap: 'wrap',
+                alignItems: 'flex-start',
+                height: undefined,        // let content decide the height
+                marginBottom: 12,
+              },
+            ]}
+          >
+            {tileSize > 0 &&
+              mediaItems.map((item, index) => {
+                const isLastInRow = (index + 1) % columns === 0;
+                return (
+                  <View
+                    key={`${item.uri}-${index}`}
+                    style={[
+                      styles.mediaTile,
+                      {
+                        width: tileSize,
+                        height: tileSize,
+                        marginRight: isLastInRow ? 0 : GRID_GAP,
+                        marginBottom: GRID_GAP,
+                        margin: undefined,
+                        borderRadius: 10,
+                        overflow: 'hidden',
+                        backgroundColor: '#000',
+                      },
+                      // re-apply the margins after the style spread above
+                      { marginRight: isLastInRow ? 0 : GRID_GAP, marginBottom: GRID_GAP },
+                    ]}
+                  >
+                    <Image
+                      source={{ uri: item.uri }}
+                      style={StyleSheet.absoluteFill}
+                      resizeMode="cover"
+                    />
+
+                    {item.type === 'video' && (
+                      <View
+                        pointerEvents="none"
+                        style={[
+                          StyleSheet.absoluteFill,
+                          { justifyContent: 'center', alignItems: 'center' },
+                        ]}
+                      >
+                        <View
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                            backgroundColor: 'rgba(0,0,0,0.5)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Text style={{ color: '#fff', fontSize: 18, marginLeft: 2 }}>▶</Text>
+                        </View>
+                      </View>
+                    )}
+
+                    <TouchableOpacity
+                      onPress={() => handleRemoveMedia(index)}
+                      activeOpacity={0.8}
+                      hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                      style={{
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 24,
+                        height: 24,
+                        borderRadius: 12,
+                        backgroundColor: 'rgba(0,0,0,0.65)',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>✕</Text>
+                    </TouchableOpacity>
                   </View>
-                )}
-                <TouchableOpacity
-                  style={styles.removeBtn}
-                  onPress={() => handleRemoveMedia(index)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.removeBtnText}>✕</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+                );
+              })}
           </View>
         )}
 
         {/* ── Add media button ── */}
-        <TouchableOpacity style={styles.addMediaBtn} onPress={handlePickMedia} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={[styles.addMediaBtn, { alignSelf: 'stretch' }]}
+          onPress={handlePickMedia}
+          activeOpacity={0.7}
+        >
           <Text style={styles.addMediaIcon}>📷</Text>
           <Text style={styles.addMediaText}>
             {mediaItems.length === 0
@@ -277,11 +382,5 @@ const warnIfRejected = (rejected) => {
     </KeyboardAvoidingView>
   );
 };
-
-const BLUE  = COLORS.dark;
-const BLUE2 = '#33A4FA';
-const LIGHT = '#EAF1FA';
-
-
 
 export default CreatePostScreen;

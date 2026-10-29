@@ -109,125 +109,279 @@ const getCommentTimestamp = (dateString) => {
   return `${relative} · ${formatDate(dateString)}`;
 };
 
-// Format milliseconds as m:ss for the progress bar time label.
+// ── mm:ss (zero padded) like "00:10" ──────────────────────────────────────────
 const formatMs = (ms) => {
-  if (!ms || ms < 0) return '0:00';
+  if (!ms || ms < 0) return '00:00';
   const totalSeconds = Math.floor(ms / 1000);
   const mins = Math.floor(totalSeconds / 60);
   const secs = totalSeconds % 60;
-  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
 };
 
-// ── Full-screen media viewer — images + playing video, with seek ──────────────
-const LIGHT_GREEN = '#A0C878';
+const SPEEDS = [1, 1.5, 2, 0.5];
 
-const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
-  const [index, setIndex] = useState(startIndex);
-  const [isPlaying, setIsPlaying] = useState(true);
-  // Live playback position/duration (in ms) for the current video, used to
-  // draw the progress line and time label under the controls.
-  const [playbackStatus, setPlaybackStatus] = useState({ position: 0, duration: 0 });
-  const scrollRef = useRef(null);
+// ── "↺ 15" style skip button ──────────────────────────────────────────────────
+const SkipIcon = ({ forward }) => (
+  <View style={viewerStyles.skipIcon}>
+    <Text style={viewerStyles.skipArrow}>{forward ? '↻' : '↺'}</Text>
+    <Text style={viewerStyles.skipNumber}>15</Text>
+  </View>
+);
 
-  const current = mediaList?.[index];
-  const currentIsVideo = current?.mediaType === 'video';
+// ── One video slide: own player, own controls ─────────────────────────────────
+// Mounted ONLY while that slide is visible, so the player is created
+// immediately on open (no late binding) and released on close/swipe.
+const VideoSlide = ({ url, hasPrev, hasNext, onPrev, onNext }) => {
+  const [isPlaying, setIsPlaying] = useState(false);   // real state, not assumed
+  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState({ position: 0, duration: 0 });
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [speedIdx, setSpeedIdx] = useState(0);
+  const [fillScreen, setFillScreen] = useState(false);
+  const [barWidth, setBarWidth] = useState(0);
+  const hideTimer = useRef(null);
 
-  // null source while the modal is closed or an image slide is showing,
-  // so nothing buffers needlessly.
-  const currentVideoUrl =
-    visible && currentIsVideo ? toPublicUrl(current.filePath ?? current.imagePath) : null;
-
-  // One player; expo-video recreates it when the source URL changes.
-  const player = useVideoPlayer(currentVideoUrl, (p) => {
+  const player = useVideoPlayer(url, (p) => {
     p.loop = false;
-    p.timeUpdateEventInterval = 0.25; // seconds
+    p.timeUpdateEventInterval = 0.25;
     p.play();
   });
 
-  // Keep React state in sync with the player.
   React.useEffect(() => {
+    // pick up whatever state the player is already in
+    setIsPlaying(!!player.playing);
+    setIsLoading(player.status === 'loading' || player.status === 'idle');
+    if (player.duration) {
+      setStatus((s) => ({ ...s, duration: player.duration * 1000 }));
+    }
+
     const subs = [
-      player.addListener('playingChange', ({ isPlaying: playing }) => setIsPlaying(playing)),
-      player.addListener('timeUpdate', ({ currentTime }) =>
-        setPlaybackStatus({
+      player.addListener('statusChange', ({ status: st }) => {
+        setIsLoading(st === 'loading' || st === 'idle');
+        if (st === 'readyToPlay') {
+          setStatus((s) => ({ ...s, duration: (player.duration || 0) * 1000 }));
+        }
+      }),
+      player.addListener('playingChange', ({ isPlaying: playing }) => {
+        setIsPlaying(playing);
+        // If it is playing, it is by definition not loading anymore.
+        if (playing) setIsLoading(false);
+      }),
+      player.addListener('timeUpdate', ({ currentTime }) => {
+        // Time is advancing → video is really playing, hide any spinner
+        // (the status event can stay on 'loading' on some devices).
+        if (currentTime > 0) setIsLoading(false);
+        setStatus({
           position: (currentTime || 0) * 1000,
           duration: (player.duration || 0) * 1000,
-        })
-      ),
-      player.addListener('sourceLoad', ({ duration }) =>
-        setPlaybackStatus((s) => ({ ...s, duration: (duration || 0) * 1000 }))
-      ),
-      player.addListener('playToEnd', () => setIsPlaying(false)),
+        });
+      }),
+      player.addListener('playToEnd', () => {
+        setIsPlaying(false);
+        setControlsVisible(true);
+      }),
     ];
     return () => subs.forEach((s) => s.remove());
   }, [player]);
 
-  // Pause when the modal closes.
+  // Auto-hide controls 3s after playback starts
   React.useEffect(() => {
-    if (!visible) {
-      try { player.pause(); } catch (e) { /* player may already be released */ }
+    clearTimeout(hideTimer.current);
+    if (isPlaying && controlsVisible) {
+      hideTimer.current = setTimeout(() => setControlsVisible(false), 3000);
     }
-  }, [visible, player]);
+    return () => clearTimeout(hideTimer.current);
+  }, [isPlaying, controlsVisible]);
 
-  // Reset to the tapped slide whenever the modal (re)opens.
-  React.useEffect(() => {
-    if (visible) {
-      setIndex(startIndex);
-      setIsPlaying(true);
-      setPlaybackStatus({ position: 0, duration: 0 });
-      requestAnimationFrame(() => {
-        scrollRef.current?.scrollTo({ x: startIndex * SCREEN_WIDTH, animated: false });
-      });
-    }
-  }, [visible, startIndex]);
-
-  const handleScroll = useCallback((e) => {
-    const i = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    setIndex(i);
-    setIsPlaying(true);
-    setPlaybackStatus({ position: 0, duration: 0 });
-  }, []);
-
-  const togglePlayPause = useCallback(() => {
+  const togglePlayPause = () => {
     try {
-      // If the video already finished, pressing play should restart it
-      // from the beginning instead of doing nothing.
-      if (playbackStatus.duration && playbackStatus.position >= playbackStatus.duration - 250) {
+      // If the video already finished, pressing play restarts it.
+      if (status.duration && status.position >= status.duration - 250) {
         player.currentTime = 0;
         player.play();
         return;
       }
       if (player.playing) player.pause();
       else player.play();
-    } catch (e) {
-      // ignore — player not ready
-    }
-  }, [player, playbackStatus]);
+    } catch (e) { /* not ready */ }
+  };
 
-  // Seek the current video forward/backward by deltaMs (e.g. ±10000 for 10s),
-  // clamped to [0, duration]. expo-video works in seconds, hence the /1000.
-  const seekBy = useCallback((deltaMs) => {
+  const seekBy = (deltaMs) => {
     try {
       const duration = player.duration || 0;
-      const next = Math.max(0, Math.min(player.currentTime + deltaMs / 1000, duration));
-      player.currentTime = next;
-    } catch (e) {
-      // ignore — e.g. video not loaded yet
+      player.currentTime = Math.max(0, Math.min(player.currentTime + deltaMs / 1000, duration));
+    } catch (e) { /* not ready */ }
+  };
+
+  const seekToX = (x) => {
+    if (!barWidth || !status.duration) return;
+    const ratio = Math.max(0, Math.min(1, x / barWidth));
+    try { player.currentTime = (ratio * status.duration) / 1000; } catch (e) { /* not ready */ }
+  };
+
+  const cycleSpeed = () => {
+    const next = (speedIdx + 1) % SPEEDS.length;
+    setSpeedIdx(next);
+    try { player.playbackRate = SPEEDS[next]; } catch (e) { /* not ready */ }
+  };
+
+  const progressPct = status.duration
+    ? Math.min(100, (status.position / status.duration) * 100)
+    : 0;
+
+  // Spinner only while genuinely waiting: never while playing / after time moved.
+  const showSpinner = isLoading && !isPlaying && status.position === 0;
+
+  return (
+    <View style={viewerStyles.videoRoot}>
+      <VideoView
+        player={player}
+        style={StyleSheet.absoluteFill}
+        contentFit={fillScreen ? 'cover' : 'contain'}
+        nativeControls={false}
+      />
+
+      {/* Tap anywhere on the video to show/hide controls */}
+      <TouchableOpacity
+        style={StyleSheet.absoluteFill}
+        activeOpacity={1}
+        onPress={() => setControlsVisible((v) => !v)}
+      />
+
+      {/* Spinner while the video is buffering */}
+      {showSpinner && (
+        <View style={viewerStyles.loadingWrap} pointerEvents="none">
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
+      )}
+
+      {controlsVisible && (
+        <View style={viewerStyles.overlay} pointerEvents="box-none">
+          {/* ── Center controls: prev · -15 · play/pause · +15 · next ── */}
+          <View style={viewerStyles.centerRow} pointerEvents="box-none">
+            <TouchableOpacity
+              style={[viewerStyles.sideBtn, !hasPrev && viewerStyles.btnDisabled]}
+              onPress={onPrev}
+              disabled={!hasPrev}
+              activeOpacity={0.7}
+            >
+              <Text style={viewerStyles.sideBtnText}>|◀</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={viewerStyles.sideBtn} onPress={() => seekBy(-15000)} activeOpacity={0.7}>
+              <SkipIcon />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={viewerStyles.playBtn} onPress={togglePlayPause} activeOpacity={0.8}>
+              {showSpinner ? (
+                <ActivityIndicator size="small" color="#111" />
+              ) : (
+                <Text style={viewerStyles.playBtnText}>{isPlaying ? '❚❚' : '▶'}</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity style={viewerStyles.sideBtn} onPress={() => seekBy(15000)} activeOpacity={0.7}>
+              <SkipIcon forward />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[viewerStyles.sideBtn, !hasNext && viewerStyles.btnDisabled]}
+              onPress={onNext}
+              disabled={!hasNext}
+              activeOpacity={0.7}
+            >
+              <Text style={viewerStyles.sideBtnText}>▶|</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* ── Bottom: seek bar + time + speed / fit ── */}
+          <View style={viewerStyles.bottomBar} pointerEvents="box-none">
+            <View
+              style={viewerStyles.seekHit}
+              onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
+              onStartShouldSetResponder={() => true}
+              onMoveShouldSetResponder={() => true}
+              onResponderGrant={(e) => seekToX(e.nativeEvent.locationX)}
+              onResponderMove={(e) => seekToX(e.nativeEvent.locationX)}
+            >
+              <View style={viewerStyles.seekTrack} pointerEvents="none">
+                <View style={[viewerStyles.seekFill, { width: `${progressPct}%` }]} />
+              </View>
+              <View
+                pointerEvents="none"
+                style={[viewerStyles.seekThumb, { left: `${progressPct}%` }]}
+              />
+            </View>
+
+            <View style={viewerStyles.bottomRow}>
+              <Text style={viewerStyles.timeText}>
+                {formatMs(status.position)}  ·  {formatMs(status.duration)}
+              </Text>
+              <View style={viewerStyles.bottomRight}>
+                <TouchableOpacity onPress={cycleSpeed} style={viewerStyles.iconBtn} activeOpacity={0.7}>
+                  <Text style={viewerStyles.iconText}>⚙ {SPEEDS[speedIdx]}x</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setFillScreen((f) => !f)} style={viewerStyles.iconBtn} activeOpacity={0.7}>
+                  <Text style={viewerStyles.iconText}>{fillScreen ? '⤡' : '⛶'}</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+};
+
+// ── Full-screen media viewer — images + video ─────────────────────────────────
+const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
+  const [index, setIndex] = useState(startIndex);
+  const [ready, setReady] = useState(false); // avoids mounting a stale slide on open
+  // Real visible height of the viewer. Dimensions.get('window') can be taller
+  // than what the Modal actually shows (Android nav bar etc.), which pushed
+  // the controls off the bottom of the screen.
+  const [viewerH, setViewerH] = useState(SCREEN_HEIGHT);
+  const scrollRef = useRef(null);
+
+  React.useEffect(() => {
+    if (visible) {
+      setIndex(startIndex);
+      setReady(true);
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ x: startIndex * SCREEN_WIDTH, animated: false });
+      });
+    } else {
+      setReady(false);
     }
-  }, [player]);
+  }, [visible, startIndex]);
+
+  const goTo = useCallback((i) => {
+    setIndex(i);
+    scrollRef.current?.scrollTo({ x: i * SCREEN_WIDTH, animated: false });
+  }, []);
+
+  const handleScroll = useCallback((e) => {
+    setIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH));
+  }, []);
 
   if (!mediaList || mediaList.length === 0) return null;
 
   const hasMultiple = mediaList.length > 1;
-
-  const progressPct = playbackStatus.duration
-    ? Math.min(100, (playbackStatus.position / playbackStatus.duration) * 100)
-    : 0;
+  const currentIsVideo = mediaList[index]?.mediaType === 'video';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <StatusBar hidden />
-      <View style={viewerStyles.backdrop}>
+      <View
+        style={viewerStyles.backdrop}
+        onLayout={(e) => setViewerH(e.nativeEvent.layout.height)}
+      >
         <TouchableOpacity style={viewerStyles.closeBtn} onPress={onClose} activeOpacity={0.7}>
           <Text style={viewerStyles.closeBtnText}>✕</Text>
         </TouchableOpacity>
@@ -245,78 +399,37 @@ const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
           showsHorizontalScrollIndicator={false}
           onMomentumScrollEnd={handleScroll}
           scrollEventThrottle={16}
-          // While viewing a video, disable swipe-scroll so it doesn't fight
-          // with seeking — the ‹ › buttons take over there instead.
-          scrollEnabled={!currentIsVideo}
+          scrollEnabled={!currentIsVideo} // prev/next buttons handle navigation on videos
         >
           {mediaList.map((media, i) => {
             const url = toPublicUrl(media.filePath ?? media.imagePath);
             const isVideo = media.mediaType === 'video';
-            return (
-              <View key={media.mediaId ?? i} style={viewerStyles.slide}>
-                {isVideo ? (
-                  // Only mount the player view for the currently visible slide —
-                  // avoids every video in the post trying to buffer at once.
-                  index === i ? (
-                    <VideoView
-                      player={player}
-                      style={viewerStyles.media}
-                      contentFit="contain"
-                      nativeControls={false}
-                    />
-                  ) : (
-                    <View style={viewerStyles.media} />
-                  )
-                ) : (
-                  <Image source={{ uri: url }} style={viewerStyles.media} resizeMode="contain" />
-                )}
-              </View>
-            );
+
+            if (!isVideo) {
+              return (
+                <View key={media.mediaId ?? i} style={[viewerStyles.slide, { height: viewerH }]}>
+                  <Image source={{ uri: url }} style={[viewerStyles.media, { height: viewerH }]} resizeMode="contain" />
+                </View>
+              );
+            }
+
+            // Blank page keeps the paging index; the real video layer is
+            // rendered below, on top of the viewer, so it is always centred.
+            return <View key={media.mediaId ?? i} style={[viewerStyles.slide, { height: viewerH }]} />;
           })}
         </ScrollView>
 
-        {/* ── Controls: only shown for video — progress line, seek back, play/pause, seek forward ── */}
-        {currentIsVideo && (
-          <>
-            {/* Progress line + elapsed/duration label showing how much of the video has played */}
-            <View style={viewerStyles.progressWrapper} pointerEvents="none">
-              <View style={viewerStyles.progressBarTrack}>
-                <View style={[viewerStyles.progressBarFill, { width: `${progressPct}%` }]} />
-              </View>
-              <View style={viewerStyles.progressTimeRow}>
-                <Text style={viewerStyles.progressTimeText}>{formatMs(playbackStatus.position)}</Text>
-                <Text style={viewerStyles.progressTimeText}>{formatMs(playbackStatus.duration)}</Text>
-              </View>
-            </View>
-
-            <View style={viewerStyles.controlsRow} pointerEvents="box-none">
-              <TouchableOpacity
-                style={viewerStyles.navBtn}
-                onPress={() => seekBy(-10000)}
-                activeOpacity={0.7}
-              >
-                <Text style={viewerStyles.navBtnText}>‹</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={viewerStyles.playPauseBtn}
-                onPress={togglePlayPause}
-                activeOpacity={0.7}
-              >
-                <Text style={viewerStyles.playPauseText}>
-                  {isPlaying ? '❚❚' : '▶'}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={viewerStyles.navBtn}
-                onPress={() => seekBy(10000)}
-                activeOpacity={0.7}
-              >
-                <Text style={viewerStyles.navBtnText}>›</Text>
-              </TouchableOpacity>
-            </View>
-          </>
+        {/* Only the current video is mounted → its own fresh player.
+            Absolute-fill of the backdrop = exactly the visible area. */}
+        {ready && visible && currentIsVideo && (
+          <VideoSlide
+            key={`video-${mediaList[index]?.mediaId ?? index}`}
+            url={toPublicUrl(mediaList[index].filePath ?? mediaList[index].imagePath)}
+            hasPrev={index > 0}
+            hasNext={index < mediaList.length - 1}
+            onPrev={() => goTo(index - 1)}
+            onNext={() => goTo(index + 1)}
+          />
         )}
       </View>
     </Modal>
@@ -327,10 +440,12 @@ const MediaViewerModal = ({ visible, mediaList, startIndex, onClose }) => {
 // Each video needs its own player, and hooks can't run inside .map(),
 // so this lives in its own small component.
 const CarouselVideo = ({ url }) => {
+  // Paused on purpose: it only needs to show the first frame. Looping
+  // playback here downloaded the same video a second time and competed
+  // with the full-screen player for bandwidth.
   const player = useVideoPlayer(url, (p) => {
     p.muted = true;
-    p.loop = true;
-    p.play();
+    p.loop = false;
   });
 
   return (
@@ -730,54 +845,65 @@ const viewerStyles = StyleSheet.create({
   },
   counterText: { color: '#fff', fontSize: 12, fontWeight: '700' },
 
-  // ── Progress line + time label showing how much of the video has played ──
-  progressWrapper: {
-    position: 'absolute',
-    bottom: 116, // sits just above controlsRow
-    left: 20,
-    right: 20,
+  videoRoot: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    zIndex: 5,
+    backgroundColor: '#000',
   },
-  progressBarTrack: {
-    height: 3,
-    borderRadius: 1.5,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: 3,
-    backgroundColor: LIGHT_GREEN,
-  },
-  progressTimeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  progressTimeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
 
-  // ── Bottom control bar: seek-back, play-pause, seek-forward (video only) ──
-  controlsRow: {
-    position: 'absolute',
-    bottom: 48,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
+  loadingWrap: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    justifyContent: 'center', alignItems: 'center',
+  },
+
+  // Dark tint + controls
+  overlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  navBtn: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: LIGHT_GREEN,
-    justifyContent: 'center', alignItems: 'center',
-    marginHorizontal: 20,
+  centerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
   },
-  navBtnText: { color: '#fff', fontSize: 28, fontWeight: '700', marginTop: -2 },
-  playPauseBtn: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: LIGHT_GREEN,
-    justifyContent: 'center', alignItems: 'center',
-    marginHorizontal: 12,
+  sideBtn: {
+    width: 48, height: 48, justifyContent: 'center', alignItems: 'center',
+    marginHorizontal: 6,
   },
-  playPauseText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  sideBtnText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  btnDisabled: { opacity: 0.35 },
+  playBtn: {
+    width: 64, height: 64, borderRadius: 32, backgroundColor: '#fff',
+    justifyContent: 'center', alignItems: 'center', marginHorizontal: 10,
+  },
+  playBtnText: { color: '#111', fontSize: 24, fontWeight: '700' },
+
+  skipIcon: { alignItems: 'center', justifyContent: 'center' },
+  skipArrow: { color: '#fff', fontSize: 34, lineHeight: 36 },
+  skipNumber: {
+    position: 'absolute', color: '#fff', fontSize: 11, fontWeight: '800', marginTop: 3,
+  },
+
+  // Bottom bar
+  bottomBar: {
+    position: 'absolute', left: 16, right: 16, bottom: 80,
+  },
+  seekHit: { height: 28, justifyContent: 'center' },
+  seekTrack: {
+    height: 4, borderRadius: 2,
+    backgroundColor: 'rgba(255,255,255,0.35)', overflow: 'hidden',
+  },
+  seekFill: { height: 4, backgroundColor: '#fff' },
+  seekThumb: {
+    position: 'absolute', width: 12, height: 12, borderRadius: 6,
+    backgroundColor: '#fff', marginLeft: -6, top: 8,
+  },
+  bottomRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+  },
+  timeText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  bottomRight: { flexDirection: 'row', alignItems: 'center' },
+  iconBtn: { paddingHorizontal: 8, paddingVertical: 4 },
+  iconText: { color: '#fff', fontSize: 16, fontWeight: '700' },
 });
 
 // ── Carousel styles ───────────────────────────────────────────────────────────

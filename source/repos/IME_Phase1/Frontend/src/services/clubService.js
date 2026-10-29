@@ -1,6 +1,8 @@
 import api, { BASE_URL } from '../utils/api';
 import { toSafeServiceError } from '../utils/errorHandler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { fetch } from 'expo/fetch';
+import { File as ExpoFile } from 'expo-file-system';
 //const BASE_URL = 'http://10.0.2.2:51150/api';
 export const clubService = {
   getAll: async (pageNumber = 1, pageSize = 50, search = '', isActive = null) => {
@@ -46,51 +48,52 @@ export const clubService = {
     }
   },
 
+  // Same approach as feedService.createPost: expo/fetch + ExpoFile.
+  // Expo's fetch no longer accepts the old { uri, name, type } FormData
+  // object ("Unsupported FormDataPart implementation"), so the file is
+  // appended as an expo-file-system File (read from its uri).
   uploadLogo: async (clubId, imageUri, fileName) => {
-  try {
-    debugger;
-    const token = await AsyncStorage.getItem('authToken');
-    const formData = new FormData();
+    const url = `${BASE_URL}/api/club/${clubId}/logo`;
 
-    formData.append('file', {
-      uri: imageUri,
-      name: fileName || 'logo.jpg',
-      type: 'image/jpeg',
-    });
-debugger;
-    const response = await fetch(`${BASE_URL}/api/club/${clubId}/logo`, {
-      method: 'POST',
-      headers: {
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  },
-      body: formData,
-    });
-    console.log("FINAL URL:", `${BASE_URL}/api/club/${clubId}/logo`);
+    try {
+      const token = await AsyncStorage.getItem('authToken');
 
-    // ✅ Read as text first
-    const text = await response.text();
+      const formData = new FormData();
+      formData.append('file', new ExpoFile(imageUri));
 
-    // ✅ Try parsing safely
-    const data = text ? JSON.parse(text) : {};
+      console.log('[uploadLogo] URL:', url, 'uri:', imageUri, 'hasToken:', !!token);
 
-    // 🔍 Debug
-    console.log("Status:", response.status);
-    console.log("Response:", data);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
 
-    if (!response.ok) {
-      return {
-        success: false,
-        message: data?.message || `HTTP ${response.status}`,
-      };
+      console.log('[uploadLogo] status:', response.status);
+
+      // Read as text first, then parse safely
+      const text = await response.text();
+      let data;
+      try { data = text ? JSON.parse(text) : {}; } catch { data = { message: text }; }
+
+      console.log('[uploadLogo] response:', data);
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: data?.message || `HTTP ${response.status}`,
+        };
+      }
+
+      return data;
+
+    } catch (error) {
+      console.error('Upload logo error:', error);
+      return toSafeServiceError(error, { source: 'clubService' });
     }
-
-    return data;
-
-  } catch (error) {
-    console.error('Upload logo error:', error);
-    return toSafeServiceError(error, { source: 'clubService' });
-  }
-},
+  },
 
   delete: async (clubId) => {
     try {
@@ -146,4 +149,3 @@ debugger;
   }
 },
 };
-

@@ -112,6 +112,27 @@ const AnimatedTabIcon = ({ name, focused, color, activeColor, size = 24 }) => {
   );
 };
 
+// ── Shared single-line tab label ──
+// Labels are rendered through the navigator's own `tabBarLabel` (NOT inside
+// `tabBarIcon`). tabBarIcon only gets a tiny box, which is what made
+// "IUE Profile" and "Logout" wrap onto two lines. tabBarLabel gets the full
+// width of each tab, and numberOfLines={1} guarantees one line everywhere.
+const makeTabLabel = (text) => ({ color, focused }) => (
+  <Text
+    numberOfLines={1}
+    allowFontScaling={false}
+    style={{
+      fontSize: 10,
+      color,
+      fontWeight: focused ? '700' : '400',
+      marginTop: 2,
+      textAlign: 'center',
+    }}
+  >
+    {text}
+  </Text>
+);
+
 // ── Shared gradient background for native stack headers ──
 // React Navigation's stack header can't take arbitrary child components the
 // way an in-screen <GradientHeader> can, but it exposes `headerBackground`
@@ -237,7 +258,17 @@ const MainTabs = () => {
         screenOptions={{
           tabBarActiveTintColor: COLORS.dark,
           tabBarInactiveTintColor: COLORS.inactive,
-          tabBarShowLabel: false,
+          tabBarShowLabel: true,
+          // Always stack icon above label — on wide (tablet) screens React
+          // Navigation otherwise switches to icon-beside-label, which breaks
+          // the alignment.
+          tabBarLabelPosition: 'below-icon',
+          tabBarAllowFontScaling: false,
+          tabBarItemStyle: {
+            paddingHorizontal: 0,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
           tabBarStyle: {
             height: 64,
             paddingBottom: 6,
@@ -258,11 +289,9 @@ const MainTabs = () => {
           component={HomeComponent}
           options={{
             headerShown: false,
+            tabBarLabel: makeTabLabel('Home'),
             tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Home</Text>
-              </View>
+              <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
             ),
           }}
         />
@@ -271,25 +300,14 @@ const MainTabs = () => {
           component={HomeScreen}
           options={{
             headerShown: false,
+            tabBarLabel: makeTabLabel('Feed'),
             tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <AnimatedTabIcon
-                  name={focused ? 'add-circle' : 'add-circle-outline'}
-                  focused={focused}
-                  color={color}
-                  activeColor={COLORS.dark}
-                />
-                <Text
-                  style={{
-                    fontSize: 10,
-                    color: focused ? COLORS.dark : color,
-                    fontWeight: focused ? '700' : '400',
-                    marginTop: 2,
-                  }}
-                >
-                  Feed
-                </Text>
-              </View>
+              <AnimatedTabIcon
+                name={focused ? 'add-circle' : 'add-circle-outline'}
+                focused={focused}
+                color={color}
+                activeColor={COLORS.dark}
+              />
             ),
           }}
         />
@@ -302,16 +320,18 @@ const MainTabs = () => {
             headerStyle: { backgroundColor: 'transparent' },
             headerTintColor: COLORS.white,
             headerTitleStyle: { fontWeight: '700' },
+            tabBarLabel: makeTabLabel('IUE Profile'),
             tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>IUE Profile</Text>
-              </View>
+              <Ionicons
+                name={focused ? 'information-circle' : 'information-circle-outline'}
+                size={24}
+                color={color}
+              />
             ),
           }}
         />
         {/* Chats tab is hidden for students — they only get
-            Home / Feed / IME Profile / Logout in the footer. */}
+            Home / Feed / IUE Profile / Logout in the footer. */}
         {!isStudent && (
           <Tab.Screen
             name="ChatsTab"
@@ -319,11 +339,13 @@ const MainTabs = () => {
             options={{
               title: 'Chats',
               headerShown: false,
+              tabBarLabel: makeTabLabel('Chats'),
               tabBarIcon: ({ color, focused }) => (
-                <View style={{ alignItems: 'center' }}>
-                  <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={24} color={color} />
-                  <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Chats</Text>
-                </View>
+                <Ionicons
+                  name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+                  size={24}
+                  color={color}
+                />
               ),
             }}
           />
@@ -333,11 +355,9 @@ const MainTabs = () => {
           component={View}
           options={{
             title: 'Logout',
+            tabBarLabel: makeTabLabel('Logout'),
             tabBarIcon: ({ color, focused }) => (
-              <View style={{ alignItems: 'center' }}>
-                <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />
-                <Text style={{ fontSize: 10, color, fontWeight: focused ? '700' : '400', marginTop: 2 }}>Logout</Text>
-              </View>
+              <Ionicons name={focused ? 'log-out' : 'log-out-outline'} size={24} color={color} />
             ),
           }}
           listeners={() => ({

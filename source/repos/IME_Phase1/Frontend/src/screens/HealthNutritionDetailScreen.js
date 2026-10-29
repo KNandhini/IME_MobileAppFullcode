@@ -3,7 +3,6 @@ import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Dimensions,
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
-import { WebView } from 'react-native-webview';
 import { healthNutritionService } from '../services/healthNutritionService';
 import { HealthNutritionDetailScreenStyles as styles } from './screenStyles';
 import Slider from '@react-native-community/slider';
@@ -229,10 +228,36 @@ function VideoPreview({ uri }) {
   );
 }
 
-function PdfPreview({ uri }) {
+// Compact PDF card — no inline PDF viewer / big empty box.
+// Shows the PDF icon; if the file has a name, it is shown next to the icon.
+// The Download button below the attachment section opens the file.
+function PdfPreview({ fileName }) {
+  const hasName = !!(fileName && String(fileName).trim());
+
   return (
-    <View style={{ width: MEDIA_WIDTH, height: 480, borderRadius: 12, overflow: 'hidden', backgroundColor: '#F1F5F9' }}>
-      <WebView source={{ uri }} style={{ flex: 1 }} />
+    <View
+      style={{
+        width: MEDIA_WIDTH,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: hasName ? 'flex-start' : 'center',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 14,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+      }}
+    >
+      <MaterialCommunityIcons name="file-pdf-box" size={44} color="#DC2626" />
+      {hasName ? (
+        <Text
+          style={{ flex: 1, marginLeft: 10, fontSize: 14, fontWeight: '600', color: NAVY }}
+          numberOfLines={2}
+        >
+          {fileName}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -286,7 +311,7 @@ const HealthNutritionDetailScreen = ({ route, navigation }) => {
       case 'image': return <ImagePreview uri={item.attachmentPath} />;
       case 'audio': return <AudioPreview uri={item.attachmentPath} />;
       case 'video': return <VideoPreview uri={item.attachmentPath} />;
-      case 'pdf': return <PdfPreview uri={item.attachmentPath} />;
+      case 'pdf': return <PdfPreview fileName={item.attachmentFileName} />;
       default: return <OtherFilePreview fileName={item.attachmentFileName} />;
     }
   };
