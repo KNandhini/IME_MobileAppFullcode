@@ -1060,8 +1060,8 @@ function post(o){ try{ window.ReactNativeWebView.postMessage(JSON.stringify(o));
 window.addEventListener('load',function(){ post({type:'LOADED'}); });
 window.initMap = function(){
   map = L.map('map',{center:[22.97,78.66],zoom:5,zoomControl:true});
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{
-    attribution:'&copy; OpenStreetMap &copy; CARTO',subdomains:'abcd',maxZoom:20
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',{
+    attribution:'Tiles &copy; Esri, HERE, Garmin, &copy; OpenStreetMap contributors, and the GIS user community',maxZoom:16
   }).addTo(map);
   polyLayer = L.layerGroup().addTo(map);
   lblLayer  = L.layerGroup().addTo(map);
