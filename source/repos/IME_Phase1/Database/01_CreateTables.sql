@@ -216,6 +216,20 @@ BEGIN
 END
 GO
 
+-- Achievement attachments
+IF NOT EXISTS (SELECT 1 FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[AchievementAttachments]') AND type = N'U')
+BEGIN
+    CREATE TABLE [dbo].[AchievementAttachments] (
+        [AttachmentId] INT IDENTITY(1,1) PRIMARY KEY,
+        [AchievementId] INT NOT NULL,
+        [FileName] NVARCHAR(255),
+        [FilePath] NVARCHAR(500),
+        [UploadedDate] DATETIME DEFAULT GETDATE(),
+        FOREIGN KEY ([AchievementId]) REFERENCES [dbo].[Achievements]([AchievementId]) ON DELETE CASCADE
+    );
+END
+GO
+
 -- Organisation Table
 IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Organisation]') AND type in (N'U'))
 BEGIN

@@ -174,7 +174,6 @@ const AchievementsScreen = ({ navigation }) => {
       const achRes = await achievementService.getAll();
       const achList = achRes?.success ? (achRes.data ?? []) : [];
       if (achRes?.success) setAchievements(achList);
-debugger;
       // Step 2: extract unique memberIds from achievements
       const uniqueMemberIds = [
         ...new Set(
@@ -187,24 +186,28 @@ debugger;
       if (uniqueMemberIds.length === 0) return;
 
       // Step 3: fetch ONLY those member photos
-      const photoRes = await memberService.getMemberPhotosByIds(uniqueMemberIds);
-      if (photoRes?.success && photoRes?.data?.length > 0) {
-        const map = {};
-        photoRes.data.forEach((p) => {
-          const id = p.memberId ?? p.MemberId;
-          if (!id) return;
-          if (p.profilePhotoPath) {
-            map[id] = p.profilePhotoPath.startsWith('http')
-              ? p.profilePhotoPath
-              : `${BASE_URL}/Uploads/${p.profilePhotoPath.replace(/\\/g, '/').replace(/^Uploads\/?/i, '')}`;
-          } else if (p.profilePhotoBase64) {
-            map[id] = `data:image/jpeg;base64,${p.profilePhotoBase64}`;
-          }
-        });
-        setPhotoMap(map);
+      try {
+        const photoRes = await memberService.getMemberPhotosByIds(uniqueMemberIds);
+        if (photoRes?.success && photoRes?.data?.length > 0) {
+          const map = {};
+          photoRes.data.forEach((p) => {
+            const id = p.memberId ?? p.MemberId;
+            if (!id) return;
+            if (p.profilePhotoPath) {
+              map[id] = p.profilePhotoPath.startsWith('http')
+                ? p.profilePhotoPath
+                : `${BASE_URL}/Uploads/${p.profilePhotoPath.replace(/\\/g, '/').replace(/^Uploads\/?/i, '')}`;
+            } else if (p.profilePhotoBase64) {
+              map[id] = `data:image/jpeg;base64,${p.profilePhotoBase64}`;
+            }
+          });
+          setPhotoMap(map);
+        }
+      } catch (e) {
+        console.error('Achievement member-photo load error:', e);
       }
     } catch (e) {
-      console.error('Achievements load error:', e);
+      console.error('Achievement list load error:', e);
     } finally {
       setLoading(false);
       setRefreshing(false);

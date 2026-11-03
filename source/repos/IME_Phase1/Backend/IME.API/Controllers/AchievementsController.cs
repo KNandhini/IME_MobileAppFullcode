@@ -23,8 +23,9 @@ public class AchievementsController : ControllerBase
         { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
     private static readonly string[] AllowedAttachmentTypes =
-                { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".pdf", ".doc", ".docx",
-                    ".mp4", ".mov", ".m4v", ".avi", ".mkv", ".3gp", ".webm" };
+        { ".jpg", ".jpeg", ".png", ".pdf", ".doc", ".docx" };
+
+    private const long MaxAttachmentBytes = 50L * 1024 * 1024;
 
     public AchievementsController(
         IAchievementRepository achievementRepository,
@@ -50,6 +51,19 @@ public class AchievementsController : ControllerBase
     // helper: read userId from JWT claim
     private int GetUserId() =>
         int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+    private static string? ValidateAttachment(IFormFile? file)
+    {
+        if (file == null)
+            return null;
+        if (file.Length == 0)
+            return "Attachment cannot be empty.";
+        if (file.Length > MaxAttachmentBytes)
+            return "Each attachment must be 50 MB or smaller.";
+        if (!AllowedAttachmentTypes.Contains(Path.GetExtension(file.FileName).ToLowerInvariant()))
+            return "Allowed achievement attachments: JPG, PNG, PDF, DOC, and DOCX.";
+        return null;
+    }
 
     // ── GET /api/achievements ─────────────────────────────────
     [HttpGet]
@@ -105,6 +119,10 @@ public class AchievementsController : ControllerBase
     {
         try
         {
+            var attachmentError = ValidateAttachment(request.Attachment);
+            if (attachmentError != null)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = attachmentError });
+
             var userId = GetUserId();
 
             // 1. Create the achievement record first (no photo yet)
@@ -148,7 +166,7 @@ public class AchievementsController : ControllerBase
                 var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
 
                 await _achievementRepository.AddAchievementAttachmentAsync(
-                    achievementId, request.Attachment.FileName, fullAttachPath, request.Attachment.Length);
+                    achievementId, request.Attachment.FileName, fullAttachPath);
             }
 
             // 4. Push notification
@@ -181,6 +199,10 @@ public class AchievementsController : ControllerBase
     {
         try
         {
+            var attachmentError = ValidateAttachment(request.Attachment);
+            if (attachmentError != null)
+                return BadRequest(new ApiResponse<object> { Success = false, Message = attachmentError });
+
             // 1. Save new photo if provided
             string? newPhotoPath = null;
             if (request.Photo != null &&
@@ -217,7 +239,7 @@ public class AchievementsController : ControllerBase
                     await _achievementRepository.DeleteAchievementAttachmentAsync(att.AttachmentId);
 
                 await _achievementRepository.AddAchievementAttachmentAsync(
-                    id, request.Attachment.FileName, fullAttachPath, request.Attachment.Length);
+                    id, request.Attachment.FileName, fullAttachPath);
             }
 
             return Ok(new ApiResponse<object>
@@ -282,6 +304,14 @@ public class AchievementsController : ControllerBase
             if (files == null || files.Count == 0)
                 return Ok(new ApiResponse<List<AttachmentDTO>>
                 { Success = false, Message = "No files provided." });
+            foreach (var file in files)
+            {
+                var attachmentError = ValidateAttachment(file);
+                if (attachmentError != null)
+                    return BadRequest(new ApiResponse<List<AttachmentDTO>>
+                    { Success = false, Message = attachmentError });
+            }
+
             var achievement = await _achievementRepository.GetAchievementByIdAsync(id);
             if (achievement == null)
                 return NotFound(new ApiResponse<List<AttachmentDTO>>
@@ -289,15 +319,11 @@ public class AchievementsController : ControllerBase
             var saved = new List<AttachmentDTO>();
             foreach (var file in files)
             {
-                if (file.Length == 0) continue;
-                if (file.Length > 50 * 1024 * 1024) continue; // skip > 50 MB
-                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                if (!AllowedAttachmentTypes.Contains(ext)) continue;
                 var filePath = await _fileStorageService.SaveFileAsync(
                     file.OpenReadStream(), "Achievements", id, file.FileName);
                 var fullFilePath = _fileStorageService.GetFullPath(filePath);
                 var att = await _achievementRepository.AddAchievementAttachmentAsync(
-                    id, file.FileName, fullFilePath, file.Length);
+                    id, file.FileName, fullFilePath);
                 att.FilePath = BuildFileUrl(att.FilePath);
                 saved.Add(att);
             }

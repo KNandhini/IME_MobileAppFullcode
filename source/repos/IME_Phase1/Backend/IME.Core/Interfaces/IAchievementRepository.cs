@@ -16,7 +16,7 @@ public interface IAchievementRepository
     Task<List<AttachmentDTO>> GetAchievementAttachmentsAsync(int achievementId);
 
     Task<AttachmentDTO> AddAchievementAttachmentAsync(
-        int achievementId, string fileName, string filePath, long fileSize);
+        int achievementId, string fileName, string filePath);
 
     Task<bool> DeleteAchievementAttachmentAsync(int attachmentId);
 }

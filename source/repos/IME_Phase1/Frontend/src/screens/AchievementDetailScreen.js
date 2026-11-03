@@ -118,12 +118,11 @@ const local = StyleSheet.create({
   },
 });
 
-// filePath from the server is a raw disk path like "Uploads\achievements\xyz.jpg" —
-// convert it into a URL the app can actually load/display/download.
+// Convert a stored upload path into a URL the app can load/display/download.
 const toPublicUrl = (filePath) => {
   if (!filePath) return null;
   if (filePath.startsWith('http')) return filePath;
-  const idx = filePath.indexOf('Uploads\\');
+  const idx = filePath.search(/uploads[\\/]/i);
   if (idx === -1) return filePath;
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;

@@ -5,8 +5,8 @@ import { configureErrorHandler, handleError } from './errorHandler';
 import { isTokenExpired } from './tokenUtils';
 // navigateToLogin import removed — no longer needed
 // Android emulator:
-//const API_BASE_URL = 'http://10.0.2.2:51150/api';
-const API_BASE_URL = 'https://imei.co.in/api';
+const API_BASE_URL = 'http://10.0.2.2:51150/api';
+//const API_BASE_URL = 'https://imei.co.in/api';
 // Physical Android device (same Wi-Fi as the development machine):
 //const API_BASE_URL = 'http://192.168.1.2:51150/api';
 export const BASE_URL = API_BASE_URL.replace(/\/api$/, '');

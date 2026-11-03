@@ -24,13 +24,13 @@ const API_BASE = (api.defaults.baseURL || '').replace(/\/api\/?$/, '');
 
 // Attachment size cap — matches the "Max 50 MB each" hint shown to the user.
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024; // 50 MB
+const ALLOWED_ATTACHMENT_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.pdf', '.doc', '.docx']);
 
-// filePath from the server is a raw disk path like "Uploads\achievements\xyz.jpg" —
-// convert it into a URL the app can actually load/display/download.
+// Convert a stored upload path into a URL the app can load/display/download.
 const toPublicUrl = (filePath) => {
   if (!filePath) return null;
   if (filePath.startsWith('http')) return filePath;
-  const idx = filePath.indexOf('Uploads\\');
+  const idx = filePath.search(/uploads[\\/]/i);
   if (idx === -1) return filePath;
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;
@@ -43,6 +43,24 @@ const blobToDataUri = (blob) => {
 };
 
 const formatMB = (bytes) => `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+const getAssetFileName = (asset) => {
+  const name = asset.fileName || asset.name;
+  if (name) return name;
+
+  const uriName = asset.uri?.split(/[?#]/)[0]?.split(/[\\/]/).pop();
+  if (uriName && /\.[^.]+$/.test(uriName)) return uriName;
+
+  const mimeExtensions = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'application/pdf': 'pdf',
+    'application/msword': 'doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+  };
+  const extension = mimeExtensions[asset.mimeType];
+  return extension ? `attachment_${Date.now()}.${extension}` : 'file';
+};
 
 // Resolve a picked asset's size in bytes, whichever field the picker
 // happened to populate (DocumentPicker uses `size`, ImagePicker usually
@@ -60,17 +78,23 @@ const getAssetSize = async (asset) => {
   return null; // unknown — let it through rather than block a valid pick
 };
 
-// Splits picked assets into { accepted, rejected }, checking each one's
-// real size against MAX_ATTACHMENT_BYTES.
-const partitionBySize = async (assets) => {
+// Enforces the achievement attachment format and size limits on picked assets.
+const partitionAttachments = async (assets) => {
   const accepted = [];
   const rejected = [];
   for (const asset of assets) {
+    const name = getAssetFileName(asset);
+    const extension = name.match(/\.[^.]+$/)?.[0].toLowerCase();
+    if (!ALLOWED_ATTACHMENT_EXTENSIONS.has(extension)) {
+      rejected.push({ name, reason: 'Unsupported file type' });
+      continue;
+    }
+
     const size = await getAssetSize(asset);
     if (size != null && size > MAX_ATTACHMENT_BYTES) {
-      rejected.push({ name: asset.fileName || asset.name || 'file', size });
+      rejected.push({ name, reason: `${formatMB(size)} exceeds 50 MB` });
     } else {
-      accepted.push(asset);
+      accepted.push({ ...asset, fileName: name });
     }
   }
   return { accepted, rejected };
@@ -78,10 +102,10 @@ const partitionBySize = async (assets) => {
 
 const warnIfRejected = (rejected) => {
   if (rejected.length === 0) return;
-  const list = rejected.map(r => `• ${r.name} (${formatMB(r.size)})`).join('\n');
+  const list = rejected.map(r => `• ${r.name} — ${r.reason}`).join('\n');
   Alert.alert(
-    'File too large',
-    `The following file${rejected.length > 1 ? 's' : ''} exceed${rejected.length > 1 ? '' : 's'} the 50 MB limit and ${rejected.length > 1 ? 'were' : 'was'} not added:\n\n${list}`
+    'Files not added',
+    `${rejected.length > 1 ? 'These files do' : 'This file does'} not meet the achievement attachment requirements (JPG, PNG, PDF, DOC/DOCX; max 50 MB each):\n\n${list}`
   );
 };
 
@@ -360,14 +384,18 @@ const AchievementFormScreen = ({ route, navigation }) => {
     if (slotsLeft <= 0) { Alert.alert('Limit reached', 'Max 5 attachments per achievement.'); return; }
     setAttachmentPickerOptions([
       {
-        text: 'PDF / Document',
+        text: 'PDF / Word Document',
         onPress: async () => {
           const result = await DocumentPicker.getDocumentAsync({
-            type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            type: [
+              'application/pdf',
+              'application/msword',
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            ],
             copyToCacheDirectory: false, multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
-            const { accepted, rejected } = await partitionBySize(result.assets);
+            const { accepted, rejected } = await partitionAttachments(result.assets);
             warnIfRejected(rejected);
             const picked = accepted.slice(0, slotsLeft).map(asset => ({
               uri: asset.uri, fileName: asset.name, mimeType: asset.mimeType || 'application/pdf', type: 'document',
@@ -385,33 +413,12 @@ const AchievementFormScreen = ({ route, navigation }) => {
             mediaTypes: ['images'], allowsMultipleSelection: true, selectionLimit: slotsLeft, quality: 0.85,
           });
           if (!result.canceled && result.assets?.length > 0) {
-            const { accepted, rejected } = await partitionBySize(result.assets);
+            const { accepted, rejected } = await partitionAttachments(result.assets);
             warnIfRejected(rejected);
             const picked = accepted.slice(0, slotsLeft).map(asset => ({
-              uri: asset.uri, fileName: asset.fileName || `image_${Date.now()}.jpg`, mimeType: asset.mimeType || 'image/jpeg', type: 'image',
+              uri: asset.uri, fileName: asset.fileName, mimeType: asset.mimeType || 'image/jpeg', type: 'image',
             }));
             setAttachments(prev => [...prev, ...picked]);
-          }
-        },
-      },
-      {
-        text: 'Video',
-        onPress: async () => {
-          const result = await DocumentPicker.getDocumentAsync({
-            type: 'video/*',
-            copyToCacheDirectory: false,
-            multiple: true,
-          });
-          if (!result.canceled && result.assets?.length > 0) {
-            const { accepted, rejected } = await partitionBySize(result.assets);
-            warnIfRejected(rejected);
-            const picked = accepted.slice(0, slotsLeft).map((asset) => ({
-              uri: asset.uri,
-              fileName: asset.name,
-              mimeType: asset.mimeType || 'video/mp4',
-              type: 'video',
-            }));
-            setAttachments((prev) => [...prev, ...picked]);
           }
         },
       },
@@ -613,8 +620,8 @@ const AchievementFormScreen = ({ route, navigation }) => {
           <View style={circStyles.attachGrid}>
             {existingAttachments.map((a) => {
               const url = toPublicUrl(a.filePath);
-              const isImage = a.fileName?.match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
-                a.filePath?.match(/\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i);
+              const isImage = a.fileName?.match(/\.(jpg|jpeg|png)$/i) ||
+                a.filePath?.match(/\.(jpg|jpeg|png)(\?.*)?$/i);
               return (
                 <View key={`ex-${a.attachmentId}`} style={circStyles.thumb}>
                   <TouchableOpacity

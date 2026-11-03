@@ -370,7 +370,7 @@ BEGIN
         INSERT INTO GOCircularAttachments (CircularId, FileName, FilePath)
         VALUES (@ReferenceId, @FileName, @FilePath);
     ELSE IF @TableName = 'Achievements'
-        INSERT INTO AchievementAttachments (AchievementId, FileName, FilePath)
+        INSERT INTO dbo.tbl_AchievementAttachments (AchievementId, FileName, FilePath)
         VALUES (@ReferenceId, @FileName, @FilePath);
 
     SELECT SCOPE_IDENTITY() AS AttachmentId;
