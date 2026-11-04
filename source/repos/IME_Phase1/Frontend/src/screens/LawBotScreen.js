@@ -12,7 +12,8 @@ import { COLORS } from './theme';
  */
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, Text, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
+import { View, FlatList, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, StatusBar } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import { LawBotScreenStyles as styles } from './screenStyles';

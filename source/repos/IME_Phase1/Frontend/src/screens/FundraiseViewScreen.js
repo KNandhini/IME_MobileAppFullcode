@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, Text, Alert, ScrollView, TouchableOpacity, Animated, Platform, Image, ActivityIndicator, Modal, StyleSheet } from 'react-native';
+import { View, Alert, ScrollView, TouchableOpacity, Animated, Platform, Image, ActivityIndicator, Modal, StyleSheet } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';

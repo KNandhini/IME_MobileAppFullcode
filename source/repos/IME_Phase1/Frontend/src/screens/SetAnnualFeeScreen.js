@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Platform, KeyboardAvoidingView } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import api from '../utils/api';
 import { SetAnnualFeeScreenStyles as styles } from './screenStyles';

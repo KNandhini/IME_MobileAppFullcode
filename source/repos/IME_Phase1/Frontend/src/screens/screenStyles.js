@@ -885,9 +885,10 @@ export const AboutScreenStyles = (() => {
     },
     heroSubtitle: {
       color: 'rgba(255,255,255,0.75)',
-      fontSize: 15,
-      lineHeight: 22,
+      fontSize: 16,
+      lineHeight: 24,
       maxWidth: '90%',
+      textAlign: 'justify',
     },
     decorCircle1: {
       position: 'absolute',
@@ -935,12 +936,12 @@ export const AboutScreenStyles = (() => {
       borderRightColor: '#E8EDF2',
     },
     statValue: {
-      fontSize: 18,
+      fontSize: 19,
       fontWeight: '800',
       color: NAVY,
     },
     statLabel: {
-      fontSize: 9,
+      fontSize: 10,
       color: GREY,
       marginTop: 3,
       textAlign: 'center',
@@ -978,9 +979,10 @@ export const AboutScreenStyles = (() => {
       color: NAVY,
     },
     bodyText: {
-      fontSize: 14,
-      lineHeight: 22,
+      fontSize: 15,
+      lineHeight: 24,
       color: '#444',
+      textAlign: 'justify',
     },
 
     // Quick Link Cards
@@ -1021,18 +1023,13 @@ export const AboutScreenStyles = (() => {
       color: NAVY,
       marginBottom: 2,
     },
-    linkSubtitle: {
-      fontSize: 12,
-      color: GREY,
-      lineHeight: 16,
-    },
     linkMoreWrap: {
       flexDirection: 'row',
       alignItems: 'center',
       marginLeft: 8,
     },
     linkMore: {
-      fontSize: 11,
+      fontSize: 12,
       color: NAVY,
       fontWeight: '600',
       marginRight: 2,
@@ -1053,10 +1050,10 @@ export const AboutScreenStyles = (() => {
       marginBottom: 6,
     },
     contactSub: {
-      fontSize: 13,
+      fontSize: 14,
       color: 'rgba(30,58,95,0.75)',
       marginBottom: 18,
-      textAlign: 'center',
+      textAlign: 'justify',
     },
     contactRow: isTablet
       ? { flexDirection: 'row', gap: 12 }
@@ -1079,7 +1076,7 @@ export const AboutScreenStyles = (() => {
     },
     contactBtnText: {
       color: WHITE,
-      fontSize: isTablet ? 12 : 13,
+      fontSize: isTablet ? 13 : 14,
       fontWeight: '600',
       textAlign: 'center',
     },
@@ -1097,13 +1094,13 @@ export const AboutScreenStyles = (() => {
       marginBottom: 10,
     },
     footerText: {
-      fontSize: 12,
+      fontSize: 13,
       color: GREY,
       fontWeight: '500',
       textAlign: 'center',
       paddingHorizontal: 20,
     },
-    footerSub: { fontSize: 11, color: '#AAB4BE', marginTop: 2 },
+    footerSub: { fontSize: 12, color: '#AAB4BE', marginTop: 2 },
 
   });
 })();
@@ -3620,7 +3617,7 @@ export const FeesDetailsStyles = (() => {
     backBtn: { marginRight: 14, padding: 4 },
     headerTitle: { color: WHITE, fontSize: 19, fontWeight: '800' },
     scroll: { padding: 16, paddingBottom: 40 },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16 },
+    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16, textAlign: 'justify' },
     table: {
       backgroundColor: WHITE, borderRadius: 12, overflow: 'hidden',
       elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
@@ -4090,7 +4087,7 @@ export const HistoryDetailsStyles = (() => {
       fontWeight: '800',
     },
     scroll: { padding: 16, paddingBottom: 40 },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 20 },
+    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 20, textAlign: 'justify' },
     timeline: { paddingLeft: 4 },
     timelineRow: { flexDirection: 'row' },
     timelineMarkerCol: { width: 24, alignItems: 'center' },
@@ -4098,7 +4095,7 @@ export const HistoryDetailsStyles = (() => {
     timelineLine: { width: 2, flex: 1, backgroundColor: '#D8DEE6', marginVertical: 2 },
     timelineContent: { flex: 1, paddingLeft: 14, paddingBottom: 20 },
     timelineYear: { fontSize: 14, fontWeight: '800', color: NAVY, marginBottom: 4 },
-    timelineText: { fontSize: 13, lineHeight: 19, color: '#444' },
+    timelineText: { fontSize: 13, lineHeight: 19, color: '#444', textAlign: 'justify' },
   });
 })();
 
@@ -6037,6 +6034,7 @@ export const ObjectivesdetailsscreenStyles = (() => {
       fontSize: 13.5,
       lineHeight: 20,
       color: '#444',
+      textAlign: 'justify',
     },
   });
 })();
@@ -7794,4 +7792,3 @@ export const HealthNutritionFormScreenStyles = StyleSheet.create({
   viewerClose: { position: 'absolute', top: 48, right: 20, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 20, width: 40, height: 40, alignItems: 'center', justifyContent: 'center', zIndex: 10 },
   viewerCloseText: { color: '#fff', fontSize: 18, fontWeight: '700' },
 });
-

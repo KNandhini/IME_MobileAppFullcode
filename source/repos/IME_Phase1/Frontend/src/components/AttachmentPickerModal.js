@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppText as Text } from './IMEText';
 
 const AttachmentPickerModal = ({ visible, options, onClose }) => (
   <Modal

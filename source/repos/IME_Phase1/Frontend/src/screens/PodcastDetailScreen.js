@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity, Linking } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, TouchableOpacity, Linking } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { Card, Chip, IconButton, List } from 'react-native-paper';
 import { podcastService } from '../services/podcastService';
 import { fileService } from '../services/fileService';

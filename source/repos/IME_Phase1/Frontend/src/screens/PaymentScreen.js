@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, ActivityIndicator, Modal } from 'react-native';
+import { View, ScrollView, Alert, ActivityIndicator, Modal } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { WebView } from 'react-native-webview';
 import { Button, Card, RadioButton, IconButton } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';

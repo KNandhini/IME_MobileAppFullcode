@@ -1,16 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Image,
-  PanResponder,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Animated, Dimensions, Image, PanResponder, Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { AppText as Text } from './IMEText';
 import { MaterialIcons } from '@expo/vector-icons';
 import { COLORS, SHADOW } from '../screens/theme';
 import MEMBER_PHOTOS from '../assets/memberPhotos';

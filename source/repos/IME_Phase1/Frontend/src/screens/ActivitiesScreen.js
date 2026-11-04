@@ -1,7 +1,8 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, RefreshControl, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { activityService } from '../services/activityService';
 import { useAuth } from '../context/AuthContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, StatusBar } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, StatusBar } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { Card, Title, Menu } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';

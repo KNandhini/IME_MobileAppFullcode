@@ -1,19 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  TouchableOpacity,
-  Modal,
-  Image,
-  FlatList,
-  TextInput,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { View, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -385,19 +373,29 @@ const SignupScreen = ({ navigation, route }) => {
   };
 
   const pickProfilePhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: false,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (!result.canceled && result.assets?.length > 0) {
-      setProfilePhoto(result.assets[0]);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please allow access to your photo library.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      if (!result.canceled && result.assets?.length > 0) {
+        const photo = result.assets[0];
+        if (photo.fileSize > 2 * 1024 * 1024) {
+          Alert.alert('Photo too large', 'Choose a profile photo smaller than 2 MB.');
+          return;
+        }
+        setProfilePhoto(photo);
+      }
+    } catch (error) {
+      console.warn('Profile photo selection failed:', error);
+      Alert.alert('Unable to select photo', 'Please try selecting the photo again.');
     }
   };
 
@@ -444,10 +442,16 @@ const SignupScreen = ({ navigation, route }) => {
       const baseUrl = api.defaults.baseURL;
       const response = await fetch(`${baseUrl}/File/upload-profile-photo`, { method: 'POST', body: fd });
       const json = await response.json();
-      return json.success;
+      if (!response.ok || !json.success) {
+        console.warn('Profile photo upload rejected:', response.status, json.message);
+        return response.status < 500 && json.message
+          ? json.message
+          : 'The profile photo could not be uploaded. You can update it later from your profile.';
+      }
+      return null;
     } catch (e) {
-      console.warn('Profile photo upload failed:', e.message);
-      return false;
+      console.warn('Profile photo upload failed:', e);
+      return 'The profile photo could not be uploaded. You can update it later from your profile.';
     }
   };
 
@@ -460,6 +464,9 @@ const SignupScreen = ({ navigation, route }) => {
     const res = response.data;
 
     if (res.success) {
+      const photoUploadError = profilePhoto?.uri
+        ? await uploadProfilePhotoForMember(res.data.memberId, profilePhoto.uri)
+        : null;
       const paymentParams = {
         userId: res.data.userId,
         memberId: res.data.memberId,
@@ -481,7 +488,7 @@ const SignupScreen = ({ navigation, route }) => {
   // Pay Now / Pay Later again. Just confirm success and send them to Login.
   Alert.alert(
     'Registration Successful! 🎉',
-    'Your account is active for 3 days. Please login and complete your payment before it expires.',
+    `Your account is active for 3 days. Please login and complete your payment before it expires.${photoUploadError ? `\n\n${photoUploadError}` : ''}`,
     [
       {
         text: 'Login',

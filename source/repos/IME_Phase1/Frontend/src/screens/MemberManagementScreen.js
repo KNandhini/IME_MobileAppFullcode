@@ -1,7 +1,8 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback, useMemo } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, RefreshControl, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, FlatList, RefreshControl, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { Card, IconButton, Searchbar, Chip, FAB } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { memberService } from '../services/memberService';

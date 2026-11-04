@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, FlatList, RefreshControl, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';

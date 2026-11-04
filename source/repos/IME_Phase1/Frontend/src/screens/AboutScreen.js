@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useRef, useEffect } from 'react';
-import { View, Text, ScrollView, Animated, TouchableOpacity, StatusBar } from 'react-native';
+import { View, ScrollView, Animated, TouchableOpacity, StatusBar } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { AboutScreenStyles as styles } from './screenStyles';
@@ -25,32 +26,27 @@ const STATS = [
 const QUICK_LINKS = [
   {
     title: 'History',
-    subtitle: 'From 1688 to the 74th Amendment',
     icon: 'book-clock-outline',
     screen: 'HistoryDetails',
   },
 
   {
     title: 'Our Objectives',
-    subtitle: 'What the institution sets out to do',
     icon: 'target',
     screen: 'ObjectivesDetails',
   },
   {
     title: 'Governance',
-    subtitle: 'Office bearers, roles & advisory body',
     icon: 'gavel',
     screen: 'GovernanceDetails',
   },
   {
     title: 'Membership',
-    subtitle: 'Eligibility across six categories',
     icon: 'account-group',
     screen: 'MembershipDetails',
   },
   {
     title: 'Fee Structure',
-    subtitle: 'One-time fees by membership category',
     icon: 'cash-multiple',
     screen: 'FeesDetails',
   },
@@ -94,7 +90,6 @@ const QuickLinkCard = ({ item, navigation, delay }) => (
       </View>
       <View style={styles.linkTextWrap}>
         <Text style={styles.linkTitle}>{item.title}</Text>
-        <Text style={styles.linkSubtitle}>{item.subtitle}</Text>
       </View>
       <View style={styles.linkMoreWrap}>
         <Text style={styles.linkMore}>Click Here</Text>

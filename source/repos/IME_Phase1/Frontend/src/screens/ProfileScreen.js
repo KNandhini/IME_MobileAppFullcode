@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, StatusBar, Image } from 'react-native';
+import { View, ScrollView, Alert, StatusBar, Image } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { Button, Card } from 'react-native-paper';
 import { useAuth } from '../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';

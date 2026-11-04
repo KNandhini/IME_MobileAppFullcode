@@ -1,9 +1,7 @@
 import { COLORS, RADIUS, SHADOW, SPACING } from '../screens/theme';
 import React, { useState } from 'react';
-import {
-    View, Text, TouchableOpacity, StyleSheet,
-    LayoutAnimation, Platform, UIManager,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { AppText as Text } from './IMEText';
 import { MaterialIcons } from '@expo/vector-icons';
 
 if (
@@ -17,7 +15,7 @@ if (
 const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
-export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
+export const Accordion = ({ title, icon, children, defaultOpen = false, titleStyle }) => {
     const [open, setOpen] = useState(defaultOpen);
 
     const toggle = () => {
@@ -32,7 +30,7 @@ export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
                     <View style={styles.iconWrap}>
                         <MaterialIcons name={icon} size={20} color={GOLD} />
                     </View>
-                    <Text style={styles.title}>{title}</Text>
+                    <Text style={[styles.title, titleStyle]}>{title}</Text>
                 </View>
                 <MaterialIcons name={open ? 'expand-less' : 'expand-more'} size={26} color={GOLD} />
             </TouchableOpacity>
@@ -61,12 +59,15 @@ export const SubAccordion = ({ title, children, defaultOpen = false }) => {
     );
 };
 
-export const NumberedItem = ({ number, text }) => (
+export const NumberedItem = ({ number, heading, text }) => (
     <View style={itemStyles.row}>
         <View style={itemStyles.numBadge}>
             <Text style={itemStyles.numText}>{number}</Text>
         </View>
-        <Text style={itemStyles.text}>{text}</Text>
+        <Text style={itemStyles.text}>
+            {heading ? <Text style={itemStyles.heading}>{heading} — </Text> : null}
+            {text}
+        </Text>
     </View>
 );
 
@@ -111,7 +112,7 @@ const subStyles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingVertical: 11, paddingHorizontal: 14,
     },
-    title: { fontSize: 14, fontWeight: '600', color: COLORS.text, flex: 1 },
+    title: { fontSize: 14, fontWeight: '600', color: COLORS.primary, flex: 1 },
     body: { paddingHorizontal: 14, paddingBottom: 12 },
 });
 
@@ -127,5 +128,6 @@ const itemStyles = StyleSheet.create({
         width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD,
         marginRight: 10, marginTop: 7,
     },
-    text: { flex: 1, fontSize: 13.5, color: '#1A1A1A', lineHeight: 20 },
+    heading: { color: COLORS.primary, fontWeight: '700' },
+    text: { flex: 1, fontSize: 13.5, color: '#1A1A1A', lineHeight: 20, textAlign: 'justify' },
 });

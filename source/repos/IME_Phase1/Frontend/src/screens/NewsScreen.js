@@ -1,7 +1,8 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, FlatList, RefreshControl, Image, TouchableOpacity } from 'react-native';
+import { View, FlatList, RefreshControl, Image, TouchableOpacity } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { useNavigation } from '@react-navigation/native';
 import { Card, Title, Paragraph } from 'react-native-paper';

@@ -1,14 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    FlatList,
-    Dimensions,
-    ScrollView,
-    StatusBar,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, FlatList, Dimensions, ScrollView, StatusBar } from 'react-native';
+import { AppText as Text } from './IMEText';
 import { MaterialIcons } from '@expo/vector-icons';
 import GradientHeader from '../components/GradientHeader';
 import { NumberedItem, BulletItem } from './Accordion';

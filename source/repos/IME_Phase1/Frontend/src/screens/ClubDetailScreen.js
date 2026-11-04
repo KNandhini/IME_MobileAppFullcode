@@ -1,7 +1,8 @@
 // Place in: src/screens/ClubDetailScreen.js
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Linking } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Linking } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { clubService } from '../services/clubService';

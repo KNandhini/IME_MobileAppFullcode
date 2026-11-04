@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Pressable, SafeAreaView, StatusBar, Image, Dimensions, FlatList, ActivityIndicator, Modal, Animated, Alert, Platform } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Pressable, SafeAreaView, StatusBar, Image, Dimensions, FlatList, ActivityIndicator, Modal, Animated, Alert, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons,MaterialCommunityIcons  } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";

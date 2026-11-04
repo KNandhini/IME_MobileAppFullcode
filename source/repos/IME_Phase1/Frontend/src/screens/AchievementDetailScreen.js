@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  Modal,
-  ActivityIndicator,
-  Alert,
-  Platform,
-  StyleSheet,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, Alert, Platform, StyleSheet } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';

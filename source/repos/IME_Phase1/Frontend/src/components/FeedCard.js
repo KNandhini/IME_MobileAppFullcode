@@ -1,10 +1,7 @@
 import { COLORS, RADIUS, SHADOW } from '../screens/theme';
 import React, { useState, useRef, useCallback } from 'react';
-import {
-  View, Text, StyleSheet, TouchableOpacity,
-  ScrollView, Image, Dimensions, TextInput, ActivityIndicator,
-  Modal, StatusBar,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, Image, Dimensions, ActivityIndicator, Modal, StatusBar } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from './IMEText';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import api from '../utils/api';
 

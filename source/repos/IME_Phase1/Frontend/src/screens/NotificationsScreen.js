@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, FlatList, RefreshControl, TouchableOpacity } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { List, Divider, Badge } from 'react-native-paper';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';

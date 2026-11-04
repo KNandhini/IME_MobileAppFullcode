@@ -1,21 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-  Image,
-  Modal,
-  Linking,
-  ActivityIndicator,
-  Platform,
-  KeyboardAvoidingView,
-  StatusBar,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, Image, Modal, Linking, ActivityIndicator, Platform, KeyboardAvoidingView, StatusBar } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { circularService } from '../services/circularService';

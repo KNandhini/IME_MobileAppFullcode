@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React from 'react';
-import { View, Text, StatusBar, TouchableOpacity } from 'react-native';
+import { View, StatusBar, TouchableOpacity } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { PresentationScreenStyles as styles } from './screenStyles';

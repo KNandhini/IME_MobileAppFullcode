@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { useAuth } from '../context/AuthContext';
 import { FundScreenStyles as styles } from './screenStyles';
 

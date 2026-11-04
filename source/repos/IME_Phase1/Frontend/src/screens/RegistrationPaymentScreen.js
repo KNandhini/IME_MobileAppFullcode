@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, Image } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, Image } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { IconButton } from 'react-native-paper';
@@ -72,19 +73,29 @@ const [logoDataUri, setLogoDataUri] = useState(null);
   }, []);
 
   const pickProfilePhoto = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaType.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-    if (!result.canceled && result.assets?.length > 0) {
-      setProfilePhoto(result.assets[0]);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please allow access to your photo library.');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.7,
+      });
+      if (!result.canceled && result.assets?.length > 0) {
+        const photo = result.assets[0];
+        if (photo.fileSize > 2 * 1024 * 1024) {
+          Alert.alert('Photo too large', 'Choose a profile photo smaller than 2 MB.');
+          return;
+        }
+        setProfilePhoto(photo);
+      }
+    } catch (error) {
+      console.warn('Profile photo selection failed:', error);
+      Alert.alert('Unable to select photo', 'Please try selecting the photo again.');
     }
   };
 
@@ -104,10 +115,16 @@ const [logoDataUri, setLogoDataUri] = useState(null);
         body: formData,
       });
       const json = await response.json();
-      return json.success;
+      if (!response.ok || !json.success) {
+        console.warn('Profile photo upload rejected:', response.status, json.message);
+        return response.status < 500 && json.message
+          ? json.message
+          : 'The profile photo could not be uploaded. You can update it later from your profile.';
+      }
+      return null;
     } catch (e) {
-      console.warn('Profile photo upload failed:', e.message);
-      return false;
+      console.warn('Profile photo upload failed:', e);
+      return 'The profile photo could not be uploaded. You can update it later from your profile.';
     }
   };
 
@@ -361,8 +378,9 @@ const [logoDataUri, setLogoDataUri] = useState(null);
 
           const { userId, memberId } = signupRes.data;
 
+          let photoUploadError = null;
           if (profilePhoto?.uri) {
-            await uploadProfilePhoto(profilePhoto.uri, memberId);
+            photoUploadError = await uploadProfilePhoto(profilePhoto.uri, memberId);
           }
 
           const res = await api.post('/payment/register-payment', {
@@ -378,7 +396,7 @@ const [logoDataUri, setLogoDataUri] = useState(null);
           if (res.data.success) {
             Alert.alert(
               'Registration Complete!',
-              `Payment successful!\nPayment ID: ${data.paymentId}\n\nYour account is now active. Please login.`,
+              `Payment successful!\nPayment ID: ${data.paymentId}\n\nYour account is now active. Please login.${photoUploadError ? `\n\n${photoUploadError}` : ''}`,
               [{ text: 'Login Now', onPress: () => navigation.replace('Login') }],
               { cancelable: false }
             );
@@ -388,7 +406,7 @@ const [logoDataUri, setLogoDataUri] = useState(null);
             // Still navigate — support can reconcile using the payment ID.
             Alert.alert(
               'Payment Received',
-              `Payment ID: ${data.paymentId}\n\nYour payment was captured. If login fails, please contact support with this ID.`,
+              `Payment ID: ${data.paymentId}\n\nYour payment was captured. If login fails, please contact support with this ID.${photoUploadError ? `\n\n${photoUploadError}` : ''}`,
               [{ text: 'Go to Login', onPress: () => navigation.replace('Login') }],
               { cancelable: false }
             );

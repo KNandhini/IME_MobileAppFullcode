@@ -1,13 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  BackHandler,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { BackHandler, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 
 import institutionTree from '../data/institutionTree.json';
 import MEMBER_PHOTOS from '../assets/memberPhotos';

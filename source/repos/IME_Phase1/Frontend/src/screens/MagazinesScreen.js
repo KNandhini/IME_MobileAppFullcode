@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

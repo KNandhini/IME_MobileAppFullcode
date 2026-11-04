@@ -34,10 +34,8 @@ import { COLORS } from './theme';
  */
 
 import React, { useState, useMemo } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity, ActivityIndicator,
-  StatusBar, Alert, FlatList, StyleSheet, Platform,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, Alert, FlatList, StyleSheet, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 // "/legacy" gives the stable downloadAsync(url, fileUri, { headers }) API,
 // which is what we need for an authenticated file download. This subpath
 // exists on Expo SDK 54+. If your project is on an older SDK, change this

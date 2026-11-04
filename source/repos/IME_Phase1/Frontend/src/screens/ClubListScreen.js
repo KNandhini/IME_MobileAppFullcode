@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, ActivityIndicator, RefreshControl, Image } from 'react-native';
+import { View, FlatList, TouchableOpacity, Alert, ActivityIndicator, RefreshControl, Image } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { Searchbar, Chip } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import { clubService } from '../services/clubService';

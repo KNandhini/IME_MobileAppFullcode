@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Modal, Alert, Platform, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Image, ActivityIndicator, StatusBar, Modal, Alert, Platform, StyleSheet } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';

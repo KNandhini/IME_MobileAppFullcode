@@ -1,10 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import {
-  View, Text, FlatList, TouchableOpacity, ActivityIndicator, StatusBar,
-  Modal, TextInput, Pressable, KeyboardAvoidingView, Platform,
-} from 'react-native';
+import { View, FlatList, TouchableOpacity, ActivityIndicator, StatusBar, Modal, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { chatService } from '../services/chatService';
