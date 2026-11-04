@@ -288,9 +288,9 @@ const AboutIMEScreen = ({ navigation }) => {
                                 Council Members representing States.{' '}
                                 <Text style={styles.inlineHeading}>{'\n\n'}Term: </Text>
                                 2 years.{'\n\n'}
-                                <Text style={styles.inlineHeading}>Executive Committee</Text>
-                                {' — President, Secretary General, Treasurer'}
-                                + 5 Council Members for day-to-day management.
+                                <Text style={styles.inlineHeading}>Executive Committee: </Text>
+                                President, Secretary General, Treasurer and
+                                  5 Council Members for day-to-day management.
                             </Text>
                         </SubAccordion>
 
@@ -298,8 +298,8 @@ const AboutIMEScreen = ({ navigation }) => {
                             <Text style={styles.paragraph}>
                                 IUE (India) may establish State Chapters in any State/UT with
                                 minimum 20 members.{'\n\n'}
-                                Each Chapter shall have own{' '}
-                                <Text style>Executive Committee</Text>
+                                
+                                <Text style={styles.inlineHeading}>Each Chapter shall have own Executive Committee</Text>
                                 : Chairman,
                                 Secretary, Treasurer.{'\n\n'}
                                 Chapters shall function under bye-laws framed by National
