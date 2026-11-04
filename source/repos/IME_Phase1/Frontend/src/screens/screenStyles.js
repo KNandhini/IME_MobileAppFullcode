@@ -5471,13 +5471,14 @@ export const MembershipDetailsStyles = (() => {
       borderLeftWidth: 4,
       borderLeftColor: GOLD,
     },
-    cardHead: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+    cardHead: { flexDirection: 'row', alignItems: 'flex-start' },
     iconWrap: {
       width: 38, height: 38, borderRadius: 9,
       backgroundColor: 'rgba(212,160,23,0.12)',
       alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
-    cardTitle: { fontSize: 15, fontWeight: '700', color: NAVY },
+    cardContent: { flex: 1 },
+    cardTitle: { fontSize: 15, fontWeight: '700', color: NAVY, marginBottom: 4 },
     cardBody: { fontSize: 13, lineHeight: 19, color: '#444', textAlign: 'justify', },
     benefitsCard: {
       backgroundColor: NAVY,

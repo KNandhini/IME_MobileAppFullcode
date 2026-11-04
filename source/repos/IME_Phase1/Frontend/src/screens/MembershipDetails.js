@@ -84,9 +84,11 @@ const MembershipDetailsScreen = ({ navigation }) => {
                             <View style={styles.iconWrap}>
                                 <MaterialCommunityIcons name={tier.icon} size={22} color={GOLD} />
                             </View>
-                            <Text style={styles.cardTitle}>{tier.title}</Text>
+                            <View style={styles.cardContent}>
+                                <Text style={styles.cardTitle}>{tier.title}</Text>
+                                <Text style={styles.cardBody}>{tier.eligibility}</Text>
+                            </View>
                         </View>
-                        <Text style={styles.cardBody}>{tier.eligibility}</Text>
                     </View>
                 ))}
 

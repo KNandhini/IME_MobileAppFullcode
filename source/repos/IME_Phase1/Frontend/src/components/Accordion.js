@@ -64,10 +64,10 @@ export const NumberedItem = ({ number, heading, text }) => (
         <View style={itemStyles.numBadge}>
             <Text style={itemStyles.numText}>{number}</Text>
         </View>
-        <Text style={itemStyles.text}>
-            {heading ? <Text style={itemStyles.heading}>{heading} — </Text> : null}
-            {text}
-        </Text>
+        <View style={itemStyles.content}>
+            {heading ? <Text style={itemStyles.heading}>{heading}</Text> : null}
+            <Text style={itemStyles.text}>{text}</Text>
+        </View>
     </View>
 );
 
@@ -123,6 +123,7 @@ const itemStyles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1,
     },
     numText: { color: COLORS.dark, fontSize: 11, fontWeight: '800' },
+    content: { flex: 1 },
     bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
     bullet: {
         width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD,
