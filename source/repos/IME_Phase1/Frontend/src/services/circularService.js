@@ -1,39 +1,6 @@
-import api, { BASE_URL } from '../utils/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { uploadAttachments as uploadLocalAttachments } from '../utils/uploadAttachments';
-
-const getToken = async () => {
-  try {
-    const authToken = await AsyncStorage.getItem('authToken');
-    if (authToken) return authToken;
-    const raw = await AsyncStorage.getItem('userData');
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    return parsed?.token ?? parsed?.Token ?? null;
-  } catch {
-    return null;
-  }
-};
-
-const multipartFetch = async (method, url, form) => {
-  const token = await getToken();
-  const response = await fetch(`${BASE_URL}/api${url}`, {
-    method,
-    headers: {
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      // NO Content-Type — fetch sets multipart/form-data + boundary automatically
-    },
-    body: form,
-  });
-  const text = await response.text();
-  let data;
-  try { data = JSON.parse(text); } catch { data = { message: text }; }
-  if (!response.ok) throw new Error(data?.message || `HTTP ${response.status}`);
-  return data;
-};
+import api from '../utils/api';
 
 export const circularService = {
-
   getAll: async () => {
     const response = await api.get('/circular');
     return response.data;
@@ -57,7 +24,8 @@ export const circularService = {
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
     form.append('visibility', data.visibility || 'All');
 
-    return multipartFetch('POST', '/circular', form);
+    const response = await api.post('/circular', form);
+    return response.data;
   },
 
   update: async (circularId, data) => {
@@ -68,11 +36,40 @@ export const circularService = {
     if (data.circularNumber) form.append('circularNumber', data.circularNumber);
     form.append('visibility', data.visibility || 'All');
 
-    return multipartFetch('PUT', `/circular/${circularId}`, form);
+    const response = await api.put(`/circular/${circularId}`, form);
+    return response.data;
   },
 
-  uploadAttachments: async (circularId, files) =>
-    uploadLocalAttachments(`${BASE_URL}/api/circular/${circularId}/attachments`, files),
+  uploadAttachments: async (circularId, files) => {
+    const form = new FormData();
+    files.forEach((file) => {
+      form.append('files', {
+        uri: file.uri,
+        name: file.fileName || file.uri.split(/[\\/]/).pop() || 'attachment',
+        type: file.mimeType || 'application/octet-stream',
+      });
+    });
+
+    try {
+      const response = await api.post(`/circular/${circularId}/attachments`, form);
+      if (response.data?.success === false) {
+        throw new Error(response.data.message || 'Circular attachment upload failed.');
+      }
+      return response.data;
+    } catch (error) {
+      const status = error.response?.status;
+      const responseData = error.response?.data;
+      const detail = responseData?.message
+        || responseData?.Message
+        || responseData?.title
+        || responseData?.detail
+        || error.message;
+      const requestUrl = error.config?.url || `/circular/${circularId}/attachments`;
+      throw new Error(
+        `Attachment upload failed${status ? ` (${status})` : ''} at ${requestUrl}: ${detail}`
+      );
+    }
+  },
 
   delete: async (circularId) => {
     const response = await api.delete(`/circular/${circularId}`);

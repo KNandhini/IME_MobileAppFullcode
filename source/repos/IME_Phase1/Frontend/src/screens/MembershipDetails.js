@@ -86,9 +86,9 @@ const MembershipDetailsScreen = ({ navigation }) => {
                             </View>
                             <View style={styles.cardContent}>
                                 <Text style={styles.cardTitle}>{tier.title}</Text>
-                                <Text style={styles.cardBody}>{tier.eligibility}</Text>
                             </View>
                         </View>
+                        <Text style={styles.cardBody}>{tier.eligibility}</Text>
                     </View>
                 ))}
 

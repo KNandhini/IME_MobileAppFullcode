@@ -888,7 +888,7 @@ export const AboutScreenStyles = (() => {
       fontSize: 16,
       lineHeight: 24,
       maxWidth: '90%',
-      textAlign: 'justify',
+      textAlign: 'left',
     },
     decorCircle1: {
       position: 'absolute',
@@ -982,7 +982,10 @@ export const AboutScreenStyles = (() => {
       fontSize: 15,
       lineHeight: 24,
       color: '#444',
-      textAlign: 'justify',
+      textAlign: 'left',
+      alignSelf: 'stretch',
+      minWidth: 0,
+      flexShrink: 1,
     },
 
     // Quick Link Cards
@@ -1053,7 +1056,7 @@ export const AboutScreenStyles = (() => {
       fontSize: 14,
       color: 'rgba(30,58,95,0.75)',
       marginBottom: 18,
-      textAlign: 'justify',
+      textAlign: 'left',
     },
     contactRow: isTablet
       ? { flexDirection: 'row', gap: 12 }
@@ -5457,7 +5460,7 @@ export const MembershipDetailsStyles = (() => {
       fontWeight: '800',
     },
     scroll: { padding: 16, paddingBottom: 40 },
-    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16 },
+    introText: { fontSize: 14, lineHeight: 21, color: GREY, marginBottom: 16, textAlign: 'left' },
     card: {
       backgroundColor: WHITE,
       borderRadius: 12,
@@ -5477,9 +5480,18 @@ export const MembershipDetailsStyles = (() => {
       backgroundColor: 'rgba(212,160,23,0.12)',
       alignItems: 'center', justifyContent: 'center', marginRight: 12,
     },
-    cardContent: { flex: 1 },
+    cardContent: { flex: 1, minWidth: 0 },
     cardTitle: { fontSize: 15, fontWeight: '700', color: NAVY, marginBottom: 4 },
-    cardBody: { fontSize: 13, lineHeight: 19, color: '#444', textAlign: 'justify', },
+    cardBody: {
+      marginTop: 8,
+      paddingHorizontal: 2,
+      fontSize: 13,
+      lineHeight: 19,
+      color: '#444',
+      textAlign: 'left',
+      alignSelf: 'stretch',
+      flexShrink: 1,
+    },
     benefitsCard: {
       backgroundColor: NAVY,
       borderRadius: 12,

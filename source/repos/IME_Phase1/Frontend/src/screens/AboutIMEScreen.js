@@ -4,13 +4,20 @@ import { View, StyleSheet, ScrollView, Animated, StatusBar, TouchableOpacity, Sa
 import { AppText as Text, AppTextSizeProvider } from '../components/IMEText';
 import { MaterialIcons } from '@expo/vector-icons';
 import GradientHeader from '../components/GradientHeader';
-import { Accordion, SubAccordion, NumberedItem, BulletItem } from '../components/Accordion';
+import {
+    Accordion,
+    SubAccordion,
+    NumberedItem as BaseNumberedItem,
+    BulletItem as BaseBulletItem,
+} from '../components/Accordion';
 import IMELogo from '../components/IMELogo';
 
 const NAVY = COLORS.dark;
 const ROYAL = COLORS.primary;
 const GOLD = COLORS.accent;
 const BG = COLORS.bg;
+const NumberedItem = (props) => <BaseNumberedItem {...props} textAlign="left" />;
+const BulletItem = (props) => <BaseBulletItem {...props} textAlign="left" />;
 
 // ─────────────────────────────────────────────────────────────────────────
 // Section registry — drives both the quick-nav chips and the scroll targets.
@@ -423,14 +430,28 @@ const styles = StyleSheet.create({
     factValue: { fontSize: 12.5, fontWeight: '700', color: NAVY },
     factDivider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 },
 
-    paragraph: { fontSize: 13.5, color: '#1A1A1A', lineHeight: 21, textAlign: 'justify' },
+    paragraph: {
+        width: '100%',
+        flexShrink: 1,
+        fontSize: 13.5,
+        color: '#1A1A1A',
+        lineHeight: 21,
+        textAlign: 'left',
+    },
     documentAccordionTitle: { fontSize: 16, color: COLORS.text },
     docCard: {
         backgroundColor: BG, borderRadius: 10, padding: 14,
         borderWidth: 1, borderColor: '#E2E8F0',
     },
     docLabel: { fontSize: 13, fontWeight: '800', color: ROYAL, marginBottom: 4, letterSpacing: 0.5 },
-    docParagraph: { fontSize: 14.5, color: '#334155', lineHeight: 23, textAlign: 'justify' },
+    docParagraph: {
+        width: '100%',
+        flexShrink: 1,
+        fontSize: 14.5,
+        color: '#334155',
+        lineHeight: 23,
+        textAlign: 'left',
+    },
     inlineHeading: { color: '#1A1A1A', fontWeight: '700' },
 
     footer: { alignItems: 'center', marginTop: 20, paddingHorizontal: 10 },

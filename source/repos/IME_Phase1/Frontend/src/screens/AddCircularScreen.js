@@ -224,7 +224,7 @@ const AddCircularScreen = ({ route, navigation }) => {
               'application/msword',
               'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             ],
-            copyToCacheDirectory: false,
+            copyToCacheDirectory: true,
             multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
@@ -272,7 +272,7 @@ const AddCircularScreen = ({ route, navigation }) => {
         onPress: async () => {
           const result = await DocumentPicker.getDocumentAsync({
             type: 'video/*',
-            copyToCacheDirectory: false,
+            copyToCacheDirectory: true,
             multiple: true,
           });
           if (!result.canceled && result.assets?.length > 0) {
@@ -360,13 +360,23 @@ const AddCircularScreen = ({ route, navigation }) => {
 
         if (attachments.length > 0) {
           if (!circularId) {
-            Alert.alert('Partial Success', 'Circular saved, but its ID was not returned so attachments could not be uploaded.');
+            Alert.alert(
+              'Circular Saved',
+              'The circular was saved, but its ID was not returned, so the attachments could not be uploaded.',
+              [{ text: 'OK', onPress: () => navigation.goBack() }]
+            );
             return;
           }
+
           try {
             await circularService.uploadAttachments(circularId, attachments);
-          } catch (e) {
-            Alert.alert('Partial Success', `Circular saved, but attachment upload failed: ${e.message}`);
+          } catch (uploadError) {
+            console.error('Circular attachment upload error:', uploadError);
+            Alert.alert(
+              'Circular Saved',
+              `The circular was saved, but attachment upload failed: ${uploadError.message}`,
+              [{ text: 'OK', onPress: () => navigation.goBack() }]
+            );
             return;
           }
         }

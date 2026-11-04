@@ -59,22 +59,22 @@ export const SubAccordion = ({ title, children, defaultOpen = false }) => {
     );
 };
 
-export const NumberedItem = ({ number, heading, text }) => (
+export const NumberedItem = ({ number, heading, text, textAlign = 'justify' }) => (
     <View style={itemStyles.row}>
         <View style={itemStyles.numBadge}>
             <Text style={itemStyles.numText}>{number}</Text>
         </View>
         <View style={itemStyles.content}>
             {heading ? <Text style={itemStyles.heading}>{heading}</Text> : null}
-            <Text style={itemStyles.text}>{text}</Text>
+            <Text style={[itemStyles.text, { textAlign }]}>{text}</Text>
         </View>
     </View>
 );
 
-export const BulletItem = ({ text }) => (
+export const BulletItem = ({ text, textAlign = 'justify' }) => (
     <View style={itemStyles.bulletRow}>
         <View style={itemStyles.bullet} />
-        <Text style={itemStyles.text}>{text}</Text>
+        <Text style={[itemStyles.text, { textAlign }]}>{text}</Text>
     </View>
 );
 
@@ -123,12 +123,19 @@ const itemStyles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1,
     },
     numText: { color: COLORS.dark, fontSize: 11, fontWeight: '800' },
-    content: { flex: 1 },
+    content: { flex: 1, minWidth: 0 },
     bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
     bullet: {
         width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD,
         marginRight: 10, marginTop: 7,
     },
     heading: { color: COLORS.primary, fontWeight: '700' },
-    text: { flex: 1, fontSize: 13.5, color: '#1A1A1A', lineHeight: 20, textAlign: 'justify' },
+    text: {
+        flex: 1,
+        minWidth: 0,
+        fontSize: 13.5,
+        color: '#1A1A1A',
+        lineHeight: 20,
+        textAlign: 'justify',
+    },
 });
