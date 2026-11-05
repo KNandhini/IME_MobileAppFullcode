@@ -417,91 +417,100 @@ const AdminSignupScreen = ({
     }
   };
 
-const handleSignup = async () => {
-  if (!validate()) return;
-  setLoading(true);
-  try {
-    const payload = {
-      fullName: formData.fullName,
-      email: formData.email,
-      password: formData.password,
-      contactNumber: formData.contactNumber,
-      address: formData.address,
-      gender: formData.gender,
-      age: parseInt(formData.age),
-      dateOfBirth: formData.dateOfBirth,
-      designationId: formData.designationId,
-      countryId: selectedCountry?.countryId ?? null,
-      stateId: selectedState?.stateId ?? null,
-      clubId: selectedClub ? String(selectedClub.clubId) : (presetClub ? String(presetClub.clubId) : null),
-      roleId: 1,
-      occupation,
-      ...(showOccupationDetails && { occupationDetails }),
-      ...(showEducationSection && { qualification }),
-    };
-
-    const response = await api.post('/Auth/signup', payload);
-    const res = response.data;
-
-    if (res.success) {
-      if (profilePhoto && res.data?.memberId) {
-        const uploaded = await uploadProfilePhoto(res.data.memberId, profilePhoto.uri);
-        if (!uploaded) {
-          console.warn('Profile photo upload did not succeed for member', res.data.memberId);
-        }
-      }
-
-      const clubName = selectedClub?.clubName || presetClub?.clubName || '';
-
-      const newMember = {
-        memberId: res.data.memberId,
+  const handleSignup = async () => {
+    if (!validate()) return;
+    setLoading(true);
+    try {
+      const payload = {
         fullName: formData.fullName,
+        email: formData.email,
+        password: formData.password,
+        contactNumber: formData.contactNumber,
+        address: formData.address,
+        gender: formData.gender,
+        age: parseInt(formData.age),
+        dateOfBirth: formData.dateOfBirth,
+        designationId: formData.designationId,
+        countryId: selectedCountry?.countryId ?? null,
+        stateId: selectedState?.stateId ?? null,
+        clubId: selectedClub ? String(selectedClub.clubId) : (presetClub ? String(presetClub.clubId) : null),
+        roleId: 1,
+        occupation,
+        ...(showOccupationDetails && { occupationDetails }),
+        ...(showEducationSection && { qualification }),
       };
 
-      Alert.alert(
-        'Admin Created',
-        clubName
-          ? `${formData.fullName} has been registered as an admin for ${clubName}.`
-          : `${formData.fullName} has been registered as an admin.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              if (hideClubSelection) {
-                // Club field was hidden — this signup was triggered from an
-                // existing club's "add admin" flow, so return to that same club.
-                navigation.navigate({
-                  name: 'ClubForm',
-                  params: {
-                    clubId: presetClub?.clubId,
-                    newAdminMember: newMember,
-                  },
-                  merge: true,
-                });
-              } else {
-                // Club field was visible — standalone add admin, just go back.
-                navigation.goBack();
-              }
-            },
-          },
-        ]
-      );
-    } else {
-      Alert.alert('Registration Failed', res.message || getSafeErrorMessage(res) || 'Registration failed. Please try again.');
-    }
-  } catch (e) {
-    const apiMessage = e?.response?.data?.message;
-    const status = e?.response?.status;
-    const fallbackMsg = e?.response?.data?.title || e?.message || 'Network error';
+      const response = await api.post('/Auth/signup', payload);
+      const res = response.data;
 
-    Alert.alert(
-      apiMessage ? 'Registration Failed' : `Error${status ? ` (${status})` : ''}`,
-      apiMessage || fallbackMsg
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      if (res.success) {
+        if (profilePhoto && res.data?.memberId) {
+          const uploaded = await uploadProfilePhoto(res.data.memberId, profilePhoto.uri);
+          if (!uploaded) {
+            console.warn('Profile photo upload did not succeed for member', res.data.memberId);
+          }
+        }
+
+        const clubName = selectedClub?.clubName || presetClub?.clubName || '';
+
+        const newMember = {
+          memberId: res.data.memberId,
+          fullName: formData.fullName,
+        };
+
+        Alert.alert(
+          'Admin Created',
+          clubName
+            ? `${formData.fullName} has been registered as an admin for ${clubName}.`
+            : `${formData.fullName} has been registered as an admin.`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                if (hideClubSelection) {
+                  // Triggered from the Club form's "add admin" flow.
+                  // popTo goes BACK to the existing ClubForm (keeping everything
+                  // the user already typed) instead of pushing a new, empty one.
+                  // merge:true keeps the existing params (e.g. clubId) and just
+                  // adds newAdminMember.
+                  try {
+                    navigation.popTo(
+                      'ClubForm',
+                      { newAdminMember: newMember },
+                      { merge: true }
+                    );
+                  } catch (err) {
+                    // Fallback for older React Navigation versions without popTo
+                    navigation.navigate(
+                      'ClubForm',
+                      { newAdminMember: newMember },
+                      { pop: true, merge: true }
+                    );
+                  }
+                } else {
+                  // Club field was visible — standalone add admin, just go back.
+                  navigation.goBack();
+                }
+              },
+            },
+          ]
+        );
+      } else {
+        Alert.alert('Registration Failed', res.message || getSafeErrorMessage(res) || 'Registration failed. Please try again.');
+      }
+    } catch (e) {
+      const apiMessage = e?.response?.data?.message;
+      const status = e?.response?.status;
+      const fallbackMsg = e?.response?.data?.title || e?.message || 'Network error';
+
+      Alert.alert(
+        apiMessage ? 'Registration Failed' : `Error${status ? ` (${status})` : ''}`,
+        apiMessage || fallbackMsg
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.bg }}>
@@ -704,7 +713,6 @@ const handleSignup = async () => {
                   value={occupationDetails}
                   onChangeText={setOccupationDetails}
                   hasError={!!errors.occupationDetails}
-                  
                 />
               </Field>
             </View>
@@ -768,7 +776,7 @@ const handleSignup = async () => {
                 )}
                 ListEmptyComponent={<Text style={styles.pickerEmpty}>No countries found</Text>}
               />
-              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]}onPress={() => setCountryModal(false)}>
+              <TouchableOpacity style={[styles.pickerCancel, { marginBottom: 20 }]} onPress={() => setCountryModal(false)}>
                 <Text style={styles.pickerCancelText}>Cancel</Text>
               </TouchableOpacity>
             </View>
