@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Image, Platform, ActivityIndicator, StatusBar, useWindowDimensions } from 'react-native';import * as DocumentPicker from "expo-document-picker";
+import { View, ScrollView, TouchableOpacity, Alert, Modal, FlatList, Image, Platform, ActivityIndicator, StatusBar, useWindowDimensions } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRoute } from "@react-navigation/native";

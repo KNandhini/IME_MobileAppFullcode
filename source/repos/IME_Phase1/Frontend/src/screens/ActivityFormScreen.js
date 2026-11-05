@@ -1,20 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Alert,
-  TouchableOpacity,
-  Platform,
-  StatusBar,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Image,
-  Linking,
-  TextInput,
-} from 'react-native';
+import { View, ScrollView, Alert, TouchableOpacity, Platform, StatusBar, ActivityIndicator, KeyboardAvoidingView, Image, Linking } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { Card, Chip } from 'react-native-paper';
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';

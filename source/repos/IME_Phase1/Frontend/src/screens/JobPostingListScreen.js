@@ -3,7 +3,8 @@ import { COLORS } from './theme';
 // Place in: src/screens/JobPostingListScreen.js
 
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, StatusBar, ActivityIndicator, RefreshControl, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, TouchableOpacity, Alert, StatusBar, ActivityIndicator, RefreshControl, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';

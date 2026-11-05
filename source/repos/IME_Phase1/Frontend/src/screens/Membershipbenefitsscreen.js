@@ -1,17 +1,8 @@
 
 import { COLORS } from './theme';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    View,
-    Text,
-    ScrollView,
-    Animated,
-    StatusBar,
-    TouchableOpacity,
-    SafeAreaView,
-    Dimensions,
-    Modal,
-} from 'react-native';
+import { View, ScrollView, Animated, StatusBar, TouchableOpacity, SafeAreaView, Dimensions, Modal } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { paymentService } from '../services/paymentService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';

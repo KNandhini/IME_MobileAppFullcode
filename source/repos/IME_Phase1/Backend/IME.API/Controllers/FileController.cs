@@ -285,7 +285,7 @@ public class FileController : ControllerBase
                     "Podcasts" => "SELECT FilePath FROM PodcastAttachments WHERE AttachmentId = @AttachmentId",
                     "Support" => "SELECT FilePath FROM SupportAttachments WHERE AttachmentId = @AttachmentId",
                     "GOCircular" => "SELECT FilePath FROM GOCircularAttachments WHERE AttachmentId = @AttachmentId",
-                    "Achievements" => "SELECT FilePath FROM AchievementAttachments WHERE AttachmentId = @AttachmentId",
+                    "Achievements" => "SELECT FilePath FROM dbo.tbl_AchievementAttachments WHERE AttachmentId = @AttachmentId",
                     _ => null
                 };
 
@@ -340,7 +340,7 @@ public class FileController : ControllerBase
                     "Podcasts" => "SELECT FilePath FROM PodcastAttachments WHERE AttachmentId = @AttachmentId",
                     "Support" => "SELECT FilePath FROM SupportAttachments WHERE AttachmentId = @AttachmentId",
                     "GOCircular" => "SELECT FilePath FROM GOCircularAttachments WHERE AttachmentId = @AttachmentId",
-                    "Achievements" => "SELECT FilePath FROM AchievementAttachments WHERE AttachmentId = @AttachmentId",
+                    "Achievements" => "SELECT FilePath FROM dbo.tbl_AchievementAttachments WHERE AttachmentId = @AttachmentId",
                     _ => null
                 };
 
@@ -383,7 +383,7 @@ public class FileController : ControllerBase
                     "Podcasts" => "DELETE FROM PodcastAttachments WHERE AttachmentId = @AttachmentId",
                     "Support" => "DELETE FROM SupportAttachments WHERE AttachmentId = @AttachmentId",
                     "GOCircular" => "DELETE FROM GOCircularAttachments WHERE AttachmentId = @AttachmentId",
-                    "Achievements" => "DELETE FROM AchievementAttachments WHERE AttachmentId = @AttachmentId",
+                    "Achievements" => "DELETE FROM dbo.tbl_AchievementAttachments WHERE AttachmentId = @AttachmentId",
                     _ => null
                 };
 

@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React from 'react';
-import { View, Text, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StatusBar, TouchableOpacity } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { MembershipDetailsStyles as styles } from './screenStyles';
 
@@ -83,7 +84,9 @@ const MembershipDetailsScreen = ({ navigation }) => {
                             <View style={styles.iconWrap}>
                                 <MaterialCommunityIcons name={tier.icon} size={22} color={GOLD} />
                             </View>
-                            <Text style={styles.cardTitle}>{tier.title}</Text>
+                            <View style={styles.cardContent}>
+                                <Text style={styles.cardTitle}>{tier.title}</Text>
+                            </View>
                         </View>
                         <Text style={styles.cardBody}>{tier.eligibility}</Text>
                     </View>

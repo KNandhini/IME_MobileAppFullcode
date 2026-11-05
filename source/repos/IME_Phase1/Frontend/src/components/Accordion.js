@@ -1,9 +1,7 @@
 import { COLORS, RADIUS, SHADOW, SPACING } from '../screens/theme';
 import React, { useState } from 'react';
-import {
-    View, Text, TouchableOpacity, StyleSheet,
-    LayoutAnimation, Platform, UIManager,
-} from 'react-native';
+import { View, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
+import { AppText as Text } from './IMEText';
 import { MaterialIcons } from '@expo/vector-icons';
 
 if (
@@ -17,7 +15,7 @@ if (
 const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
-export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
+export const Accordion = ({ title, icon, children, defaultOpen = false, titleStyle }) => {
     const [open, setOpen] = useState(defaultOpen);
 
     const toggle = () => {
@@ -32,7 +30,7 @@ export const Accordion = ({ title, icon, children, defaultOpen = false }) => {
                     <View style={styles.iconWrap}>
                         <MaterialIcons name={icon} size={20} color={GOLD} />
                     </View>
-                    <Text style={styles.title}>{title}</Text>
+                    <Text style={[styles.title, titleStyle]}>{title}</Text>
                 </View>
                 <MaterialIcons name={open ? 'expand-less' : 'expand-more'} size={26} color={GOLD} />
             </TouchableOpacity>
@@ -61,19 +59,22 @@ export const SubAccordion = ({ title, children, defaultOpen = false }) => {
     );
 };
 
-export const NumberedItem = ({ number, text }) => (
+export const NumberedItem = ({ number, heading, text, textAlign = 'justify' }) => (
     <View style={itemStyles.row}>
         <View style={itemStyles.numBadge}>
             <Text style={itemStyles.numText}>{number}</Text>
         </View>
-        <Text style={itemStyles.text}>{text}</Text>
+        <View style={itemStyles.content}>
+            {heading ? <Text style={itemStyles.heading}>{heading}</Text> : null}
+            <Text style={[itemStyles.text, { textAlign }]}>{text}</Text>
+        </View>
     </View>
 );
 
-export const BulletItem = ({ text }) => (
+export const BulletItem = ({ text, textAlign = 'justify' }) => (
     <View style={itemStyles.bulletRow}>
         <View style={itemStyles.bullet} />
-        <Text style={itemStyles.text}>{text}</Text>
+        <Text style={[itemStyles.text, { textAlign }]}>{text}</Text>
     </View>
 );
 
@@ -111,7 +112,7 @@ const subStyles = StyleSheet.create({
         flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
         paddingVertical: 11, paddingHorizontal: 14,
     },
-    title: { fontSize: 14, fontWeight: '600', color: COLORS.text, flex: 1 },
+    title: { fontSize: 14, fontWeight: '600', color: COLORS.primary, flex: 1 },
     body: { paddingHorizontal: 14, paddingBottom: 12 },
 });
 
@@ -122,10 +123,19 @@ const itemStyles = StyleSheet.create({
         alignItems: 'center', justifyContent: 'center', marginRight: 10, marginTop: 1,
     },
     numText: { color: COLORS.dark, fontSize: 11, fontWeight: '800' },
+    content: { flex: 1, minWidth: 0 },
     bulletRow: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 },
     bullet: {
         width: 6, height: 6, borderRadius: 3, backgroundColor: GOLD,
         marginRight: 10, marginTop: 7,
     },
-    text: { flex: 1, fontSize: 13.5, color: '#1A1A1A', lineHeight: 20 },
+    heading: { color: COLORS.primary, fontWeight: '700' },
+    text: {
+        flex: 1,
+        minWidth: 0,
+        fontSize: 13.5,
+        color: '#1A1A1A',
+        lineHeight: 20,
+        textAlign: 'justify',
+    },
 });

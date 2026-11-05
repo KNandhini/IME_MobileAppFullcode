@@ -1,6 +1,7 @@
 import GradientHeader from '../components/GradientHeader';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, Alert, TouchableOpacity, Modal, Image, FlatList, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { Menu } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import api from '../utils/api';
@@ -382,7 +383,7 @@ const AdminSignupScreen = ({
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: false,
       aspect: [1, 1],
       quality: 0.7,

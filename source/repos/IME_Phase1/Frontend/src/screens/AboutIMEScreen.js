@@ -1,18 +1,23 @@
 import { COLORS } from './theme';
 import React, { useEffect, useRef, useState } from 'react';
-import {
-    View, Text, StyleSheet, ScrollView, Animated,
-    StatusBar, TouchableOpacity, SafeAreaView,
-} from 'react-native';
+import { View, StyleSheet, ScrollView, Animated, StatusBar, TouchableOpacity, SafeAreaView } from 'react-native';
+import { AppText as Text, AppTextSizeProvider } from '../components/IMEText';
 import { MaterialIcons } from '@expo/vector-icons';
 import GradientHeader from '../components/GradientHeader';
-import { Accordion, SubAccordion, NumberedItem, BulletItem } from '../components/Accordion';
+import {
+    Accordion,
+    SubAccordion,
+    NumberedItem as BaseNumberedItem,
+    BulletItem as BaseBulletItem,
+} from '../components/Accordion';
 import IMELogo from '../components/IMELogo';
 
 const NAVY = COLORS.dark;
 const ROYAL = COLORS.primary;
 const GOLD = COLORS.accent;
 const BG = COLORS.bg;
+const NumberedItem = (props) => <BaseNumberedItem {...props} textAlign="left" />;
+const BulletItem = (props) => <BaseBulletItem {...props} textAlign="left" />;
 
 // ─────────────────────────────────────────────────────────────────────────
 // Section registry — drives both the quick-nav chips and the scroll targets.
@@ -24,7 +29,7 @@ const SECTIONS = [
     { key: 'mission', label: 'Mission', icon: 'flag' },
     { key: 'objectives', label: 'Objectives', icon: 'track-changes' },
     { key: 'aims', label: 'Aims & Objects', icon: 'assignment' },
-    { key: 'moa', label: 'Association', icon: 'description' },
+    { key: 'moa', label: 'MoA', icon: 'description' },
     { key: 'mou', label: 'MoU', icon: 'handshake' },
     { key: 'byelaws', label: 'Bye-Laws', icon: 'gavel' },
 ];
@@ -52,6 +57,7 @@ const AboutIMEScreen = ({ navigation }) => {
     };
 
     return (
+        <AppTextSizeProvider fontSize={14}>
         <SafeAreaView style={styles.root}>
             <StatusBar backgroundColor={COLORS.headerStart} barStyle="light-content" />
 
@@ -141,11 +147,11 @@ const AboutIMEScreen = ({ navigation }) => {
                 {/* 2. Mission */}
                 <View onLayout={registerY('mission')}>
                     <Accordion title="Mission" icon="flag">
-                        <NumberedItem number="1" text="Professional Development — Upgrade skills of municipal engineers across all States/UTs in roads, water supply, sewerage, street lighting, solid waste, survey & planning, and urban greenery through training, certification, and knowledge exchange." />
-                        <NumberedItem number="2" text="Policy Advocacy — Serve as a technical think-tank to MoHUA, State Governments, and ULBs on urban infrastructure norms, service standards, and municipal reforms." />
-                        <NumberedItem number="3" text="Knowledge Hub — Disseminate best practices, research, and technology solutions for Indian cities through journals, conferences, and digital platforms." />
-                        <NumberedItem number="4" text="Ethics & Standards — Promote professional ethics, safety, and citizen-centric engineering practices in municipal governance." />
-                        <NumberedItem number="5" text="Networking — Connect municipal engineers pan-India and foster collaboration with CPWD, PWD, smart city SPVs, academia, and global bodies." />
+                        <NumberedItem number="1" heading="Professional Development" text="Upgrade skills of municipal engineers across all States/UTs in roads, water supply, sewerage, street lighting, solid waste, survey & planning, and urban greenery through training, certification, and knowledge exchange." />
+                        <NumberedItem number="2" heading="Policy Advocacy" text="Serve as a technical think-tank to MoHUA, State Governments, and ULBs on urban infrastructure norms, service standards, and municipal reforms." />
+                        <NumberedItem number="3" heading="Knowledge Hub" text="Disseminate best practices, research, and technology solutions for Indian cities through journals, conferences, and digital platforms." />
+                        <NumberedItem number="4" heading="Ethics & Standards" text="Promote professional ethics, safety, and citizen-centric engineering practices in municipal governance." />
+                        <NumberedItem number="5" heading="Networking" text="Connect municipal engineers pan-India and foster collaboration with CPWD, PWD, smart city SPVs, academia, and global bodies." />
                     </Accordion>
                 </View>
 
@@ -195,30 +201,30 @@ const AboutIMEScreen = ({ navigation }) => {
 
                 {/* 5. Memorandum of Association — signature/witness content removed */}
                 <View onLayout={registerY('moa')}>
-                    <Accordion title="Memorandum of Association (MoA)" icon="description">
+                    <Accordion title="Memorandum of Association (MoA)" icon="description" titleStyle={styles.documentAccordionTitle}>
                         <View style={styles.docCard}>
                             <Text style={styles.docLabel}>Name</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 The name of the Society shall be "Institution of Urban
                                 Engineers, India", hereinafter referred to as "IUE (India)".
                             </Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Registered Office</Text>
-                            <Text style={styles.paragraph}>Chennai, Tamil Nadu.</Text>
+                            <Text style={styles.docParagraph}>Chennai, Tamil Nadu.</Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Temporary Address</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 C/o State Institute of Rural Development, Maraimalai Nagar,
                                 Chengalpattu, Tamil Nadu.
                             </Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Jurisdiction</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 The area of operation shall extend to the whole of India.
                             </Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Bank Account</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 State Bank of India, PWD Complex, Chepauk, Chennai – 600005.
                             </Text>
                         </View>
@@ -227,17 +233,17 @@ const AboutIMEScreen = ({ navigation }) => {
 
                 {/* 6. MoU */}
                 <View onLayout={registerY('mou')}>
-                    <Accordion title="Memorandum of Understanding (MoU)" icon="handshake">
+                    <Accordion title="Memorandum of Understanding (MoU)" icon="handshake" titleStyle={styles.documentAccordionTitle}>
                         <View style={styles.docCard}>
                             <Text style={styles.docLabel}>Between</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 Institution of Urban Engineers, India, a national
                                 professional body, Registered Office at Chennai AND [Partner
                                 Institution / State Govt / ULB].
                             </Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Scope</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 Jointly work towards strengthening municipal engineering
                                 capacity across India in the 7 core domains: roads, water
                                 supply, waste water, street lighting, solid waste, survey &
@@ -245,7 +251,7 @@ const AboutIMEScreen = ({ navigation }) => {
                             </Text>
 
                             <Text style={[styles.docLabel, { marginTop: 12 }]}>Activities</Text>
-                            <Text style={styles.paragraph}>
+                            <Text style={styles.docParagraph}>
                                 National conferences, joint research, training of ULB
                                 engineers, policy papers to MoHUA, student chapters in
                                 engineering colleges.
@@ -259,24 +265,32 @@ const AboutIMEScreen = ({ navigation }) => {
                     <Accordion title="Bye-Laws" icon="gavel">
                         <SubAccordion title="1. Membership">
                             <Text style={styles.paragraph}>
-                                Grades: Fellow, Member, Associate Member, Student Member,
+                                <Text style={styles.inlineHeading}>Grades: </Text>
+                                Fellow, Member, Associate Member, Student Member,
                                 Institutional Member, Honorary Fellow.{'\n\n'}
-                                Eligibility: Engineers serving/served in ULBs, Municipal
+                                <Text style={styles.inlineHeading}>Eligibility: </Text>
+                                Engineers serving/served in ULBs, Municipal
                                 Corporations, Municipalities, Town Panchayats, or urban
                                 parastatals in India. BE/B.Tech in Civil/Mechanical/Electrical/
                                 Environmental minimum.{'\n\n'}
-                                Admission: By application to National Council.
+                                <Text style={styles.inlineHeading}>Admission: </Text>
+                                By application to National Council.
                             </Text>
                         </SubAccordion>
 
                         <SubAccordion title="2. Management">
                             <Text style={styles.paragraph}>
-                                National Council — Supreme governing body.{'\n'}
-                                Composition: President, 4 Vice-Presidents (North/South/East/
+                                <Text style={styles.inlineHeading}>National Council</Text>
+                                {' — Supreme governing body.\n'}{'\n'}
+                                <Text style={styles.inlineHeading}>Composition: </Text>
+                                President, 4 Vice-Presidents (North/South/East/
                                 West), Secretary General, Treasurer, Joint Secretary, 20
-                                Council Members representing States. Term: 2 years.{'\n\n'}
-                                Executive Committee — President, Secretary General, Treasurer
-                                + 5 Council Members for day-to-day management.
+                                Council Members representing States.{' '}
+                                <Text style={styles.inlineHeading}>{'\n\n'}Term: </Text>
+                                2 years.{'\n\n'}
+                                <Text style={styles.inlineHeading}>Executive Committee: </Text>
+                                President, Secretary General, Treasurer and
+                                  5 Council Members for day-to-day management.
                             </Text>
                         </SubAccordion>
 
@@ -284,34 +298,47 @@ const AboutIMEScreen = ({ navigation }) => {
                             <Text style={styles.paragraph}>
                                 IUE (India) may establish State Chapters in any State/UT with
                                 minimum 20 members.{'\n\n'}
-                                Each Chapter shall have own Executive Committee: Chairman,
+                                
+                                <Text style={styles.inlineHeading}>Each Chapter shall have own Executive Committee</Text>
+                                : Chairman,
                                 Secretary, Treasurer.{'\n\n'}
                                 Chapters shall function under bye-laws framed by National
                                 Council and submit annual report.{'\n\n'}
-                                First Chapter: Tamil Nadu Chapter at Chennai shall be the
+                                <Text style={styles.inlineHeading}>First Chapter: </Text>
+                                Tamil Nadu Chapter at Chennai shall be the
                                 founding Chapter.
                             </Text>
                         </SubAccordion>
 
                         <SubAccordion title="4. Meetings">
                             <Text style={styles.paragraph}>
-                                Annual General Meeting: Once every year, preferably in
+                                <Text style={styles.inlineHeading}>Annual General Meeting: </Text>
+                                Once every year, preferably in
                                 September. Venue to rotate across States.{'\n\n'}
-                                National Council: Meet at least twice a year. Quorum: 1/3rd or
+                                <Text style={styles.inlineHeading}>National Council: </Text>
+                                Meet at least twice a year.{'\n\n'}
+                                <Text style={styles.inlineHeading}>Quorum: </Text>
+                                1/3rd or
                                 8 members.{'\n\n'}
-                                General Body: All members. Voting: 1 member = 1 vote.
+                                <Text style={styles.inlineHeading}>General Body: </Text>
+                                All members. <Text style={styles.inlineHeading}>{'\n\n'}Voting: </Text>
+                                1 member = 1 vote.
                             </Text>
                         </SubAccordion>
 
                         <SubAccordion title="5. Funds">
                             <Text style={styles.paragraph}>
-                                Bank Account: State Bank of India, PWD Complex, Chepauk,
+                                <Text style={styles.inlineHeading}>Bank Account: </Text>
+                                State Bank of India, PWD Complex, Chepauk,
                                 Chennai – 600005.{'\n\n'}
-                                Sources: Admission fee, subscription, grants, donations,
+                                <Text style={styles.inlineHeading}>Sources: </Text>
+                                Admission fee, subscription, grants, donations,
                                 conference surplus.{'\n\n'}
-                                Operation: Jointly by President/Secretary General and
+                                <Text style={styles.inlineHeading}>Operation: </Text>
+                                Jointly by President/Secretary General and
                                 Treasurer.{'\n\n'}
-                                Audit: Annual audit by Chartered Accountant.
+                                <Text style={styles.inlineHeading}>Audit: </Text>
+                                Annual audit by Chartered Accountant.
                             </Text>
                         </SubAccordion>
 
@@ -343,6 +370,7 @@ const AboutIMEScreen = ({ navigation }) => {
                 </View>
             </Animated.ScrollView>
         </SafeAreaView>
+        </AppTextSizeProvider>
     );
 };
 
@@ -402,12 +430,29 @@ const styles = StyleSheet.create({
     factValue: { fontSize: 12.5, fontWeight: '700', color: NAVY },
     factDivider: { height: 1, backgroundColor: '#F1F5F9', marginVertical: 4 },
 
-    paragraph: { fontSize: 13.5, color: '#1A1A1A', lineHeight: 21 },
+    paragraph: {
+        width: '100%',
+        flexShrink: 1,
+        fontSize: 13.5,
+        color: '#1A1A1A',
+        lineHeight: 21,
+        textAlign: 'left',
+    },
+    documentAccordionTitle: { fontSize: 16, color: COLORS.text },
     docCard: {
         backgroundColor: BG, borderRadius: 10, padding: 14,
         borderWidth: 1, borderColor: '#E2E8F0',
     },
-    docLabel: { fontSize: 12, fontWeight: '800', color: COLORS.text, marginBottom: 4, letterSpacing: 0.5 },
+    docLabel: { fontSize: 13, fontWeight: '800', color: ROYAL, marginBottom: 4, letterSpacing: 0.5 },
+    docParagraph: {
+        width: '100%',
+        flexShrink: 1,
+        fontSize: 14.5,
+        color: '#334155',
+        lineHeight: 23,
+        textAlign: 'left',
+    },
+    inlineHeading: { color: '#1A1A1A', fontWeight: '700' },
 
     footer: { alignItems: 'center', marginTop: 20, paddingHorizontal: 10 },
     footerTitle: { color: NAVY, fontSize: 13, fontWeight: '800', textAlign: 'center' },

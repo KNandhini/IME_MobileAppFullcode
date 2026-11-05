@@ -4,7 +4,8 @@ import { COLORS } from './theme';
 // Mirrors AchievementFormScreen.js structure exactly.
 
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StatusBar, Alert, ActivityIndicator, Image, Modal, Linking, Platform, KeyboardAvoidingView } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import DOBField from '../components/DOBField';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -16,6 +17,7 @@ import api from '../utils/api';
 import { JobPostingFormScreenChip as chip, JobPostingFormScreenStyles as styles } from './screenStyles';
 import { getSafeErrorMessage } from '../utils/errorHandler';
 import * as FileSystem from 'expo-file-system/legacy';
+import AttachmentPickerModal from '../components/AttachmentPickerModal';
 const NAVY = COLORS.dark;
 const GOLD = COLORS.accent;
 
@@ -201,6 +203,8 @@ const JobPostingFormScreen = ({ route, navigation }) => {
   const [attachments, setAttachments] = useState([]);          // new (not yet uploaded)
   const [existingAttachments, setExistingAttachments] = useState([]);          // already on server
   const [fileViewer, setFileViewer] = useState({ visible: false, uri: null });
+  const [attachmentPickerVisible, setAttachmentPickerVisible] = useState(false);
+  const [attachmentPickerOptions, setAttachmentPickerOptions] = useState([]);
   const today = new Date();
   const closingMinDate = new Date(today.getFullYear() - 100, 0, 1);
   const closingMaxDate = new Date(today.getFullYear() + 80, 11, 31);
@@ -310,7 +314,7 @@ const JobPostingFormScreen = ({ route, navigation }) => {
       return;
     }
 
-    Alert.alert('Attach File', 'Choose file type', [
+    setAttachmentPickerOptions([
       {
         text: 'PDF / Document',
         onPress: async () => {
@@ -372,8 +376,8 @@ const JobPostingFormScreen = ({ route, navigation }) => {
           }
         },
       },
-      { text: 'Cancel', style: 'cancel' },
     ]);
+    setAttachmentPickerVisible(true);
   };
 
   const formatDate = (d) => {
@@ -770,6 +774,11 @@ const JobPostingFormScreen = ({ route, navigation }) => {
           )}
         </View>
       </Modal>
+      <AttachmentPickerModal
+        visible={attachmentPickerVisible}
+        options={attachmentPickerOptions}
+        onClose={() => setAttachmentPickerVisible(false)}
+      />
     </View>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, FlatList, Platform, StyleSheet, TextInput } from 'react-native';
+import { View, TouchableOpacity, Modal, FlatList, Platform, StyleSheet } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from './IMEText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../screens/theme'; // adjust path to your theme file
 

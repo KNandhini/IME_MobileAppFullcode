@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, TextInput, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Image, Platform, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { Card } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';

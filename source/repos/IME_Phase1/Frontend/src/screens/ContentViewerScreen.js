@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { View, ScrollView, ActivityIndicator, useWindowDimensions } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import RenderHtml from 'react-native-render-html';
 import { contentService } from '../services/contentService';
 import { ContentViewerScreenStyles as styles } from './screenStyles';

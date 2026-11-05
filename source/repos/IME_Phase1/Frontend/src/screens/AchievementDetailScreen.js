@@ -1,17 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StatusBar,
-  Image,
-  Modal,
-  ActivityIndicator,
-  Alert,
-  Platform,
-  StyleSheet,
-} from 'react-native';
+import { View, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, Alert, Platform, StyleSheet } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -118,12 +107,11 @@ const local = StyleSheet.create({
   },
 });
 
-// filePath from the server is a raw disk path like "Uploads\achievements\xyz.jpg" —
-// convert it into a URL the app can actually load/display/download.
+// Convert a stored upload path into a URL the app can load/display/download.
 const toPublicUrl = (filePath) => {
   if (!filePath) return null;
   if (filePath.startsWith('http')) return filePath;
-  const idx = filePath.indexOf('Uploads\\');
+  const idx = filePath.search(/uploads[\\/]/i);
   if (idx === -1) return filePath;
   const relative = filePath.substring(idx).replace(/\\/g, '/');
   return `${API_BASE}/${relative}`;

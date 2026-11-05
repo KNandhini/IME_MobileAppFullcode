@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image, useWindowDimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, ActivityIndicator, Modal, FlatList, Switch, Platform, Image, useWindowDimensions } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import DOBField from '../components/DOBField';
@@ -241,7 +242,7 @@ export default function ClubFormScreen({ route, navigation }) {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: false,
       aspect: [1, 1],
       quality: 0.8,

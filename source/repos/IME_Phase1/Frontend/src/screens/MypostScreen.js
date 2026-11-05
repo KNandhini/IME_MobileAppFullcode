@@ -1,21 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useCallback, useRef } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  StatusBar,
-  RefreshControl,
-  Alert,
-  Image,
-  Dimensions,
-  Modal,
-  StyleSheet,
-} from 'react-native';
+import { View, FlatList, ScrollView, TouchableOpacity, ActivityIndicator, StatusBar, RefreshControl, Alert, Image, Dimensions, Modal, StyleSheet } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useFocusEffect } from '@react-navigation/native';

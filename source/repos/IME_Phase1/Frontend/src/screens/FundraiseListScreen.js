@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert, Animated, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, FlatList, TouchableOpacity, Alert, Animated, Image, ActivityIndicator, RefreshControl } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fundraiseService } from '../services/fundraiseService';

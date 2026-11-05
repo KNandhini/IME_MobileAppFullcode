@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { View, Text, TouchableOpacity, Alert, Animated, StatusBar, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView, TextInput } from 'react-native';
+import { View, TouchableOpacity, Alert, Animated, StatusBar, Dimensions, Easing, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import IMELogo from '../components/IMELogo';

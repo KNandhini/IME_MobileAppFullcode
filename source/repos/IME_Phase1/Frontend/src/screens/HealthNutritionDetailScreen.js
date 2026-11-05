@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Dimensions, Linking, ActivityIndicator } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StatusBar, Image, Dimensions, Linking, ActivityIndicator } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';

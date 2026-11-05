@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef } from 'react';
-import { ActivityIndicator, View, Text, StyleSheet, Animated } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, Animated } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import * as SplashScreen from 'expo-splash-screen';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';

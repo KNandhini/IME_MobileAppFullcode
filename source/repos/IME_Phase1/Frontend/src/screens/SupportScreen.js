@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { View, Text, FlatList, RefreshControl, Image, TouchableOpacity, ScrollView, ActivityIndicator, Modal, TextInput, Platform, KeyboardAvoidingView, Animated, Alert, StatusBar } from 'react-native';
+import { View, FlatList, RefreshControl, Image, TouchableOpacity, ScrollView, ActivityIndicator, Modal, Platform, KeyboardAvoidingView, Animated, Alert, StatusBar } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { supportService } from '../services/supportService';
 import { memberService } from '../services/memberService';
 import { feedService } from '../services/feedService';

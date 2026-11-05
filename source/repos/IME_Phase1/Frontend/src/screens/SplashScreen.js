@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React from 'react';
-import { View, Text, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { SplashScreenStyles as styles } from './screenStyles';
 
 const SplashScreen = () => (

@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Alert, TouchableOpacity, Modal, FlatList, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, ScrollView, Alert, TouchableOpacity, Modal, FlatList, ActivityIndicator, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { TextInput, Menu } from 'react-native-paper';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -138,7 +139,7 @@ const ProfileEditScreen = ({ navigation }) => {
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: false,
       aspect: [1, 1],
       quality: 0.7,

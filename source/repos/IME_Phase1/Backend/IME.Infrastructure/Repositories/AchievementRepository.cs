@@ -105,7 +105,7 @@ public class AchievementRepository(DatabaseContext dbContext) : IAchievementRepo
         var list = new List<AttachmentDTO>();
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = new SqlCommand(
-            "SELECT AttachmentId, FileName, FilePath, UploadedDate FROM tbl_Attachments WHERE ModuleName = 'Achievements' AND ReferenceId = @AchievementId ORDER BY UploadedDate DESC",
+            "SELECT AttachmentId, FileName, FilePath, UploadedDate FROM dbo.tbl_AchievementAttachments WHERE AchievementId = @AchievementId ORDER BY UploadedDate DESC",
             connection);
         command.Parameters.AddWithValue("@AchievementId", achievementId);
         using var reader = await command.ExecuteReaderAsync();
@@ -124,16 +124,15 @@ public class AchievementRepository(DatabaseContext dbContext) : IAchievementRepo
 
     // ── ADD ATTACHMENT ────────────────────────────────────────
     public async Task<AttachmentDTO> AddAchievementAttachmentAsync(
-        int achievementId, string fileName, string filePath, long fileSize)
+        int achievementId, string fileName, string filePath)
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = new SqlCommand(
-            "INSERT INTO tbl_Attachments (ModuleName, ReferenceId, FileName, FilePath, FileSize) VALUES ('Achievements', @AchievementId, @FileName, @FilePath, @FileSize); SELECT CAST(SCOPE_IDENTITY() AS INT);",
+            "INSERT INTO dbo.tbl_AchievementAttachments (AchievementId, FileName, FilePath) VALUES (@AchievementId, @FileName, @FilePath); SELECT CAST(SCOPE_IDENTITY() AS INT);",
             connection);
         command.Parameters.AddWithValue("@AchievementId", achievementId);
         command.Parameters.AddWithValue("@FileName", fileName);
         command.Parameters.AddWithValue("@FilePath", filePath);
-        command.Parameters.AddWithValue("@FileSize", fileSize);
         var attachmentId = Convert.ToInt32(await command.ExecuteScalarAsync());
         return new AttachmentDTO
         {
@@ -149,7 +148,7 @@ public class AchievementRepository(DatabaseContext dbContext) : IAchievementRepo
     {
         using var connection = await _dbContext.CreateOpenConnectionAsync();
         using var command = new SqlCommand(
-            "DELETE FROM tbl_Attachments WHERE AttachmentId = @AttachmentId AND ModuleName = 'Achievements'",
+            "DELETE FROM dbo.tbl_AchievementAttachments WHERE AttachmentId = @AttachmentId",
             connection);
         command.Parameters.AddWithValue("@AttachmentId", attachmentId);
         return await command.ExecuteNonQueryAsync() > 0;

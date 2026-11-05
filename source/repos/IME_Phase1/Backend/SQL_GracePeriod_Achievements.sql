@@ -1,6 +1,6 @@
 -- ============================================================
 -- Run in SSMS on db_a85a40_ime
--- Changes: GraceExpiryDate, AchievementAttachments table,
+-- Changes: GraceExpiryDate, tbl_AchievementAttachments table,
 --          sp_CreateUser, sp_UserLogin, sp_GetAllAchievements,
 --          sp_CreateAchievement
 -- ============================================================
@@ -18,26 +18,23 @@ ELSE
     PRINT 'GraceExpiryDate already exists.';
 GO
 
--- ── 2. AchievementAttachments table ───────────────────────
-IF NOT EXISTS (
-    SELECT 1 FROM INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_NAME = 'AchievementAttachments'
-)
+-- ── 2. tbl_AchievementAttachments table ───────────────────
+IF OBJECT_ID(N'dbo.tbl_AchievementAttachments', N'U') IS NULL
 BEGIN
-    CREATE TABLE AchievementAttachments (
+    CREATE TABLE [dbo].[tbl_AchievementAttachments] (
         AttachmentId  INT           IDENTITY(1,1) PRIMARY KEY,
         AchievementId INT           NOT NULL,
         FileName      NVARCHAR(255) NULL,
         FilePath      NVARCHAR(500) NULL,
         UploadedDate  DATETIME      NOT NULL DEFAULT GETDATE(),
-        CONSTRAINT FK_AchAttach_Achievement
-            FOREIGN KEY (AchievementId) REFERENCES Achievements(AchievementId)
+        CONSTRAINT FK_tbl_AchAttach_Achievement
+            FOREIGN KEY (AchievementId) REFERENCES [dbo].[tbl_Achievements](AchievementId)
             ON DELETE CASCADE
     );
-    PRINT 'AchievementAttachments table created.';
+    PRINT 'tbl_AchievementAttachments table created.';
 END
 ELSE
-    PRINT 'AchievementAttachments already exists.';
+    PRINT 'tbl_AchievementAttachments already exists.';
 GO
 
 -- ── 3. sp_CreateUser ──────────────────────────────────────
@@ -219,7 +216,7 @@ BEGIN
         a.CreatedDate,
         (
             SELECT TOP 1 FilePath
-            FROM AchievementAttachments aa
+            FROM dbo.tbl_AchievementAttachments aa
             WHERE aa.AchievementId = a.AchievementId
             ORDER BY aa.AttachmentId
         ) AS AttachmentPath

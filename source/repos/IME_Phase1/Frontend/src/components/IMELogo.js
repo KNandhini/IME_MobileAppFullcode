@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Image } from 'react-native';
+import { View, StyleSheet, Animated, Image } from 'react-native';
+import { AppText as Text } from './IMEText';
 import { COLORS, SHADOW, SPACING } from '../screens/theme';
 
 const GOLD = COLORS.accent;

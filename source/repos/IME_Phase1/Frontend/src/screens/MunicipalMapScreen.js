@@ -6,7 +6,8 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, StatusBar, Linking, Alert, FlatList, Dimensions } from 'react-native';
+import { View, TouchableOpacity, ActivityIndicator, StatusBar, Linking, Alert, FlatList, Dimensions } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { clubService } from '../services/clubService';

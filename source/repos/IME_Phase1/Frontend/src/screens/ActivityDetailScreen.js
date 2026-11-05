@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, Alert, Platform } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StatusBar, Image, Modal, ActivityIndicator, Alert, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';

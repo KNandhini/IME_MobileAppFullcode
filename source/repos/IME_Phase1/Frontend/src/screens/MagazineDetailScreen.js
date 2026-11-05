@@ -1,7 +1,8 @@
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StatusBar, Image, ActivityIndicator, Modal, Alert, Platform, TextInput, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import { View, ScrollView, TouchableOpacity, StatusBar, Image, ActivityIndicator, Modal, Alert, Platform, KeyboardAvoidingView, StyleSheet } from 'react-native';
+import { AppText as Text, AppTextInput as TextInput } from '../components/IMEText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { magazineService } from '../services/magazineService';
 import AsyncStorage from '@react-native-async-storage/async-storage';

@@ -1,6 +1,7 @@
 import { COLORS } from './theme';
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { AppText as Text } from '../components/IMEText';
 import { circularService } from '../services/circularService';
 import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
