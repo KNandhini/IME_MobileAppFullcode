@@ -250,15 +250,13 @@ public class CircularController : ControllerBase
     {
         try
         {
-            var attachments = await _circularRepository.GetCircularAttachmentsAsync(0);
-            // fallback: direct query since we only have circularId-based fetch in repo
             using var connection = await HttpContext.RequestServices
                 .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
                 .CreateOpenConnectionAsync();
             using var cmd = HttpContext.RequestServices
                 .GetRequiredService<IME.Infrastructure.Data.DatabaseContext>()
                 .CreateCommand(
-                    "SELECT FileName, FilePath FROM tbl_GOCircularAttachments WHERE AttachmentId = @AttachmentId",
+                    "SELECT FileName, FilePath FROM dbo.GOCircularAttachments WHERE AttachmentId = @AttachmentId",
                     connection);
             cmd.Parameters.AddWithValue("@AttachmentId", attachmentId);
             using var reader = await cmd.ExecuteReaderAsync();
@@ -295,29 +293,60 @@ public class CircularController : ControllerBase
         return result == null || result == DBNull.Value ? null : Convert.ToInt32(result);
     }
 
-    private async Task<int> SaveAttachments(int circularId, List<IFormFile>? files)
+    private async Task<int> SaveAttachments(
+     int circularId,
+     List<IFormFile>? files)
     {
-        if (files == null || files.Count == 0) return 0;
-        var savedCount = 0;
+        if (files == null || files.Count == 0)
+            return 0;
+
+        int savedCount = 0;
+
         foreach (var file in files)
         {
-            if (file.Length == 0 || file.Length > 50 * 1024 * 1024) continue;
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!AllowedTypes.Contains(ext)) continue;
+            if (file == null || file.Length == 0 ||
+                file.Length > 50 * 1024 * 1024)
+                continue;
+
+            string ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!AllowedTypes.Contains(ext))
+                continue;
 
             using var ms = new MemoryStream();
+
             await file.CopyToAsync(ms);
             ms.Position = 0;
 
-            var attachPath = await _fileStorageService.SaveFileAsync(ms, "Circular", circularId, file.FileName);
-            var fullAttachPath = _fileStorageService.GetFullPath(attachPath);
+            // Save the file and get its relative path
+            string relativePath = await _fileStorageService.SaveFileAsync(
+                ms,
+                "Circular",
+                circularId,
+                file.FileName
+            );
 
-            await _circularRepository.AddCircularAttachmentAsync(circularId, file.FileName, fullAttachPath);
-            savedCount++;
+            try
+            {
+                // Save the relative path in the database
+                await _circularRepository.AddCircularAttachmentAsync(
+                    circularId,
+                    file.FileName,
+                    relativePath
+                );
+
+                savedCount++;
+            }
+            catch
+            {
+                // Delete the physical file if database insertion fails
+                _fileStorageService.DeleteFile(relativePath);
+                throw;
+            }
         }
+
         return savedCount;
     }
-
     private static string GetContentType(string ext) => ext switch
     {
         ".jpg" or ".jpeg" => "image/jpeg",

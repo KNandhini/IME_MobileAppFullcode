@@ -377,6 +377,43 @@ BEGIN
 END
 GO
 
+CREATE OR ALTER PROCEDURE sp_GetCircularAttachments
+    @CircularId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT AttachmentId, FileName, FilePath, UploadedDate
+    FROM dbo.GOCircularAttachments
+    WHERE CircularId = @CircularId
+    ORDER BY UploadedDate DESC, AttachmentId DESC;
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_AddCircularAttachment
+    @CircularId INT,
+    @FileName NVARCHAR(255),
+    @FilePath NVARCHAR(500)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    INSERT INTO dbo.GOCircularAttachments (CircularId, FileName, FilePath)
+    VALUES (@CircularId, @FileName, @FilePath);
+END
+GO
+
+CREATE OR ALTER PROCEDURE sp_DeleteCircularAttachment
+    @AttachmentId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM dbo.GOCircularAttachments
+    WHERE AttachmentId = @AttachmentId;
+END
+GO
+
 -- =============================================
 -- AUDIT LOG PROCEDURE
 -- =============================================
