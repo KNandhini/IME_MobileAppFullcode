@@ -38,6 +38,11 @@ const MAX_TITLE = 150;
 const MAX_DESCRIPTION = 500;
 const MAX_CIRCULAR_NUMBER = 20;
 const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
+const CIRCULAR_DOCUMENT_EXTENSIONS = new Set([
+  'pdf',
+  'doc',
+  'docx',
+]);
 
 const TITLE_REGEX = /^[A-Za-z0-9\s.,-]*$/;
 const CIRCULAR_NUMBER_REGEX = /^[A-Za-z0-9\s/\-]*$/;
@@ -477,9 +482,11 @@ const AddCircularScreen = ({ route, navigation }) => {
     setAttachmentPickerVisible(false);
 
     try {
+      const isDocumentSelection = Array.isArray(types);
       const result =
         await DocumentPicker.getDocumentAsync({
-          type: types,
+          // Some Android document providers fail on multiple MIME filters.
+          type: isDocumentSelection ? '*/*' : types,
 
           // Critical Android fix
           copyToCacheDirectory: true,
@@ -494,7 +501,34 @@ const AddCircularScreen = ({ route, navigation }) => {
         return;
       }
 
-      await addPickedAssets(result.assets);
+      const selectedAssets = isDocumentSelection
+        ? result.assets.filter((asset) => {
+            const fileName = asset.name || asset.fileName || '';
+            const extension = fileName
+              .split('.')
+              .pop()
+              .toLowerCase();
+
+            return CIRCULAR_DOCUMENT_EXTENSIONS.has(extension);
+          })
+        : result.assets;
+
+      if (selectedAssets.length === 0) {
+        Alert.alert(
+          'Unsupported file',
+          'Select a PDF, DOC, or DOCX file.'
+        );
+        return;
+      }
+
+      if (selectedAssets.length < result.assets.length) {
+        Alert.alert(
+          'Unsupported files skipped',
+          'Only PDF, DOC, and DOCX files can be attached as documents.'
+        );
+      }
+
+      await addPickedAssets(selectedAssets);
     } catch (error) {
       console.error(
         'Circular document selection failed:',
