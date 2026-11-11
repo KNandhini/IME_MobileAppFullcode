@@ -611,7 +611,7 @@ export default function OrganisationScreen() {
         </Text>
 
         <Text style={styles.headerDescription}>
-          Explore our committees and meet their members.
+          Explore our committees,reginal division and meet their members.
         </Text>
       </View>
 

@@ -708,7 +708,6 @@ const AdminSignupScreen = ({
           {/* ── Occupation Details (Employed / Self Employed only) ── */}
           {showOccupationDetails && (
             <View style={styles.sectionBox}>
-              <Text style={styles.sectionTitle}>Occupation Details</Text>
               <Field label="Occupation Details" required error={errors.occupationDetails}>
                 <StyledInput
                   value={occupationDetails}
@@ -722,7 +721,6 @@ const AdminSignupScreen = ({
           {/* ── Educational Qualification (shown for any occupation once selected) ── */}
           {showEducationSection && (
             <View style={styles.sectionBox}>
-              <Text style={styles.sectionTitle}>Educational Qualification</Text>
               <Field label="Educational Qualification" required error={errors.qualification}>
                 <StyledInput
                   value={qualification}

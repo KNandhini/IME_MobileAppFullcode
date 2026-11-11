@@ -109,11 +109,6 @@ const renderCircular = ({ item }) => (
     {/* Title */}
     <Text style={styles.title}>{item.title}</Text>
 
-    {/* Description */}
-    {item.description ? (
-      <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-    ) : null}
-
     {/* Date row */}
     <View style={styles.dateRow}>
       <Text style={styles.date}>

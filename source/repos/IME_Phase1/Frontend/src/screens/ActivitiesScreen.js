@@ -121,9 +121,6 @@ const insets = useSafeAreaInsets();
 
       <View>
         <Text style={styles.title}>{item.activityName}</Text>
-        {item.description ? (
-          <Text style={styles.description} numberOfLines={2}>{item.description}</Text>
-        ) : null}
 
        <View style={{ marginTop: 8 }}>
   {/* Date */}

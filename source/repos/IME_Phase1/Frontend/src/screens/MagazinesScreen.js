@@ -1,6 +1,6 @@
 import { COLORS } from './theme';
 import React, { useState, useCallback } from 'react';
-import { View, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, FlatList, RefreshControl, TouchableOpacity, StatusBar, Pressable, StyleSheet, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { AppText as Text } from '../components/IMEText';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -25,16 +25,19 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole, isStud
   const isPdf = item.attachmentPath?.toLowerCase().endsWith('.pdf');
 
   return (
-    <TouchableOpacity style={s.card} onPress={onPress} activeOpacity={0.85}>
-      <View style={s.cardTopRow}>
+    <View style={[s.card, cardStyles.card]}>
+      <View style={[s.cardTopRow, { paddingHorizontal: 16 }]}>
         <View style={s.badge}>
-          <Text style={s.badgeText}>📖 Magazine</Text>
+          <MaterialCommunityIcons name="book-open-page-variant-outline" size={16} color={PRIMARY} />
+          <Text style={[s.badgeText, cardStyles.label]}>MAGAZINE</Text>
         </View>
         {!isStudent && (
           <View style={s.actionContainer}>
             <TouchableOpacity
               onPress={() => onEdit(item)}
               style={s.iconButton}
+              accessibilityRole="button"
+              accessibilityLabel={`Edit ${item.title}`}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <MaterialCommunityIcons
@@ -47,6 +50,8 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole, isStud
             <TouchableOpacity
               onPress={() => onDelete(item.magazineId)}
               style={s.iconButton}
+              accessibilityRole="button"
+              accessibilityLabel={`Delete ${item.title}`}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
               <MaterialCommunityIcons
@@ -59,7 +64,18 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole, isStud
         )}
       </View>
 
-      <View style={s.cardRow}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`View ${item.title}`}
+        style={({ pressed }) => [cardStyles.content, pressed && cardStyles.pressed]}
+      >
+      <View style={[s.cardRow, cardStyles.body]}>
+        <View style={cardStyles.cover} accessible={false}>
+          <View style={cardStyles.spine} />
+          <MaterialCommunityIcons name="book-open-page-variant-outline" size={32} color={COLORS.white} />
+          <Text style={cardStyles.coverLabel}>IUE</Text>
+        </View>
         {/*{item.attachmentPath && !isPdf ? (
           <Image source={{ uri: item.attachmentPath }} style={s.cover} />
         ) : (
@@ -68,25 +84,40 @@ const MagazineCard = ({ item, onPress, onDelete, onEdit, index, userRole, isStud
           </View>
         )}*/}
         <View style={s.textContainer}>
-          <Text style={s.title} numberOfLines={2}>{item.title}</Text>
-          {!!item.issueNumber && <Text style={s.issue}>{item.issueNumber}</Text>}
+          <Text style={[s.title, cardStyles.title]} numberOfLines={3}>{item.title}</Text>
+          {!!item.issueNumber && <Text style={[s.issue, cardStyles.issue]}>{item.issueNumber}</Text>}
           {!!item.authorName && <Text style={s.author} numberOfLines={1}>By {item.authorName}</Text>}
-          <View style={[s.metaRow, { justifyContent: 'space-between', alignItems: 'center' }]}>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+          <View style={[s.metaRow, { flexWrap: 'wrap' }]}>
               {!!item.category && (
                 <View style={s.categoryPill}><Text style={s.categoryText}>{item.category}</Text></View>
               )}
-              {!!dateStr && <Text style={s.date}>📅 {dateStr}</Text>}
-            </View>
-            <Text style={s.viewHint || { color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>
-              Tap to view ›
-            </Text>
+              {!!dateStr && <Text style={cardStyles.date}>{dateStr}</Text>}
           </View>
         </View>
       </View>
-    </TouchableOpacity>
+      <View style={cardStyles.footer}>
+        <Text style={cardStyles.viewText}>Tap to view ›</Text>
+      </View>
+      </Pressable>
+    </View>
   );
 };
+
+const cardStyles = StyleSheet.create({
+  card: { padding: 0, borderRadius: 20, borderWidth: 1, borderColor: COLORS.border, paddingTop: 14 },
+  label: { color: PRIMARY, fontSize: 11, letterSpacing: 1.2, marginLeft: 6 },
+  content: { borderBottomLeftRadius: 20, borderBottomRightRadius: 20, overflow: 'hidden' },
+  pressed: { backgroundColor: COLORS.bgAlt, opacity: 0.8, transform: [{ scale: 0.985 }] },
+  body: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 18, alignItems: 'center' },
+  cover: { width: 72, minHeight: 106, marginRight: 14, borderRadius: 10, backgroundColor: NAVY, alignItems: 'center', justifyContent: 'center', gap: 10, overflow: 'hidden' },
+  spine: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 6, backgroundColor: COLORS.secondary },
+  coverLabel: { color: GOLD, fontSize: 11, fontWeight: '700', letterSpacing: 3 },
+  title: { color: NAVY, fontSize: 18, lineHeight: 24, marginBottom: 5 },
+  issue: { color: PRIMARY, marginBottom: 5 },
+  date: { color: COLORS.textSecondary, fontSize: 12 },
+  footer: { alignItems: 'flex-end', paddingHorizontal: 16, paddingBottom: 14 },
+  viewText: { color: '#3B82F6', fontSize: 12, fontWeight: '600' },
+});
 
 // ── Main Screen ──────────────────────────────────────────────────────────
 const MagazinesScreen = ({ navigation }) => {
