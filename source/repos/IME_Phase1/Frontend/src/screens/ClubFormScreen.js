@@ -165,7 +165,19 @@ export default function ClubFormScreen({ route, navigation }) {
       clubService.getCountries(),
       memberService.getAllMembers(1, 500),
     ]);
-    if (cRes.success) setCountries(cRes.data || []);
+    if (cRes.success) {
+      const countryOptions = cRes.data || [];
+      setCountries(countryOptions);
+      if (!isEditMode) {
+        const india = countryOptions.find(c => c.countryName?.trim().toLowerCase() === 'india');
+        if (india) {
+          setForm(prev => prev.countryId ? prev : {
+            ...prev, countryId: india.countryId, countryName: india.countryName,
+          });
+          await loadStates(india.countryId, true);
+        }
+      }
+    }
     if (mRes.success) setMembers((mRes.data || []).filter(m => m.membershipStatus === 'Active'));
   };
 
@@ -228,9 +240,20 @@ export default function ClubFormScreen({ route, navigation }) {
     setLoading(false);
   };
 
-  const loadStates = async (countryId) => {
+  const loadStates = async (countryId, selectDefault = false) => {
     const res = await clubService.getStatesByCountry(countryId);
-    if (res.success) setStates(res.data || []);
+    if (res.success) {
+      const stateOptions = res.data || [];
+      setStates(stateOptions);
+      if (selectDefault) {
+        const tamilNadu = stateOptions.find(s => s.stateName?.trim().toLowerCase() === 'tamil nadu');
+        if (tamilNadu) {
+          setForm(prev => prev.countryId === countryId && !prev.stateId ? {
+            ...prev, stateId: tamilNadu.stateId, stateName: tamilNadu.stateName,
+          } : prev);
+        }
+      }
+    }
   };
 
   const set = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
