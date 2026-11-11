@@ -1,5 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  BackHandler,
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { AppText as Text } from '../components/IMEText';
 
 import institutionTree from '../data/institutionTree.json';
@@ -14,6 +23,26 @@ const C = {
   secondary: '#667085',
   border: '#E5EAF1',
 };
+
+/* =========================================================
+   REGIONAL DATA
+========================================================= */
+
+const ZONES = [
+  { name: 'North Zone', districts: '8 Districts', color: '#E74C3C' },
+  { name: 'East Zone', districts: '7 Districts', color: '#3498DB' },
+  { name: 'Central Zone', districts: '7 Districts', color: '#F1C40F' },
+  { name: 'West Zone', districts: '8 Districts', color: '#70BF57' },
+  { name: 'South Zone', districts: '8 Districts', color: '#8850A5' },
+];
+
+const CONVENERS = [
+  { zone: 'North Zone', name: 'Er V Hemalatha', designation: 'EE GCC' },
+  { zone: 'South Zone', name: 'Er Srinivasan', designation: 'REE Madurai' },
+  { zone: 'East Zone', name: 'Er Pradhan Babu', designation: 'AE Thanjavur Corporation' },
+  { zone: 'West Zone', name: 'Er K Boopathi', designation: 'Retd SE Coimbatore Corp' },
+  { zone: 'Central Zone', name: 'Er J Subramanian', designation: 'EE Planning Trichy Corp' },
+];
 
 /* =========================================================
    GET MEMBERS
@@ -138,6 +167,83 @@ function DetailRow({ label, value }) {
 }
 
 /* =========================================================
+   REGIONAL MAP (fits screen + tap to enlarge and drag)
+========================================================= */
+
+const MAP_SOURCE = require('../assets/tn-regional-division.jpeg');
+const MAP_RATIO = 1098 / 978;
+
+function RegionalMap() {
+  const { width, height } = useWindowDimensions();
+  const [open, setOpen] = useState(false);
+
+  // card margin (12 * 2) + card padding (5 * 2) + border (2)
+  const fitWidth = Math.max(width - 36, 200);
+  const fitHeight = fitWidth / MAP_RATIO;
+
+  // enlarged map is 2.4x the screen width, scrollable both ways
+  const bigWidth = width * 2.4;
+  const bigHeight = bigWidth / MAP_RATIO;
+
+  return (
+    <>
+      <Pressable
+        onPress={() => setOpen(true)}
+        style={styles.regionalMapCard}
+        accessibilityRole="button"
+        accessibilityLabel="Enlarge Tamil Nadu regional map"
+      >
+        <Image
+          source={MAP_SOURCE}
+          resizeMode="contain"
+          style={{ width: fitWidth, height: fitHeight }}
+        />
+
+        <Text style={styles.mapHint}>
+          Tap to enlarge • drag to move
+        </Text>
+      </Pressable>
+
+      <Modal
+        visible={open}
+        animationType="fade"
+        onRequestClose={() => setOpen(false)}
+      >
+        <View style={styles.mapModal}>
+          <View style={styles.navigationBar}>
+            <BackButton onPress={() => setOpen(false)} />
+
+            <Text style={styles.navigationTitle}>
+              TN Regional Map
+            </Text>
+
+            <View style={styles.navigationSpacer} />
+          </View>
+
+          <ScrollView
+            style={styles.mapScrollY}
+            maximumZoomScale={3}
+            minimumZoomScale={1}
+            bouncesZoom
+          >
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator
+            >
+              <Image
+                source={MAP_SOURCE}
+                resizeMode="contain"
+                style={{ width: bigWidth, height: bigHeight }}
+              />
+            </ScrollView>
+          </ScrollView>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
+/* =========================================================
    ORGANISATION SCREEN
 ========================================================= */
 
@@ -165,6 +271,11 @@ export default function OrganisationScreen() {
   ======================================================= */
 
   const goBack = useCallback(() => {
+    if (page === 'regional') {
+      setPage('organisation');
+      return true;
+    }
+
     if (page === 'details') {
       setSelectedMember(null);
       setPage('members');
@@ -206,6 +317,117 @@ export default function OrganisationScreen() {
   };
 
   /* =======================================================
+     TN REGIONAL DIVISION PAGE
+  ======================================================= */
+
+  if (page === 'regional') {
+    return (
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentBottom}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* NAVIGATION */}
+        <View style={styles.navigationBar}>
+          <BackButton onPress={goBack} />
+
+          <Text style={styles.navigationTitle}>
+            TN Regional Division
+          </Text>
+
+          <View style={styles.navigationSpacer} />
+        </View>
+
+        {/* PAGE HEADING */}
+        <View style={styles.regionalHeader}>
+          <Text style={styles.regionalTitle}>
+            TN REGIONAL DIVISION
+          </Text>
+
+          <Text style={styles.regionalSubtitle}>
+            Tamil Nadu Regional Zones
+          </Text>
+
+          <Text style={styles.regionalCount}>
+            5 Regional Zones • 38 Districts
+          </Text>
+        </View>
+
+        {/* TAMIL NADU MAP */}
+        <RegionalMap />
+
+        {/* REGIONAL ZONES */}
+        <View style={styles.regionalSection}>
+          <Text style={styles.sectionTitle}>
+            Regional Zones
+          </Text>
+
+          <View style={styles.zoneGrid}>
+            {ZONES.map(zone => (
+              <View
+                key={zone.name}
+                style={styles.zoneCard}
+              >
+                <View
+                  style={[
+                    styles.zoneColorBar,
+                    { backgroundColor: zone.color },
+                  ]}
+                />
+
+                <Text style={styles.zoneName}>
+                  {zone.name}
+                </Text>
+
+                <Text style={styles.zoneDistricts}>
+                  {zone.districts}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* REGIONAL CONVENERS */}
+        <View style={styles.regionalSection}>
+          <Text style={styles.sectionTitle}>
+            Regional Conveners
+          </Text>
+
+          {CONVENERS.map(person => (
+            <View
+              key={person.zone}
+              style={styles.convenerCard}
+            >
+              <Text style={styles.convenerZone}>
+                {person.zone}
+              </Text>
+
+              <Text style={styles.convenerName}>
+                {person.name}
+              </Text>
+
+              <Text style={styles.convenerDesignation}>
+                {person.designation}
+              </Text>
+            </View>
+          ))}
+        </View>
+
+        {/* STATE COORDINATOR */}
+        <View style={styles.coordinatorCard}>
+          <Text style={styles.coordinatorHeading}>
+            STATE COORDINATOR – DMA AND DTP
+          </Text>
+
+          <Text style={styles.coordinatorName}>
+            Er Nalini – AEE
+          </Text>
+        </View>
+      </ScrollView>
+    );
+  }
+
+  /* =======================================================
      MEMBER DETAILS PAGE
   ======================================================= */
 
@@ -244,10 +466,6 @@ export default function OrganisationScreen() {
 
           <Text style={styles.profileDesignation}>
             {selectedMember.designation}
-
-
-
-
             {selectedMember.departmentShortName
               ? ` - ${selectedMember.departmentShortName}`
               : ''}
@@ -280,9 +498,6 @@ export default function OrganisationScreen() {
             label="Department"
             value={selectedMember.department}
           />
-
-         
-         
 
           <DetailRow
             label="Organization"
@@ -364,15 +579,6 @@ export default function OrganisationScreen() {
                 <Text style={styles.memberRole}>
                   {member.role}
                 </Text>
-
-              {/*  {member.designation ? (
-                  <Text
-                    style={styles.memberDesignation}
-                    numberOfLines={2}
-                  >
-                    {member.designation}
-                  </Text>
-                ) : null}  */}
               </View>
 
               <Text style={styles.memberArrow}>
@@ -410,8 +616,6 @@ export default function OrganisationScreen() {
       </View>
 
       <View style={styles.committeeSection}>
-        
-
         <Text style={styles.sectionTitle}>
           Committees
         </Text>
@@ -475,6 +679,41 @@ export default function OrganisationScreen() {
             </Pressable>
           );
         })}
+
+        {/* REGIONAL DIVISION HEADING */}
+        <Text style={[styles.sectionTitle, styles.sectionTitleSpaced]}>
+          Regional Division
+        </Text>
+
+        {/* TN REGIONAL DIVISION */}
+        <Pressable
+          onPress={() => setPage('regional')}
+          style={({ pressed }) => [
+            styles.committeeCard,
+            pressed && styles.pressed,
+          ]}
+          accessibilityRole="button"
+        >
+          <View style={styles.committeeIcon}>
+            <Text style={styles.committeeIconText}>TN</Text>
+          </View>
+
+          <View style={styles.committeeText}>
+            <Text style={styles.committeeName}>
+              TN Regional Division with Conveners
+            </Text>
+
+            <Text style={styles.committeeCount}>
+              5 Regional Zones • 38 Districts
+            </Text>
+
+            <Text style={styles.committeeAction}>
+              View Regional Division →
+            </Text>
+          </View>
+
+          <Text style={styles.committeeArrow}>›</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );
@@ -498,9 +737,7 @@ const styles = StyleSheet.create({
     opacity: 0.78,
   },
 
-  /* =======================================================
-     NAVIGATION
-  ======================================================= */
+  /* NAVIGATION */
 
   navigationBar: {
     minHeight: 66,
@@ -537,9 +774,7 @@ const styles = StyleSheet.create({
     width: 42,
   },
 
-  /* =======================================================
-     ORGANISATION HEADER
-  ======================================================= */
+  /* ORGANISATION HEADER */
 
   organisationHeader: {
     backgroundColor: C.navy,
@@ -572,9 +807,7 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
 
-  /* =======================================================
-     COMMITTEE LIST
-  ======================================================= */
+  /* COMMITTEE LIST */
 
   committeeSection: {
     paddingHorizontal: 18,
@@ -594,6 +827,10 @@ const styles = StyleSheet.create({
     color: C.text,
     fontSize: 23,
     fontWeight: '800',
+  },
+
+  sectionTitleSpaced: {
+    marginTop: 14,
   },
 
   committeeCard: {
@@ -666,9 +903,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
 
-  /* =======================================================
-     MEMBER PAGE
-  ======================================================= */
+  /* MEMBER PAGE */
 
   pageHeading: {
     paddingHorizontal: 18,
@@ -745,17 +980,11 @@ const styles = StyleSheet.create({
   },
 
   memberRole: {
-    marginTop: 3,
-    color: C.secondary,
+    marginTop: 4,
+    color: '#8B5E34',
     fontSize: 12,
     lineHeight: 17,
-  },
-
-  memberDesignation: {
-    marginTop: 2,
-    color: C.navy,
-    fontSize: 11,
-    lineHeight: 15,
+    fontWeight: '700',
   },
 
   memberArrow: {
@@ -764,9 +993,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 3,
   },
 
-  /* =======================================================
-     PROFILE
-  ======================================================= */
+  /* PROFILE */
 
   profileCard: {
     marginHorizontal: 18,
@@ -848,13 +1075,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: C.border,
   },
-memberRole: {
-  marginTop: 4,
-  color: '#8B5E34',
-  fontSize: 12,
-  lineHeight: 17,
-  fontWeight: '700',
-},
+
   detailLabel: {
     marginBottom: 5,
     color: C.secondary,
@@ -867,5 +1088,157 @@ memberRole: {
     fontSize: 15,
     lineHeight: 22,
     fontWeight: '600',
+  },
+
+  /* TN REGIONAL DIVISION */
+
+  regionalHeader: {
+    paddingHorizontal: 18,
+    paddingTop: 22,
+    paddingBottom: 12,
+  },
+
+  regionalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: C.navy,
+  },
+
+  regionalSubtitle: {
+    fontSize: 13,
+    color: C.secondary,
+    marginTop: 5,
+  },
+
+  regionalCount: {
+    marginTop: 12,
+    color: '#A47A13',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+
+  regionalMapCard: {
+    marginHorizontal: 12,
+    marginTop: 8,
+    padding: 5,
+    backgroundColor: C.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+  },
+
+  mapHint: {
+    marginTop: 6,
+    marginBottom: 2,
+    textAlign: 'center',
+    color: C.secondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  mapModal: {
+    flex: 1,
+    backgroundColor: C.background,
+  },
+
+  mapScrollY: {
+    flex: 1,
+  },
+
+  regionalSection: {
+    paddingHorizontal: 16,
+    paddingTop: 22,
+  },
+
+  zoneGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+
+  zoneCard: {
+    width: '48%',
+    minHeight: 100,
+    marginBottom: 12,
+    padding: 13,
+    borderRadius: 14,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.border,
+    elevation: 2,
+  },
+
+  zoneColorBar: {
+    height: 5,
+    width: '100%',
+    borderRadius: 5,
+    marginBottom: 12,
+  },
+
+  zoneName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: C.navy,
+  },
+
+  zoneDistricts: {
+    marginTop: 6,
+    fontSize: 12,
+    color: C.secondary,
+  },
+
+  convenerCard: {
+    marginBottom: 12,
+    padding: 16,
+    backgroundColor: C.white,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: C.border,
+    borderLeftWidth: 4,
+    borderLeftColor: C.gold,
+    elevation: 2,
+  },
+
+  convenerZone: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#A47A13',
+    marginBottom: 7,
+  },
+
+  convenerName: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: C.navy,
+  },
+
+  convenerDesignation: {
+    marginTop: 5,
+    fontSize: 13,
+    color: C.secondary,
+    lineHeight: 19,
+  },
+
+  coordinatorCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 25,
+    padding: 18,
+    backgroundColor: C.navy,
+    borderRadius: 15,
+  },
+
+  coordinatorHeading: {
+    fontSize: 11,
+    fontWeight: '900',
+    color: '#F8E7A1',
+    letterSpacing: 0.5,
+  },
+
+  coordinatorName: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: '800',
+    color: C.white,
   },
 });
