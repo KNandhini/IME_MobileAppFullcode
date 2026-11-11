@@ -1,5 +1,5 @@
 import { COLORS } from './theme';
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { View, FlatList, RefreshControl, TouchableOpacity, StatusBar, Image, Alert, ActivityIndicator } from 'react-native';
 import { AppText as Text } from '../components/IMEText';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -141,6 +141,8 @@ const AchievementsScreen = ({ navigation }) => {
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const loadVersion = useRef(0);
   const [photoMap, setPhotoMap] = useState({});
   const [search, setSearch] = useState('');
   const [userRole, setUserRole] = useState(null);  // ← ADD
@@ -166,15 +168,25 @@ const AchievementsScreen = ({ navigation }) => {
   useFocusEffect(
     useCallback(() => {
       load();
+      return () => { loadVersion.current += 1; };
     }, [])
   );
 
   const load = async () => {
+    const version = ++loadVersion.current;
+    setLoadError(false);
     try {
       // Step 1: load achievements
       const achRes = await achievementService.getAll();
+      if (version !== loadVersion.current) return;
+      if (!achRes?.success || !Array.isArray(achRes.data)) {
+        throw new Error('Unable to load achievements');
+      }
       const achList = achRes?.success ? (achRes.data ?? []) : [];
       if (achRes?.success) setAchievements(achList);
+      // Photos are optional: display the list before waiting for them.
+      setLoading(false);
+      setRefreshing(false);
       // Step 2: extract unique memberIds from achievements
       const uniqueMemberIds = [
         ...new Set(
@@ -184,11 +196,15 @@ const AchievementsScreen = ({ navigation }) => {
         )
       ];
 
-      if (uniqueMemberIds.length === 0) return;
+      if (uniqueMemberIds.length === 0) {
+        setPhotoMap({});
+        return;
+      }
 
       // Step 3: fetch ONLY those member photos
       try {
         const photoRes = await memberService.getMemberPhotosByIds(uniqueMemberIds);
+        if (version !== loadVersion.current) return;
         if (photoRes?.success && photoRes?.data?.length > 0) {
           const map = {};
           photoRes.data.forEach((p) => {
@@ -209,9 +225,12 @@ const AchievementsScreen = ({ navigation }) => {
       }
     } catch (e) {
       console.error('Achievement list load error:', e);
+      if (version === loadVersion.current) setLoadError(true);
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (version === loadVersion.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   };
 
@@ -252,6 +271,15 @@ const AchievementsScreen = ({ navigation }) => {
 
       <ListSearchBar value={search} onChangeText={setSearch} placeholder="Search achievements..." />
 
+      {loadError && (
+        <View style={{ padding: 16, alignItems: 'center' }}>
+          <Text style={s.emptyText}>Could not load achievements. Please try again.</Text>
+          <TouchableOpacity onPress={onRefresh} accessibilityRole="button" style={{ padding: 12 }}>
+            <Text style={{ color: COLORS.primary, fontWeight: '600' }}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {loading ? (
         <View style={s.centered}>
           <ActivityIndicator size="large" color={GOLD} />
@@ -260,8 +288,8 @@ const AchievementsScreen = ({ navigation }) => {
       ) : filteredAchievements.length === 0 && !refreshing ? (
         <View style={s.centered}>
           <MaterialCommunityIcons name="trophy-outline" size={56} color="#CBD5E1" />
-          <Text style={s.emptyTitle}>No achievements yet</Text>
-          <Text style={s.emptyText}>Tap + to add one!</Text>
+          {!loadError && <Text style={s.emptyTitle}>No achievements yet</Text>}
+          {!loadError && <Text style={s.emptyText}>Tap + to add one!</Text>}
         </View>
       ) : (
         <FlatList
