@@ -1,4 +1,3 @@
-
 import GradientHeader from '../components/GradientHeader';
 import { COLORS } from './theme';
 import React, { useState, useEffect, useRef } from 'react';
@@ -75,6 +74,35 @@ const toPublicUrl = (filePath) => {
   return `${API_BASE}/${filePath
     .substring(idx)
     .replace(/\\/g, '/')}`;
+};
+
+// FIX: copy the picked file into our own cache folder under a clean,
+// URL-safe name so the upload task can always read it.
+const stageFile = async (asset, fileName, index) => {
+  const safeName = fileName.replace(/[^A-Za-z0-9._-]/g, '_');
+  const dest = `${FileSystem.cacheDirectory}circular-${Date.now()}-${index}-${safeName}`;
+
+  try {
+    // copyAsync accepts both file:// and content:// sources
+    await FileSystem.copyAsync({ from: asset.uri, to: dest });
+
+    const info = await FileSystem.getInfoAsync(dest);
+
+    if (info.exists) {
+      return dest;
+    }
+  } catch (error) {
+    console.warn('stageFile copy failed:', asset.uri, error.message);
+
+    // A content:// URI can still be uploaded directly with FormData
+    if (asset.uri.startsWith('content://')) {
+      return asset.uri;
+    }
+
+    throw error;
+  }
+
+  throw new Error('Could not prepare the file. Please try again.');
 };
 
 const VISIBILITY_OPTIONS = [
@@ -370,8 +398,8 @@ const AddCircularScreen = ({ route, navigation }) => {
   };
 
   // ANDROID DOCUMENT PICKER FIX
-  // Keep the app-readable cache URI returned by Expo.
-  // Do not copy the file again.
+  // Copy the picked file into our own cache folder with a clean name
+  // (see stageFile above) so the upload can always read it.
 
   const addPickedAssets = async (
     assets,
@@ -405,26 +433,20 @@ const AddCircularScreen = ({ route, navigation }) => {
         'application/octet-stream';
 
       try {
-        if (
-          !asset.uri ||
-          !asset.uri.startsWith('file://')
-        ) {
+        if (!asset.uri) {
           throw new Error(
-            'No app-readable file URI was returned. Please select a locally stored file.'
+            'No file URI was returned. Please select the file again.'
           );
         }
 
-        const info =
-          await FileSystem.getInfoAsync(asset.uri);
-
-        if (!info.exists) {
-          throw new Error(
-            'The selected file is unavailable. Try moving it to Downloads and selecting it again.'
-          );
-        }
+        const stagedUri = await stageFile(
+          asset,
+          fileName,
+          index
+        );
 
         staged.push({
-          uri: asset.uri,
+          uri: stagedUri,
           name: fileName,
           fileName,
           mimeType,
@@ -438,7 +460,7 @@ const AddCircularScreen = ({ route, navigation }) => {
         console.log(
           'Circular attachment ready:',
           fileName,
-          asset.uri
+          stagedUri
         );
       } catch (error) {
         console.error(
@@ -488,8 +510,10 @@ const AddCircularScreen = ({ route, navigation }) => {
           // Some Android document providers fail on multiple MIME filters.
           type: isDocumentSelection ? '*/*' : types,
 
-          // Critical Android fix
-          copyToCacheDirectory: true,
+          // The picker's own cache copy is the file Android says
+          // "isn't readable", so get the original content:// URI instead
+          // and let stageFile copy it into our own cache.
+          copyToCacheDirectory: false,
 
           multiple: true,
         });
