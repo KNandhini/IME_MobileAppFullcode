@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { File, UploadType } from 'expo-file-system';
 import * as FileSystem from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 export const uploadAttachments = async (url, files) => {
     const token = await AsyncStorage.getItem('authToken');
     const results = [];
@@ -26,7 +27,24 @@ try {
     console.warn('Cannot access attachment:', error.message);
     throw error;
 }
-        const response = await new File(file.uri).upload(url, {
+        let uploadUri = file.uri;
+        let temporaryDirectory = null;
+        try {
+            if (Platform.OS === 'android') {
+                if (!FileSystem.cacheDirectory) {
+                    throw new Error('App cache directory is unavailable.');
+                }
+
+                const fileName = (file.fileName || file.name || 'attachment')
+                    .split(/[\\/]/)
+                    .pop() || 'attachment';
+                temporaryDirectory = `${FileSystem.cacheDirectory}attachment-upload-${Date.now()}-${Math.random().toString(36).slice(2)}/`;
+                await FileSystem.makeDirectoryAsync(temporaryDirectory);
+                uploadUri = `${temporaryDirectory}${encodeURIComponent(fileName)}`;
+                await FileSystem.copyAsync({ from: file.uri, to: uploadUri });
+            }
+
+        const response = await new File(uploadUri).upload(url, {
             uploadType: UploadType.MULTIPART,
             fieldName: 'files',
             mimeType: file.mimeType || 'application/octet-stream',
@@ -45,6 +63,15 @@ try {
         }
 
         results.push(data);
+        } finally {
+            if (temporaryDirectory) {
+                try {
+                    await FileSystem.deleteAsync(temporaryDirectory, { idempotent: true });
+                } catch (cleanupError) {
+                    console.warn('Unable to remove temporary attachment copy:', cleanupError);
+                }
+            }
+        }
     }
 
     return results;
